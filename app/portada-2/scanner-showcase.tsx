@@ -14,7 +14,7 @@ const cubes = [
 ] as const;
 
 const scanStepMs = 1700;
-const glowLeadMs = 300;
+const glowLeadMs = 550;
 
 const resultCopy = {
   match: {
