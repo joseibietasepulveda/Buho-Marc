@@ -16,8 +16,8 @@ const cubes = [
 const resultCopy = {
   match: {
     symbol: "✓",
-    title: "Coincidencia validada",
-    note: "Identidad detectada",
+    title: "Sin coincidencia detectada",
+    note: "No hay coincidencia detectada",
   },
   alert: {
     symbol: "×",
@@ -29,7 +29,7 @@ const resultCopy = {
 export default function ScannerShowcase() {
   const [scanIndex, setScanIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const currentCube = cubes[scanIndex % cubes.length];
+  const currentCube = cubes[scanIndex];
   const currentResult = resultCopy[currentCube.result];
 
   useEffect(() => {
@@ -115,11 +115,11 @@ export default function ScannerShowcase() {
                 <div className="conveyor-surface" />
                 <div className="conveyor-lights" />
                 <div className="cube-track">
-                  {[...cubes, ...cubes].map((cube, index) => (
+                  {cubes.map((cube, index) => (
                     <div
-                      className={`cube-unit ${index % cubes.length === scanIndex ? "cube-current" : ""}`}
-                      key={`${cube.logo}-${index}`}
-                      style={{ "--cube-delay": `${index * -1.36}s` } as React.CSSProperties}
+                      className={`cube-unit ${index === scanIndex ? `cube-current cube-result-${cube.result}` : ""}`}
+                      key={cube.logo}
+                      style={{ "--cube-delay": `${index * 1.7 - 5.95}s` } as React.CSSProperties}
                     >
                       <div className="brand-cube">
                         <span className="cube-front">
