@@ -59,6 +59,10 @@ export default function Home() {
           <a className="wordmark" href="#inicio" aria-label="Image Watch, inicio">
             Image Watch
           </a>
+          <div className="nav-tabs" aria-label="Portadas">
+            <a className="nav-tab nav-tab-active" href="/">Portada 1</a>
+            <a className="nav-tab" href="/portada-2">Portada 2</a>
+          </div>
           <a className="nav-status" href="#metodo">
             <span /> Monitoreo visual
           </a>
