@@ -13,6 +13,9 @@ const cubes = [
   { logo: "05", result: "match" },
 ] as const;
 
+const scanStepMs = 1700;
+const glowLeadMs = 300;
+
 const resultCopy = {
   match: {
     symbol: "✓",
@@ -28,6 +31,7 @@ const resultCopy = {
 
 export default function ScannerShowcase() {
   const [scanIndex, setScanIndex] = useState(0);
+  const [approachingIndex, setApproachingIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const currentCube = cubes[scanIndex];
   const currentResult = resultCopy[currentCube.result];
@@ -35,12 +39,20 @@ export default function ScannerShowcase() {
   useEffect(() => {
     if (!isPlaying) return;
 
-    const interval = window.setInterval(() => {
-      setScanIndex((index) => (index + 1) % cubes.length);
-    }, 1700);
+    const nextIndex = (scanIndex + 1) % cubes.length;
+    const glowTimer = window.setTimeout(() => {
+      setApproachingIndex(nextIndex);
+    }, scanStepMs - glowLeadMs);
+    const scanTimer = window.setTimeout(() => {
+      setApproachingIndex(null);
+      setScanIndex(nextIndex);
+    }, scanStepMs);
 
-    return () => window.clearInterval(interval);
-  }, [isPlaying]);
+    return () => {
+      window.clearTimeout(glowTimer);
+      window.clearTimeout(scanTimer);
+    };
+  }, [isPlaying, scanIndex]);
 
   return (
     <main className={`scanner-page ${isPlaying ? "is-playing" : "is-paused"}`}>
@@ -117,7 +129,7 @@ export default function ScannerShowcase() {
                 <div className="cube-track">
                   {cubes.map((cube, index) => (
                     <div
-                      className={`cube-unit ${index === scanIndex ? `cube-current cube-result-${cube.result}` : ""}`}
+                      className={`cube-unit ${index === scanIndex ? `cube-current cube-result-${cube.result}` : ""} ${index === approachingIndex ? `cube-approaching cube-result-${cube.result}` : ""}`}
                       key={cube.logo}
                       style={{ "--cube-delay": `${index * 1.7 - 5.95}s` } as React.CSSProperties}
                     >
