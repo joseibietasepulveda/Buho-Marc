@@ -33,9 +33,9 @@ export default function ScannerShowcase() {
   const [scanIndex, setScanIndex] = useState(0);
   const [approachingIndex, setApproachingIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const currentCube = cubes[scanIndex];
-  const currentResult = resultCopy[currentCube.result];
   const highlightedCubeIndex = approachingIndex ?? scanIndex;
+  const highlightedCube = cubes[highlightedCubeIndex];
+  const currentResult = resultCopy[highlightedCube.result];
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -104,7 +104,7 @@ export default function ScannerShowcase() {
             </div>
 
             <div className="scanner-status" aria-live="polite">
-              <span className={`result-symbol result-${currentCube.result}`}>{currentResult.symbol}</span>
+              <span className={`result-symbol result-${highlightedCube.result}`}>{currentResult.symbol}</span>
               <span>
                 <strong>{currentResult.title}</strong>
                 <small>{currentResult.note}</small>
