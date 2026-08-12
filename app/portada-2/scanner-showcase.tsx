@@ -14,7 +14,7 @@ const cubes = [
 ] as const;
 
 const scanStepMs = 1700;
-const glowLeadMs = 550;
+const glowLeadMs = 800;
 
 const resultCopy = {
   match: {
@@ -35,6 +35,7 @@ export default function ScannerShowcase() {
   const [isPlaying, setIsPlaying] = useState(true);
   const currentCube = cubes[scanIndex];
   const currentResult = resultCopy[currentCube.result];
+  const highlightedCubeIndex = approachingIndex ?? scanIndex;
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -127,27 +128,32 @@ export default function ScannerShowcase() {
                 <div className="conveyor-surface" />
                 <div className="conveyor-lights" />
                 <div className="cube-track">
-                  {cubes.map((cube, index) => (
-                    <div
-                      className={`cube-unit ${index === scanIndex ? `cube-current cube-result-${cube.result}` : ""} ${index === approachingIndex ? `cube-approaching cube-result-${cube.result}` : ""}`}
-                      key={cube.logo}
-                      style={{ "--cube-delay": `${index * 1.7 - 5.95}s` } as React.CSSProperties}
-                    >
-                      <div className="brand-cube">
-                        <span className="cube-front">
-                          <Image
-                            src={`/logos/logo-${cube.logo}.png`}
-                            alt=""
-                            width={92}
-                            height={92}
-                            sizes="92px"
-                          />
-                        </span>
-                        <span className="cube-side" />
-                        <span className="cube-top" />
+                  {cubes.map((cube, index) => {
+                    const isApproaching = index === approachingIndex;
+                    const isHighlighted = index === highlightedCubeIndex;
+
+                    return (
+                      <div
+                        className={`cube-unit ${isHighlighted ? `cube-current cube-result-${cube.result}` : ""} ${isApproaching ? "cube-approaching" : ""}`}
+                        key={cube.logo}
+                        style={{ "--cube-delay": `${index * 1.7 - 5.95}s` } as React.CSSProperties}
+                      >
+                        <div className="brand-cube">
+                          <span className="cube-front">
+                            <Image
+                              src={`/logos/logo-${cube.logo}.png`}
+                              alt=""
+                              width={92}
+                              height={92}
+                              sizes="92px"
+                            />
+                          </span>
+                          <span className="cube-side" />
+                          <span className="cube-top" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
