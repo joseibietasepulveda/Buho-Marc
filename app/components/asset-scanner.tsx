@@ -83,7 +83,7 @@ export default function AssetScanner({
   return (
     <section
       className={`scanner-stage ${compact ? "scanner-stage-compact" : ""} ${className}`}
-      aria-label="Demostración del escáner visual de Image Watch"
+      aria-label="Demostración del escáner visual"
     >
       <div className="stage-header">
         <span>ENTRADA DE ACTIVOS</span>

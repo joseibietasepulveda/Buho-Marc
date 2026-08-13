@@ -4,11 +4,11 @@ import AssetScanner from "../components/asset-scanner";
 import ColorBends from "./color-bends";
 
 export const metadata: Metadata = {
-  title: "Portada 3 | Image Watch",
-  description: "Una nueva manera de monitorear la identidad visual de tus clientes.",
+  title: "Buho Marc | Vigilancia temprana de marcas",
+  description: "Monitoreo de marcas, coincidencias y oposiciones para anticipar cada acción legal.",
   openGraph: {
-    title: "Image Watch | La señal de tu marca no se detiene",
-    description: "Una nueva manera de monitorear la identidad visual de tus clientes.",
+    title: "Buho Marc | Que tu cliente se entere por ti",
+    description: "Monitoreo de marcas, coincidencias y oposiciones para anticipar cada acción legal.",
     images: [{ url: "/og-portada-3.png", width: 1731, height: 909 }],
   },
   twitter: {
@@ -17,17 +17,21 @@ export const metadata: Metadata = {
   },
 };
 
-const signals = [
-  ["01", "Explora", "Rastrea cada aparición relevante en el ecosistema visual de tu cliente."],
-  ["02", "Entiende", "Compara contexto, similitud y alcance sin perderte entre resultados."],
-  ["03", "Actúa", "Convierte cada hallazgo en una conversación clara y oportuna."],
-];
+const dashboardStats = [
+  ["Marcas siendo vigiladas", "84", "Cartera activa"],
+  ["Coincidencias a revisar manualmente", "24", "Prioridad alta", "alert"],
+  ["Oposiciones en curso", "07", "Con seguimiento"],
+  ["Alertas del Diario Oficial", "16", "Esta semana"],
+  ["Solicitudes en observación", "31", "Próximos 30 días"],
+  ["Escritos por presentar", "05", "Acción requerida", "alert"],
+  ["Resoluciones favorables", "12", "Último trimestre"],
+] as const;
 
-const watchlist = [
-  ["Marca", "Activos de marca, campañas y piezas propias"],
-  ["Contexto", "Dónde aparece, con quién y por qué importa"],
-  ["Decisión", "Evidencia lista para priorizar la siguiente acción"],
-];
+const dashboardLinks = [
+  "Ir a marcas revisadas",
+  "Ir a signos distintivos identificados",
+  "Ir a expedientes de oposición",
+] as const;
 
 export default function PortadaTres() {
   return (
@@ -47,7 +51,7 @@ export default function PortadaTres() {
         <div className="bends-grain" aria-hidden="true" />
 
         <nav className="bends-nav" aria-label="Navegación principal">
-          <Link className="bends-brand" href="/" aria-label="Buho Watch, inicio">BUHO WATCH<span>®</span></Link>
+          <Link className="bends-brand" href="/" aria-label="Buho Marc, inicio">BUHO MARC<span>®</span></Link>
           <div className="bends-nav-links">
             <a href="#sistema">Sistema</a>
             <a href="#senal">Señales</a>
@@ -62,74 +66,85 @@ export default function PortadaTres() {
 
         <div className="bends-hero-content">
           <h1>Trackeo de la propiedad<br />intelectual visual<br /><em>de tus clientes.</em></h1>
-          <p className="bends-intro">Que tus clientes no se enteren antes que tú.</p>
+          <p className="bends-intro">Que tus clientes se enteren por ti.</p>
           <div className="bends-actions">
             <a className="bends-button bends-button-primary" href="#sistema">Conoce el sistema <span>↓</span></a>
-            <a className="bends-button bends-button-plain" href="mailto:hola@imagewatch.cl">Hablemos <span>↗</span></a>
+            <a className="bends-button bends-button-plain" href="https://wa.me/56978083444" target="_blank" rel="noreferrer">Hablemos <span>↗</span></a>
           </div>
         </div>
 
         <AssetScanner className="hero-scanner" compact />
 
         <div className="bends-hero-footer" aria-label="Resumen de monitoreo">
-          <span>Protección visual</span>
+          <span>Detección temprana en el Diario Oficial</span>
           <span>Detección contextual</span>
           <span>Decisiones con evidencia</span>
         </div>
       </section>
 
-      <section className="bends-intro-section" id="sistema">
-        <div className="bends-section-top">
-          <p className="bends-index">01 / EL SISTEMA</p>
-          <p className="bends-side-copy">Para marcas que saben que una imagen nunca viaja sola.</p>
+      <section className="dashboard-section" id="sistema">
+        <div className="dashboard-glow" aria-hidden="true" />
+        <div className="dashboard-heading">
+          <div>
+            <p className="bends-index">01 / EL SISTEMA</p>
+            <h2>Un tablero para llegar<br />antes que la noticia.</h2>
+          </div>
+          <p>Buho Marc ordena las señales que necesitan una decisión legal, desde el Diario Oficial hasta el escrito que corresponde presentar.</p>
         </div>
-        <h2>Una mirada más nítida<br />sobre todo lo que <em>representa</em> tu marca.</h2>
-        <div className="signal-cards">
-          {signals.map(([number, title, text]) => (
-            <article key={number} className="signal-card">
-              <span>{number}</span>
-              <div className="signal-card-line" aria-hidden="true"><i /><i /><i /></div>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </article>
-          ))}
+        <div className="dashboard-shell">
+          <div className="dashboard-topbar">
+            <span><i /> MONITOREO ACTIVO</span>
+            <span>ACTUALIZADO AHORA</span>
+          </div>
+          <div className="dashboard-stats">
+            {dashboardStats.map(([label, value, detail, tone]) => (
+              <article className={`dashboard-stat ${tone === "alert" ? "dashboard-stat-alert" : ""}`} key={label}>
+                <p>{label}</p>
+                <strong>{value}</strong>
+                <span>{detail}</span>
+              </article>
+            ))}
+          </div>
+          <div className="dashboard-links" aria-label="Vistas del tablero">
+            {dashboardLinks.map((label, index) => (
+              <span key={label}><b>0{index + 1}</b>{label}<i aria-hidden="true">↗</i></span>
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="bends-statement" id="senal">
         <div className="bends-statement-orb" aria-hidden="true" />
         <p className="bends-index">02 / EL CRITERIO</p>
-        <blockquote>Ver una coincidencia es fácil.<br />Saber qué hacer con ella,<br /><em>no tanto.</em></blockquote>
-        <p className="statement-detail">Image Watch suma sensibilidad de marca a una lectura precisa de cada aparición. Así, el equipo ve menos ruido y más oportunidades de acción.</p>
-      </section>
-
-      <section className="watchlist-section">
-        <div className="watchlist-heading">
-          <p className="bends-index">03 / ENFOQUE</p>
-          <h2>Lo que una marca necesita ver, sin buscarlo todo.</h2>
-        </div>
-        <div className="watchlist" role="list">
-          {watchlist.map(([title, text], index) => (
-            <div className="watchlist-item" role="listitem" key={title}>
-              <span>0{index + 1}</span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-              <i aria-hidden="true">↘</i>
-            </div>
-          ))}
-        </div>
+        <blockquote>No solo encontramos coincidencias,<br />te adelantamos el escrito<br /><em>que hay que presentar.</em></blockquote>
+        <p className="statement-detail">Buho Marc suma monitoreo continuo y criterio legal para que cada alerta llegue con el contexto, la evidencia y la próxima acción clara.</p>
       </section>
 
       <section className="bends-contact" id="contacto">
-        <p className="bends-index">IMAGE WATCH / 2026</p>
-        <h2>Haz que cada imagen<br />cuente a tu favor.</h2>
-        <a className="bends-contact-link" href="mailto:hola@imagewatch.cl">hola@imagewatch.cl <span>↗</span></a>
+        <p className="bends-index">BUHO MARC / 2026</p>
+        <h2>Que tu cliente<br />se entere por ti.</h2>
+        <a className="bends-contact-link" href="mailto:hola@buhomarc.cl">hola@buhomarc.cl <span>↗</span></a>
+        <a className="bends-whatsapp-link" href="https://wa.me/56978083444" target="_blank" rel="noreferrer">Click to WhatsApp · +56 9 7808 3444 <span>↗</span></a>
       </section>
 
       <footer className="bends-footer">
-        <a className="bends-brand" href="#inicio">IMAGE WATCH<span>®</span></a>
-        <p>La vigilancia que tu identidad visual estaba esperando.</p>
-        <Link href="/portada-2">Ver portada 2 ↗</Link>
+        <div className="footer-branding">
+          <p className="footer-brand">BUHO MARC<span>®</span></p>
+          <p>Vigilancia temprana para decisiones de marca.</p>
+        </div>
+        <div className="footer-column">
+          <span>VIGILANCIA</span>
+          <p>Marcas y signos distintivos</p>
+          <p>Diario Oficial</p>
+          <p>Oposiciones y escritos</p>
+        </div>
+        <div className="footer-column">
+          <span>CONTACTO</span>
+          <p>hola@buhomarc.cl</p>
+          <p>+56 9 7808 3444</p>
+          <p>Santiago · Chile</p>
+        </div>
+        <p className="footer-legal">© 2026 Buho Marc. Todos los derechos reservados.</p>
       </footer>
     </main>
   );
