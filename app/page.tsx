@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
 
 const particles = Array.from({ length: 48 }, (_, index) => ({
   left: `${(index * 37 + 7) % 101}%`,
@@ -60,9 +61,9 @@ export default function Home() {
             Image Watch
           </a>
           <div className="nav-tabs" aria-label="Portadas">
-            <a className="nav-tab nav-tab-active" href="/">Portada 1</a>
-            <a className="nav-tab" href="/portada-2">Portada 2</a>
-            <a className="nav-tab" href="/portada-3">Portada 3</a>
+            <Link className="nav-tab nav-tab-active" href="/">Portada 1</Link>
+            <Link className="nav-tab" href="/portada-2">Portada 2</Link>
+            <Link className="nav-tab" href="/portada-3">Portada 3</Link>
           </div>
           <a className="nav-status" href="#metodo">
             <span /> Monitoreo visual

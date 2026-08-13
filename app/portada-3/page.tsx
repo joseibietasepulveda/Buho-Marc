@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import AssetScanner from "../components/asset-scanner";
 import ColorBends from "./color-bends";
 
 export const metadata: Metadata = {
@@ -45,28 +47,29 @@ export default function PortadaTres() {
         <div className="bends-grain" aria-hidden="true" />
 
         <nav className="bends-nav" aria-label="Navegación principal">
-          <a className="bends-brand" href="/" aria-label="Image Watch, inicio">IMAGE WATCH<span>®</span></a>
+          <Link className="bends-brand" href="/" aria-label="Buho Watch, inicio">BUHO WATCH<span>®</span></Link>
           <div className="bends-nav-links">
             <a href="#sistema">Sistema</a>
             <a href="#senal">Señales</a>
             <a href="#contacto">Contacto</a>
           </div>
           <div className="bends-tabs" aria-label="Portadas">
-            <a href="/">01</a>
-            <a href="/portada-2">02</a>
-            <a className="is-current" href="/portada-3" aria-current="page">03</a>
+            <Link href="/">01</Link>
+            <Link href="/portada-2">02</Link>
+            <Link className="is-current" href="/portada-3" aria-current="page">03</Link>
           </div>
         </nav>
 
         <div className="bends-hero-content">
-          <p className="bends-kicker"><i /> Inteligencia visual continua</p>
-          <h1>La señal de tu marca<br /><em>no se detiene.</em></h1>
-          <p className="bends-intro">Observamos lo que circula, detectamos lo que importa y te damos claridad para proteger la identidad de tus clientes.</p>
+          <h1>Trackeo de la propiedad<br />intelectual visual<br /><em>de tus clientes.</em></h1>
+          <p className="bends-intro">Que tus clientes no se enteren antes que tú.</p>
           <div className="bends-actions">
             <a className="bends-button bends-button-primary" href="#sistema">Conoce el sistema <span>↓</span></a>
             <a className="bends-button bends-button-plain" href="mailto:hola@imagewatch.cl">Hablemos <span>↗</span></a>
           </div>
         </div>
+
+        <AssetScanner className="hero-scanner" compact />
 
         <div className="bends-hero-footer" aria-label="Resumen de monitoreo">
           <span>Protección visual</span>
@@ -126,7 +129,7 @@ export default function PortadaTres() {
       <footer className="bends-footer">
         <a className="bends-brand" href="#inicio">IMAGE WATCH<span>®</span></a>
         <p>La vigilancia que tu identidad visual estaba esperando.</p>
-        <a href="/portada-2">Ver portada 2 ↗</a>
+        <Link href="/portada-2">Ver portada 2 ↗</Link>
       </footer>
     </main>
   );
