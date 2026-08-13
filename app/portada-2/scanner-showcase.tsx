@@ -69,6 +69,7 @@ export default function ScannerShowcase() {
           <div className="nav-tabs nav-tabs-dark" aria-label="Portadas">
             <a className="nav-tab" href="/">Portada 1</a>
             <a className="nav-tab nav-tab-active" href="/portada-2">Portada 2</a>
+            <a className="nav-tab" href="/portada-3">Portada 3</a>
           </div>
           <a className="nav-status" href="#como-opera">
             <span /> Algoritmo activo

@@ -62,6 +62,7 @@ export default function Home() {
           <div className="nav-tabs" aria-label="Portadas">
             <a className="nav-tab nav-tab-active" href="/">Portada 1</a>
             <a className="nav-tab" href="/portada-2">Portada 2</a>
+            <a className="nav-tab" href="/portada-3">Portada 3</a>
           </div>
           <a className="nav-status" href="#metodo">
             <span /> Monitoreo visual
