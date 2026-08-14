@@ -93,8 +93,9 @@ export default function PortadaTres() {
         <div className="system-section-glow" aria-hidden="true" />
         <div className="system-heading">
           <p className="bends-index">01 / EL SISTEMA</p>
-          <h2><em>Monitoreamos automáticamente 24/7 todas las piezas gráficas publicadas en el Diario Oficial.</em><br />Te alertamos si alguna se asemeja a las marcas que estés trackeando.</h2>
-          <p>Analizamos mediante registros históricos de qué se ha rechazado o aceptado. Te damos el aviso y la oposición que deberías presentar de acorde a la ley 19.039 y los reclamos exitosos.</p>
+          <h2><span className="system-title-white">Monitoreamos automáticamente 24/7 todas las piezas gráficas</span><br /><em>publicadas en el Diario Oficial.</em></h2>
+          <p className="system-alert">Te alertamos si alguna se asemeja a las marcas que estés trackeando.</p>
+          <p className="system-detail">Analizamos mediante registros históricos de qué se ha rechazado o aceptado. Te damos el aviso y la oposición que deberías presentar de acorde a la <strong>ley 19.039</strong> y los reclamos exitosos.</p>
         </div>
         <div className="system-flow" aria-label="Flujo del sistema de detección">
           {systemFlow.map((step, index) => (

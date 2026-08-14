@@ -624,3 +624,24 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   .system-flow-card, .system-flow-card:nth-child(2) { border-right: 0; border-bottom: 1px solid rgba(236,224,255,.13); }
   .system-flow-card:last-child { border-bottom: 0; }
 }
+
+.system-section { padding: 122px max(36px, calc((100% - 1320px) / 2)) 72px; }
+.system-heading h2 { margin-bottom: 24px; }
+.system-title-white { color: #fffaff; }
+.system-heading h2 em { color: #d4acff; }
+.system-heading > .system-alert { width: min(850px, 100%); margin: 0 0 24px; color: rgba(255,255,255,.92); font-size: clamp(23px, 2vw, 31px); font-weight: 510; line-height: 1.2; }
+.system-heading > .system-detail { width: min(780px, 100%); color: rgba(255,255,255,.7); font-size: clamp(18px, 1.55vw, 23px); }
+.system-detail strong { color: #fffaff; font-weight: 740; letter-spacing: -.035em; }
+.system-flow { margin-top: 58px; }
+.system-flow-card { min-height: 160px; justify-content: center; padding: 20px 28px; }
+.system-flow-card > span { position: absolute; top: 20px; left: 28px; }
+.system-section + .dashboard-section { padding-top: 82px; }
+
+@media (max-width: 820px) {
+  .system-section { padding: 80px 20px 54px; }
+  .system-heading > .system-alert { font-size: 22px; }
+  .system-flow { margin-top: 45px; }
+  .system-flow-card { min-height: 150px; padding: 18px 20px; }
+  .system-flow-card > span { top: 18px; left: 20px; }
+  .system-section + .dashboard-section { padding-top: 76px; }
+}
