@@ -10,6 +10,7 @@ type ColorBendsProps = {
   bandWidth?: number;
   rotation?: number;
   fadeTop?: number;
+  waveY?: number;
   iterations?: number;
   intensity?: number;
 };
@@ -22,6 +23,7 @@ export default function ColorBends({
   bandWidth = 0.14,
   rotation = 90,
   fadeTop = 0.75,
+  waveY = 0.75,
   iterations = 1,
   intensity = 1.3,
 }: ColorBendsProps) {
@@ -64,7 +66,7 @@ export default function ColorBends({
         const x = -area * 0.28 + progress * area * 1.55;
         const wave = Math.sin(progress * Math.PI * frequency * 3.1 + time + index * noise * 1.8);
         const waveTwo = Math.sin(progress * Math.PI * frequency * 7.2 - time * 0.8 + index * noise);
-        const y = rect.height * 0.75 + wave * rect.height * 0.2 + waveTwo * rect.height * noise * 0.42;
+        const y = rect.height * waveY + wave * rect.height * 0.2 + waveTwo * rect.height * noise * 0.42;
         const lineWidth = Math.max(2, area * bandWidth * (0.22 + Math.sin(progress * Math.PI) * 0.8));
         const alpha = Math.max(0, Math.sin(progress * Math.PI)) * 0.13 * intensity / Math.max(iterations, 1);
         const gradient = context.createLinearGradient(x, y - lineWidth, x, y + lineWidth);
@@ -103,7 +105,7 @@ export default function ColorBends({
 
     animation = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animation);
-  }, [bandWidth, color, fadeTop, frequency, intensity, iterations, noise, rotation, speed]);
+  }, [bandWidth, color, fadeTop, frequency, intensity, iterations, noise, rotation, speed, waveY]);
 
   return <canvas ref={canvasRef} className="bends-canvas" aria-hidden="true" />;
 }

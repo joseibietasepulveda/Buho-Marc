@@ -90,6 +90,18 @@ export default function PortadaTres() {
       </section>
 
       <section className="system-section" id="sistema">
+        <ColorBends
+          color="#A855F7"
+          speed={0.2}
+          frequency={1.0}
+          noise={0.15}
+          bandWidth={0.14}
+          rotation={90}
+          fadeTop={0.28}
+          waveY={0.12}
+          iterations={1}
+          intensity={1.3}
+        />
         <div className="system-section-glow" aria-hidden="true" />
         <div className="system-heading">
           <p className="bends-index">01 / EL SISTEMA</p>
