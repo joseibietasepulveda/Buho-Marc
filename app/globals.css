@@ -534,6 +534,8 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
 .dashboard-section { min-height: 0; padding: 108px max(36px, calc((100% - 1320px) / 2)); }
 .dashboard-heading { width: min(1060px, 100%); margin: 0 auto 49px; }
 .dashboard-heading h2 { font-size: clamp(54px, 6.5vw, 91px); }
+.dashboard-heading > div { width: 100%; }
+.dashboard-heading .dashboard-detail { width: min(780px, 100%); margin: 31px 0 0; color: rgba(255,255,255,.7); font-size: clamp(18px, 1.55vw, 23px); line-height: 1.48; letter-spacing: -.028em; }
 .dashboard-shell { width: min(1060px, 100%); margin: 0 auto; }
 .dashboard-stat { min-height: 164px; padding: 21px 22px 18px; }
 .dashboard-stat p { max-width: 255px; font-size: 15px; }
@@ -543,6 +545,10 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
 .dashboard-links b { font-size: 10px; }
 
 .statement-detail { width: min(700px, 100%); align-self: flex-start; color: rgba(255,255,255,.74); font-size: clamp(20px, 1.7vw, 25px); line-height: 1.45; }
+
+@media (max-width: 920px) {
+  .dashboard-heading .dashboard-detail { margin-top: 24px; }
+}
 
 .bends-contact-link { padding: 0; border: 0; color: #d9bdff; font-size: 20px; }
 .bends-whatsapp-link { display: inline-flex; align-items: center; gap: 12px; margin-top: 23px; color: #25d366; font-family: var(--font-geist-sans), Arial, sans-serif; font-size: 16px; font-weight: 570; letter-spacing: -.025em; text-transform: none; }

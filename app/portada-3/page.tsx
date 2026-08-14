@@ -126,8 +126,10 @@ export default function PortadaTres() {
           <div>
             <p className="bends-index">02 / DASHBOARD</p>
             <h2>Un tablero para llegar<br /><span className="dashboard-highlight">antes que la noticia.</span></h2>
+            <p className="dashboard-detail">
+              Un dashboard para que estés en control de todo lo que pasa y puedas tomar decisiones
+            </p>
           </div>
-          <p>Buho Marc ordena las señales que necesitan una decisión legal, desde el Diario Oficial hasta el escrito que corresponde presentar.</p>
         </div>
         <div className="dashboard-shell">
           <div className="dashboard-topbar">
