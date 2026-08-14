@@ -54,7 +54,7 @@ export default function PortadaTres() {
           <Link className="bends-brand" href="/" aria-label="Buho Marc, inicio">BUHO MARC<span>®</span></Link>
           <div className="bends-nav-links">
             <a href="#sistema">Sistema</a>
-            <a href="#senal">Señales</a>
+            <a href="#senal">Criterio</a>
             <a href="#contacto">Contacto</a>
           </div>
           <div className="bends-tabs" aria-label="Portadas">
@@ -87,7 +87,7 @@ export default function PortadaTres() {
         <div className="dashboard-heading">
           <div>
             <p className="bends-index">01 / EL SISTEMA</p>
-            <h2>Un tablero para llegar<br />antes que la noticia.</h2>
+            <h2>Un tablero para llegar<br /><span className="dashboard-highlight">antes que la noticia.</span></h2>
           </div>
           <p>Buho Marc ordena las señales que necesitan una decisión legal, desde el Diario Oficial hasta el escrito que corresponde presentar.</p>
         </div>
@@ -126,8 +126,7 @@ export default function PortadaTres() {
         <a className="bends-contact-link" href="mailto:contato@buhomarc.cl">contato@buhomarc.cl <span>↗</span></a>
         <a className="bends-whatsapp-link" href="https://wa.me/56978083444" target="_blank" rel="noreferrer">
           <img src="https://cdn.simpleicons.org/whatsapp/25D366" alt="" />
-          <span>Click to WhatsApp</span>
-          <strong>+56 9 7808 3444</strong>
+          <span>Conversemos</span>
         </a>
       </section>
 

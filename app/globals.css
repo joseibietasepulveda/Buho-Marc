@@ -558,3 +558,33 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   .bends-whatsapp-link { gap: 10px; font-size: 13px; }
   .bends-whatsapp-link img { width: 31px; height: 31px; }
 }
+
+/* Jerarquía y lectura de la portada Buho Marc */
+.bends-brand { font-size: clamp(34px, 4vw, 58px); }
+.bends-nav-links { gap: 46px; font-size: clamp(17px, 1.45vw, 22px); font-weight: 510; }
+.bends-hero-footer span:first-child { margin-left: clamp(0px, calc((100vw - 1252px) / 2), 70px); }
+.dashboard-highlight { color: #d4acff; }
+
+.dashboard-topbar { min-height: 62px; font-size: 11px; }
+.dashboard-stat { min-height: 196px; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.dashboard-stat p { max-width: none; font-size: 17px; font-weight: 510; }
+.dashboard-stat strong { margin: 0; font-size: clamp(63px, 6.4vw, 90px); }
+.dashboard-stat span { font-size: 10px; }
+.dashboard-links span { min-height: 76px; font-size: 16px; }
+.dashboard-links b { font-size: 11px; }
+
+@media (min-width: 921px) {
+  .dashboard-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .dashboard-stat:nth-child(-n + 4) { grid-column: span 3; }
+  .dashboard-stat:nth-child(n + 5) { grid-column: span 2; }
+  .dashboard-stat:nth-child(1), .dashboard-stat:nth-child(3), .dashboard-stat:nth-child(5), .dashboard-stat:nth-child(6) { border-right: 1px solid rgba(236,224,255,.13); }
+  .dashboard-stat:nth-child(2), .dashboard-stat:nth-child(4), .dashboard-stat:nth-child(7) { border-right: 0; }
+}
+
+@media (max-width: 820px) {
+  .bends-brand { font-size: 25px; }
+}
+
+@media (max-width: 480px) {
+  .bends-hero-footer span:first-child { margin-left: 0; }
+}
