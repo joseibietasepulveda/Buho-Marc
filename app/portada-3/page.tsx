@@ -123,8 +123,12 @@ export default function PortadaTres() {
       <section className="bends-contact" id="contacto">
         <p className="bends-index">BUHO MARC / 2026</p>
         <h2>Que tu cliente<br />se entere por ti.</h2>
-        <a className="bends-contact-link" href="mailto:hola@buhomarc.cl">hola@buhomarc.cl <span>↗</span></a>
-        <a className="bends-whatsapp-link" href="https://wa.me/56978083444" target="_blank" rel="noreferrer">Click to WhatsApp · +56 9 7808 3444 <span>↗</span></a>
+        <a className="bends-contact-link" href="mailto:contato@buhomarc.cl">contato@buhomarc.cl <span>↗</span></a>
+        <a className="bends-whatsapp-link" href="https://wa.me/56978083444" target="_blank" rel="noreferrer">
+          <img src="https://cdn.simpleicons.org/whatsapp/25D366" alt="" />
+          <span>Click to WhatsApp</span>
+          <strong>+56 9 7808 3444</strong>
+        </a>
       </section>
 
       <footer className="bends-footer">
@@ -140,7 +144,7 @@ export default function PortadaTres() {
         </div>
         <div className="footer-column">
           <span>CONTACTO</span>
-          <p>hola@buhomarc.cl</p>
+          <p>contato@buhomarc.cl</p>
           <p>+56 9 7808 3444</p>
           <p>Santiago · Chile</p>
         </div>

@@ -511,3 +511,50 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   .footer-branding { grid-column: auto; }
   .footer-legal { font-size: 7px; line-height: 1.55; }
 }
+
+/* Refinamientos de la portada Buho Marc */
+.cube-track { bottom: 38px; }
+.cube-unit { animation-duration: 16.8s; }
+.scanner-stage-compact .cube-track { bottom: 65px; }
+@keyframes cube-travel {
+  0% { left: calc(100% + 70px); opacity: 0; }
+  24.5% { opacity: 0; }
+  26% { opacity: 1; }
+  79% { opacity: 1; }
+  80.5% { opacity: 0; }
+  100% { left: -160px; opacity: 0; }
+}
+
+.bends-intro { max-width: 650px; color: rgba(255,255,255,.82); font-size: clamp(25px, 2.2vw, 35px); font-weight: 510; line-height: 1.18; }
+.bends-actions { gap: 14px; margin-top: 34px; }
+.bends-button { min-height: 62px; gap: 34px; padding: 0 23px; border: 1px solid rgba(234,238,247,.42); border-radius: 5px; color: #fff; background: rgba(169,176,192,.22); box-shadow: inset 0 1px rgba(255,255,255,.12); backdrop-filter: blur(13px); font-size: 17px; }
+.bends-button-primary, .bends-button-plain { color: #fff; border-bottom: 1px solid rgba(234,238,247,.42); background: rgba(169,176,192,.22); }
+.bends-button-primary:hover, .bends-button-plain:hover { background: rgba(205,211,222,.34); }
+
+.dashboard-section { min-height: 0; padding: 108px max(36px, calc((100% - 1320px) / 2)); }
+.dashboard-heading { width: min(1060px, 100%); margin: 0 auto 49px; }
+.dashboard-heading h2 { font-size: clamp(54px, 6.5vw, 91px); }
+.dashboard-shell { width: min(1060px, 100%); margin: 0 auto; }
+.dashboard-stat { min-height: 164px; padding: 21px 22px 18px; }
+.dashboard-stat p { max-width: 255px; font-size: 15px; }
+.dashboard-stat strong { margin-top: 14px; font-size: clamp(55px, 5.8vw, 80px); }
+.dashboard-stat span { font-size: 9px; }
+.dashboard-links span { min-height: 72px; font-size: 15px; }
+.dashboard-links b { font-size: 10px; }
+
+.statement-detail { width: min(700px, 100%); align-self: flex-start; color: rgba(255,255,255,.74); font-size: clamp(20px, 1.7vw, 25px); line-height: 1.45; }
+
+.bends-contact-link { padding: 0; border: 0; color: #d9bdff; font-size: 20px; }
+.bends-whatsapp-link { display: inline-flex; align-items: center; gap: 12px; margin-top: 23px; color: #25d366; font-family: var(--font-geist-sans), Arial, sans-serif; font-size: 16px; font-weight: 570; letter-spacing: -.025em; text-transform: none; }
+.bends-whatsapp-link img { width: 38px; height: 38px; display: block; }
+.bends-whatsapp-link span { margin-left: 0; }
+.bends-whatsapp-link strong { color: #f7f0ff; font-weight: 570; }
+
+@media (max-width: 650px) {
+  .scanner-page .cube-track { bottom: 45px; }
+}
+
+@media (max-width: 540px) {
+  .bends-whatsapp-link { gap: 10px; font-size: 13px; }
+  .bends-whatsapp-link img { width: 31px; height: 31px; }
+}

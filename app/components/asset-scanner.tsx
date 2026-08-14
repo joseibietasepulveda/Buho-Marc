@@ -110,7 +110,6 @@ export default function AssetScanner({
           <span className="gate-corner gate-corner-d" />
           <span className="scan-beam" />
           <span className="scan-core" />
-          <span className="scan-label">ANALIZANDO</span>
         </div>
 
         <div className="cube-track">
@@ -121,7 +120,7 @@ export default function AssetScanner({
               ref={(element) => {
                 cubeRefs.current[index] = element;
               }}
-              style={{ "--cube-delay": `${index * 1.7 - 5.95}s` } as React.CSSProperties}
+              style={{ "--cube-delay": `${index * 2.4 - 8.4}s` } as React.CSSProperties}
             >
               <div className="brand-cube">
                 <span className="cube-front">
@@ -139,11 +138,6 @@ export default function AssetScanner({
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="stage-footer">
-        <span>LECTURA <b>98.4%</b></span>
-        <span>SECUENCIA <b>✓&nbsp; ✓&nbsp; ×</b></span>
       </div>
     </section>
   );
