@@ -65,11 +65,6 @@ export default function PortadaTres() {
             <a href="#criterio">Criterio</a>
             <a href="#contacto">Contacto</a>
           </div>
-          <div className="bends-tabs" aria-label="Portadas">
-            <Link href="/">01</Link>
-            <Link href="/portada-2">02</Link>
-            <Link className="is-current" href="/portada-3" aria-current="page">03</Link>
-          </div>
         </nav>
 
         <div className="bends-hero-content">
