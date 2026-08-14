@@ -33,6 +33,13 @@ const dashboardLinks = [
   "Ir a expedientes de oposición",
 ] as const;
 
+const systemFlow = [
+  "Detección de posible coincidencia gráfica",
+  "Alerta del caso y la marca involucrada + escrito a presentar",
+  "Revisión manual del caso",
+  "Trackeo del caso si se presenta la oposición",
+] as const;
+
 export default function PortadaTres() {
   return (
     <main className="bends-page">
@@ -82,11 +89,29 @@ export default function PortadaTres() {
         </div>
       </section>
 
-      <section className="dashboard-section" id="sistema">
+      <section className="system-section" id="sistema">
+        <div className="system-section-glow" aria-hidden="true" />
+        <div className="system-heading">
+          <p className="bends-index">01 / EL SISTEMA</p>
+          <h2><em>Monitoreamos automáticamente 24/7 todas las piezas gráficas publicadas en el Diario Oficial.</em><br />Te alertamos si alguna se asemeja a las marcas que estés trackeando.</h2>
+          <p>Analizamos mediante registros históricos de qué se ha rechazado o aceptado. Te damos el aviso y la oposición que deberías presentar de acorde a la ley 19.039 y los reclamos exitosos.</p>
+        </div>
+        <div className="system-flow" aria-label="Flujo del sistema de detección">
+          {systemFlow.map((step, index) => (
+            <article className="system-flow-card" key={step}>
+              <span>0{index + 1}</span>
+              <p>{step}</p>
+              {index < systemFlow.length - 1 && <i aria-hidden="true">→</i>}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="dashboard-section" id="dashboard">
         <div className="dashboard-glow" aria-hidden="true" />
         <div className="dashboard-heading">
           <div>
-            <p className="bends-index">01 / EL SISTEMA</p>
+            <p className="bends-index">02 / DASHBOARD</p>
             <h2>Un tablero para llegar<br /><span className="dashboard-highlight">antes que la noticia.</span></h2>
           </div>
           <p>Buho Marc ordena las señales que necesitan una decisión legal, desde el Diario Oficial hasta el escrito que corresponde presentar.</p>
@@ -115,7 +140,7 @@ export default function PortadaTres() {
 
       <section className="bends-statement" id="senal">
         <div className="bends-statement-orb" aria-hidden="true" />
-        <p className="bends-index">02 / EL CRITERIO</p>
+        <p className="bends-index">03 / EL CRITERIO</p>
         <blockquote>No solo encontramos coincidencias,<br />te adelantamos el escrito<br /><em>que hay que presentar.</em></blockquote>
         <p className="statement-detail">Buho Marc suma monitoreo continuo y criterio legal para que cada alerta llegue con el contexto, la evidencia y la próxima acción clara.</p>
       </section>
