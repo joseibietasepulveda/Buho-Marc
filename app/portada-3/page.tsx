@@ -61,7 +61,8 @@ export default function PortadaTres() {
           <Link className="bends-brand" href="/" aria-label="Buho Marc, inicio">BUHO MARC<span>®</span></Link>
           <div className="bends-nav-links">
             <a href="#sistema">Sistema</a>
-            <a href="#senal">Criterio</a>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#criterio">Criterio</a>
             <a href="#contacto">Contacto</a>
           </div>
           <div className="bends-tabs" aria-label="Portadas">
@@ -104,7 +105,7 @@ export default function PortadaTres() {
         />
         <div className="system-section-glow" aria-hidden="true" />
         <div className="system-heading">
-          <p className="bends-index">01 / EL SISTEMA</p>
+          <p className="bends-index section-index">01 / EL SISTEMA</p>
           <h2><span className="system-title-white">Monitoreamos automáticamente 24/7 todas las piezas gráficas</span><br /><em>publicadas en el Diario Oficial.</em></h2>
           <p className="system-alert">Te alertamos si alguna se asemeja a las marcas que estés trackeando.</p>
           <p className="system-detail">Analizamos mediante registros históricos de qué se ha rechazado o aceptado. Te damos el aviso y la oposición que deberías presentar de acorde a la <strong>ley 19.039</strong> y los reclamos exitosos.</p>
@@ -122,9 +123,9 @@ export default function PortadaTres() {
 
       <section className="dashboard-section" id="dashboard">
         <div className="dashboard-glow" aria-hidden="true" />
+        <p className="bends-index section-index">02 / DASHBOARD</p>
         <div className="dashboard-heading">
           <div>
-            <p className="bends-index">02 / DASHBOARD</p>
             <h2>Un tablero para llegar<br /><span className="dashboard-highlight">antes que la noticia.</span></h2>
             <p className="dashboard-detail">
               Un dashboard para que estés en control de todo lo que pasa y puedas tomar decisiones
@@ -153,15 +154,15 @@ export default function PortadaTres() {
         </div>
       </section>
 
-      <section className="bends-statement" id="senal">
+      <section className="bends-statement" id="criterio">
         <div className="bends-statement-orb" aria-hidden="true" />
-        <p className="bends-index">03 / EL CRITERIO</p>
+        <p className="bends-index section-index">03 / EL CRITERIO</p>
         <blockquote>No solo encontramos coincidencias,<br />te adelantamos el escrito<br /><em>que hay que presentar.</em></blockquote>
         <p className="statement-detail">Buho Marc suma monitoreo continuo y criterio legal para que cada alerta llegue con el contexto, la evidencia y la próxima acción clara.</p>
       </section>
 
       <section className="bends-contact" id="contacto">
-        <p className="bends-index">BUHO MARC / 2026</p>
+        <p className="bends-index section-index">04 / CONTACTO</p>
         <h2>Que tu cliente<br />se entere por ti.</h2>
         <a className="bends-contact-link" href="mailto:contato@buhomarc.cl">contato@buhomarc.cl <span>↗</span></a>
         <a className="bends-whatsapp-link" href="https://wa.me/56978083444" target="_blank" rel="noreferrer">
