@@ -1,91 +1,54 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-const templateRoot = new URL("../", import.meta.url);
-const previewRoot = new URL("../app/_sites-preview/", import.meta.url);
+const root = new URL("../", import.meta.url);
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
+async function source(path) {
+  return readFile(new URL(path, root), "utf8");
 }
 
-test("server-renders the starter loading skeleton", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
-  assert.match(html, developmentPreviewMeta);
-  assert.match(html, /<title>Your site is taking shape<\/title>/i);
-  assert.match(html, /Building your site/);
-  assert.match(html, /Your site is taking shape/);
-  assert.match(
-    html,
-    /Your first version will appear here automatically when it’s ready\./,
-  );
-  assert.doesNotMatch(html, /Codex/);
-  assert.match(html, /react-loading-skeleton/);
-  assert.match(html, /role="status"/);
+test("the navigable demo exposes its main product modules", async () => {
+  const page = await source("app/app/page.tsx");
+  for (const label of ["Inicio", "Marcas", "Coincidencias", "Casos", "Notificaciones", "Usuarios", "Configuración"]) {
+    assert.match(page, new RegExp(`label: "${label}"`));
+  }
+  assert.match(page, /fetch\("\/api\/demo"/);
+  assert.match(page, /DATOS EN RAILWAY/);
+  assert.match(page, /MODO LOCAL/);
 });
 
-test("keeps the loading skeleton scoped and disposable", async () => {
-  const [preview, css, page, layout, packageJson, files] = await Promise.all([
-    readFile(new URL("SkeletonPreview.tsx", previewRoot), "utf8"),
-    readFile(new URL("preview.css", previewRoot), "utf8"),
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readdir(previewRoot),
+test("the database model and first migration contain the functional demo entities", async () => {
+  const [schema, migration] = await Promise.all([
+    source("db/schema.ts"),
+    source("drizzle/0000_familiar_shadow_king.sql"),
   ]);
+  for (const table of ["organizations", "users", "brands", "monitoring_jobs", "matches", "match_reviews", "cases", "notifications", "email_drafts", "audit_events"]) {
+    assert.match(schema, new RegExp(`"${table}"`));
+    assert.match(migration, new RegExp(`CREATE TABLE "${table}"`));
+  }
+  assert.match(schema, /awaiting_engine/);
+});
 
-  assert.deepEqual(files.sort(), ["SkeletonPreview.tsx", "preview.css"]);
-  assert.match(preview, /from "react-loading-skeleton"/);
-  assert.match(preview, /baseColor="#eceae7"/);
-  assert.match(preview, /highlightColor="#f9f8f6"/);
-  assert.match(preview, /duration=\{2\.8\}/);
-  assert.match(preview, /sites-skeleton-search-placeholder/);
-  assert.match(packageJson, /"react-loading-skeleton": "3\.5\.0"/);
+test("Railway applies migrations and checks the PostgreSQL connection", async () => {
+  const [railwayText, packageText, health] = await Promise.all([
+    source("railway.json"),
+    source("package.json"),
+    source("app/api/health/route.ts"),
+  ]);
+  const railway = JSON.parse(railwayText);
+  const packageJson = JSON.parse(packageText);
+  assert.equal(railway.deploy.healthcheckPath, "/api/health");
+  assert.equal(railway.deploy.startCommand, "npm run railway:start");
+  assert.match(packageJson.scripts["railway:start"], /db:migrate/);
+  assert.match(health, /SELECT 1/);
+  assert.match(health, /engine: "not-connected"/);
+});
 
-  const shellIndex = preview.indexOf('className="sites-skeleton-shell"');
-  const statusIndex = preview.indexOf('className="sites-skeleton-status"');
-  assert.ok(shellIndex >= 0 && statusIndex > shellIndex);
-  assert.match(css, /position:\s*fixed/);
-  assert.match(css, /inset:\s*0/);
-  assert.match(css, /opacity:\s*0\.52/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(css, /#020617|canvas|pets|progress/i);
-  assert.doesNotMatch(
-    preview,
-    /loading-spinner|status-mark|status-progress|canvas|cookie|random/i,
-  );
-
-  assert.match(page, /export const metadata:\s*Metadata/);
-  assert.match(page, /"codex-preview": "development"/);
-  assert.match(page, /<SkeletonPreview \/>/);
-  assert.match(layout, /title:\s*"Starter Project"/);
-  assert.doesNotMatch(layout, /codex-preview|_sites-preview|themeColor|\bViewport\b/);
-  assert.doesNotMatch(css, /(^|\s)(html|body)\s*\{/m);
-
-  await assert.rejects(
-    access(new URL("public/_sites-preview", templateRoot)),
-  );
+test("the macOS launcher only replaces a process belonging to this app", async () => {
+  const launcher = await source("ABRIR BUHO MARC.command");
+  assert.match(launcher, /process_directory/);
+  assert.match(launcher, /stop_process_tree/);
+  assert.match(launcher, /El puerto/);
+  assert.match(launcher, /npm run dev/);
 });

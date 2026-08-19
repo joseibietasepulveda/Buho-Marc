@@ -1,13 +1,30 @@
-import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import postgres, { type Sql } from "postgres";
 import * as schema from "./schema";
 
-export function getDb() {
-  if (!env.DB) {
-    throw new Error(
-      "Cloudflare D1 binding `DB` is unavailable. Set the `d1` field in .openai/hosting.json to `DB` or let your control plane inject the real binding values before using the database."
-    );
-  }
+type DatabaseGlobal = typeof globalThis & {
+  buhoSql?: Sql;
+  buhoDb?: PostgresJsDatabase<typeof schema>;
+};
 
-  return drizzle(env.DB, { schema });
+const databaseGlobal = globalThis as DatabaseGlobal;
+
+export function getSql() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("DATABASE_URL is not configured");
+
+  if (!databaseGlobal.buhoSql) {
+    databaseGlobal.buhoSql = postgres(databaseUrl, {
+      max: process.env.NODE_ENV === "production" ? 10 : 3,
+      idle_timeout: 20,
+      connect_timeout: 10,
+      prepare: false,
+    });
+  }
+  return databaseGlobal.buhoSql;
+}
+
+export function getDb() {
+  if (!databaseGlobal.buhoDb) databaseGlobal.buhoDb = drizzle(getSql(), { schema });
+  return databaseGlobal.buhoDb;
 }

@@ -1,5 +1,15 @@
 # Hoja de ruta de implementación
 
+## Base entregada en esta demo
+
+- [x] Esquema PostgreSQL y migración inicial.
+- [x] CRUD demostrativo de marcas, casos y miembros.
+- [x] Revisión y conversión transaccional de coincidencias precargadas.
+- [x] Tablero de casos, borradores editables y auditoría básica.
+- [x] Despliegue preparado para Railway con modo local de respaldo.
+- [ ] Autenticación, archivos, email real, permisos, recordatorios y operación productiva.
+- [ ] Motor de cruces y fuentes oficiales, deliberadamente fuera de alcance.
+
 ## Fase 0 — decisiones y diseño técnico
 
 - Confirmar proveedor de identidad, PostgreSQL, almacenamiento y cola.

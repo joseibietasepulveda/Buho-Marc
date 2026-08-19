@@ -21,7 +21,8 @@ La demo permite mostrar la experiencia de Buho Marc sin backend. Está pensada p
 - Las coincidencias se pueden descartar, observar o convertir en caso.
 - Los casos se pueden mover hacia la etapa siguiente.
 - Los borradores de correo se pueden editar y marcar como gestionados.
-- Los cambios se guardan en el navegador mediante `localStorage`.
+- En Railway los cambios se guardan en PostgreSQL y son visibles para todos quienes abran la demo.
+- En local, si no existe `DATABASE_URL`, se usa `localStorage` como respaldo sin configuración.
 
 ## Comportamientos simulados
 

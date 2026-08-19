@@ -35,6 +35,8 @@ El backend valida el esquema, limita valores de puntaje a 0–100, deduplica por
 
 `queued → dispatched → processing → partial → completed`
 
+La implementación actual crea cada trabajo como `awaiting_engine`. El futuro adaptador debe tomarlo de forma idempotente y cambiarlo a `queued` solo cuando exista una entrega real al sistema de colas; la demo no simula ese avance.
+
 Estados terminales de error: `failed_recoverable`, `failed_permanent`, `cancelled`.
 
 - `queued`: marca aceptada y trabajo creado.

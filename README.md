@@ -1,6 +1,6 @@
 # Buho Marc
 
-Mockup navegable de la plataforma web para monitorear marcas, revisar coincidencias y gestionar casos legales. La landing existente se mantiene en `/` y la aplicación demo vive en `/app`.
+Demo funcional y navegable de la plataforma web para administrar marcas, revisar coincidencias precargadas y gestionar casos legales. La landing vive en `/` y la aplicación en `/app`.
 
 ## Ejecutar en local
 
@@ -30,6 +30,8 @@ npm run build
 npm run start
 ```
 
+Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcionando sin instalaciones adicionales. Con `DATABASE_URL`, usa PostgreSQL automáticamente.
+
 ## Qué incluye la demo
 
 - Dashboard con métricas, alertas, bandeja priorizada y agenda legal.
@@ -40,13 +42,21 @@ npm run start
 - Centro de notificaciones con correo editable, copia al portapapeles y estado de gestión.
 - Lista y alta de usuarios.
 - Configuración demostrativa y restauración de los datos iniciales.
+- API persistente para crear marcas, casos y usuarios; revisar coincidencias; avanzar casos; y editar notificaciones.
+- Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
 - Diseño responsive para escritorio, tablet y móvil.
 
-Los datos se guardan en `localStorage` del navegador. Son locales al dispositivo y deliberadamente ficticios. La opción **Restaurar datos demo** está en Configuración.
+Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. La opción **Restaurar datos demo** está en Configuración.
 
 ## Qué no está implementado
 
-No hay autenticación, base de datos, almacenamiento de archivos, correo real, fuentes oficiales ni motor de cruces. El mockup no calcula similitudes: muestra resultados de ejemplo para validar el flujo de producto.
+No hay autenticación real, almacenamiento de archivos, envío de correo, fuentes oficiales ni motor de cruces. La app no calcula similitudes: las coincidencias iniciales son ejemplos y las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
+
+## Despliegue en Railway
+
+El repositorio incluye `railway.json`, migraciones y un health check en `/api/health`. El servicio web necesita una instancia PostgreSQL y la variable `DATABASE_URL`. Al iniciar, aplica las migraciones; la primera carga crea los datos ficticios de forma idempotente.
+
+La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md).
 
 ## Documentación para convertirlo en producto
 
@@ -55,11 +65,15 @@ No hay autenticación, base de datos, almacenamiento de archivos, correo real, f
 - [Contrato con el motor de cruces](docs/MATCHING_ENGINE_INTEGRATION.md)
 - [Modelo de datos inicial](docs/DATA_MODEL.md)
 - [Hoja de ruta de implementación](docs/IMPLEMENTATION_ROADMAP.md)
+- [Operación y despliegue en Railway](docs/RAILWAY_DEPLOYMENT.md)
 
 ## Estructura relevante
 
 - `app/portada-3/`: landing pública actual.
-- `app/app/page.tsx`: comportamiento, datos falsos y módulos del mockup.
+- `app/app/page.tsx`: interfaz y modo de respaldo local.
+- `app/api/demo/route.ts`: lectura y mutaciones de la demo persistente.
+- `db/schema.ts`: esquema PostgreSQL; `drizzle/`: migraciones versionadas.
+- `db/demo.ts`: datos iniciales ficticios y consultas de la demo.
 - `app/app/buho-app.css`: sistema visual de la aplicación.
 - `app/app/layout.tsx`: metadatos de la ruta privada de demo.
 - `docs/`: decisiones para el backend y la evolución funcional.

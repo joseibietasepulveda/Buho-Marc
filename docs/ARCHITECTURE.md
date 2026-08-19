@@ -2,7 +2,18 @@
 
 ## Alcance
 
-Esta arquitectura convierte el mockup en una aplicación multi-organización. El motor que encuentra y puntúa coincidencias se mantiene como una caja negra externa; Buho Marc solo administra su entrada, salida y trazabilidad.
+La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislamiento lógico por organización para la demo. El motor que encuentra y puntúa coincidencias se mantiene como una caja negra externa; Buho Marc solo prepara su entrada, reserva su cola de trabajos y documenta la salida esperada.
+
+## Estado implementado
+
+- Next.js 16, TypeScript y Route Handlers.
+- PostgreSQL mediante Drizzle ORM y migraciones versionadas.
+- Datos demo idempotentes y modo local sin base.
+- Altas de marcas, casos y miembros; revisiones, conversiones, cambios de etapa y borradores persistentes.
+- Auditoría básica de las mutaciones principales.
+- Configuración de despliegue y health check para Railway.
+
+Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordatorios asíncronos y el motor externo.
 
 ## Capas recomendadas
 
@@ -39,7 +50,7 @@ Esta arquitectura convierte el mockup en una aplicación multi-organización. El
 1. El cliente valida campos básicos y conserva el borrador.
 2. `POST /api/brands` valida sesión, membresía, cupo, duplicados y archivos.
 3. En una transacción crea `brand`, clases, archivos y un `monitoring_job` con clave idempotente.
-4. Responde `202 Accepted` con la marca en estado `processing` y el ID del trabajo.
+4. La implementación demo responde con la foto actualizada y deja la marca en `Procesando` y el trabajo en `awaiting_engine`.
 5. Publica el evento `brand.monitoring_requested`.
 6. Un adaptador envía el trabajo al motor externo.
 7. El frontend consulta `GET /api/monitoring-jobs/:id` o recibe actualizaciones por SSE.
