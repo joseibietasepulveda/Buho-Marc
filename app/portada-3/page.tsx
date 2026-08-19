@@ -60,6 +60,7 @@ export default function PortadaTres() {
         <nav className="bends-nav" aria-label="Navegación principal">
           <Link className="bends-brand" href="/" aria-label="Buho Marc, inicio">BUHO MARC<span>®</span></Link>
           <div className="bends-nav-links">
+            <Link href="/app">Abrir demo</Link>
             <a href="#sistema">Sistema</a>
             <a href="#dashboard">Dashboard</a>
             <a href="#criterio">Criterio</a>
