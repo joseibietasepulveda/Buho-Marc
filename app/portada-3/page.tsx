@@ -23,7 +23,7 @@ const dashboardStats = [
   ["Oposiciones en curso", "07", "Con seguimiento"],
   ["Alertas del Diario Oficial", "16", "Esta semana"],
   ["Solicitudes en observación", "31", "Próximos 30 días"],
-  ["Escritos por presentar", "05", "Acción requerida", "alert"],
+  ["Casos por evaluar", "05", "Acción requerida", "alert"],
   ["Resoluciones favorables", "12", "Último trimestre"],
 ] as const;
 
@@ -35,7 +35,7 @@ const dashboardLinks = [
 
 const systemFlow = [
   "Detección de posible coincidencia gráfica",
-  "Alerta del caso y la marca involucrada + escrito a presentar",
+  "Alerta del caso y la marca involucrada",
   "Revisión manual del caso",
   "Trackeo del caso si se presenta la oposición",
 ] as const;
@@ -63,13 +63,12 @@ export default function PortadaTres() {
             <Link href="/app">Abrir demo</Link>
             <a href="#sistema">Sistema</a>
             <a href="#dashboard">Dashboard</a>
-            <a href="#criterio">Criterio</a>
-            <a href="#contacto">Contacto</a>
+            <a href="#pricing">Pricing</a>
           </div>
         </nav>
 
         <div className="bends-hero-content">
-          <h1>Trackeo de la propiedad<br />intelectual visual<br /><em>de tus clientes.</em></h1>
+          <h1>Trackeo de la propiedad<br />intelectual intelectual<br /><em>de tus clientes.</em></h1>
           <p className="bends-intro">Que tus clientes se enteren por ti.</p>
           <div className="bends-actions">
             <a className="bends-button bends-button-primary" href="#sistema">Conoce el sistema <span>↓</span></a>
@@ -80,7 +79,7 @@ export default function PortadaTres() {
         <AssetScanner className="hero-scanner" compact />
 
         <div className="bends-hero-footer" aria-label="Resumen de monitoreo">
-          <span>Detección temprana en el Diario Oficial</span>
+          <span>Detección automática y temprano</span>
           <span>Detección contextual</span>
           <span>Decisiones con evidencia</span>
         </div>
@@ -102,9 +101,9 @@ export default function PortadaTres() {
         <div className="system-section-glow" aria-hidden="true" />
         <div className="system-heading">
           <p className="bends-index section-index">01 / EL SISTEMA</p>
-          <h2><span className="system-title-white">Monitoreamos automáticamente 24/7 todas las piezas gráficas</span><br /><em>publicadas en el Diario Oficial.</em></h2>
+          <h2><span className="system-title-white">Monitoreamos automáticamente 24/7 todas las piezas gráficas</span><br /><em>publicadas en INAPI y el Diario Oficial.</em></h2>
           <p className="system-alert">Te alertamos si alguna se asemeja a las marcas que estés trackeando.</p>
-          <p className="system-detail">Analizamos mediante registros históricos de qué se ha rechazado o aceptado. Te damos el aviso y la oposición que deberías presentar de acorde a la <strong>ley 19.039</strong> y los reclamos exitosos.</p>
+          <p className="system-detail">Analizamos registros históricos de lo que ha sido rechazado o aceptado, de acuerdo con la <strong>Ley Nº 19.039</strong> y los reclamos exitosos.</p>
         </div>
         <div className="system-flow" aria-label="Flujo del sistema de detección">
           {systemFlow.map((step, index) => (
@@ -150,11 +149,52 @@ export default function PortadaTres() {
         </div>
       </section>
 
-      <section className="bends-statement" id="criterio">
-        <div className="bends-statement-orb" aria-hidden="true" />
-        <p className="bends-index section-index">03 / EL CRITERIO</p>
-        <blockquote>No solo encontramos coincidencias,<br />te adelantamos el escrito<br /><em>que hay que presentar.</em></blockquote>
-        <p className="statement-detail">Buho Marc suma monitoreo continuo y criterio legal para que cada alerta llegue con el contexto, la evidencia y la próxima acción clara.</p>
+      <section className="pricing-section" id="pricing">
+        <div className="pricing-glow" aria-hidden="true" />
+        <p className="bends-index section-index">03 / PRICING</p>
+        <div className="pricing-heading">
+          <h2>Elige el alcance<br /><span>de tu monitoreo.</span></h2>
+          <p>Planes mensuales que crecen junto a la cartera de marcas de tu estudio.</p>
+        </div>
+
+        <div className="pricing-grid">
+          <article className="pricing-card">
+            <p className="pricing-plan">BÁSICO</p>
+            <h3>Para carteras compactas.</h3>
+            <p className="pricing-price">4 UF <span>+ IVA</span></p>
+            <p className="pricing-capacity">Hasta 25 marcas</p>
+            <ul>
+              <li>Monitoreo automático 24/7</li>
+              <li>Alertas de coincidencias</li>
+              <li>Acceso al dashboard</li>
+            </ul>
+            <a href="#contacto">Elegir Básico <span>↘</span></a>
+          </article>
+
+          <article className="pricing-card pricing-card-featured">
+            <p className="pricing-plan">MEDIO</p>
+            <h3>Para carteras en crecimiento.</h3>
+            <p className="pricing-price">7 UF <span>+ IVA</span></p>
+            <p className="pricing-capacity">Hasta 60 marcas</p>
+            <ul>
+              <li>Monitoreo automático 24/7</li>
+              <li>Alertas de coincidencias</li>
+              <li>Acceso al dashboard</li>
+            </ul>
+            <a href="#contacto">Elegir Medio <span>↘</span></a>
+          </article>
+
+          <article className="pricing-card pricing-card-enterprise">
+            <p className="pricing-plan">ENTERPRISE</p>
+            <h3>Una solución a tu medida.</h3>
+            <p className="enterprise-copy">Para carteras de más de 60 marcas, conversemos sobre un plan personalizado.</p>
+            <div className="enterprise-contact">
+              <a href="mailto:contato@buhomarc.cl">contato@buhomarc.cl</a>
+              <a href="https://wa.me/56978083444" target="_blank" rel="noreferrer">+56 9 7808 3444</a>
+            </div>
+            <a href="#contacto">Cotizar Enterprise <span>↘</span></a>
+          </article>
+        </div>
       </section>
 
       <section className="bends-contact" id="contacto">
@@ -176,7 +216,7 @@ export default function PortadaTres() {
           <span>VIGILANCIA</span>
           <p>Marcas y signos distintivos</p>
           <p>Diario Oficial</p>
-          <p>Oposiciones y escritos</p>
+          <p>Oposiciones y seguimiento legal</p>
         </div>
         <div className="footer-column">
           <span>CONTACTO</span>
