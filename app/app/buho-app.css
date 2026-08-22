@@ -39,3 +39,83 @@ button, a { -webkit-tap-highlight-color:transparent; }
 @media (max-width:1200px) { .buho-dashboard-grid { grid-template-columns:1fr; }.buho-agenda { max-width:none; }.buho-metrics { grid-template-columns:repeat(2,1fr); }.buho-metrics button:nth-child(2) { border-right:0; }.buho-metrics button:nth-child(-n+2) { border-bottom:1px solid var(--line); } }
 @media (max-width:900px) { .buho-app { grid-template-columns:92px minmax(0,1fr); }.buho-sidebar { padding-inline:12px; }.buho-wordmark { margin-inline:0; font-size:14px; }.buho-sidebar nav button { justify-content:center; padding:0; font-size:0; }.buho-sidebar nav button span { font-size:10px; }.buho-sidebar nav button b { position:absolute; margin-left:36px; }.buho-plan,.buho-profile { display:none; }.buho-workspace { padding-inline:28px; }.buho-topbar { align-items:flex-start; flex-direction:column; }.buho-actions { width:100%; }.buho-search { flex:1; }.buho-kanban { grid-template-columns:repeat(4,260px); }.buho-quota { grid-template-columns:1fr; gap:16px; }.buho-quota a { justify-self:start; }.buho-side-by-side { grid-template-columns:1fr; }.buho-side-by-side > i { transform:rotate(90deg); }.buho-notice-list article { grid-template-columns:1fr; }.buho-notice-match-link { justify-self:start; margin:0 20px 17px; } }
 @media (max-width:620px) { .buho-app { display:block; }.buho-sidebar { min-height:64px; height:64px; flex-direction:row; align-items:center; padding:0 14px; }.buho-wordmark { margin:0; font-size:18px; }.buho-sidebar nav { display:flex; gap:5px; margin-left:auto; }.buho-sidebar nav button { width:auto; min-height:39px; display:none; padding:0 8px; }.buho-sidebar nav button:nth-child(-n+3) { display:flex; }.buho-sidebar nav button span { display:none; }.buho-workspace { padding:30px 15px 52px; }.buho-topbar h1 { font-size:39px; }.buho-topbar > div:first-child > p { font-size:15px; }.buho-actions { align-items:stretch; flex-direction:column; }.buho-search { width:100%; min-width:0; }.buho-metrics { grid-template-columns:1fr; }.buho-metrics button { min-height:145px; border-right:0; border-bottom:1px solid var(--line); }.buho-metrics button:last-child { border-bottom:0; }.buho-metrics button:nth-child(2) { border-right:0; }.buho-attention { grid-template-columns:1fr; gap:9px; }.buho-dashboard-grid { gap:16px; }.buho-match-row { grid-template-columns:1fr auto; }.buho-match-row > .buho-tone { grid-row:1; }.buho-match-row > button { grid-column:1; }.buho-match-row .buho-inapi-link { grid-column:2; grid-row:1; font-size:14px !important; }.buho-calendar-events button { grid-template-columns:1fr; }.buho-calendar-events .buho-tone { display:none; }.buho-table-panel > header,.buho-board-toolbar,.buho-users > header { align-items:flex-start; flex-direction:column; }.buho-table-actions { width:100%; flex-wrap:wrap; }.buho-view-brands,.buho-view-matches,.buho-view-cases,.buho-view-notifications,.buho-view-users { font-size:15px; }.buho-notice-list article > button:first-child { grid-template-columns:8px 1fr; }.buho-notice-list article > button:first-child > .buho-tone { display:none; }.buho-notice-list strong { font-size:18px; }.buho-drawer > header { min-height:84px; padding-inline:18px; }.buho-drawer > header h2 { font-size:26px; }.buho-drawer-scroll,.buho-form { padding:19px 17px; }.buho-drawer-actions,.buho-form footer { min-height:72px; justify-content:flex-start; flex-wrap:wrap; padding:13px 17px; }.buho-drawer-actions > button,.buho-form footer > button { flex:1; min-width:max-content; }.buho-review-actions { flex-direction:column; }.buho-review-actions > button { width:100%; flex:auto; }.buho-form-grid,.buho-detail-grid { grid-template-columns:1fr; }.buho-detail-grid div { border-right:0; border-bottom:1px solid var(--line) !important; }.buho-detail-grid div:last-child { border-bottom:0 !important; }.buho-mail-field > div { grid-template-columns:1fr; }.buho-rut-search { grid-template-columns:1fr; }.buho-rut-result-head { align-items:flex-start; flex-direction:column; }.buho-import-result dl { grid-template-columns:1fr; } }
+
+/* Dev refinement: independent navigation and denser legal workspace. */
+.buho-app { height:100vh; min-height:0; grid-template-columns:270px minmax(0,1fr); overflow:hidden; }
+.buho-sidebar { position:sticky; top:0; height:100vh; min-height:0; overflow:hidden; padding:44px 24px 26px; }
+.buho-wordmark { margin:0 10px 18px; font-size:32px; font-weight:820; }
+.buho-profile { order:0; min-height:62px; margin:0 4px 25px; padding:10px; border:1px solid rgba(255,255,255,.1); border-radius:10px; background:rgba(255,255,255,.04); }
+.buho-profile > span { width:38px; height:38px; font-size:13px; }
+.buho-profile strong { font-size:14px; }
+.buho-profile small { font-size:11px; }
+.buho-sidebar nav { min-height:0; }
+.buho-plan { margin-top:auto; }
+.buho-plan a { max-width:100%; font-size:15px; white-space:nowrap; }
+.buho-workspace { height:100vh; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+.buho-workspace::-webkit-scrollbar { width:12px; }
+.buho-workspace::-webkit-scrollbar-track { background:rgba(12,8,15,.22); }
+.buho-workspace::-webkit-scrollbar-thumb { border:3px solid transparent; border-radius:99px; background:rgba(255,255,255,.4); background-clip:padding-box; }
+.buho-metrics button > span { min-height:34px; display:flex; align-items:center; font-size:14px; white-space:nowrap; }
+.buho-attention { grid-template-columns:minmax(215px,.8fr) minmax(360px,1.25fr) auto; }
+.buho-attention > .buho-attention-title { color:#8549b9; font-size:14px; font-weight:800; white-space:nowrap; }
+.buho-attention-levels { display:flex; align-items:center; justify-content:center; gap:12px; color:var(--ink) !important; font-family:inherit !important; letter-spacing:0 !important; }
+.buho-attention-levels > span { display:inline-flex; align-items:center; gap:7px; color:var(--ink); font-family:inherit; letter-spacing:0; }
+.buho-attention-levels b { width:38px; height:38px; display:grid; place-items:center; border:1px solid transparent; border-radius:8px; font-size:18px; }
+.buho-attention-levels small { color:#4f4652; font-size:13px; font-weight:850; }
+.buho-attention-levels .is-high b { color:#8b2943; border-color:#eda9b9; background:#ffd9e2; }
+.buho-attention-levels .is-medium b { color:#735514; border-color:#e8c45e; background:#ffedb5; }
+.buho-attention-levels .is-low b { color:#236348; border-color:#9ed0b6; background:#d8f1e2; }
+.buho-attention > strong { color:#703e9e; font-size:17px; white-space:nowrap; }
+.buho-dashboard-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; }
+.buho-dashboard-matches,.buho-agenda { min-width:0; }
+.buho-panel > header h2 { white-space:nowrap; }
+.buho-calendar-grid button,.buho-calendar-grid span { height:29px; display:grid; place-items:center; border:0; border-radius:6px; color:#514856; background:transparent; font-size:13px; font-weight:660; }
+.buho-calendar-grid button { position:relative; cursor:pointer; }
+.buho-calendar-grid button.is-event { color:#fff; background:#8150aa; box-shadow:0 4px 10px rgba(112,64,151,.25); }
+.buho-calendar-grid button.is-event::after { position:absolute; left:50%; bottom:calc(100% + 9px); z-index:10; width:240px; padding:9px 11px; border-radius:7px; color:#fff; background:#211529; box-shadow:0 8px 22px rgba(22,12,27,.25); content:attr(data-tooltip); font-size:12px; font-weight:650; line-height:1.35; opacity:0; pointer-events:none; transform:translate(-50%,5px); transition:opacity .14s ease,transform .14s ease; }
+.buho-calendar-grid button.is-event:hover::after,.buho-calendar-grid button.is-event:focus-visible::after { opacity:1; transform:translate(-50%,0); }
+.buho-table-wrap th { font-weight:900; }
+.buho-view-matches .buho-matches-table td:nth-child(2) > strong,.buho-view-matches .buho-matches-table td:nth-child(3) > strong { font-size:17px; letter-spacing:-.025em; }
+.buho-filter-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:14px 16px; border:1px solid rgba(255,255,255,.58); border-radius:12px; background:rgba(248,246,242,.92); }
+.buho-filter-row > small { color:#5e5561; }
+.buho-filter-row .buho-tabs { gap:9px; }
+.buho-filter-row .buho-tabs > button { border:1px solid var(--line); border-radius:8px; background:#fffdfa; }
+.buho-filter-row .buho-tabs > button.is-active { border-color:#7d47a9; color:#fff; background:#24162d; }
+.buho-status-cell { position:relative; width:max-content; }
+.buho-status-trigger { min-height:34px; display:inline-flex; align-items:center; gap:7px; padding:5px 10px; border:1px solid; border-radius:99px; cursor:pointer; font-size:12px; font-weight:820; }
+.buho-status-trigger.is-active { color:#2b7c56; border-color:#a9d7b9; background:#e1f4e7; }
+.buho-status-trigger.is-off { color:#62616a; border-color:#c8c5cd; background:#ecebef; }
+.buho-status-popover { position:absolute; left:0; top:calc(100% + 7px); z-index:8; width:max-content; padding:6px; border:1px solid var(--line); border-radius:8px; background:#fffdfa; box-shadow:0 12px 26px rgba(25,15,30,.18); }
+.buho-status-popover button { min-height:36px; padding:0 11px; border:0; border-radius:6px; color:#241b29; background:transparent; cursor:pointer; font-size:13px; font-weight:780; }
+.buho-status-popover button:hover { background:#f1e6f7; }
+.buho-registration-search { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px; }
+.buho-registration-search .buho-secondary { min-width:104px; }
+.buho-import-result dl { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.buho-side-by-side article > span { font-weight:800; }
+.buho-side-by-side dl div:nth-child(-n+3) { background:#fbf5ff; }
+.buho-side-by-side dt { font-weight:750; }
+.buho-side-by-side dd { max-width:58%; }
+.buho-kanban { grid-template-columns:repeat(5,minmax(220px,1fr)); }
+.buho-row-arrow { display:inline-block; }
+.buho-matches-table tr[role="button"]:focus-visible { outline:3px solid #a864da; outline-offset:-3px; }
+
+@media (max-width:1150px) {
+  .buho-dashboard-grid { grid-template-columns:1fr; }
+  .buho-attention { grid-template-columns:1fr; }
+  .buho-attention-levels { justify-content:flex-start; }
+  .buho-kanban { grid-template-columns:repeat(5,260px); }
+}
+@media (max-width:900px) {
+  .buho-app { grid-template-columns:92px minmax(0,1fr); }
+  .buho-sidebar { padding-inline:12px; }
+  .buho-wordmark { margin-inline:0; font-size:16px; }
+  .buho-profile,.buho-plan { display:none; }
+}
+@media (max-width:620px) {
+  .buho-app { display:block; height:100vh; }
+  .buho-sidebar { position:relative; width:100%; height:64px; min-height:64px; overflow:visible; padding:0 14px; }
+  .buho-workspace { height:calc(100vh - 64px); padding:30px 15px 52px; }
+  .buho-wordmark { margin:0; font-size:20px; }
+  .buho-attention-levels { flex-wrap:wrap; }
+  .buho-registration-search { grid-template-columns:1fr; }
+}

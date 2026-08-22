@@ -29,6 +29,12 @@ test("the enhanced demo includes RUT import, full calendar and interactive case 
   }
   assert.match(page, /bulkCreateBrands/);
   assert.match(api, /bulkCreateBrands/);
+  for (const behavior of ["N.º de registro", "Sin monitoreo", "Dejar de monitorear", "Empezar a monitorear", "Concluido", "Visual", "Fonético", "Conceptual"]) {
+    assert.match(page, new RegExp(behavior));
+  }
+  assert.match(page, /buho-demo-v3/);
+  assert.match(api, /toggleBrandMonitoring/);
+  assert.match(api, /Concluido/);
   assert.match(demo, /supplementalSeedBrands/);
   assert.match(demo, /José Ignacio Ibieta/);
   assert.match(page, /buscadormarcas\.inapi\.cl/);

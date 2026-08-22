@@ -13,7 +13,8 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createCase"), title: z.string().min(2).max(220), brand: z.string().min(2).max(180), client: z.string().min(2).max(180), priority: z.enum(["Alta", "Media", "Baja"]), deadline: z.string().min(2).max(40), owner: z.string().min(2).max(180), description: z.string().max(5000).optional() }),
   z.object({ action: z.literal("createUser"), name: z.string().min(2).max(180), email: z.string().email().max(255) }),
   z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente", "En observación", "Descartada", "Convertida en caso"]) }),
-  z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Evaluación", "Preparación", "Presentado", "Seguimiento"]) }),
+  z.object({ action: z.literal("toggleBrandMonitoring"), id: z.string().min(1), enabled: z.boolean() }),
+  z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Evaluación", "Preparación", "Presentado", "Seguimiento", "Concluido"]) }),
   z.object({ action: z.literal("updateNotice"), id: z.string().min(1), subject: z.string().max(500).optional(), body: z.string().max(20000).optional(), status: z.enum(["Pendiente", "Gestionada"]).optional() }),
   z.object({ action: z.literal("reset") }),
 ]);
@@ -113,6 +114,11 @@ export async function POST(request: Request) {
           await tx`UPDATE matches SET case_id = ${created.id} WHERE id = ${match.id}`;
         }
       });
+    } else if (input.action === "toggleBrandMonitoring") {
+      const status = input.enabled ? "Activa" : "Pausada";
+      const [brand] = await sql`UPDATE brands SET status = ${status}, updated_at = now() WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} RETURNING id`;
+      if (!brand) throw new Error("Marca no encontrada");
+      await sql`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'brand.monitoring_changed', 'brand', ${brand.id}, ${sql.json({ enabled: input.enabled, status })})`;
     } else if (input.action === "moveCase") {
       const [item] = await sql`UPDATE cases SET stage = ${input.stage}, updated_at = now() WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} RETURNING id`;
       if (item) await sql`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'case.stage_changed', 'case', ${item.id}, ${sql.json({ stage: input.stage })})`;
