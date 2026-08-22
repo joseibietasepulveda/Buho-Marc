@@ -79,7 +79,7 @@ export async function ensureDemoSeed() {
     }
     const [brandCount] = await tx`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL`;
     for (const brand of supplementalSeedBrands.slice(0, Math.max(0, 20 - Number(brandCount.count)))) {
-      await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', ${brand.status}, ${tx.json({ rut: brand.rut, inapiUrl: 'https://ion.inapi.cl/Marca/Buscar', visual: brand.visual })}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', ${brand.status}, ${tx.json({ rut: brand.rut, inapiUrl: 'https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx', visual: brand.visual })}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
       for (const niceClass of brand.niceClasses) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
     }
     for (const match of seedMatches) {
@@ -97,6 +97,7 @@ export async function ensureDemoSeed() {
 }
 
 const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const displayPersonName = (name: string) => name === "Rosario Vial" ? "José Ignacio Ibieta" : name;
 function shortDate(value: string | Date | null, includeYear = false) {
   if (!value) return "Por definir";
   const date = new Date(typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00Z` : value);
@@ -114,15 +115,15 @@ export async function getDemoSnapshot() {
   return {
     brands: brandRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as { rut?: string; inapiUrl?: string; visual?: string };
-      return { id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: config.inapiUrl ?? "https://ion.inapi.cl/Marca/Buscar", visual: config.visual ?? row.name.slice(0, 6) };
+      return { id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Pausada" : "En monitoreo", matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
     }),
     matches: matchRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as { rut?: string };
       const applicationDigits = String(row.application_number).replace(/\D/g, "").slice(-6).padStart(6, "0");
-      return { id: row.public_code, brandId: row.brand_code, brand: row.brand_name, found: row.found_name, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: row.owner_name, rut: config.rut ?? `77.100.${String(row.brand_code).replace(/\D/g, "").padStart(3, "0")}-1`, applicantRut: `77.${applicationDigits}-${Number(applicationDigits) % 10}`, officialUrl: row.official_url ?? "https://ion.inapi.cl/Marca/Buscar" };
+      return { id: row.public_code, brandId: row.brand_code, brand: row.brand_name, found: row.found_name, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: displayPersonName(row.owner_name), rut: config.rut ?? `77.100.${String(row.brand_code).replace(/\D/g, "").padStart(3, "0")}-1`, applicantRut: `77.${applicationDigits}-${Number(applicationDigits) % 10}`, officialUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx" };
     }),
-    cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage, priority: row.priority, deadline: shortDate(row.next_deadline), owner: row.owner_name, sourceMatch: row.source_match ?? undefined })),
-    users: userRows.map((row) => ({ id: row.id, name: row.name, email: row.email, createdAt: shortDate(row.created_at, true), initials: row.initials })),
+    cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage, priority: row.priority, deadline: shortDate(row.next_deadline), owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
+    users: userRows.map((row) => ({ id: row.id, name: displayPersonName(row.name), email: row.name === "Rosario Vial" ? "jose.ignacio@ibieta.cl" : row.email, createdAt: shortDate(row.created_at, true), initials: row.name === "Rosario Vial" ? "JI" : row.initials })),
     notices: noticeRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body })),
   };
 }

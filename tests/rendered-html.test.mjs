@@ -10,12 +10,12 @@ async function source(path) {
 
 test("the navigable demo exposes its main product modules", async () => {
   const page = await source("app/app/page.tsx");
-  for (const label of ["Inicio", "Marcas", "Coincidencias", "Casos", "Notificaciones", "Usuarios", "Configuración"]) {
+  for (const label of ["Inicio", "Marcas", "Coincidencias", "Casos", "Notificaciones", "Usuarios"]) {
     assert.match(page, new RegExp(`label: "${label}"`));
   }
   assert.match(page, /fetch\("\/api\/demo"/);
-  assert.match(page, /DATOS EN RAILWAY/);
-  assert.match(page, /MODO LOCAL/);
+  assert.doesNotMatch(page, /DATOS EN RAILWAY/);
+  assert.doesNotMatch(page, /Configuración/);
 });
 
 test("the enhanced demo includes RUT import, full calendar and interactive case views", async () => {
@@ -24,13 +24,14 @@ test("the enhanced demo includes RUT import, full calendar and interactive case 
     source("db/demo.ts"),
     source("app/api/demo/route.ts"),
   ]);
-  for (const copy of ["Buenos días, José Ignacio.", "Marcas en seguimiento", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Nica", "Ver en INAPI", "Agosto 2026", "Victor Tirreau", "Coca-Cola de Chile S.A.", "Arrastra aquí para mover"]) {
+  for (const copy of ["Buenos días, José Ignacio.", "Marcas en seguimiento", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Agosto 2026", "Victor Tirreau", "Coca-Cola de Chile S.A.", "Suelta aquí para mover", "Descartar por ahora", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial"]) {
     assert.match(page, new RegExp(copy));
   }
   assert.match(page, /bulkCreateBrands/);
   assert.match(api, /bulkCreateBrands/);
   assert.match(demo, /supplementalSeedBrands/);
   assert.match(demo, /José Ignacio Ibieta/);
+  assert.match(page, /buscadormarcas\.inapi\.cl/);
 });
 
 test("the database model and first migration contain the functional demo entities", async () => {
