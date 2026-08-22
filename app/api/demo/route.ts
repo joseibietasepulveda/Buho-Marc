@@ -6,8 +6,10 @@ import { getSql } from "@/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const brandInputSchema = z.object({ name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional(), rut: z.string().min(3).max(30), inapiUrl: z.string().url().max(1500), visual: z.string().min(1).max(160) });
 const actionSchema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("createBrand"), name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional() }),
+  z.object({ action: z.literal("createBrand") }).extend(brandInputSchema.shape),
+  z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(25) }),
   z.object({ action: z.literal("createCase"), title: z.string().min(2).max(220), brand: z.string().min(2).max(180), client: z.string().min(2).max(180), priority: z.enum(["Alta", "Media", "Baja"]), deadline: z.string().min(2).max(40), owner: z.string().min(2).max(180), description: z.string().max(5000).optional() }),
   z.object({ action: z.literal("createUser"), name: z.string().min(2).max(180), email: z.string().email().max(255) }),
   z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente", "En observación", "Descartada", "Convertida en caso"]) }),
@@ -57,10 +59,30 @@ export async function POST(request: Request) {
       await sql.begin(async (tx) => {
         const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 18) + 1 AS next FROM brands WHERE organization_id = ${DEMO_ORG_ID}`;
         const code = nextCode("BM", counter.next, 3);
-        const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, created_by) VALUES (${DEMO_ORG_ID}, ${code}, ${input.name.toUpperCase()}, ${input.name.toUpperCase()}, ${input.owner}, ${input.registration || null}, ${input.country}, ${input.description || null}, 'Procesando', ${DEMO_USER_ID}) RETURNING id`;
+        const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${DEMO_ORG_ID}, ${code}, ${input.name.toUpperCase()}, ${input.name.toUpperCase()}, ${input.owner}, ${input.registration || null}, ${input.country}, ${input.description || null}, 'Procesando', ${tx.json({ rut: input.rut, inapiUrl: input.inapiUrl, visual: input.visual, import: 'inapi-demo' })}, ${DEMO_USER_ID}) RETURNING id`;
         for (const niceClass of classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass})`;
         await tx`INSERT INTO monitoring_jobs (organization_id, brand_id, status, idempotency_key, requested_by) VALUES (${DEMO_ORG_ID}, ${brand.id}, 'awaiting_engine', ${`brand:${brand.id}:initial`}, ${DEMO_USER_ID})`;
         await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'brand.created', 'brand', ${brand.id}, ${tx.json({ code, engineStatus: "awaiting_engine" })})`;
+      });
+    } else if (input.action === "bulkCreateBrands") {
+      await sql.begin(async (tx) => {
+        const [usage] = await tx`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL`;
+        const available = Math.max(0, 25 - Number(usage.count));
+        const uniqueInputs = input.brands.filter((brand, index, all) => all.findIndex((candidate) => candidate.name.toUpperCase() === brand.name.toUpperCase()) === index);
+        if (uniqueInputs.length > available) throw new Error(`Solo quedan ${available} cupos disponibles en el plan Estudio`);
+        const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 18) + 1 AS next FROM brands WHERE organization_id = ${DEMO_ORG_ID}`;
+        let next = Number(counter.next);
+        for (const candidate of uniqueInputs) {
+          const classes = [...new Set(candidate.classes.split(/[,;\s]+/).map(Number).filter((item) => Number.isInteger(item) && item >= 1 && item <= 45))];
+          if (!classes.length) throw new Error(`La marca ${candidate.name} no tiene clases válidas`);
+          const [existing] = await tx`SELECT id FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND upper(name) = upper(${candidate.name}) LIMIT 1`;
+          if (existing) continue;
+          const code = nextCode("BM", next, 3); next += 1;
+          const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${DEMO_ORG_ID}, ${code}, ${candidate.name.toUpperCase()}, ${candidate.name.toUpperCase()}, ${candidate.owner}, ${candidate.registration || null}, ${candidate.country}, ${candidate.description || null}, 'Procesando', ${tx.json({ rut: candidate.rut, inapiUrl: candidate.inapiUrl, visual: candidate.visual, import: 'rut-demo' })}, ${DEMO_USER_ID}) RETURNING id`;
+          for (const niceClass of classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass})`;
+          await tx`INSERT INTO monitoring_jobs (organization_id, brand_id, status, idempotency_key, requested_by) VALUES (${DEMO_ORG_ID}, ${brand.id}, 'awaiting_engine', ${`brand:${brand.id}:initial`}, ${DEMO_USER_ID})`;
+          await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'brand.imported_by_rut', 'brand', ${brand.id}, ${tx.json({ code, rut: candidate.rut, source: 'demo-coca-cola' })})`;
+        }
       });
     } else if (input.action === "createCase") {
       const deadline = deadlineToIso(input.deadline);

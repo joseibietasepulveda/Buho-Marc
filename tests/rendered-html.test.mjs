@@ -18,6 +18,21 @@ test("the navigable demo exposes its main product modules", async () => {
   assert.match(page, /MODO LOCAL/);
 });
 
+test("the enhanced demo includes RUT import, full calendar and interactive case views", async () => {
+  const [page, demo, api] = await Promise.all([
+    source("app/app/page.tsx"),
+    source("db/demo.ts"),
+    source("app/api/demo/route.ts"),
+  ]);
+  for (const copy of ["Buenos días, José Ignacio.", "Marcas en seguimiento", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Nica", "Ver en INAPI", "Agosto 2026", "Victor Tirreau", "Coca-Cola de Chile S.A.", "Arrastra aquí para mover"]) {
+    assert.match(page, new RegExp(copy));
+  }
+  assert.match(page, /bulkCreateBrands/);
+  assert.match(api, /bulkCreateBrands/);
+  assert.match(demo, /supplementalSeedBrands/);
+  assert.match(demo, /José Ignacio Ibieta/);
+});
+
 test("the database model and first migration contain the functional demo entities", async () => {
   const [schema, migration] = await Promise.all([
     source("db/schema.ts"),

@@ -6,7 +6,7 @@ export const DEMO_USER_ID = "10000000-0000-4000-8000-000000000101";
 const DEMO_SUBSCRIPTION_ID = "10000000-0000-4000-8000-000000000011";
 
 const ids = {
-  users: [DEMO_USER_ID, "10000000-0000-4000-8000-000000000102", "10000000-0000-4000-8000-000000000103"],
+  users: [DEMO_USER_ID, "10000000-0000-4000-8000-000000000102", "10000000-0000-4000-8000-000000000103", "10000000-0000-4000-8000-000000000104"],
   brands: ["10000000-0000-4000-8000-000000000201", "10000000-0000-4000-8000-000000000202", "10000000-0000-4000-8000-000000000203", "10000000-0000-4000-8000-000000000204", "10000000-0000-4000-8000-000000000205"],
   matches: ["10000000-0000-4000-8000-000000000401", "10000000-0000-4000-8000-000000000402", "10000000-0000-4000-8000-000000000403", "10000000-0000-4000-8000-000000000404", "10000000-0000-4000-8000-000000000405"],
   cases: ["10000000-0000-4000-8000-000000000501", "10000000-0000-4000-8000-000000000502", "10000000-0000-4000-8000-000000000503", "10000000-0000-4000-8000-000000000504"],
@@ -15,9 +15,10 @@ const ids = {
 };
 
 const seedUsers = [
-  [ids.users[0], "rosario@estudio.cl", "Rosario Vial", "RV", "2026-03-04T12:00:00Z"],
+  [ids.users[0], "jose.ignacio@ibieta.cl", "José Ignacio Ibieta", "JI", "2026-03-04T12:00:00Z"],
   [ids.users[1], "matias@estudio.cl", "Matías Soto", "MS", "2026-04-18T12:00:00Z"],
   [ids.users[2], "camila@estudio.cl", "Camila León", "CL", "2026-06-02T12:00:00Z"],
+  [ids.users[3], "victor@ibieta.cl", "Victor Tirreau", "VT", "2026-08-22T12:00:00Z"],
 ] as const;
 
 const seedBrands = [
@@ -27,6 +28,19 @@ const seedBrands = [
   [ids.brands[3], "BM-015", "PULSO", "Pulso Salud SpA", "1377012", "Chile", "Procesando", "2026-08-19T09:30:00-04:00", [5, 10, 44]],
   [ids.brands[4], "BM-014", "LINARIA", "Laboratorios Linaria", "1351164", "Chile", "Pausada", "2026-08-12T16:10:00-04:00", [3, 5]],
 ] as const;
+
+type SupplementalBrand = { id: string; code: string; name: string; owner: string; registration: string; status: "Activa" | "Procesando"; niceClasses: number[]; rut: string; visual: string };
+const supplementalSeedBrands: SupplementalBrand[] = ["ALTURA", "BRISA PACÍFICO", "CÍRCULO", "DORADA", "ENLACE", "FARO SUR", "GRANO VIVO", "HORIZONTE", "ÍNDIGO", "JARDÍN NORTE", "KORA", "LUMEN", "MÁREA", "NEXO", "ORIGEN"].map((name, index) => ({
+  id: `10000000-0000-4000-8000-${String(300 + index).padStart(12, "0")}`,
+  code: `BM-${100 + index}`,
+  name,
+  owner: `${name} Chile SpA`,
+  registration: String(1502300 + index),
+  status: index % 4 === 0 ? "Procesando" : "Activa",
+  niceClasses: index % 2 ? [9, 35, 42] : [29, 30, 32],
+  rut: `77.${String(300000 + index * 921).padStart(6, "0")}-${index % 10}`,
+  visual: name.slice(0, 6),
+}));
 
 const seedMatches = [
   [ids.matches[0], "CO-2481", ids.brands[0], "Diario Oficial", "1570234", "2026-08-19", "NOVA FUDS", "Alimentos del Pacífico Ltda.", "1570234", "Alta", 94, "Pendiente", "2026-08-27", ids.users[0]],
@@ -53,15 +67,20 @@ export async function ensureDemoSeed() {
   const sql = getSql();
   await sql.begin(async (tx) => {
     await tx`INSERT INTO plans (id, code, name, brand_limit) VALUES (${DEMO_PLAN_ID}, 'study', 'Estudio', 25) ON CONFLICT (id) DO NOTHING`;
-    await tx`INSERT INTO organizations (id, name, slug) VALUES (${DEMO_ORG_ID}, 'Estudio Vial IP', 'estudio-vial-ip') ON CONFLICT (id) DO NOTHING`;
+    await tx`INSERT INTO organizations (id, name, slug) VALUES (${DEMO_ORG_ID}, 'Estudio Ibieta IP', 'estudio-ibieta-ip') ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, slug = EXCLUDED.slug, updated_at = now()`;
     for (const user of seedUsers) {
-      await tx`INSERT INTO users (id, email, name, initials, created_at, updated_at) VALUES (${user[0]}, ${user[1]}, ${user[2]}, ${user[3]}, ${user[4]}, ${user[4]}) ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO users (id, email, name, initials, created_at, updated_at) VALUES (${user[0]}, ${user[1]}, ${user[2]}, ${user[3]}, ${user[4]}, ${user[4]}) ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, initials = EXCLUDED.initials, updated_at = now()`;
       await tx`INSERT INTO organization_members (organization_id, user_id, role) VALUES (${DEMO_ORG_ID}, ${user[0]}, ${user[0] === DEMO_USER_ID ? "admin" : "member"}) ON CONFLICT DO NOTHING`;
     }
     await tx`INSERT INTO subscriptions (id, organization_id, plan_id, status, period_start, period_end) VALUES (${DEMO_SUBSCRIPTION_ID}, ${DEMO_ORG_ID}, ${DEMO_PLAN_ID}, 'active', '2026-08-01', '2026-08-31') ON CONFLICT (id) DO NOTHING`;
     for (const brand of seedBrands) {
       await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, created_by, last_reviewed_at, created_at, updated_at) VALUES (${brand[0]}, ${DEMO_ORG_ID}, ${brand[1]}, ${brand[2]}, ${brand[2]}, ${brand[3]}, ${brand[4]}, ${brand[5]}, ${brand[6]}, ${DEMO_USER_ID}, ${brand[7]}, ${brand[7]}, ${brand[7]}) ON CONFLICT (id) DO NOTHING`;
       for (const niceClass of brand[8]) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand[0]}, ${niceClass}) ON CONFLICT DO NOTHING`;
+    }
+    const [brandCount] = await tx`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL`;
+    for (const brand of supplementalSeedBrands.slice(0, Math.max(0, 20 - Number(brandCount.count)))) {
+      await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', ${brand.status}, ${tx.json({ rut: brand.rut, inapiUrl: 'https://ion.inapi.cl/Marca/Buscar', visual: brand.visual })}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
+      for (const niceClass of brand.niceClasses) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
     }
     for (const match of seedMatches) {
       await tx`INSERT INTO matches (id, organization_id, public_code, brand_id, source, source_record_id, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, legal_deadline, owner_id, created_at, updated_at) VALUES (${match[0]}, ${DEMO_ORG_ID}, ${match[1]}, ${match[2]}, ${match[3]}, ${match[4]}, ${match[5]}, ${match[6]}, ${match[7]}, ${match[8]}, ${match[9]}, ${match[10]}, ${`Coincidencia de demostración con puntaje ${match[10]}. El motor real no está conectado.`}, ${match[11]}, ${match[12]}, ${match[13]}, ${`${match[5]}T14:00:00Z`}, ${`${match[5]}T14:00:00Z`}) ON CONFLICT (id) DO NOTHING`;
@@ -86,15 +105,22 @@ function shortDate(value: string | Date | null, includeYear = false) {
 
 export async function getDemoSnapshot() {
   const sql = getSql();
-  const brandRows = await sql`SELECT b.id, b.public_code, b.name, b.owner_name, b.registration_number, b.jurisdiction, b.status, b.updated_at, COALESCE(string_agg(DISTINCT lpad(bc.nice_class::text, 2, '0'), ', ' ORDER BY lpad(bc.nice_class::text, 2, '0')), '') AS classes, count(DISTINCT m.id)::int AS matches_count, count(DISTINCT c.id)::int AS cases_count FROM brands b LEFT JOIN brand_classes bc ON bc.brand_id = b.id LEFT JOIN matches m ON m.brand_id = b.id LEFT JOIN cases c ON c.brand_id = b.id WHERE b.organization_id = ${DEMO_ORG_ID} AND b.archived_at IS NULL GROUP BY b.id ORDER BY b.public_code DESC`;
-  const matchRows = await sql`SELECT m.public_code, b.public_code AS brand_code, b.name AS brand_name, m.found_name, m.applicant, m.application_number, m.total_score, m.level, m.review_status, m.published_at, m.legal_deadline, m.source, COALESCE(u.name, 'Sin asignar') AS owner_name FROM matches m JOIN brands b ON b.id = m.brand_id LEFT JOIN users u ON u.id = m.owner_id WHERE m.organization_id = ${DEMO_ORG_ID} ORDER BY m.total_score DESC`;
+  const brandRows = await sql`SELECT b.id, b.public_code, b.name, b.owner_name, b.registration_number, b.jurisdiction, b.status, b.updated_at, b.monitoring_config, COALESCE(string_agg(DISTINCT lpad(bc.nice_class::text, 2, '0'), ', ' ORDER BY lpad(bc.nice_class::text, 2, '0')), '') AS classes, count(DISTINCT m.id)::int AS matches_count, count(DISTINCT c.id)::int AS cases_count FROM brands b LEFT JOIN brand_classes bc ON bc.brand_id = b.id LEFT JOIN matches m ON m.brand_id = b.id LEFT JOIN cases c ON c.brand_id = b.id WHERE b.organization_id = ${DEMO_ORG_ID} AND b.archived_at IS NULL GROUP BY b.id ORDER BY b.public_code DESC`;
+  const matchRows = await sql`SELECT m.public_code, b.public_code AS brand_code, b.name AS brand_name, b.monitoring_config, m.found_name, m.applicant, m.application_number, m.total_score, m.level, m.review_status, m.published_at, m.legal_deadline, m.source, m.official_url, COALESCE(u.name, 'Sin asignar') AS owner_name FROM matches m JOIN brands b ON b.id = m.brand_id LEFT JOIN users u ON u.id = m.owner_id WHERE m.organization_id = ${DEMO_ORG_ID} ORDER BY m.total_score DESC`;
   const caseRows = await sql`SELECT c.public_code, c.title, COALESCE(b.name, 'Sin marca') AS brand_name, c.client_name, c.stage, c.priority, c.next_deadline, COALESCE(u.name, 'Sin asignar') AS owner_name, m.public_code AS source_match FROM cases c LEFT JOIN brands b ON b.id = c.brand_id LEFT JOIN users u ON u.id = c.owner_id LEFT JOIN matches m ON m.id = c.source_match_id WHERE c.organization_id = ${DEMO_ORG_ID} AND c.status = 'active' ORDER BY c.created_at DESC`;
   const userRows = await sql`SELECT u.id, u.name, u.email, u.initials, om.created_at FROM organization_members om JOIN users u ON u.id = om.user_id WHERE om.organization_id = ${DEMO_ORG_ID} ORDER BY om.created_at`;
   const noticeRows = await sql`SELECT n.public_code, n.title, n.brand_name, n.urgency, n.managed_at, n.created_at, d.subject, d.body FROM notifications n JOIN email_drafts d ON d.notification_id = n.id WHERE n.organization_id = ${DEMO_ORG_ID} ORDER BY n.created_at DESC`;
 
   return {
-    brands: brandRows.map((row) => ({ id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true) })),
-    matches: matchRows.map((row) => ({ id: row.public_code, brandId: row.brand_code, brand: row.brand_name, found: row.found_name, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: row.owner_name })),
+    brands: brandRows.map((row) => {
+      const config = (row.monitoring_config ?? {}) as { rut?: string; inapiUrl?: string; visual?: string };
+      return { id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: config.inapiUrl ?? "https://ion.inapi.cl/Marca/Buscar", visual: config.visual ?? row.name.slice(0, 6) };
+    }),
+    matches: matchRows.map((row) => {
+      const config = (row.monitoring_config ?? {}) as { rut?: string };
+      const applicationDigits = String(row.application_number).replace(/\D/g, "").slice(-6).padStart(6, "0");
+      return { id: row.public_code, brandId: row.brand_code, brand: row.brand_name, found: row.found_name, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: row.owner_name, rut: config.rut ?? `77.100.${String(row.brand_code).replace(/\D/g, "").padStart(3, "0")}-1`, applicantRut: `77.${applicationDigits}-${Number(applicationDigits) % 10}`, officialUrl: row.official_url ?? "https://ion.inapi.cl/Marca/Buscar" };
+    }),
     cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage, priority: row.priority, deadline: shortDate(row.next_deadline), owner: row.owner_name, sourceMatch: row.source_match ?? undefined })),
     users: userRows.map((row) => ({ id: row.id, name: row.name, email: row.email, createdAt: shortDate(row.created_at, true), initials: row.initials })),
     notices: noticeRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body })),
