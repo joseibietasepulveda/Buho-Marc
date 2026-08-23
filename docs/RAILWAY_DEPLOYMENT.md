@@ -5,9 +5,14 @@
 | Ruta | URL | Propósito |
 | --- | --- | --- |
 | Web app | [https://buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
+| Web app de producción | [https://buho-marc-web-production.up.railway.app/app](https://buho-marc-web-production.up.railway.app/app) | Versión estable compartible. |
 | Landing de prueba | [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Revisión de la landing con escáner multimodal y dashboard promocional estático. |
 
 La landing comercial se publica separadamente en Vercel: [https://buho-marc.vercel.app/Landing](https://buho-marc.vercel.app/Landing). Los enlaces de pricing de la web app deben apuntar a `https://buho-marc.vercel.app/Landing#pricing`.
+
+## Ambientes
+
+Railway mantiene ambientes separados de **Dev** y **production**. Cada uno debe tener su propio servicio PostgreSQL y, por lo tanto, una base de datos independiente. Los cambios de esta demo se prueban y verifican primero en Dev; Production solo se actualiza cuando se aprueba expresamente.
 
 ## Servicios necesarios
 
@@ -47,9 +52,10 @@ Después de desplegar:
 1. `/api/health` debe responder `ok: true`, `database: connected` y `engine: not-connected`.
 2. `/app` debe cargar el dashboard navegable con sus datos demo.
 3. Crear una marca, recargar y comprobar que permanece.
-4. La marca debe quedar `Procesando` y su trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
+4. La búsqueda simulada por número de registro debe mostrar RUT, marca, titular, Clases de Niza y estado antes de permitir agregar al seguimiento. En base queda un trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
 5. Convertir una coincidencia ficticia en caso dos veces debe conservar un solo caso.
 6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/Landing#pricing`.
+7. Confirmar que el dashboard muestre las coincidencias pendientes por nivel y que Notificaciones no contenga avisos de borradores.
 
 ## Antes de producción real
 

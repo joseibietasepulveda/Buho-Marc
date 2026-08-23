@@ -44,19 +44,18 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 
 ## Qué incluye la demo
 
-- Dashboard con métricas, alertas, bandeja priorizada y agenda legal.
-- Administración de marcas y formulario de alta.
-- Coincidencias filtrables, comparación lado a lado y decisiones de revisión.
+- Dashboard con métricas, alertas por coincidencias altas, medias y bajas pendientes, bandeja priorizada y agenda legal.
+- Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT y filas completas clickeables para revisar su cartera de coincidencias.
+- Coincidencias filtrables, ordenadas de mayor a menor, con filas completas clickeables, comparación lado a lado y decisiones de revisión.
 - Conversión de una coincidencia en caso.
-- Tablero de casos por etapa, creación manual y avance entre columnas.
-- Centro de notificaciones con correo editable, copia al portapapeles y estado de gestión.
+- Tablero de casos por etapa, creación manual y arrastre fluido entre Evaluación, Preparación, Presentado, Seguimiento y Concluido.
+- Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
 - Lista y alta de usuarios.
-- Configuración demostrativa y restauración de los datos iniciales.
-- API persistente para crear marcas, casos y usuarios; revisar coincidencias; avanzar casos; y editar notificaciones.
+- API persistente para crear marcas, casos y usuarios; revisar coincidencias; mover casos; y gestionar notificaciones.
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
 - Diseño responsive para escritorio, tablet y móvil.
 
-Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. La opción **Restaurar datos demo** está en Configuración.
+Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. La demo actual incluye ocho coincidencias pendientes de revisión: tres altas, tres medias y dos bajas.
 
 ## Qué no está implementado
 
@@ -94,4 +93,4 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 
 ## Sistema visual
 
-La app reutiliza los valores de la landing: tinta `#100d18`, fondo claro `#f3efe8`, violeta `#a855f7`, tipografías Geist y Geist Mono, radios pequeños y bordes translúcidos. La superficie de trabajo es deliberadamente más clara y densa que la landing para favorecer sesiones largas, legibilidad y escaneo de datos.
+La app reutiliza los valores de la landing: tinta `#100d18`, fondo claro `#f3efe8`, violeta `#a855f7`, tipografías Geist y Geist Mono, radios pequeños y bordes translúcidos. En escritorio la superficie se presenta con la densidad equivalente a una visualización al 90 %, sin que el visitante deba cambiar el zoom de su navegador. El nombre Buho Marc es identificador visual, no un hipervínculo dentro de la app.

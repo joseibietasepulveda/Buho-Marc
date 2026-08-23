@@ -98,6 +98,19 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-kanban { grid-template-columns:repeat(5,minmax(220px,1fr)); }
 .buho-row-arrow { display:inline-block; }
 .buho-matches-table tr[role="button"]:focus-visible { outline:3px solid #a864da; outline-offset:-3px; }
+.buho-table-wrap tr.is-clickable { cursor:pointer; }
+.buho-table-wrap tr.is-clickable:hover td { background:#faf3ff; }
+.buho-table-wrap tr.is-clickable:focus-visible { outline:3px solid #a864da; outline-offset:-3px; }
+.buho-view-matches .buho-matches-table { min-width:1120px; }
+.buho-view-matches .buho-matches-table th,.buho-view-matches .buho-matches-table td { padding-right:12px; padding-left:12px; }
+.buho-view-matches .buho-matches-table td:first-child { white-space:nowrap; }
+.buho-view-matches .buho-matches-table td:first-child .buho-tone { margin-top:7px; }
+.buho-filter-row .buho-tabs > .buho-brand-scope { color:#5f347f; border-color:#be96dc; background:#f3e7fb; }
+
+/* La superficie de escritorio replica una visualización al 90 % sin exigir que el visitante cambie el zoom de su navegador. */
+@media (min-width:621px) {
+  .buho-app { width:111.112vw; height:111.112vh; zoom:.9; }
+}
 
 @media (max-width:1150px) {
   .buho-dashboard-grid { grid-template-columns:1fr; }

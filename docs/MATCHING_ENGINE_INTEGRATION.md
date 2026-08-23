@@ -24,7 +24,7 @@ Cada lote de resultados contiene:
 - `job_id`, versión del motor y fecha de procesamiento.
 - Identificador estable de la publicación fuente.
 - Link oficial, fechas, solicitante, número y clases.
-- Puntaje total y nivel `high | medium | low`.
+- Puntaje total interno y nivel `high | medium | low`. La UI actual expone solo el nivel como Alta, Media o Baja; no presenta porcentajes de similitud.
 - Componentes denominativo, fonético, visual, conceptual y de rubro.
 - Explicación breve generada por el motor.
 - Estado final del lote y cursor para procesamiento parcial.

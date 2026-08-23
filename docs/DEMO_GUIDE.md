@@ -14,37 +14,36 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 
 ## Recorrido sugerido
 
-1. Abrir **Inicio** y explicar la jerarquía: atención inmediata, indicadores, coincidencias y plazos.
-2. Entrar a **Marcas**, revisar el cupo y agregar una marca. La nueva marca aparece como `Procesando`.
-3. Entrar a **Coincidencias**, filtrar por nivel y abrir NOVA FUDS.
+1. Abrir **Inicio** y explicar la jerarquía: atención inmediata separada en altas, medias y bajas, indicadores, coincidencias y plazos.
+2. Entrar a **Marcas**, revisar el cupo, agregar una marca por número de registro INAPI o usar la importación por RUT. Cualquier fila abre su cartera de coincidencias.
+3. Entrar a **Coincidencias**, filtrar por nivel y abrir una fila completa o su primera columna **Revisar**.
 4. Revisar la comparación y convertirla en caso.
-5. Entrar a **Casos**, abrir el caso creado y moverlo a la siguiente etapa.
-6. Entrar a **Notificaciones**, editar un correo y copiarlo.
+5. Entrar a **Casos**, abrir el caso creado o arrastrarlo entre las cinco etapas del tablero.
+6. Entrar a **Notificaciones**, revisar el contexto y copiar el contenido de correo si se necesita.
 7. Entrar a **Usuarios** y agregar una persona.
-8. Usar **Configuración → Restaurar datos demo** para volver al estado inicial.
 
 ## Datos editables
 
 - Marcas, casos y usuarios se pueden agregar.
 - Las coincidencias se pueden descartar, observar o convertir en caso.
-- Los casos se pueden mover hacia la etapa siguiente.
-- Los borradores de correo se pueden editar y marcar como gestionados.
+- Los casos se pueden mover arrastrándolos o desde el detalle de caso.
+- Las notificaciones se pueden marcar como gestionadas y su contenido de referencia se puede copiar. No existe una etapa de borrador visible.
 - En Railway los cambios se guardan en PostgreSQL y son visibles para todos quienes abran la demo.
 - En local, si no existe `DATABASE_URL`, se usa `localStorage` como respaldo sin configuración.
 
 ## Comportamientos simulados
 
-- El estado `Procesando` de una nueva marca no avanza automáticamente.
-- Los puntajes y explicaciones de coincidencia son datos fijos.
+- La búsqueda por número de registro INAPI rellena parámetros ficticios; no consulta aún la fuente oficial.
+- Los niveles y explicaciones de coincidencia son datos fijos; la interfaz muestra Alta, Media o Baja, sin porcentajes de similitud.
 - El enlace a la fuente oficial abre INAPI como referencia, no una publicación específica.
 - Cargar un archivo, exportar, vistas guardadas y filtros secundarios son controles visuales.
 - Copiar un correo usa el portapapeles del navegador; nunca se envía automáticamente.
 
 ## Criterios UX aplicados
 
-- Se conserva el contexto con paneles laterales para revisar coincidencias, casos y correos.
+- Se conserva el contexto con paneles laterales para revisar coincidencias, casos y notificaciones.
 - El color siempre se acompaña de texto.
-- Las coincidencias están ordenadas por puntaje descendente.
+- Las coincidencias están ordenadas de mayor a menor y cada fila tiene cursor de mano, foco visible y apertura por teclado.
 - Las acciones de mayor impacto se explicitan y muestran confirmación.
 - Los formularios no borran datos hasta que el usuario confirma o cierra el panel.
-- En móvil, las tablas pueden desplazarse horizontalmente y el tablero conserva sus columnas.
+- En móvil, las tablas pueden desplazarse horizontalmente y el tablero conserva sus columnas. En escritorio se aplica una densidad visual equivalente al 90 % de zoom.
