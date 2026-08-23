@@ -199,7 +199,7 @@ export default function PortadaTres({
             <h3>Una solución a tu medida.</h3>
             <p className="enterprise-copy">Para carteras de más de 60 marcas, conversemos sobre un plan personalizado.</p>
             <div className="enterprise-contact">
-              <a href="mailto:contato@buhomarc.cl">contato@buhomarc.cl</a>
+              <a href="mailto:contacto@buhomarc.cl">contacto@buhomarc.cl</a>
               <a href="https://wa.me/56978083444" target="_blank" rel="noreferrer">+56 9 7808 3444</a>
             </div>
             <a href="#contacto">Cotizar Enterprise <span>↘</span></a>
@@ -210,7 +210,7 @@ export default function PortadaTres({
       <section className="bends-contact" id="contacto">
         <p className="bends-index section-index">04 / CONTACTO</p>
         <h2>Que tu cliente<br />se entere por ti.</h2>
-        <a className="bends-contact-link" href="mailto:contato@buhomarc.cl">contato@buhomarc.cl <span>↗</span></a>
+        <a className="bends-contact-link" href="mailto:contacto@buhomarc.cl">contacto@buhomarc.cl <span>↗</span></a>
         <a className="bends-whatsapp-link" href="https://wa.me/56978083444" target="_blank" rel="noreferrer">
           <img src="https://cdn.simpleicons.org/whatsapp/25D366" alt="" />
           <span>Conversemos</span>
@@ -230,7 +230,7 @@ export default function PortadaTres({
         </div>
         <div className="footer-column">
           <span>CONTACTO</span>
-          <p>contato@buhomarc.cl</p>
+          <p>contacto@buhomarc.cl</p>
           <p>+56 9 7808 3444</p>
           <p>Santiago · Chile</p>
         </div>
