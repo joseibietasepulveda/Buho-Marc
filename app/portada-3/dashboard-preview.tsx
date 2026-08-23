@@ -33,11 +33,11 @@ export default function DashboardPreview() {
       </header>
 
       <div className="prospect-attention">
-        <strong><i /> REQUIERE TU ATENCIÓN</strong>
+        <strong><i /> 7 COINCIDENCIAS REQUIEREN SER REVISADAS</strong>
         <div className="prospect-attention-levels">
-          <span className="is-high"><b>3</b> Altas</span>
-          <span className="is-medium"><b>3</b> Medias</span>
-          <span className="is-low"><b>2</b> Bajas</span>
+          <span className="is-high"><b>3</b> Alta similitud</span>
+          <span className="is-medium"><b>3</b> Media similitud</span>
+          <span className="is-low"><b>2</b> Baja similitud</span>
         </div>
         <span className="prospect-faux-link">Revisar ahora →</span>
       </div>
