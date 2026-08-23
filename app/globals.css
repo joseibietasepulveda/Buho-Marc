@@ -847,6 +847,10 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
 }
 
 /* Escáner multimodal — exclusivo de la landing de prueba */
+.scanner-stage-multimodal.hero-scanner {
+  width: min(39vw, 650px);
+  bottom: 92px;
+}
 .scanner-stage-multimodal.scanner-stage-compact {
   min-height: 462px;
 }
@@ -946,7 +950,8 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
 
 @media (max-width: 1120px) and (min-width: 821px) {
   .scanner-stage-multimodal.hero-scanner {
-    width: min(43vw, 510px);
+    width: min(46vw, 550px);
+    bottom: 92px;
   }
 }
 
