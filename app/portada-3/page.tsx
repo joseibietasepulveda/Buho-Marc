@@ -40,7 +40,11 @@ const systemFlow = [
   "Trackeo del caso si se presenta la oposición",
 ] as const;
 
-export default function PortadaTres() {
+type PortadaTresProps = {
+  scannerMode?: "visual" | "multimodal";
+};
+
+export default function PortadaTres({ scannerMode = "visual" }: PortadaTresProps = {}) {
   return (
     <main className="bends-page">
       <section className="bends-hero" id="inicio">
@@ -76,7 +80,7 @@ export default function PortadaTres() {
           </div>
         </div>
 
-        <AssetScanner className="hero-scanner" compact />
+        <AssetScanner className="hero-scanner" compact multimodal={scannerMode === "multimodal"} />
 
         <div className="bends-hero-footer" aria-label="Resumen de monitoreo">
           <span>Detección automática y temprano</span>

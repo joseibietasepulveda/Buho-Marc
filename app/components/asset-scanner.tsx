@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-const cubes = [
+const visualCubes = [
   { logo: "02", result: "match" },
   { logo: "16", result: "match" },
   { logo: "23", result: "alert" },
@@ -11,6 +11,15 @@ const cubes = [
   { logo: "11", result: "match" },
   { logo: "28", result: "alert" },
   { logo: "05", result: "match" },
+] as const;
+
+const multimodalCubes = [
+  { logo: "02", result: "match", detection: "clear", text: "NORTE ESTUDIO" },
+  { logo: "16", result: "alert", detection: "image", text: "MONTAÑA SUR" },
+  { logo: "23", result: "alert", detection: "text", text: "BUHO LEGAL" },
+  { logo: "07", result: "match", detection: "clear", text: "CÍRCULO CREATIVO" },
+  { logo: "28", result: "alert", detection: "image", text: "PRISMA MARCAS" },
+  { logo: "11", result: "alert", detection: "text", text: "BUHO STUDIO" },
 ] as const;
 
 const resultCopy = {
@@ -35,12 +44,14 @@ type AssetScannerProps = {
   className?: string;
   compact?: boolean;
   isPlaying?: boolean;
+  multimodal?: boolean;
 };
 
 export default function AssetScanner({
   className = "",
   compact = false,
   isPlaying = true,
+  multimodal = false,
 }: AssetScannerProps) {
   const gateRef = useRef<HTMLDivElement>(null);
   const cubeRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -77,16 +88,24 @@ export default function AssetScanner({
     return () => window.cancelAnimationFrame(animationFrame);
   }, [isPlaying]);
 
-  const activeCube = activeCubeIndex === null ? null : cubes[activeCubeIndex];
-  const currentResult = activeCube ? resultCopy[activeCube.result] : resultCopy.idle;
+  const activeCubes = multimodal ? multimodalCubes : visualCubes;
+  const activeCube = activeCubeIndex === null ? null : activeCubes[activeCubeIndex];
+  const multimodalResult = activeCube && "detection" in activeCube
+    ? activeCube.detection === "image"
+      ? { symbol: "×", title: "Coincidencia visual detectada", note: "Similitud gráfica relevante" }
+      : activeCube.detection === "text"
+        ? { symbol: "×", title: "Coincidencia textual detectada", note: "Nombre y elementos verbales" }
+        : { symbol: "✓", title: "Sin coincidencias detectadas", note: "Imagen y texto verificados" }
+    : null;
+  const currentResult = multimodalResult ?? (activeCube ? resultCopy[activeCube.result] : resultCopy.idle);
 
   return (
     <section
-      className={`scanner-stage ${compact ? "scanner-stage-compact" : ""} ${className}`}
-      aria-label="Demostración del escáner visual"
+      className={`scanner-stage ${compact ? "scanner-stage-compact" : ""} ${multimodal ? "scanner-stage-multimodal" : ""} ${className}`}
+      aria-label={multimodal ? "Demostración del escáner de imágenes y texto" : "Demostración del escáner visual"}
     >
       <div className="stage-header">
-        <span>ENTRADA DE ACTIVOS</span>
+        <span>{multimodal ? "ANÁLISIS DE IMAGEN + TEXTO" : "ENTRADA DE ACTIVOS"}</span>
         <span className="stage-live"><i /> EN VIVO</span>
       </div>
 
@@ -113,7 +132,7 @@ export default function AssetScanner({
         </div>
 
         <div className="cube-track">
-          {cubes.map((cube, index) => (
+          {activeCubes.map((cube, index) => (
             <div
               className={`cube-unit ${index === activeCubeIndex ? `cube-current cube-result-${cube.result}` : ""}`}
               key={cube.logo}
@@ -135,6 +154,13 @@ export default function AssetScanner({
                 <span className="cube-side" />
                 <span className="cube-top" />
               </div>
+              {multimodal && "text" in cube && (
+                <div className={`asset-text-card ${index === activeCubeIndex && cube.result === "alert" ? "asset-text-card-alert" : ""}`}>
+                  <span className="asset-text-kicker">TEXTO DETECTADO</span>
+                  <strong>{cube.text}</strong>
+                  <span className="asset-text-lines" aria-hidden="true"><i /><i /><i /></span>
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -7,5 +7,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// Ruta privada de prueba: reutiliza la misma landing sin exponerla desde la navegación pública.
-export default PortadaTres;
+// Ruta privada de prueba: activa el escáner multimodal sin modificar la landing pública.
+export default function LandingDePruebaJs() {
+  return <PortadaTres scannerMode="multimodal" />;
+}
