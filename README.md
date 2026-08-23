@@ -1,6 +1,16 @@
 # Buho Marc
 
-Demo funcional y navegable de la plataforma web para administrar marcas, revisar coincidencias precargadas y gestionar casos legales. La landing vive en `/` y la aplicación en `/app`.
+Demo funcional y navegable de la plataforma web para administrar marcas, revisar coincidencias precargadas y gestionar casos legales. La landing comercial publicada vive en `/Landing` y la aplicación en `/app`.
+
+## Accesos publicados
+
+| Superficie | URL | Uso |
+| --- | --- | --- |
+| Landing comercial | [buho-marc.vercel.app/Landing](https://buho-marc.vercel.app/Landing) | Presentación pública del servicio, sistema, dashboard de muestra y pricing. |
+| Web app | [buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
+| Landing de prueba | [buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Versión de prueba de la landing con escáner multimodal. |
+
+La landing comercial y la landing de prueba presentan el mismo contenido visual. La primera se publica en Vercel y la segunda se conserva en Railway para revisión. Los enlaces de pricing dentro de la web app dirigen a `https://buho-marc.vercel.app/Landing#pricing`.
 
 ## Ejecutar en local
 
@@ -56,6 +66,8 @@ No hay autenticación real, almacenamiento de archivos, envío de correo, fuente
 
 El repositorio incluye `railway.json`, migraciones y un health check en `/api/health`. El servicio web necesita una instancia PostgreSQL y la variable `DATABASE_URL`. Al iniciar, aplica las migraciones; la primera carga crea los datos ficticios de forma idempotente.
 
+Railway publica la web app en `/app` y mantiene la landing de prueba en `/landing-de-prueba-js`. La landing comercial se despliega por separado en Vercel, en `/Landing`.
+
 La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md).
 
 ## Documentación para convertirlo en producto
@@ -69,7 +81,9 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 
 ## Estructura relevante
 
-- `app/portada-3/`: landing pública actual.
+- `app/portada-3/`: componentes compartidos de la landing y del dashboard promocional estático.
+- `app/Landing/page.tsx`: ruta de la landing comercial publicada en Vercel.
+- `app/landing-de-prueba-js/page.tsx`: ruta de prueba de Railway con el mismo contenido multimodal.
 - `app/app/page.tsx`: interfaz y modo de respaldo local.
 - `app/api/demo/route.ts`: lectura y mutaciones de la demo persistente.
 - `db/schema.ts`: esquema PostgreSQL; `drizzle/`: migraciones versionadas.

@@ -4,6 +4,14 @@
 
 La demo permite mostrar la experiencia de Buho Marc sin backend. Está pensada para una conversación comercial o una validación de producto, no para operar información real.
 
+## Accesos de demostración
+
+- Landing comercial: [https://buho-marc.vercel.app/Landing](https://buho-marc.vercel.app/Landing).
+- Web app navegable: [https://buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app).
+- Landing de prueba: [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js).
+
+El dashboard incluido dentro de las landings es una vista previa estática, pensada para explicar la herramienta antes de contratarla. La interacción completa está disponible únicamente en la web app.
+
 ## Recorrido sugerido
 
 1. Abrir **Inicio** y explicar la jerarquía: atención inmediata, indicadores, coincidencias y plazos.
