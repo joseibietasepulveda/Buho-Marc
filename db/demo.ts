@@ -65,7 +65,6 @@ const seedCases = [
 const seedNotices = [
   [ids.notices[0], "NO-114", ids.matches[0], "Coincidencia de alta similitud", "NOVA FOODS", "Alta", null, "2026-08-19T09:42:00-04:00", "Alerta de marca: posible similitud con NOVA FOODS", "Hola,\n\nDetectamos la publicación de la solicitud NOVA FUDS, que presenta una similitud alta con la marca NOVA FOODS. La publicación corresponde a la solicitud N° 1570234 y su plazo preliminar de revisión vence el 27 de agosto de 2026.\n\nSugerimos revisar los antecedentes para definir si corresponde presentar una oposición. Puedes ver la referencia oficial en la ficha adjunta.\n\nQuedo atento a tus comentarios.\n\nSaludos,"],
   [ids.notices[1], "NO-112", ids.matches[1], "Plazo legal próximo", "TERRA SUR", "Alta", null, "2026-08-18T16:20:00-04:00", "Próximo plazo: TERRA SUR", "Hola,\n\nTe informamos que el plazo asociado a la revisión de TERRA DEL SUR se encuentra próximo. Recomendamos confirmar la estrategia antes del 22 de agosto.\n\nSaludos,"],
-  [ids.notices[2], "NO-108", ids.matches[2], "Borrador de revisión disponible", "CASA NUBE", "Media", "2026-08-15T11:12:00-04:00", "2026-08-15T11:08:00-04:00", "Revisión de coincidencia para CASA NUBE", "Hola,\n\nYa se encuentra disponible nuestra revisión inicial de la solicitud CASANUBE. La mantendremos en observación y te avisaremos ante cualquier cambio.\n\nSaludos,"],
 ] as const;
 
 export async function ensureDemoSeed() {
@@ -93,6 +92,7 @@ export async function ensureDemoSeed() {
     }
     for (const item of seedCases) await tx`INSERT INTO cases (id, organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${item[0]}, ${DEMO_ORG_ID}, ${item[1]}, ${item[2]}, ${item[3]}, ${item[4]}, ${item[5]}, ${item[6]}, ${item[7]}, ${item[8]}, ${item[9]}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
     for (let index = 0; index < 3; index += 1) await tx`UPDATE matches SET case_id = ${ids.cases[index]} WHERE id = ${ids.matches[index]} AND case_id IS NULL`;
+    await tx`DELETE FROM notifications WHERE organization_id = ${DEMO_ORG_ID} AND public_code = 'NO-108'`;
     for (const notice of seedNotices) {
       await tx`INSERT INTO notifications (id, organization_id, public_code, user_id, entity_type, entity_id, type, title, brand_name, urgency, managed_at, created_at, updated_at) VALUES (${notice[0]}, ${DEMO_ORG_ID}, ${notice[1]}, ${DEMO_USER_ID}, 'match', ${notice[2]}, 'client_email_draft', ${notice[3]}, ${notice[4]}, ${notice[5]}, ${notice[6]}, ${notice[7]}, ${notice[7]}) ON CONFLICT (id) DO NOTHING`;
       const draftId = ids.drafts[seedNotices.indexOf(notice)];
