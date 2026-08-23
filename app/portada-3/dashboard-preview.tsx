@@ -1,5 +1,5 @@
 const metrics = [
-  ["MARCAS EN SEGUIMIENTO", "16", "20 de 25 cupos utilizados"],
+  ["MARCAS EN SEGUIMIENTO", "20", "20 de 25 cupos utilizados"],
   ["NUEVAS COINCIDENCIAS", "08", "Pendientes de revisión"],
   ["CASOS ACTIVOS", "04", "2 con plazo cercano"],
   ["OPOSICIONES EN CURSO", "02", "Revisa los próximos vencimientos"],
@@ -33,7 +33,7 @@ export default function DashboardPreview() {
       </header>
 
       <div className="prospect-attention">
-        <strong><i /> 7 COINCIDENCIAS REQUIEREN SER REVISADAS</strong>
+        <strong><i /><span>7 COINCIDENCIAS REQUIEREN SER<br />REVISADAS</span></strong>
         <div className="prospect-attention-levels">
           <span className="is-high"><b>3</b> Alta similitud</span>
           <span className="is-medium"><b>3</b> Media similitud</span>

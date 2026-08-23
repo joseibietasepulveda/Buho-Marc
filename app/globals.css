@@ -999,8 +999,8 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   border-radius: 11px;
   background: #f7f5f1;
 }
-.prospect-attention > strong { color: #8947bc; font-family: var(--font-geist-mono), monospace; font-size: 12px; letter-spacing: .09em; }
-.prospect-attention > strong i { width: 9px; height: 9px; display: inline-block; margin-right: 9px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 12px rgba(168, 85, 247, .78); }
+.prospect-attention > strong { display: flex; align-items: flex-start; color: #8947bc; font-family: var(--font-geist-mono), monospace; font-size: 12px; line-height: 1.32; letter-spacing: .09em; }
+.prospect-attention > strong i { width: 9px; height: 9px; flex: 0 0 auto; display: inline-block; margin: 4px 9px 0 0; border-radius: 50%; background: #a855f7; box-shadow: 0 0 12px rgba(168, 85, 247, .78); }
 .prospect-attention-levels { display: flex; align-items: center; gap: 14px; color: #4e4452; font-size: 12px; font-weight: 770; }
 .prospect-attention-levels span { display: flex; align-items: center; gap: 7px; }
 .prospect-attention-levels b { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid; border-radius: 8px; font-size: 14px; }
