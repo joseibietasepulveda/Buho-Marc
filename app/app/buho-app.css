@@ -56,12 +56,12 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-workspace::-webkit-scrollbar-track { background:rgba(12,8,15,.22); }
 .buho-workspace::-webkit-scrollbar-thumb { border:3px solid transparent; border-radius:99px; background:rgba(255,255,255,.4); background-clip:padding-box; }
 .buho-metrics button > span { min-height:34px; display:flex; align-items:center; font-size:14px; white-space:nowrap; }
-.buho-attention { grid-template-columns:minmax(215px,.8fr) minmax(360px,1.25fr) auto; }
-.buho-attention > .buho-attention-title { color:#8549b9; font-size:14px; font-weight:800; white-space:nowrap; }
+.buho-attention { grid-template-columns:minmax(290px,.95fr) minmax(420px,1.35fr) auto; }
+.buho-attention > .buho-attention-copy { color:#2a1b33; font-size:18px; font-weight:850; line-height:1.15; text-align:left; }
 .buho-attention-levels { display:flex; align-items:center; justify-content:center; gap:12px; color:var(--ink) !important; font-family:inherit !important; letter-spacing:0 !important; }
 .buho-attention-levels > span { display:inline-flex; align-items:center; gap:7px; color:var(--ink); font-family:inherit; letter-spacing:0; }
 .buho-attention-levels b { width:38px; height:38px; display:grid; place-items:center; border:1px solid transparent; border-radius:8px; font-size:18px; }
-.buho-attention-levels small { color:#4f4652; font-size:13px; font-weight:850; }
+.buho-attention-levels small { color:#4f4652; font-size:13px; font-weight:850; white-space:nowrap; }
 .buho-attention-levels .is-high b { color:#8b2943; border-color:#eda9b9; background:#ffd9e2; }
 .buho-attention-levels .is-medium b { color:#735514; border-color:#e8c45e; background:#ffedb5; }
 .buho-attention-levels .is-low b { color:#236348; border-color:#9ed0b6; background:#d8f1e2; }
@@ -81,6 +81,10 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-filter-row .buho-tabs { gap:9px; }
 .buho-filter-row .buho-tabs > button { border:1px solid var(--line); border-radius:8px; background:#fffdfa; }
 .buho-filter-row .buho-tabs > button.is-active { border-color:#7d47a9; color:#fff; background:#24162d; }
+.buho-view-matches .buho-filter-row { min-height:86px; padding:17px 24px; }
+.buho-view-matches .buho-filter-row .buho-tabs > button { min-height:54px; padding:0 20px; font-size:16px; white-space:nowrap; }
+.buho-view-matches .buho-filter-row > small { font-size:16px; }
+.buho-case-section .buho-inapi-link { display:inline-block; margin-top:14px; }
 .buho-status-cell { position:relative; width:max-content; }
 .buho-status-trigger { min-height:34px; display:inline-flex; align-items:center; gap:7px; padding:5px 10px; border:1px solid; border-radius:99px; cursor:pointer; font-size:12px; font-weight:820; }
 .buho-status-trigger.is-active { color:#2b7c56; border-color:#a9d7b9; background:#e1f4e7; }
