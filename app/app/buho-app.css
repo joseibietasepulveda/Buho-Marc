@@ -107,9 +107,9 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-view-matches .buho-matches-table td:first-child .buho-tone { margin-top:7px; }
 .buho-filter-row .buho-tabs > .buho-brand-scope { color:#5f347f; border-color:#be96dc; background:#f3e7fb; }
 
-/* La superficie de escritorio replica una visualización al 90 % sin exigir que el visitante cambie el zoom de su navegador. */
+/* La vista compacta se limita al contenido interior; Inicio y la barra lateral conservan su escala original. */
 @media (min-width:621px) {
-  .buho-app { width:111.112vw; height:111.112vh; zoom:.9; }
+  .buho-workspace-content.is-compact { zoom:.9; }
 }
 
 @media (max-width:1150px) {
