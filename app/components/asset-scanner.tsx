@@ -14,12 +14,12 @@ const visualCubes = [
 ] as const;
 
 const multimodalCubes = [
-  { logo: "02", result: "match", detection: "clear", text: "NORTE ESTUDIO" },
-  { logo: "16", result: "alert", detection: "image", text: "MONTAÑA SUR" },
-  { logo: "23", result: "alert", detection: "text", text: "BUHO LEGAL" },
-  { logo: "07", result: "match", detection: "clear", text: "CÍRCULO CREATIVO" },
-  { logo: "28", result: "alert", detection: "image", text: "PRISMA MARCAS" },
-  { logo: "11", result: "alert", detection: "text", text: "BUHO STUDIO" },
+  { logo: "02", result: "match", detection: "clear", text: ["NORTE", "ESTUDIO"] },
+  { logo: "16", result: "alert", detection: "image", text: ["MONTAÑA", "SUR"] },
+  { logo: "23", result: "match", detection: "text", text: ["BUHO", "LEGAL"] },
+  { logo: "07", result: "match", detection: "clear", text: ["CÍRCULO", "CREATIVO"] },
+  { logo: "28", result: "alert", detection: "image", text: ["PRISMA", "MARCAS"] },
+  { logo: "11", result: "match", detection: "text", text: ["BUHO", "STUDIO"] },
 ] as const;
 
 const resultCopy = {
@@ -90,6 +90,9 @@ export default function AssetScanner({
 
   const activeCubes = multimodal ? multimodalCubes : visualCubes;
   const activeCube = activeCubeIndex === null ? null : activeCubes[activeCubeIndex];
+  const scannerResult = activeCube && "detection" in activeCube
+    ? ({ clear: "match", image: "alert", text: "alert" } as const)[activeCube.detection]
+    : activeCube?.result ?? "idle";
   const multimodalResult = activeCube && "detection" in activeCube
     ? activeCube.detection === "image"
       ? { symbol: "×", title: "Coincidencia visual detectada", note: "Similitud gráfica relevante" }
@@ -110,7 +113,7 @@ export default function AssetScanner({
       </div>
 
       <div className="scanner-status" aria-live="polite">
-        <span className={`result-symbol ${activeCube ? `result-${activeCube.result}` : "result-idle"}`}>
+        <span className={`result-symbol result-${scannerResult}`}>
           {currentResult.symbol}
         </span>
         <span>
@@ -155,9 +158,9 @@ export default function AssetScanner({
                 <span className="cube-top" />
               </div>
               {multimodal && "text" in cube && (
-                <div className={`asset-text-card ${index === activeCubeIndex && cube.result === "alert" ? "asset-text-card-alert" : ""}`}>
+                <div className={`asset-text-card ${index === activeCubeIndex ? cube.detection === "text" ? "asset-text-card-alert" : "asset-text-card-match" : ""}`}>
                   <span className="asset-text-kicker">TEXTO DETECTADO</span>
-                  <strong>{cube.text}</strong>
+                  <strong>{cube.text[0]}<br />{cube.text[1]}</strong>
                   <span className="asset-text-lines" aria-hidden="true"><i /><i /><i /></span>
                 </div>
               )}

@@ -898,14 +898,11 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   letter-spacing: .12em;
 }
 .asset-text-card strong {
-  overflow: hidden;
   font-family: var(--font-geist-mono), monospace;
   font-size: 8px;
   font-weight: 620;
   letter-spacing: .02em;
-  line-height: 1.15;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
 }
 .asset-text-lines {
   display: grid;
@@ -925,9 +922,17 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   background: linear-gradient(145deg, rgba(115, 25, 46, .98), rgba(55, 16, 29, .98));
   box-shadow: 0 0 0 3px rgba(241, 89, 115, .08), 0 9px 28px rgba(80, 12, 30, .45), inset 0 1px rgba(255, 255, 255, .08);
 }
+.asset-text-card-match {
+  color: #f1fff7;
+  border-color: rgba(101, 231, 161, .82);
+  background: linear-gradient(145deg, rgba(22, 84, 57, .98), rgba(13, 44, 32, .98));
+  box-shadow: 0 0 0 3px rgba(88, 220, 151, .07), 0 9px 28px rgba(5, 55, 34, .38), inset 0 1px rgba(255, 255, 255, .08);
+}
+.asset-text-card-match .asset-text-kicker { color: rgba(202, 255, 225, .7); }
+.asset-text-card-match .asset-text-lines i { background: rgba(116, 235, 171, .68); }
 .asset-text-card-alert .asset-text-kicker { color: rgba(255, 216, 222, .72); }
 .asset-text-card-alert .asset-text-lines i { background: rgba(255, 139, 158, .72); }
-.scanner-stage-multimodal .cube-current.cube-result-alert .asset-text-card {
+.scanner-stage-multimodal .cube-current .asset-text-card {
   animation: text-alert-pulse 1s ease-in-out infinite alternate;
 }
 @keyframes text-alert-pulse {
