@@ -14,12 +14,12 @@ const visualCubes = [
 ] as const;
 
 const multimodalCubes = [
-  { logo: "02", result: "match", detection: "clear", text: ["NORTE", "ESTUDIO"] },
-  { logo: "16", result: "alert", detection: "image", text: ["MONTAÑA", "SUR"] },
-  { logo: "23", result: "match", detection: "text", text: ["BUHO", "LEGAL"] },
-  { logo: "07", result: "match", detection: "clear", text: ["CÍRCULO", "CREATIVO"] },
-  { logo: "28", result: "alert", detection: "image", text: ["PRISMA", "MARCAS"] },
-  { logo: "11", result: "match", detection: "text", text: ["BUHO", "STUDIO"] },
+  { logo: "02", result: "match", detection: "clear", text: "NORTE ESTUDIO" },
+  { logo: "16", result: "alert", detection: "image", text: "MONTAÑA SUR" },
+  { logo: "23", result: "match", detection: "text", text: "BUHO LEGAL" },
+  { logo: "07", result: "match", detection: "clear", text: "CÍRCULO CREATIVO" },
+  { logo: "28", result: "alert", detection: "image", text: "PRISMA MARCAS" },
+  { logo: "11", result: "match", detection: "text", text: "BUHO STUDIO" },
 ] as const;
 
 const resultCopy = {
@@ -160,8 +160,8 @@ export default function AssetScanner({
               {multimodal && "text" in cube && (
                 <div className={`asset-text-card ${index === activeCubeIndex ? cube.detection === "text" ? "asset-text-card-alert" : "asset-text-card-match" : ""}`}>
                   <span className="asset-text-kicker">TEXTO DETECTADO</span>
-                  <strong>{cube.text[0]}<br />{cube.text[1]}</strong>
-                  <span className="asset-text-lines" aria-hidden="true"><i /><i /><i /></span>
+                  <strong>{cube.text}</strong>
+                  <span className="asset-text-lines" aria-hidden="true"><i /><i /></span>
                 </div>
               )}
             </div>
