@@ -949,3 +949,124 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
     width: min(43vw, 510px);
   }
 }
+
+/* Vista promocional estática del dashboard actual — landing de prueba */
+.prospect-dashboard {
+  width: min(1220px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 18px;
+  color: #140b19;
+  background: #8b8581;
+  box-shadow: 0 34px 100px rgba(0, 0, 0, .34);
+  font-family: var(--font-geist-sans), sans-serif;
+  pointer-events: none;
+  user-select: none;
+}
+.prospect-dashboard-header { margin-bottom: 20px; color: #fffdf9; }
+.prospect-dashboard-header > span,
+.prospect-panel header span,
+.prospect-match-row small {
+  font-family: var(--font-geist-mono), monospace;
+  letter-spacing: .09em;
+}
+.prospect-dashboard-header > span { font-size: 9px; font-weight: 720; }
+.prospect-dashboard-header h3 {
+  margin: 9px 0 8px;
+  color: #fffdf9;
+  font-size: clamp(39px, 4.4vw, 59px);
+  font-weight: 720;
+  letter-spacing: -.075em;
+  line-height: .98;
+}
+.prospect-dashboard-header p { margin: 0; font-size: 16px; font-weight: 670; }
+.prospect-attention {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 18px;
+  padding: 10px 18px;
+  border: 1px solid #eadcf1;
+  border-radius: 11px;
+  background: #f7f5f1;
+}
+.prospect-attention > strong { color: #8947bc; font-family: var(--font-geist-mono), monospace; font-size: 12px; letter-spacing: .09em; }
+.prospect-attention > strong i { width: 9px; height: 9px; display: inline-block; margin-right: 9px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 12px rgba(168, 85, 247, .78); }
+.prospect-attention-levels { display: flex; align-items: center; gap: 14px; color: #4e4452; font-size: 12px; font-weight: 770; }
+.prospect-attention-levels span { display: flex; align-items: center; gap: 7px; }
+.prospect-attention-levels b { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid; border-radius: 8px; font-size: 14px; }
+.prospect-attention-levels .is-high b { color: #8b2943; border-color: #eda9b9; background: #ffd9e2; }
+.prospect-attention-levels .is-medium b { color: #735514; border-color: #e8c45e; background: #ffedb5; }
+.prospect-attention-levels .is-low b { color: #236348; border-color: #9ed0b6; background: #d8f1e2; }
+.prospect-faux-link { justify-self: end; color: #713aa0; font-size: 15px; font-weight: 790; }
+.prospect-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid #e6e0dc;
+  border-radius: 11px;
+  background: #f7f5f1;
+}
+.prospect-metrics article { min-height: 142px; display: flex; flex-direction: column; padding: 20px 21px 18px; border-right: 1px solid #ded9d5; }
+.prospect-metrics article:last-child { border-right: 0; }
+.prospect-metrics span { color: #5c505f; font-size: 12px; font-weight: 790; }
+.prospect-metrics strong { margin: 13px 0 9px; color: #140b19; font-size: clamp(45px, 4vw, 57px); font-weight: 720; letter-spacing: -.09em; line-height: .9; }
+.prospect-metrics small { margin-top: auto; color: #776d79; font-size: 13px; font-weight: 670; }
+.prospect-dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.prospect-panel { overflow: hidden; border: 1px solid #e6e0dc; border-radius: 11px; background: #f7f5f1; box-shadow: 0 14px 30px rgba(39, 29, 42, .12); }
+.prospect-panel > header { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 15px 19px; border-bottom: 1px solid #ded9d5; }
+.prospect-panel header span { color: #776a7a; font-size: 9px; font-weight: 740; }
+.prospect-panel h4 { margin: 7px 0 0; color: #140b19; font-size: 23px; font-weight: 780; letter-spacing: -.065em; }
+.prospect-panel > header > small { color: #6a606c; font-size: 12px; font-weight: 720; }
+.prospect-view-all { padding: 10px 13px; border: 1px solid #ded9d5; border-radius: 8px; color: #251a2a !important; font-family: var(--font-geist-sans), sans-serif !important; font-size: 12px !important; letter-spacing: 0 !important; }
+.prospect-calendar-week,
+.prospect-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+.prospect-calendar-week { padding: 13px 18px 4px; color: #6d626f; font-family: var(--font-geist-mono), monospace; font-size: 9px; font-weight: 760; }
+.prospect-calendar-grid { gap: 3px 6px; padding: 4px 18px 11px; }
+.prospect-calendar-grid span { height: 22px; display: grid; place-items: center; border-radius: 6px; color: #514856; font-size: 10px; font-weight: 680; }
+.prospect-calendar-grid .is-event { color: #fff; background: #8150aa; box-shadow: 0 4px 10px rgba(112, 64, 151, .25); }
+.prospect-agenda-list { display: grid; gap: 7px; padding: 0 14px 14px; }
+.prospect-agenda-list > div { min-height: 36px; display: grid; grid-template-columns: 52px 40px 1fr; align-items: center; gap: 8px; padding: 6px 9px; border: 1px solid #ded9d5; border-radius: 7px; background: #fffdfa; }
+.prospect-agenda-list span { color: #74409d; font-size: 11px; font-weight: 820; }
+.prospect-agenda-list b,
+.prospect-match-row > b { width: max-content; padding: 5px 8px; border: 1px solid #eda9b9; border-radius: 99px; color: #9a3150; background: #ffd9e2; font-family: var(--font-geist-mono), monospace; font-size: 8px; letter-spacing: .08em; }
+.prospect-agenda-list strong { font-size: 10px; line-height: 1.3; }
+.prospect-match-row { min-height: 78px; display: grid; grid-template-columns: 54px 1fr 1fr auto; align-items: center; gap: 12px; padding: 11px 15px; border-bottom: 1px solid #ded9d5; }
+.prospect-match-row:last-child { border-bottom: 0; }
+.prospect-match-row div { min-width: 0; }
+.prospect-match-row small,
+.prospect-match-row strong { display: block; }
+.prospect-match-row small { margin-bottom: 7px; color: #817583; font-size: 8px; }
+.prospect-match-row strong { overflow: hidden; color: #140b19; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.prospect-match-row > span { color: #6a2c96; font-size: 12px; font-weight: 790; text-decoration: underline; text-underline-offset: 4px; white-space: nowrap; }
+.prospect-match-row > b.is-medium { color: #735514; border-color: #e8c45e; background: #ffedb5; }
+
+@media (max-width: 980px) {
+  .prospect-dashboard { padding: 24px; }
+  .prospect-attention { grid-template-columns: 1fr auto; }
+  .prospect-faux-link { display: none; }
+  .prospect-metrics { grid-template-columns: repeat(2, 1fr); }
+  .prospect-metrics article:nth-child(2) { border-right: 0; }
+  .prospect-metrics article:nth-child(-n + 2) { border-bottom: 1px solid #ded9d5; }
+  .prospect-dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 620px) {
+  .prospect-dashboard { padding: 16px; border-radius: 12px; }
+  .prospect-dashboard-header h3 { font-size: 36px; }
+  .prospect-attention { grid-template-columns: 1fr; gap: 12px; }
+  .prospect-attention-levels { flex-wrap: wrap; }
+  .prospect-metrics { grid-template-columns: 1fr; }
+  .prospect-metrics article { min-height: 142px; border-right: 0; border-bottom: 1px solid #ded9d5; }
+  .prospect-metrics article:last-child { border-bottom: 0; }
+  .prospect-match-row { grid-template-columns: 52px 1fr; }
+  .prospect-match-row > div:nth-of-type(2) { grid-column: 2; }
+  .prospect-match-row > span { grid-column: 2; }
+  .prospect-agenda-list > div { grid-template-columns: 52px 1fr; }
+  .prospect-agenda-list strong { grid-column: 1 / -1; }
+}

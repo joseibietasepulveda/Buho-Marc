@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 
 // Ruta privada de prueba: activa el escáner multimodal sin modificar la landing pública.
 export default function LandingDePruebaJs() {
-  return <PortadaTres scannerMode="multimodal" headlineSecondLine="intelectual integral" />;
+  return <PortadaTres scannerMode="multimodal" headlineSecondLine="intelectual integral" dashboardMode="preview" />;
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AssetScanner from "../components/asset-scanner";
 import ColorBends from "./color-bends";
+import DashboardPreview from "./dashboard-preview";
 
 export const metadata: Metadata = {
   title: "Buho Marc | Vigilancia temprana de marcas",
@@ -43,11 +44,13 @@ const systemFlow = [
 type PortadaTresProps = {
   scannerMode?: "visual" | "multimodal";
   headlineSecondLine?: string;
+  dashboardMode?: "legacy" | "preview";
 };
 
 export default function PortadaTres({
   scannerMode = "visual",
   headlineSecondLine = "intelectual intelectual",
+  dashboardMode = "legacy",
 }: PortadaTresProps = {}) {
   return (
     <main className="bends-page">
@@ -135,7 +138,7 @@ export default function PortadaTres({
             </p>
           </div>
         </div>
-        <div className="dashboard-shell">
+        {dashboardMode === "preview" ? <DashboardPreview /> : <div className="dashboard-shell">
           <div className="dashboard-topbar">
             <span><i /> MONITOREO ACTIVO</span>
             <span>ACTUALIZADO AHORA</span>
@@ -154,7 +157,7 @@ export default function PortadaTres({
               <span key={label}><b>0{index + 1}</b>{label}<i aria-hidden="true">↗</i></span>
             ))}
           </div>
-        </div>
+        </div>}
       </section>
 
       <section className="pricing-section" id="pricing">
