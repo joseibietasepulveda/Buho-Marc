@@ -41,7 +41,7 @@ Restricciones: puntajes entre 0 y 100; una coincidencia solo puede apuntar a un 
 - `case_tasks(id, organization_id, case_id, title, status, assignee_id, due_at, completed_at)`.
 - `legal_deadlines(id, organization_id, case_id, match_id, brand_id, legal_date, internal_date, source, rule_code, verification_status, status)`.
 
-`source_match_id` no se borra al cerrar un caso. La comparación original se conserva mediante snapshot en la revisión y referencia al payload del motor.
+`source_match_id` se conserva mientras la coincidencia forme parte del caso. La acción explícita **Sacar de caso** puede dejarlo en `NULL`, libera `matches.case_id`, devuelve la coincidencia a estado `Pendiente` y registra el cambio en `audit_events`; cerrar un caso por sí solo no desvincula la comparación.
 
 ## Colaboración, archivos y comunicación
 

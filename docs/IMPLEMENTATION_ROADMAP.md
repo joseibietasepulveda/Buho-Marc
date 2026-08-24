@@ -5,7 +5,7 @@
 - [x] Esquema PostgreSQL y migración inicial.
 - [x] CRUD demostrativo de marcas, casos y miembros.
 - [x] Revisión y conversión transaccional de coincidencias precargadas.
-- [x] Tablero de casos con arrastre entre cinco etapas, notificaciones gestionables y auditoría básica.
+- [x] Tablero de casos con arrastre entre cuatro etapas, coincidencias desvinculables con confirmación, notificaciones gestionables y auditoría básica.
 - [x] Despliegue preparado para Railway con modo local de respaldo.
 - [ ] Autenticación, archivos, email real, permisos, recordatorios y operación productiva.
 - [ ] Motor de cruces y fuentes oficiales, deliberadamente fuera de alcance.

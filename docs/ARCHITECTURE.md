@@ -9,8 +9,8 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 - Next.js 16, TypeScript y Route Handlers.
 - PostgreSQL mediante Drizzle ORM y migraciones versionadas.
 - Datos demo idempotentes y modo local sin base.
-- Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, cambios de etapa y notificaciones persistentes.
-- Tablero de casos con `dnd-kit` para mover una tarjeta completa entre cinco etapas sin recargar la pantalla.
+- Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, desvinculación de coincidencias, cambios de etapa y notificaciones persistentes.
+- Tablero de casos con `dnd-kit` para mover una tarjeta completa entre cuatro etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.
 - Configuración de despliegue y health check para Railway.
 

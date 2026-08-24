@@ -16,9 +16,9 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 
 1. Abrir **Inicio** y explicar la jerarquía: atención inmediata separada en altas, medias y bajas, indicadores, coincidencias y plazos.
 2. Entrar a **Marcas**, revisar el cupo, agregar una marca por número de registro INAPI o usar la importación por RUT. Cualquier fila abre su cartera de coincidencias.
-3. Entrar a **Coincidencias**, filtrar por nivel y abrir una fila completa o su primera columna **Revisar**.
+3. Entrar a **Coincidencias**, filtrar por nivel y abrir una fila completa. La tabla comienza por **Similitud** y **Estado**.
 4. Revisar la comparación y convertirla en caso.
-5. Entrar a **Casos**, abrir el caso creado o arrastrarlo entre las cinco etapas del tablero.
+5. Entrar a **Casos**, abrir el caso creado o arrastrarlo entre las cuatro etapas del tablero. Desde la ficha se puede superponer la coincidencia de origen o desvincularla con confirmación.
 6. Entrar a **Notificaciones**, revisar el contexto y copiar el contenido de correo si se necesita.
 7. Entrar a **Usuarios** y agregar una persona.
 
@@ -26,7 +26,7 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 
 - Marcas, casos y usuarios se pueden agregar.
 - Las coincidencias se pueden descartar, observar o convertir en caso.
-- Los casos se pueden mover arrastrándolos o desde el detalle de caso.
+- Los casos se pueden mover arrastrándolos o desde el detalle de caso; también se puede devolver su coincidencia de origen a revisión sin cerrar el caso.
 - Las notificaciones se pueden marcar como gestionadas y su contenido de referencia se puede copiar. No existe una etapa de borrador visible.
 - En Railway los cambios se guardan en PostgreSQL y son visibles para todos quienes abran la demo.
 - En local, si no existe `DATABASE_URL`, se usa `localStorage` como respaldo sin configuración.

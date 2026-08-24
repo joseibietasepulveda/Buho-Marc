@@ -14,7 +14,8 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createUser"), name: z.string().min(2).max(180), email: z.string().email().max(255) }),
   z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente", "En observación", "Descartada", "Convertida en caso"]) }),
   z.object({ action: z.literal("toggleBrandMonitoring"), id: z.string().min(1), enabled: z.boolean() }),
-  z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Evaluación", "Preparación", "Presentado", "Seguimiento", "Concluido"]) }),
+  z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Preparación", "Presentado", "Seguimiento", "Concluido"]) }),
+  z.object({ action: z.literal("unlinkCaseMatch"), id: z.string().min(1) }),
   z.object({ action: z.literal("updateNotice"), id: z.string().min(1), subject: z.string().max(500).optional(), body: z.string().max(20000).optional(), status: z.enum(["Pendiente", "Gestionada"]).optional() }),
   z.object({ action: z.literal("reset") }),
 ]);
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
         const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 1042) + 1 AS next FROM cases WHERE organization_id = ${DEMO_ORG_ID}`;
         const [brand] = await tx`SELECT id FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND name = ${input.brand} LIMIT 1`;
         const [owner] = await tx`SELECT u.id FROM users u JOIN organization_members om ON om.user_id = u.id WHERE om.organization_id = ${DEMO_ORG_ID} AND u.name = ${input.owner} LIMIT 1`;
-        const [created] = await tx`INSERT INTO cases (organization_id, public_code, brand_id, client_name, title, description, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${brand?.id ?? null}, ${input.client}, ${input.title}, ${input.description || null}, 'Evaluación', ${input.priority}, ${deadline}, ${owner?.id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) RETURNING id`;
+        const [created] = await tx`INSERT INTO cases (organization_id, public_code, brand_id, client_name, title, description, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${brand?.id ?? null}, ${input.client}, ${input.title}, ${input.description || null}, 'Preparación', ${input.priority}, ${deadline}, ${owner?.id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) RETURNING id`;
         await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'case.created', 'case', ${created.id}, ${tx.json({ source: "manual" })})`;
       });
     } else if (input.action === "createUser") {
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
         if (input.status === "Convertida en caso") {
           const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 1042) + 1 AS next FROM cases WHERE organization_id = ${DEMO_ORG_ID}`;
           const priority = match.level === "Alta" ? "Alta" : "Media";
-          const [created] = await tx`INSERT INTO cases (organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${match.id}, ${match.brand_id}, ${match.owner_name}, ${`Revisión ${match.found_name}`}, 'Evaluación', ${priority}, ${match.legal_deadline}, ${match.owner_id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) ON CONFLICT (organization_id, source_match_id) DO UPDATE SET updated_at = now() RETURNING id`;
+          const [created] = await tx`INSERT INTO cases (organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${match.id}, ${match.brand_id}, ${match.owner_name}, ${`Revisión ${match.found_name}`}, 'Preparación', ${priority}, ${match.legal_deadline}, ${match.owner_id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) ON CONFLICT (organization_id, source_match_id) DO UPDATE SET updated_at = now() RETURNING id`;
           await tx`UPDATE matches SET case_id = ${created.id} WHERE id = ${match.id}`;
         }
       });
@@ -122,6 +123,15 @@ export async function POST(request: Request) {
     } else if (input.action === "moveCase") {
       const [item] = await sql`UPDATE cases SET stage = ${input.stage}, updated_at = now() WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} RETURNING id`;
       if (item) await sql`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'case.stage_changed', 'case', ${item.id}, ${sql.json({ stage: input.stage })})`;
+    } else if (input.action === "unlinkCaseMatch") {
+      await sql.begin(async (tx) => {
+        const [item] = await tx`SELECT id, source_match_id FROM cases WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} LIMIT 1`;
+        if (!item) throw new Error("Caso no encontrado");
+        if (!item.source_match_id) return;
+        await tx`UPDATE cases SET source_match_id = NULL, updated_at = now() WHERE id = ${item.id}`;
+        await tx`UPDATE matches SET case_id = NULL, review_status = 'Pendiente', updated_at = now() WHERE id = ${item.source_match_id}`;
+        await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, before_data, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'case.match_unlinked', 'case', ${item.id}, ${tx.json({ sourceMatchId: item.source_match_id })}, ${tx.json({ sourceMatchId: null, matchStatus: 'Pendiente' })})`;
+      });
     } else if (input.action === "updateNotice") {
       const [notice] = await sql`SELECT id FROM notifications WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} LIMIT 1`;
       if (!notice) throw new Error("Notificación no encontrada");

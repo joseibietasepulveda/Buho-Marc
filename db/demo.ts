@@ -57,7 +57,7 @@ const seedMatches = [
 
 const seedCases = [
   [ids.cases[0], "BM-1042", ids.matches[0], ids.brands[0], "Grupo Nova SpA", "Oposición Nova Fuds", "Preparación", "Alta", "2026-08-20", ids.users[0]],
-  [ids.cases[1], "BM-1038", ids.matches[1], ids.brands[1], "Terra Sur Limitada", "Revisión Terra del Sur", "Evaluación", "Alta", "2026-08-22", ids.users[1]],
+  [ids.cases[1], "BM-1038", ids.matches[1], ids.brands[1], "Terra Sur Limitada", "Revisión Terra del Sur", "Preparación", "Alta", "2026-08-22", ids.users[1]],
   [ids.cases[2], "BM-1036", ids.matches[2], ids.brands[2], "Inmobiliaria Casa Nube", "Oposición CasaNube", "Presentado", "Media", "2026-09-02", ids.users[2]],
   [ids.cases[3], "BM-1027", null, ids.brands[3], "Pulso Salud SpA", "Seguimiento resolución Pulso", "Seguimiento", "Baja", "2026-09-11", ids.users[0]],
 ] as const;
@@ -127,7 +127,7 @@ export async function getDemoSnapshot() {
       const applicationDigits = String(row.application_number).replace(/\D/g, "").slice(-6).padStart(6, "0");
       return { id: row.public_code, brandId: row.brand_code, brand: row.brand_name, found: row.found_name, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: displayPersonName(row.owner_name), rut: config.rut ?? `77.100.${String(row.brand_code).replace(/\D/g, "").padStart(3, "0")}-1`, applicantRut: `77.${applicationDigits}-${Number(applicationDigits) % 10}`, officialUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", brandRegistration: row.brand_registration ?? undefined, officialRegistration: row.source_record_id ? `DO-${row.source_record_id}` : undefined };
     }),
-    cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage, priority: row.priority, deadline: shortDate(row.next_deadline), owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
+    cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage === "Evaluación" ? "Preparación" : row.stage, priority: row.priority, deadline: shortDate(row.next_deadline), owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
     users: userRows.map((row) => ({ id: row.id, name: displayPersonName(row.name), email: row.name === "Rosario Vial" ? "jose.ignacio@ibieta.cl" : row.email, createdAt: shortDate(row.created_at, true), initials: row.name === "Rosario Vial" ? "JI" : row.initials })),
     notices: noticeRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body })),
   };

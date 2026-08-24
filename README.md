@@ -48,10 +48,11 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 - Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT y filas completas clickeables para revisar su cartera de coincidencias.
 - Coincidencias filtrables, ordenadas de mayor a menor, con filas completas clickeables, comparación lado a lado y decisiones de revisión.
 - Conversión de una coincidencia en caso.
-- Tablero de casos por etapa, creación manual y arrastre fluido entre Evaluación, Preparación, Presentado, Seguimiento y Concluido.
+- Tablero de casos por etapa, creación manual y arrastre fluido entre Preparación, Presentado, Seguimiento y Concluido.
+- Ficha de caso con acceso superpuesto a la coincidencia de origen y opción confirmada para desvincularla sin cerrar el caso.
 - Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
 - Lista y alta de usuarios.
-- API persistente para crear marcas, casos y usuarios; revisar coincidencias; mover casos; y gestionar notificaciones.
+- API persistente para crear marcas, casos y usuarios; revisar coincidencias; mover casos; desvincular coincidencias; y gestionar notificaciones.
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
 - Diseño responsive para escritorio, tablet y móvil.
 
