@@ -180,7 +180,11 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-calendar-navigation button:hover { border-color:#9c65c3; background:#f8effc; }
 .buho-calendar-grid .is-empty { visibility:hidden; }
 .buho-calendar-events > p { margin:0; padding:14px; border:1px dashed var(--line); border-radius:8px; color:#756d77; font-size:14px; text-align:center; }
-.buho-view-matches .buho-table-wrap .buho-matches-table { min-width:1120px; table-layout:fixed; }
+.buho-view-matches .buho-table-wrap { overflow-x:scroll; padding-bottom:4px; scrollbar-color:#8f64ac #e8e1e8; scrollbar-gutter:stable; scrollbar-width:auto; }
+.buho-view-matches .buho-table-wrap::-webkit-scrollbar { height:12px; }
+.buho-view-matches .buho-table-wrap::-webkit-scrollbar-track { border-radius:99px; background:#e8e1e8; }
+.buho-view-matches .buho-table-wrap::-webkit-scrollbar-thumb { border:2px solid #e8e1e8; border-radius:99px; background:#8f64ac; }
+.buho-view-matches .buho-table-wrap .buho-matches-table { min-width:1280px; table-layout:fixed; }
 .buho-view-matches .buho-matches-table th,.buho-view-matches .buho-matches-table td { padding-right:8px; padding-left:8px; }
 .buho-view-matches .buho-matches-table th:nth-child(1) { width:151px; }
 .buho-view-matches .buho-matches-table th:nth-child(2) { width:128px; }
@@ -192,6 +196,7 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-view-matches .buho-matches-table td:nth-child(3) > strong,.buho-view-matches .buho-matches-table td:nth-child(4) > strong { font-size:17px; letter-spacing:-.025em; }
 .buho-view-matches .buho-matches-table td:first-child { white-space:nowrap; }
 .buho-view-matches .buho-matches-table td:first-child .buho-tone { margin-top:0; }
+.buho-view-matches .buho-matches-table td:nth-child(-n+2) .buho-tone { min-height:28px; padding:3px 8px; font-size:10px; letter-spacing:.045em; white-space:nowrap; }
 .tone-match-pendiente { color:#68418a; border-color:#d8bae9; background:#eee1f6; }
 .tone-match-en-observacion { color:#80601e; border-color:#edcf7c; background:#fff0c7; }
 .tone-match-descartada { color:#62616a; border-color:#c8c5cd; background:#ecebef; }
