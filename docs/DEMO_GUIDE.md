@@ -6,9 +6,9 @@ La demo permite mostrar la experiencia de Buho Marc con datos ficticios persiste
 
 ## Accesos de demostración
 
-- Landing comercial: [https://buho-marc.vercel.app/Landing](https://buho-marc.vercel.app/Landing).
+- Landing comercial: [https://buho-marc.vercel.app/](https://buho-marc.vercel.app/).
 - Web app navegable: [https://buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app).
-- Landing de prueba: [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js).
+- URL anterior de prueba: [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js), que redirige a la landing principal.
 
 El dashboard incluido dentro de las landings es una vista previa estática, pensada para explicar la herramienta antes de contratarla. La interacción completa está disponible únicamente en la web app.
 

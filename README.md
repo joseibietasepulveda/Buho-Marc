@@ -1,16 +1,16 @@
 # Buho Marc
 
-Demo funcional y navegable de la plataforma web para administrar marcas, revisar coincidencias precargadas y gestionar casos legales. La landing comercial publicada vive en `/Landing` y la aplicación en `/app`.
+Demo funcional y navegable de la plataforma web para administrar marcas, revisar coincidencias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
 
 ## Accesos publicados
 
 | Superficie | URL | Uso |
 | --- | --- | --- |
-| Landing comercial | [buho-marc.vercel.app/Landing](https://buho-marc.vercel.app/Landing) | Presentación pública del servicio, sistema, dashboard de muestra y pricing. |
+| Landing comercial | [buho-marc.vercel.app](https://buho-marc.vercel.app/) | Presentación pública del servicio, sistema, dashboard de muestra y pricing. |
 | Web app | [buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
-| Landing de prueba | [buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Versión de prueba de la landing con escáner multimodal. |
+| URL anterior de prueba | [buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Redirige a la landing principal para mantener los enlaces existentes. |
 
-La landing comercial y la landing de prueba presentan el mismo contenido visual. La primera se publica en Vercel y la segunda se conserva en Railway para revisión. Los enlaces de pricing dentro de la web app dirigen a `https://buho-marc.vercel.app/Landing#pricing`.
+La landing principal se publica en Vercel y la ruta anterior de prueba redirige a la raíz. Los enlaces de pricing dentro de la web app dirigen a `https://buho-marc.vercel.app/#pricing`.
 
 ## Ejecutar en local
 
@@ -66,7 +66,7 @@ No hay autenticación real, almacenamiento de archivos, envío de correo, fuente
 
 El repositorio incluye `railway.json`, migraciones y un health check en `/api/health`. El servicio web necesita una instancia PostgreSQL y la variable `DATABASE_URL`. Al iniciar, aplica las migraciones; la primera carga crea los datos ficticios de forma idempotente.
 
-Railway publica la web app en `/app` y mantiene la landing de prueba en `/landing-de-prueba-js`. La landing comercial se despliega por separado en Vercel, en `/Landing`.
+Railway publica la web app en `/app` y sirve la landing principal en `/`. La URL anterior `/landing-de-prueba-js` redirige a esa landing. La landing comercial se despliega por separado en Vercel, también en `/`.
 
 La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md).
 
@@ -82,8 +82,8 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 ## Estructura relevante
 
 - `app/portada-3/`: componentes compartidos de la landing y del dashboard promocional estático.
-- `app/Landing/page.tsx`: ruta de la landing comercial publicada en Vercel.
-- `app/landing-de-prueba-js/page.tsx`: ruta de prueba de Railway con el mismo contenido multimodal.
+- `app/page.tsx`: ruta principal de la landing comercial.
+- `app/Landing/page.tsx` y `app/landing-de-prueba-js/page.tsx`: rutas anteriores que redirigen a la landing principal.
 - `app/app/page.tsx`: interfaz y modo de respaldo local.
 - `app/api/demo/route.ts`: lectura y mutaciones de la demo persistente.
 - `db/schema.ts`: esquema PostgreSQL; `drizzle/`: migraciones versionadas.

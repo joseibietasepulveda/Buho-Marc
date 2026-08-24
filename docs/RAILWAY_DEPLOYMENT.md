@@ -6,9 +6,10 @@
 | --- | --- | --- |
 | Web app | [https://buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
 | Web app de producción | [https://buho-marc-web-production.up.railway.app/app](https://buho-marc-web-production.up.railway.app/app) | Versión estable compartible. |
-| Landing de prueba | [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Revisión de la landing con escáner multimodal y dashboard promocional estático. |
+| Landing principal | [https://buho-marc-web-dev.up.railway.app/](https://buho-marc-web-dev.up.railway.app/) | Landing comercial con escáner multimodal y dashboard promocional estático. |
+| URL anterior de prueba | [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Redirige a la landing principal. |
 
-La landing comercial se publica separadamente en Vercel: [https://buho-marc.vercel.app/Landing](https://buho-marc.vercel.app/Landing). Los enlaces de pricing de la web app deben apuntar a `https://buho-marc.vercel.app/Landing#pricing`.
+La landing comercial se publica separadamente en Vercel: [https://buho-marc.vercel.app/](https://buho-marc.vercel.app/). Los enlaces de pricing de la web app deben apuntar a `https://buho-marc.vercel.app/#pricing`.
 
 ## Ambientes
 
@@ -54,7 +55,7 @@ Después de desplegar:
 3. Crear una marca, recargar y comprobar que permanece.
 4. La búsqueda simulada por número de registro debe mostrar RUT, marca, titular, Clases de Niza y estado antes de permitir agregar al seguimiento. En base queda un trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
 5. Convertir una coincidencia ficticia en caso dos veces debe conservar un solo caso.
-6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/Landing#pricing`.
+6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/#pricing`.
 7. Confirmar que el dashboard muestre las coincidencias pendientes por nivel, que Casos activos indique los vencimientos dentro de 14 días y que Notificaciones no contenga avisos de borradores.
 8. Revisar Coincidencias a ancho de escritorio y angosto: las insignias de Similitud y Estado no deben superponerse y la tabla debe ofrecer desplazamiento horizontal cuando sea necesario.
 

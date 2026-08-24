@@ -122,7 +122,7 @@ export default function BuhoAppPage() {
       <div aria-label="Buho Marc" className="buho-wordmark">BUHO MARC</div>
       <button className="buho-profile" type="button"><span>JI</span><div><strong>José Ignacio Ibieta</strong><small>Estudio Ibieta IP</small></div></button>
       <nav aria-label="Navegación de la aplicación">{NAV.map((item, index) => <button className={view === item.id ? "is-active" : ""} key={item.id} onClick={() => { setMatchBrandFilter(null); navigate(item.id); }} type="button"><span>0{index + 1}</span>{item.label}{item.id === "notifications" && notices.filter((notice) => notice.status === "Pendiente").length > 0 && <b>{notices.filter((notice) => notice.status === "Pendiente").length}</b>}</button>)}</nav>
-      <div className="buho-plan"><span>PLAN ESTUDIO</span><strong>{brands.length} de 25 marcas</strong><i><b style={{ width: `${Math.min(100, brands.length / 25 * 100)}%` }} /></i><small>{Math.max(0, 25 - brands.length)} espacios disponibles</small><a href="https://buho-marc.vercel.app/Landing#pricing">Ver pricing</a></div>
+      <div className="buho-plan"><span>PLAN ESTUDIO</span><strong>{brands.length} de 25 marcas</strong><i><b style={{ width: `${Math.min(100, brands.length / 25 * 100)}%` }} /></i><small>{Math.max(0, 25 - brands.length)} espacios disponibles</small><a href="https://buho-marc.vercel.app/#pricing">Ver pricing</a></div>
     </aside>
     <section className="buho-workspace">
       <div className={`buho-workspace-content${view === "dashboard" ? "" : " is-compact"}`}>
