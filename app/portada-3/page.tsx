@@ -43,12 +43,14 @@ const systemFlow = [
 
 type PortadaTresProps = {
   scannerMode?: "visual" | "multimodal";
+  headlineFirstLine?: string;
   headlineSecondLine?: string;
   dashboardMode?: "legacy" | "preview";
 };
 
 export default function PortadaTres({
   scannerMode = "visual",
+  headlineFirstLine = "Trackeo de la propiedad",
   headlineSecondLine = "intelectual intelectual",
   dashboardMode = "legacy",
 }: PortadaTresProps = {}) {
@@ -78,7 +80,7 @@ export default function PortadaTres({
         </nav>
 
         <div className="bends-hero-content">
-          <h1>Trackeo de la propiedad<br />{headlineSecondLine}<br /><em>de tus clientes.</em></h1>
+          <h1>{headlineFirstLine}<br />{headlineSecondLine}<br /><em>de tus clientes.</em></h1>
           <p className="bends-intro">Que tus clientes se enteren por ti.</p>
           <div className="bends-actions">
             <a className="bends-button bends-button-primary" href="#sistema">Conoce el sistema <span>↓</span></a>
