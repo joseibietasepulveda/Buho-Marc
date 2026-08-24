@@ -1,7 +1,7 @@
 const metrics = [
   ["MARCAS EN SEGUIMIENTO", "20", "20 de 25 cupos utilizados"],
   ["NUEVAS COINCIDENCIAS", "08", "Pendientes de revisión"],
-  ["CASOS ACTIVOS", "04", "2 con plazo cercano"],
+  ["CASOS ACTIVOS", "08", "2 con plazo cercano"],
   ["OPOSICIONES EN CURSO", "02", "Revisa los próximos vencimientos"],
 ] as const;
 
