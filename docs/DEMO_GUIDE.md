@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-La demo permite mostrar la experiencia de Buho Marc sin backend. Está pensada para una conversación comercial o una validación de producto, no para operar información real.
+La demo permite mostrar la experiencia de Buho Marc con datos ficticios persistentes en Railway o, sin configuración adicional, con respaldo local en el navegador. Está pensada para una conversación comercial o una validación de producto, no para operar información real.
 
 ## Accesos de demostración
 
@@ -14,9 +14,9 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 
 ## Recorrido sugerido
 
-1. Abrir **Inicio** y explicar la jerarquía: atención inmediata separada en altas, medias y bajas, indicadores, coincidencias y plazos.
+1. Abrir **Inicio** y explicar la jerarquía: atención inmediata separada por nivel de similitud, indicadores, coincidencias y plazos. El KPI de Casos activos destaca los vencimientos dentro de 14 días.
 2. Entrar a **Marcas**, revisar el cupo, agregar una marca por número de registro INAPI o usar la importación por RUT. Cualquier fila abre su cartera de coincidencias.
-3. Entrar a **Coincidencias**, filtrar por nivel y abrir una fila completa. La tabla comienza por **Similitud** y **Estado**.
+3. Entrar a **Coincidencias**, filtrar por nivel y abrir una fila completa. La tabla comienza por **Similitud** y **Estado**; cuando el ancho disponible no alcanza, usa su barra horizontal en lugar de superponer columnas.
 4. Revisar la comparación y convertirla en caso.
 5. Entrar a **Casos**, abrir el caso creado o arrastrarlo entre las cuatro etapas del tablero. Desde la ficha se puede superponer la coincidencia de origen o desvincularla con confirmación.
 6. Entrar a **Notificaciones**, revisar el contexto y copiar el contenido de correo si se necesita.
@@ -46,4 +46,4 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 - Las coincidencias están ordenadas de mayor a menor y cada fila tiene cursor de mano, foco visible y apertura por teclado.
 - Las acciones de mayor impacto se explicitan y muestran confirmación.
 - Los formularios no borran datos hasta que el usuario confirma o cierra el panel.
-- En móvil, las tablas pueden desplazarse horizontalmente y el tablero conserva sus columnas. En escritorio se aplica una densidad visual equivalente al 90 % de zoom.
+- Las tablas pueden desplazarse horizontalmente cuando el ancho disponible no alcanza y el tablero conserva sus columnas. En escritorio se aplica una densidad visual equivalente al 90 % de zoom.

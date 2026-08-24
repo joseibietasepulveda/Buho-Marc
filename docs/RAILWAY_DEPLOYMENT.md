@@ -55,7 +55,8 @@ Después de desplegar:
 4. La búsqueda simulada por número de registro debe mostrar RUT, marca, titular, Clases de Niza y estado antes de permitir agregar al seguimiento. En base queda un trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
 5. Convertir una coincidencia ficticia en caso dos veces debe conservar un solo caso.
 6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/Landing#pricing`.
-7. Confirmar que el dashboard muestre las coincidencias pendientes por nivel y que Notificaciones no contenga avisos de borradores.
+7. Confirmar que el dashboard muestre las coincidencias pendientes por nivel, que Casos activos indique los vencimientos dentro de 14 días y que Notificaciones no contenga avisos de borradores.
+8. Revisar Coincidencias a ancho de escritorio y angosto: las insignias de Similitud y Estado no deben superponerse y la tabla debe ofrecer desplazamiento horizontal cuando sea necesario.
 
 ## Antes de producción real
 

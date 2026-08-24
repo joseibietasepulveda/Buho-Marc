@@ -44,9 +44,9 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 
 ## Qué incluye la demo
 
-- Dashboard con métricas, alertas por coincidencias altas, medias y bajas pendientes, bandeja priorizada y agenda legal.
+- Dashboard con métricas, alerta por coincidencias pendientes separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
 - Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT y filas completas clickeables para revisar su cartera de coincidencias.
-- Coincidencias filtrables, ordenadas de mayor a menor, con filas completas clickeables, comparación lado a lado y decisiones de revisión.
+- Coincidencias filtrables, ordenadas de mayor a menor, con filas completas clickeables, comparación lado a lado, decisiones de revisión y desplazamiento horizontal seguro para tablas angostas.
 - Conversión de una coincidencia en caso.
 - Tablero de casos por etapa, creación manual y arrastre fluido entre Preparación, Presentado, Seguimiento y Concluido.
 - Ficha de caso con acceso superpuesto a la coincidencia de origen y opción confirmada para desvincularla sin cerrar el caso.
