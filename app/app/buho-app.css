@@ -170,7 +170,10 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-dashboard-matches .buho-match-row > span:not(.buho-tone) { min-width:0; }
 .buho-dashboard-matches .buho-match-row small { display:block; margin-bottom:7px; color:#766d78; font-family:var(--font-geist-mono),monospace; font-size:9px; letter-spacing:.08em; }
 .buho-dashboard-matches .buho-match-row b { display:block; overflow:hidden; font-size:17px; text-overflow:ellipsis; white-space:nowrap; }
-.buho-calendar-heading { min-width:0; }
+.buho-agenda > header { display:block; }
+.buho-calendar-heading { width:100%; min-width:0; }
+.buho-calendar-meta { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.buho-calendar-meta > small { color:#675d68; font-size:14px; font-weight:700; text-align:right; }
 .buho-calendar-navigation { display:flex; align-items:center; gap:11px; margin-top:8px; }
 .buho-calendar-navigation h2 { min-width:0; margin:0 !important; text-align:center; white-space:nowrap; }
 .buho-calendar-navigation button { width:34px; min-width:34px; min-height:34px; padding:0; border:1px solid var(--line); border-radius:7px; color:#4d335d; background:#fffdfa; cursor:pointer; font-size:18px; font-weight:800; }
