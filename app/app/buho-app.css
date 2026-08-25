@@ -496,13 +496,6 @@ button, a { -webkit-tap-highlight-color:transparent; }
 
 @media (max-width:1500px) and (min-width:901px) {
   .buho-workspace { padding-inline:clamp(28px,3vw,46px); }
-  .buho-attention { grid-template-columns:minmax(0,1fr) auto; }
-  .buho-attention-levels { grid-column:1 / -1; grid-row:2; justify-content:flex-start; }
-  .buho-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .buho-metrics button:nth-child(2) { border-right:0; }
-  .buho-metrics button:nth-child(-n+2) { border-bottom:1px solid var(--line); }
-  .buho-match-filter-groups { grid-template-columns:minmax(210px,.8fr) minmax(0,1.2fr); }
-  .buho-match-filter-groups fieldset:last-child { grid-column:1 / -1; }
 }
 
 @media (max-width:900px) {
@@ -517,4 +510,37 @@ button, a { -webkit-tap-highlight-color:transparent; }
   .buho-filter-pills button { width:100%; }
   .buho-brand-hero { grid-template-columns:1fr; }
   .buho-brand-inapi-link { justify-self:start; margin:2px 0 0; }
+}
+
+.buho-match-filter-groups {
+  grid-template-columns:1fr;
+  align-items:start;
+  gap:17px;
+}
+.buho-match-filter-groups fieldset:last-child { grid-column:auto; }
+.buho-match-filter-groups fieldset { align-content:start; }
+
+@media (min-width:1100px) {
+  .buho-attention {
+    grid-template-columns:minmax(180px,1fr) minmax(360px,auto) auto;
+    gap:16px;
+  }
+  .buho-attention-levels {
+    grid-column:auto;
+    grid-row:auto;
+    justify-content:center;
+    flex-wrap:nowrap;
+  }
+  .buho-metrics { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .buho-metrics button {
+    min-height:160px;
+    border-right:1px solid var(--line);
+    border-bottom:0 !important;
+    text-align:left;
+  }
+  .buho-metrics button:nth-child(2) { border-right:1px solid var(--line); }
+  .buho-metrics button:last-child { border-right:0; }
+  .buho-metrics button > span,
+  .buho-metrics button > strong,
+  .buho-metrics button > small { width:100%; align-self:start; text-align:left; }
 }
