@@ -1,6 +1,6 @@
 # Buho Marc
 
-Demo funcional y navegable de la plataforma web para administrar marcas, revisar coincidencias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
+Demo funcional y navegable de la plataforma web para administrar marcas, revisar vigilancias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
 
 ## Accesos publicados
 
@@ -44,10 +44,11 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 
 ## Qué incluye la demo
 
-- Dashboard con métricas, alerta por coincidencias pendientes separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
-- Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT y filas completas clickeables para revisar su cartera de coincidencias.
-- Coincidencias filtrables, ordenadas de mayor a menor, con filas completas clickeables, comparación lado a lado, decisiones de revisión y desplazamiento horizontal seguro para tablas angostas.
-- Conversión de una coincidencia en caso.
+- Dashboard con métricas alineadas, alerta por vigilancias pendientes separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
+- Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT, tipos de marca y filas completas clickeables para revisar su cartera de vigilancias.
+- Vigilancia con búsqueda por nombre, filtros acumulables por similitud y estado, edición directa de ambos valores, comparación visual lado a lado y desplazamiento horizontal seguro para tablas angostas.
+- Alta manual de vigilancia: se elige una marca ya seguida, se busca un número de inscripción o solicitud y se completan datos ficticios, incluida la fecha de publicación en Diario Oficial.
+- Conversión de una vigilancia en caso y calendario de plazos de casos.
 - Tablero de casos por etapa, creación manual y arrastre fluido entre Preparación, Presentado, Seguimiento y Concluido.
 - Ficha de caso con acceso superpuesto a la coincidencia de origen y opción confirmada para desvincularla sin cerrar el caso.
 - Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
@@ -56,7 +57,7 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
 - Diseño responsive para escritorio, tablet y móvil.
 
-Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. La demo actual incluye ocho coincidencias pendientes de revisión: tres altas, tres medias y dos bajas.
+Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. Las cantidades visibles cambian a medida que se clasifican vigilancias o se convierten en casos.
 
 ## Qué no está implementado
 
