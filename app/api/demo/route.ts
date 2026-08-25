@@ -12,9 +12,10 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createBrand") }).extend(brandInputSchema.shape),
   z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(25) }),
   z.object({ action: z.literal("createCase"), title: z.string().min(2).max(220), brand: z.string().min(2).max(180), client: z.string().min(2).max(180), priority: z.enum(["Alta", "Media", "Baja"]), deadline: z.string().min(2).max(40), deadlineDescription: z.string().min(2).max(500), owner: z.string().min(2).max(180), description: z.string().max(5000).optional() }),
-  z.object({ action: z.literal("createManualMatch"), brandId: z.string().min(1).max(30), found: z.string().min(2).max(180), foundType: brandTypeSchema, applicant: z.string().min(2).max(180), applicantRut: z.string().min(3).max(30), application: z.string().min(2).max(100), level: z.enum(["Alta", "Media", "Baja"]), source: z.string().min(2).max(100) }),
+  z.object({ action: z.literal("createManualMatch"), brandId: z.string().min(1).max(30), found: z.string().min(2).max(180), foundType: brandTypeSchema, applicant: z.string().min(2).max(180), applicantRut: z.string().min(3).max(30), application: z.string().min(2).max(100), level: z.enum(["Alta", "Media", "Baja"]), source: z.string().min(2).max(100), publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
   z.object({ action: z.literal("createUser"), name: z.string().min(2).max(180), email: z.string().email().max(255) }),
   z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente de clasificación", "En seguimiento", "Descartada", "Convertida en caso"]) }),
+  z.object({ action: z.literal("updateMatchLevel"), id: z.string().min(1), level: z.enum(["Alta", "Media", "Baja"]) }),
   z.object({ action: z.literal("toggleBrandMonitoring"), id: z.string().min(1), enabled: z.boolean() }),
   z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Preparación", "Presentado", "Seguimiento", "Concluido"]) }),
   z.object({ action: z.literal("updateCaseOwner"), id: z.string().min(1), owner: z.string().min(2).max(180) }),
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
         if (!brand) throw new Error("Marca en seguimiento no encontrada");
         const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 2485) + 1 AS next FROM matches WHERE organization_id = ${DEMO_ORG_ID}`;
         const score = input.level === "Alta" ? 90 : input.level === "Media" ? 70 : 45;
-        await tx`INSERT INTO matches (organization_id, public_code, brand_id, source, source_record_id, found_name, applicant, application_number, level, total_score, explanation, review_status, owner_id) VALUES (${DEMO_ORG_ID}, ${nextCode("CO", counter.next, 4)}, ${brand.id}, ${input.source}, ${input.application}, ${input.found.toUpperCase()}, ${input.applicant}, ${input.application}, ${input.level}, ${score}, ${`Ingreso manual · Tipo: ${input.foundType} · RUT: ${input.applicantRut}`}, 'Pendiente de clasificación', ${DEMO_USER_ID})`;
+        await tx`INSERT INTO matches (organization_id, public_code, brand_id, source, source_record_id, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, owner_id) VALUES (${DEMO_ORG_ID}, ${nextCode("CO", counter.next, 4)}, ${brand.id}, ${input.source}, ${input.application}, ${input.publishedAt}, ${input.found.toUpperCase()}, ${input.applicant}, ${input.application}, ${input.level}, ${score}, ${`Ingreso manual · Tipo: ${input.foundType} · RUT: ${input.applicantRut}`}, 'Pendiente de clasificación', ${DEMO_USER_ID})`;
       });
     } else if (input.action === "createUser") {
       await sql.begin(async (tx) => {
@@ -128,6 +129,10 @@ export async function POST(request: Request) {
           await tx`UPDATE matches SET case_id = ${created.id} WHERE id = ${match.id}`;
         }
       });
+    } else if (input.action === "updateMatchLevel") {
+      const score = input.level === "Alta" ? 90 : input.level === "Media" ? 70 : 45;
+      const [match] = await sql`UPDATE matches SET level = ${input.level}, total_score = ${score}, updated_at = now() WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} RETURNING id`;
+      if (!match) throw new Error("Coincidencia no encontrada");
     } else if (input.action === "toggleBrandMonitoring") {
       const status = input.enabled ? "Activa" : "Pausada";
       if (input.enabled) {

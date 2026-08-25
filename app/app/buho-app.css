@@ -322,3 +322,199 @@ button, a { -webkit-tap-highlight-color:transparent; }
   .buho-brand-hero { grid-template-columns:1fr; }
   .buho-brand-hero > .buho-logo-mark { max-width:180px; }
 }
+
+/* Segunda validación: contención, filtros editables y respuesta a notebooks compactos. */
+.buho-workspace-content,
+.buho-workspace-content > *,
+.buho-dashboard > *,
+.buho-table-panel,
+.buho-table-scroller,
+.buho-table-wrap,
+.buho-metrics > *,
+.buho-dashboard-grid > * { min-width:0; }
+
+.buho-sidebar nav {
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:none;
+}
+.buho-sidebar nav::-webkit-scrollbar { display:none; }
+.buho-sidebar .buho-wordmark,
+.buho-sidebar .buho-profile,
+.buho-sidebar .buho-plan { flex-shrink:0; }
+.buho-plan { position:relative; z-index:1; }
+
+.buho-table-wrap th {
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.35;
+}
+.buho-table-wrap td {
+  min-width:0;
+  overflow:hidden;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.buho-table-wrap td > strong,
+.buho-table-wrap td > small,
+.buho-brand-cell > span,
+.buho-logo-mark,
+.buho-logo-mark b,
+.buho-case-main > * { max-width:100%; min-width:0; overflow-wrap:anywhere; }
+.buho-tone { max-width:100%; white-space:normal; text-align:center; line-height:1.2; }
+.buho-logo-mark.is-compact { max-width:100%; }
+
+.buho-view-matches .buho-filter-row {
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(240px,430px) 1fr;
+  align-items:end;
+  gap:14px 24px;
+  padding:20px 24px 22px;
+}
+.buho-view-matches .buho-filter-row > h2 {
+  grid-column:1 / -1;
+  margin:3px 0 0;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+  color:#211825;
+  font-size:18px;
+}
+.buho-live-search {
+  grid-column:1 / -1;
+  max-width:430px;
+  display:grid;
+  gap:7px;
+  color:#413847;
+  font-size:12px;
+  font-weight:850;
+}
+.buho-live-search input,
+.buho-match-filter-groups select {
+  width:100%;
+  min-width:0;
+  min-height:44px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  color:#211825;
+  background:#fff;
+  font:inherit;
+}
+.buho-match-filter-groups {
+  grid-column:1 / -1;
+  display:grid;
+  grid-template-columns:minmax(210px,.7fr) minmax(310px,1fr) minmax(410px,1.35fr);
+  align-items:end;
+  gap:18px;
+}
+.buho-match-filter-groups > label,
+.buho-match-filter-groups fieldset { min-width:0; display:grid; gap:7px; margin:0; padding:0; border:0; color:#413847; font-size:12px; font-weight:850; }
+.buho-match-filter-groups legend { margin-bottom:7px; padding:0; }
+.buho-filter-pills { min-width:0; display:flex; align-items:stretch; gap:7px; flex-wrap:wrap; }
+.buho-filter-pills button {
+  min-width:0;
+  min-height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:7px 11px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:830;
+  line-height:1.2;
+  white-space:normal;
+}
+.buho-filter-pills button b { min-width:22px; min-height:22px; display:grid; place-items:center; border-radius:99px; background:rgba(255,255,255,.55); }
+.buho-filter-pills button.is-neutral { color:#4e4551; background:#fff; }
+.buho-filter-pills button.is-active { outline:3px solid #9e65c8; outline-offset:1px; }
+.buho-filter-pills button.is-neutral.is-active { color:#fff; border-color:#24162d; background:#24162d; }
+
+.buho-inline-tone {
+  width:100%;
+  max-width:100%;
+  min-height:34px;
+  padding:5px 24px 5px 8px;
+  border:1px solid transparent;
+  border-radius:12px;
+  cursor:pointer;
+  font-family:var(--font-geist-mono),monospace;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.045em;
+  line-height:1.2;
+  text-align:center;
+  text-transform:uppercase;
+  text-overflow:ellipsis;
+}
+.buho-view-matches .buho-matches-table th:nth-child(3) { width:205px; }
+.buho-view-matches .buho-matches-table th:nth-child(10) { width:165px; }
+.buho-manual-match-result {
+  display:grid;
+  gap:16px;
+  padding:17px;
+  border:1px solid #d5bee4;
+  border-radius:10px;
+  background:#fbf6fe;
+}
+
+.buho-brand-hero {
+  grid-template-columns:170px minmax(0,1fr) auto;
+  align-items:center;
+}
+.buho-brand-hero-copy { min-width:0; }
+.buho-brand-inapi-link {
+  align-self:start;
+  justify-self:end;
+  margin:5px 0 0 14px;
+  white-space:nowrap;
+}
+
+.buho-case-main h3,
+.buho-case-main p,
+.buho-case-deadline { overflow-wrap:anywhere; word-break:break-word; }
+
+.buho-attention { min-width:0; }
+.buho-attention > *,
+.buho-attention-levels,
+.buho-attention-levels > span { min-width:0; }
+.buho-attention-levels { flex-wrap:wrap; }
+.buho-metrics button > span,
+.buho-metrics small { max-width:100%; overflow-wrap:anywhere; white-space:normal; }
+
+@media (max-height:800px) and (min-width:901px) {
+  .buho-sidebar { padding-top:25px; padding-bottom:18px; }
+  .buho-profile { margin-bottom:18px; }
+  .buho-sidebar nav { gap:4px; }
+  .buho-sidebar nav button { min-height:43px; }
+  .buho-plan { margin-top:12px; padding:13px; }
+}
+
+@media (max-width:1500px) and (min-width:901px) {
+  .buho-workspace { padding-inline:clamp(28px,3vw,46px); }
+  .buho-attention { grid-template-columns:minmax(0,1fr) auto; }
+  .buho-attention-levels { grid-column:1 / -1; grid-row:2; justify-content:flex-start; }
+  .buho-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .buho-metrics button:nth-child(2) { border-right:0; }
+  .buho-metrics button:nth-child(-n+2) { border-bottom:1px solid var(--line); }
+  .buho-match-filter-groups { grid-template-columns:minmax(210px,.8fr) minmax(0,1.2fr); }
+  .buho-match-filter-groups fieldset:last-child { grid-column:1 / -1; }
+}
+
+@media (max-width:900px) {
+  .buho-match-filter-groups { grid-template-columns:1fr; }
+  .buho-match-filter-groups fieldset:last-child { grid-column:auto; }
+}
+
+@media (max-width:620px) {
+  .buho-view-matches .buho-filter-row { grid-template-columns:1fr; padding:17px; }
+  .buho-live-search { max-width:none; }
+  .buho-filter-pills { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .buho-filter-pills button { width:100%; }
+  .buho-brand-hero { grid-template-columns:1fr; }
+  .buho-brand-inapi-link { justify-self:start; margin:2px 0 0; }
+}
