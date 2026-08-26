@@ -1340,7 +1340,7 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
 
 @media (max-width: 820px) {
   .mixta-hero-grid { grid-template-columns: 1fr; gap: 16px; padding: 42px 0 127px; }
-  .mixta-hero-panel { min-height: 350px; padding: 26px 23px; }
+  .mixta-hero-panel { min-height: 460px; padding: 26px 23px; }
   .mixta-hero-panel h1,
   .mixta-hero-panel h2 { font-size: clamp(44px, 11vw, 58px); }
   .mixta-scanner.scanner-stage-multimodal.scanner-stage-compact { min-height: 390px; padding: 14px; }
@@ -1355,7 +1355,7 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
 }
 
 @media (max-width: 500px) {
-  .mixta-hero-panel { min-height: 370px; }
+  .mixta-hero-panel { min-height: 460px; }
   .mixta-hero-panel h1,
   .mixta-hero-panel h2 { font-size: 44px; }
   .mixta-phase-label { font-size: 9px; }
