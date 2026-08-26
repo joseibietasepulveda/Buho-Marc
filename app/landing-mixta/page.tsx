@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AssetScanner from "../components/asset-scanner";
 import ColorBends from "../portada-3/color-bends";
 
 export const metadata: Metadata = {
@@ -75,47 +76,29 @@ export default function LandingMixta() {
         </nav>
 
         <div className="mixta-hero-grid">
-          <article className="mixta-hero-start">
-            <p className="mixta-eyebrow"><i /> ANTES DE INSCRIBIR</p>
+          <article className="mixta-hero-panel mixta-hero-start">
+            <p className="mixta-eyebrow mixta-phase-label"><i /> ANTES DE INSCRIBIR</p>
             <h1>Revisa tu marca<br /><em>antes de inscribirla.</em></h1>
             <p className="mixta-lead">
               Una revisión completa para entender si el nombre, la identidad visual y el concepto de tu marca se acercan demasiado a otra.
             </p>
             <div className="mixta-actions">
-              <a className="mixta-button mixta-button-primary" href="#herramienta">Revisa una marca gratis <span>↘</span></a>
-              <a className="mixta-button mixta-button-text" href="#capas">Cómo analizamos <span>↓</span></a>
+              <a className="mixta-button mixta-button-primary" href="#herramienta">Revisar marcas gratis <span>↘</span></a>
             </div>
-            <p className="mixta-tool-note">Herramienta de revisión integral · Próximamente</p>
           </article>
 
-          <div className="mixta-route" aria-hidden="true">
-            <span>DESPUÉS</span>
-            <i>→</i>
-          </div>
-
-          <article className="mixta-hero-watch">
-            <p className="mixta-eyebrow"><i /> DESPUÉS DE INSCRIBIR</p>
+          <article className="mixta-hero-panel mixta-hero-watch">
+            <p className="mixta-eyebrow mixta-phase-label"><i /> DESPUÉS DE INSCRIBIR</p>
             <h2>Vigila tus marcas<br /><em>y anticipa conflictos.</em></h2>
             <p>
               Buho Marc revisa continuamente nuevas solicitudes y publicaciones para detectar señales de conflicto antes de que se transformen en una oposición.
             </p>
-            <div className="mixta-live-card" aria-label="Ejemplo de alerta de detección multimodal">
-              <div className="mixta-live-card-head"><span>VIGILANCIA ACTIVA</span><b><i /> EN VIVO</b></div>
-              <div className="mixta-match-row">
-                <span className="mixta-match-logo mixta-match-logo-one">N</span>
-                <strong>NORTE</strong>
-                <i>↔</i>
-                <span className="mixta-match-logo mixta-match-logo-two">N</span>
-                <strong>NORTA</strong>
-              </div>
-              <div className="mixta-match-signals">
-                <span>FONÉTICA <b>ALTA</b></span>
-                <span>VISUAL <b>ALTA</b></span>
-                <span>SEMÁNTICA <b>MEDIA</b></span>
-              </div>
-              <p><b>Alerta:</b> similitud relevante detectada</p>
+            <div className="mixta-actions">
+              <a className="mixta-button mixta-button-secondary" href="#sistema">Conocer el sistema <span>↓</span></a>
             </div>
           </article>
+
+          <AssetScanner className="mixta-scanner" compact multimodal />
         </div>
 
         <div className="mixta-hero-footer" aria-label="Resumen de Buho Marc">
@@ -126,6 +109,17 @@ export default function LandingMixta() {
       </section>
 
       <section className="mixta-layers" id="capas">
+        <ColorBends
+          color="#A855F7"
+          speed={0.16}
+          frequency={0.9}
+          noise={0.14}
+          bandWidth={0.13}
+          rotation={92}
+          fadeTop={0.22}
+          waveY={0.18}
+          intensity={1.15}
+        />
         <header className="mixta-section-heading">
           <p className="mixta-index">01 / EL NÚCLEO DEL ANÁLISIS</p>
           <div>
@@ -162,24 +156,26 @@ export default function LandingMixta() {
           </p>
         </div>
 
-        <div className="mixta-comparison" aria-label="Comparación entre análisis aislado y Buho Marc">
-          <article>
-            <span>CRUCE AISLADO</span>
+        <div className="mixta-comparison" aria-label="Comparación entre análisis limitado y análisis integral de Buho Marc">
+          <article className="mixta-comparison-basic">
+            <div className="mixta-comparison-status mixta-comparison-status-bad"><i /> COBERTURA PARCIAL</div>
+            <span>ANÁLISIS LIMITADO</span>
             <h3>Busca si el nombre suena parecido.</h3>
             <ul>
-              <li><i /> Nombre</li>
-              <li className="is-muted"><i /> Logo y tipografía</li>
-              <li className="is-muted"><i /> Significado y concepto</li>
+              <li><i aria-hidden="true">✓</i> Nombre</li>
+              <li className="is-muted"><i aria-hidden="true">×</i> Logo y tipografía</li>
+              <li className="is-muted"><i aria-hidden="true">×</i> Significado y concepto</li>
             </ul>
             <p>Puede dejar fuera similitudes visuales y cercanía conceptual.</p>
           </article>
           <article className="mixta-comparison-active">
+            <div className="mixta-comparison-status mixta-comparison-status-good"><i /> COBERTURA INTEGRAL</div>
             <span>BUHO MARC</span>
             <h3>Entiende la marca como un sistema completo.</h3>
             <ul>
-              <li><i /> Fonética</li>
-              <li><i /> Visual: logo, tipografía y composición</li>
-              <li><i /> Semántica: significado y cercanía conceptual</li>
+              <li><i aria-hidden="true">✓</i> Fonética</li>
+              <li><i aria-hidden="true">✓</i> Visual: logo, tipografía y composición</li>
+              <li><i aria-hidden="true">✓</i> Semántica: significado y cercanía conceptual</li>
             </ul>
             <p>Una alerta con contexto para decidir qué vale la pena revisar.</p>
           </article>
@@ -187,6 +183,17 @@ export default function LandingMixta() {
       </section>
 
       <section className="mixta-system" id="sistema">
+        <ColorBends
+          color="#A855F7"
+          speed={0.14}
+          frequency={1.05}
+          noise={0.12}
+          bandWidth={0.12}
+          rotation={104}
+          fadeTop={0.2}
+          waveY={0.22}
+          intensity={1.1}
+        />
         <header className="mixta-system-heading">
           <p className="mixta-index">03 / CÓMO FUNCIONA</p>
           <h2>De la revisión inicial<br />a la vigilancia continua.</h2>
