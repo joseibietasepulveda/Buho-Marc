@@ -1409,6 +1409,11 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   font-weight: 510;
   letter-spacing: .11em;
 }
+.mixta-hero-watch > .mixta-phase-label {
+  min-height: 22px;
+  font-size: 12px;
+  line-height: 18px;
+}
 .mixta-hero-panel h1,
 .mixta-hero-panel h2 {
   max-width: 640px;
@@ -1535,6 +1540,7 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   .mixta-hero-panel h2 { font-size: clamp(43px, 10.8vw, 56px); }
   .mixta-hero-watch { min-height: 560px; }
   .mixta-phase-label { font-size: 10px; }
+  .mixta-hero-watch > .mixta-phase-label { font-size: 10px; }
   .mixta-hero-footer { font-size: 8px; }
   .mixta-comparison article { min-height: 0; grid-template-rows: 31px 18px auto minmax(176px, auto) auto; }
   .mixta-comparison h3 { min-height: 0; margin-bottom: 20px; }
@@ -1552,6 +1558,7 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   .mixta-hero-panel h2 { font-size: 43px; }
   .mixta-hero-watch h2 { font-size: 42px; }
   .mixta-phase-label { font-size: 10px; }
+  .mixta-hero-watch > .mixta-phase-label { font-size: 10px; }
   .mixta-scanner.scanner-stage-multimodal.scanner-stage-compact .scanner-status { min-width: 248px; padding: 9px 10px; }
   .mixta-scanner.scanner-stage-compact .scanner-status strong { font-size: 12px; }
   .mixta-scanner.scanner-stage-compact .scanner-status small { font-size: 9px; }
