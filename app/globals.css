@@ -1497,6 +1497,7 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   min-height: 0;
   margin: 0;
   align-self: center;
+  transform: translateY(-10px);
   font-size: clamp(21px, 1.78vw, 26px);
 }
 
