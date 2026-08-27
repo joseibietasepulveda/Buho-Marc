@@ -1366,3 +1366,198 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
   .mixta-scanner.scanner-stage-multimodal .asset-text-card { width: 101px; }
   .mixta-comparison article { min-height: 440px; padding: 24px 20px; }
 }
+
+/* Landing mixta v3 — jerarquía, alineación de tablas y contacto */
+.mixta-nav-contact {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0;
+  border: 0;
+}
+.mixta-nav-email {
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, .42);
+  color: rgba(255, 255, 255, .9);
+  font-size: 12px;
+  font-weight: 580;
+  letter-spacing: -.02em;
+}
+.mixta-nav-whatsapp {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(199, 255, 156, .42);
+  border-radius: 50%;
+  background: rgba(109, 191, 72, .08);
+  transition: transform 180ms ease, background 180ms ease;
+}
+.mixta-nav-whatsapp:hover { background: rgba(109, 191, 72, .2); transform: translateY(-2px); }
+.mixta-nav-whatsapp img { width: 15px; height: 15px; }
+
+.mixta-hero-grid { padding-top: 56px; }
+.mixta-hero-panel {
+  min-height: 500px;
+  padding: clamp(25px, 2.25vw, 34px);
+}
+.mixta-phase-label {
+  min-height: 22px;
+  color: rgba(255, 255, 255, .78);
+  font-size: 12px;
+  font-weight: 510;
+  letter-spacing: .11em;
+}
+.mixta-hero-panel h1,
+.mixta-hero-panel h2 {
+  max-width: 640px;
+  margin-top: 22px;
+  font-size: clamp(51px, 4.7vw, 76px);
+}
+.mixta-hero-start h1,
+.mixta-hero-watch h2 { margin-left: -1px; }
+.mixta-hero-watch h2 { max-width: 600px; }
+.mixta-hero-footer { font-size: 11px; letter-spacing: .1em; }
+
+.mixta-scanner.scanner-stage-dense .cube-unit { animation-duration: 22s; }
+.mixta-scanner.scanner-stage-multimodal.scanner-stage-compact .scanner-status {
+  top: 43px;
+  min-width: 282px;
+  gap: 12px;
+  padding: 10px 15px;
+}
+.mixta-scanner.scanner-stage-compact .result-symbol { width: 33px; height: 33px; font-size: 19px; }
+.mixta-scanner.scanner-stage-compact .scanner-status strong { font-size: 14px; letter-spacing: -.025em; }
+.mixta-scanner.scanner-stage-compact .scanner-status small { margin-top: 3px; font-size: 10px; }
+
+.mixta-blindspot {
+  grid-template-columns: minmax(520px, 1.18fr) minmax(300px, .78fr);
+  gap: clamp(55px, 8vw, 130px);
+}
+.mixta-comparison { order: 1; }
+.mixta-blindspot-copy { order: 2; }
+.mixta-blindspot .mixta-index,
+.mixta-system .mixta-index { color: rgba(255, 255, 255, .58); font-size: 12px; font-weight: 510; letter-spacing: .11em; }
+.mixta-blindspot h2 { margin-top: 22px; font-size: clamp(53px, 5.25vw, 78px); }
+.mixta-blindspot h2 em { color: #d8b8ff; font-family: Georgia, serif; font-style: normal; font-weight: 400; letter-spacing: -.09em; }
+.mixta-blindspot-copy > p:not(.mixta-index) { max-width: 460px; color: rgba(255, 255, 255, .8); font-size: 17px; }
+
+.mixta-comparison article {
+  min-height: 528px;
+  display: grid;
+  grid-template-rows: 31px 18px 108px minmax(176px, auto) 1fr;
+  gap: 0;
+  padding: 27px 29px 25px;
+}
+.mixta-comparison-status { min-height: 31px; margin: 0; align-self: start; }
+.mixta-comparison article > span { align-self: end; }
+.mixta-comparison h3 {
+  min-height: 108px;
+  display: flex;
+  align-items: start;
+  margin: 25px 0 0;
+  font-size: clamp(24px, 2.1vw, 33px);
+}
+.mixta-comparison ul {
+  min-height: 176px;
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0;
+  margin: 0;
+  padding: 13px 0;
+}
+.mixta-comparison li { min-height: 44px; align-items: center; }
+.mixta-comparison article > p { align-self: end; margin: 0; }
+
+.mixta-system-heading {
+  display: block;
+  width: min(1210px, 100%);
+  margin-bottom: 60px;
+}
+.mixta-system h2 {
+  max-width: 1120px;
+  margin-top: 26px;
+  font-size: clamp(53px, 6.1vw, 86px);
+}
+.mixta-system h2 em { color: #d8b8ff; font-family: Georgia, serif; font-style: normal; font-weight: 400; letter-spacing: -.09em; }
+.mixta-steps li {
+  min-height: 285px;
+  display: grid;
+  grid-template-rows: 20px 1fr;
+  align-content: start;
+  padding: 26px 28px;
+}
+.mixta-steps p {
+  min-height: 112px;
+  margin: 42px 0 0;
+  align-self: start;
+  font-size: clamp(21px, 1.78vw, 26px);
+}
+
+.mixta-tool h2 { margin-bottom: 34px; }
+.mixta-contact-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 13px; }
+.mixta-whatsapp-button {
+  min-height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border: 1px solid rgba(199, 255, 156, .46);
+  border-radius: 5px;
+  color: #eaffdc;
+  background: rgba(89, 166, 54, .13);
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -.02em;
+  transition: transform 180ms ease, background 180ms ease;
+}
+.mixta-whatsapp-button:hover { transform: translateY(-3px); background: rgba(89, 166, 54, .23); }
+.mixta-whatsapp-button img { width: 17px; height: 17px; }
+.mixta-whatsapp-button span { margin-left: 9px; color: #c8ffa3; font-size: 17px; }
+
+@media (max-width: 1040px) {
+  .mixta-hero-panel { min-height: 530px; }
+  .mixta-hero-panel h1,
+  .mixta-hero-panel h2 { font-size: clamp(44px, 4.5vw, 60px); }
+  .mixta-blindspot { grid-template-columns: 1fr; }
+  .mixta-comparison { order: 1; max-width: 760px; }
+  .mixta-blindspot-copy { order: 2; }
+}
+
+@media (max-width: 820px) {
+  .mixta-nav-contact { gap: 9px; }
+  .mixta-nav-email { font-size: 10px; }
+  .mixta-nav-whatsapp { width: 27px; height: 27px; }
+  .mixta-hero-panel { min-height: 520px; }
+  .mixta-hero-panel h1,
+  .mixta-hero-panel h2 { font-size: clamp(43px, 10.8vw, 56px); }
+  .mixta-hero-watch { min-height: 560px; }
+  .mixta-phase-label { font-size: 10px; }
+  .mixta-hero-footer { font-size: 8px; }
+  .mixta-comparison article { min-height: 0; grid-template-rows: 31px 18px auto minmax(176px, auto) auto; }
+  .mixta-comparison h3 { min-height: 0; margin-bottom: 20px; }
+  .mixta-system h2 { font-size: clamp(48px, 10vw, 66px); }
+  .mixta-steps li { min-height: 220px; }
+}
+
+@media (max-width: 500px) {
+  .mixta-nav { grid-template-columns: 1fr auto; }
+  .mixta-brand { font-size: 29px; }
+  .mixta-nav-email { display: none; }
+  .mixta-hero-panel { min-height: 510px; }
+  .mixta-hero-watch { min-height: 590px; }
+  .mixta-hero-panel h1,
+  .mixta-hero-panel h2 { font-size: 43px; }
+  .mixta-hero-watch h2 { font-size: 42px; }
+  .mixta-phase-label { font-size: 10px; }
+  .mixta-scanner.scanner-stage-multimodal.scanner-stage-compact .scanner-status { min-width: 248px; padding: 9px 10px; }
+  .mixta-scanner.scanner-stage-compact .scanner-status strong { font-size: 12px; }
+  .mixta-scanner.scanner-stage-compact .scanner-status small { font-size: 9px; }
+  .mixta-comparison article { padding: 24px 20px; }
+  .mixta-comparison ul { min-height: 186px; }
+  .mixta-comparison li { font-size: 12px; }
+  .mixta-contact-actions { width: min(310px, 100%); flex-direction: column; }
+  .mixta-contact-actions > * { width: 100%; }
+}

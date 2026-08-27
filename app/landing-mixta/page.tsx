@@ -14,34 +14,10 @@ export const metadata: Metadata = {
   },
 };
 
-const layers = [
-  {
-    index: "01",
-    name: "Fonética",
-    short: "Detección fonética",
-    copy: "Detecta nombres que suenan parecido, incluso cuando se escriben distinto.",
-    signal: "NÓVA / NOVA",
-  },
-  {
-    index: "02",
-    name: "Visual",
-    short: "Detección visual",
-    copy: "Compara logo, tipografía y composición para encontrar similitudes que el texto no alcanza a ver.",
-    signal: "LOGO · TIPO · FORMA",
-  },
-  {
-    index: "03",
-    name: "Semántica",
-    short: "Detección semántica",
-    copy: "Reconoce cercanía conceptual: ideas, atributos y territorios de marca relacionados.",
-    signal: "ORIGEN · RUMBO · NORTE",
-  },
-] as const;
-
 const monitoringSteps = [
-  "Ingresas la marca que quieres revisar o vigilar.",
-  "Buho Marc la contrasta con publicaciones de INAPI y el Diario Oficial en las tres capas.",
-  "Recibes una alerta clara para evaluar y actuar antes de que el cliente se entere por otro lado.",
+  "Revisamos fonética, visual y semánticamente antes de inscribir.",
+  "Te acompañamos en la evaluación y en el proceso de inscripción.",
+  "Vigilamos tus marcas inscritas para presentar oposiciones a tiempo.",
 ] as const;
 
 export default function LandingMixta() {
@@ -68,11 +44,16 @@ export default function LandingMixta() {
             BUHO MARC<span>®</span>
           </Link>
           <div className="mixta-nav-links">
-            <a href="#capas">Las tres capas</a>
-            <a href="#vigilancia">Vigilancia</a>
-            <a href="#sistema">El sistema</a>
+            <a href="#vigilancia">Comparación</a>
+            <a href="#sistema">El proceso</a>
+            <a href="#conversemos">Conversemos</a>
           </div>
-          <a className="mixta-nav-contact" href="mailto:contacto@buhomarc.cl">Hablemos <span>↗</span></a>
+          <div className="mixta-nav-contact">
+            <a className="mixta-nav-email" href="mailto:hola@buhomarc.cl">hola@buhomarc.cl</a>
+            <a className="mixta-nav-whatsapp" href="https://wa.me/56978083444" target="_blank" rel="noreferrer" aria-label="Escríbenos por WhatsApp">
+              <img src="https://cdn.simpleicons.org/whatsapp/C7FF9C" alt="" />
+            </a>
+          </div>
         </nav>
 
         <div className="mixta-hero-grid">
@@ -83,22 +64,19 @@ export default function LandingMixta() {
               Una revisión completa para entender si el nombre, la identidad visual y el concepto de tu marca se acercan demasiado a otra.
             </p>
             <div className="mixta-actions">
-              <a className="mixta-button mixta-button-primary" href="#herramienta">Revisar marcas gratis <span>↘</span></a>
+              <a className="mixta-button mixta-button-primary" href="#conversemos">Revisar marcas gratis <span>↘</span></a>
             </div>
           </article>
 
           <article className="mixta-hero-panel mixta-hero-watch">
             <p className="mixta-eyebrow mixta-phase-label"><i /> DESPUÉS DE INSCRIBIR</p>
-            <h2>Vigila tus marcas<br /><em>y anticipa conflictos.</em></h2>
-            <p>
-              Buho Marc revisa continuamente nuevas solicitudes y publicaciones para detectar señales de conflicto antes de que se transformen en una oposición.
-            </p>
+            <h2>Vigila tus marcas,<br /><em>anticipa conflictos</em><br />y presenta oposiciones<br />a tiempo.</h2>
             <div className="mixta-actions">
               <a className="mixta-button mixta-button-secondary" href="#sistema">Conocer el sistema <span>↓</span></a>
             </div>
           </article>
 
-          <AssetScanner className="mixta-scanner" compact multimodal />
+          <AssetScanner className="mixta-scanner" compact multimodal dense />
         </div>
 
         <div className="mixta-hero-footer" aria-label="Resumen de Buho Marc">
@@ -108,68 +86,33 @@ export default function LandingMixta() {
         </div>
       </section>
 
-      <section className="mixta-layers" id="capas">
-        <ColorBends
-          color="#A855F7"
-          speed={0.16}
-          frequency={0.9}
-          noise={0.14}
-          bandWidth={0.13}
-          rotation={92}
-          fadeTop={0.22}
-          waveY={0.18}
-          intensity={1.15}
-        />
-        <header className="mixta-section-heading">
-          <p className="mixta-index">01 / EL NÚCLEO DEL ANÁLISIS</p>
-          <div>
-            <h2>Una marca no es solo<br /><em>un nombre.</em></h2>
-            <p>
-              La vigilancia de Buho Marc cruza tres capas a la vez. Así encuentra riesgos que una búsqueda textual o fonética aislada deja pasar.
-            </p>
-          </div>
-        </header>
-
-        <div className="mixta-layers-grid">
-          {layers.map((layer) => (
-            <article className="mixta-layer-card" key={layer.name}>
-              <div className="mixta-layer-card-head"><span>{layer.index}</span><small>{layer.short}</small></div>
-              <div className={`mixta-layer-mark mixta-layer-mark-${layer.index}`} aria-hidden="true"><i /><i /><i /></div>
-              <h3>{layer.name}</h3>
-              <p>{layer.copy}</p>
-              <b>{layer.signal}</b>
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section className="mixta-blindspot" id="vigilancia">
         <div className="mixta-blindspot-glow" aria-hidden="true" />
         <div className="mixta-blindspot-copy">
           <p className="mixta-index">02 / VIGILANCIA QUE VE MÁS</p>
-          <h2>El texto no siempre<br />muestra el conflicto.</h2>
+          <h2>Una marca no es solo<br /><em>un nombre.</em></h2>
           <p>
-            Dos marcas pueden llamarse distinto y, aun así, competir desde una tipografía, composición o logo prácticamente equivalentes. También pueden ocupar el mismo territorio conceptual aunque no compartan palabras.
+            El nombre no cuenta toda la historia. Dos marcas pueden llamarse distinto y, aun así, acercarse demasiado por su tipografía, composición, logo o significado.
           </p>
           <p>
-            Frente al matching fonético que ofrecen herramientas como Smark, Buho Marc suma las capas visual y semántica para entregar una lectura integral de cada señal.
+            Buho Marc cruza fonética, visual y semántica para entregar una lectura integral de cada señal antes de que se convierta en un problema.
           </p>
         </div>
 
         <div className="mixta-comparison" aria-label="Comparación entre análisis limitado y análisis integral de Buho Marc">
           <article className="mixta-comparison-basic">
-            <div className="mixta-comparison-status mixta-comparison-status-bad"><i /> COBERTURA PARCIAL</div>
+            <div className="mixta-comparison-status mixta-comparison-status-bad"><i /> Otros: cobertura parcial</div>
             <span>ANÁLISIS LIMITADO</span>
             <h3>Busca si el nombre suena parecido.</h3>
             <ul>
-              <li><i aria-hidden="true">✓</i> Nombre</li>
-              <li className="is-muted"><i aria-hidden="true">×</i> Logo y tipografía</li>
-              <li className="is-muted"><i aria-hidden="true">×</i> Significado y concepto</li>
+              <li><i aria-hidden="true">✓</i> Fonética</li>
+              <li className="is-muted"><i aria-hidden="true">×</i> Visual: logo, tipografía y composición</li>
+              <li className="is-muted"><i aria-hidden="true">×</i> Semántica: significado y cercanía conceptual</li>
             </ul>
             <p>Puede dejar fuera similitudes visuales y cercanía conceptual.</p>
           </article>
           <article className="mixta-comparison-active">
-            <div className="mixta-comparison-status mixta-comparison-status-good"><i /> COBERTURA INTEGRAL</div>
+            <div className="mixta-comparison-status mixta-comparison-status-good"><i /> Nosotros: cobertura Integral</div>
             <span>BUHO MARC</span>
             <h3>Entiende la marca como un sistema completo.</h3>
             <ul>
@@ -196,7 +139,7 @@ export default function LandingMixta() {
         />
         <header className="mixta-system-heading">
           <p className="mixta-index">03 / CÓMO FUNCIONA</p>
-          <h2>De la revisión inicial<br />a la vigilancia continua.</h2>
+          <h2>Revisión inicial, acompañamiento en el proceso,<br /><em>vigilancia continua de tus marcas inscritas</em><br />para presentar oposiciones a tiempo.</h2>
         </header>
         <ol className="mixta-steps">
           {monitoringSteps.map((step, index) => (
@@ -209,19 +152,19 @@ export default function LandingMixta() {
         </ol>
       </section>
 
-      <section className="mixta-tool" id="herramienta">
-        <p className="mixta-index">HERRAMIENTA DE REVISIÓN</p>
-        <h2>Antes de registrar,<br /><em>míralo desde todos los ángulos.</em></h2>
-        <p>
-          Muy pronto podrás revisar una marca de forma visual, fonética y semántica desde una misma herramienta.
-        </p>
-        <a className="mixta-button mixta-button-light" href="mailto:contacto@buhomarc.cl?subject=Quiero%20probar%20la%20herramienta%20de%20revisi%C3%B3n">Quiero conocer la herramienta <span>↗</span></a>
+      <section className="mixta-tool" id="conversemos">
+        <p className="mixta-index">CONVERSEMOS</p>
+        <h2>Prevee,<br /><em>sigue, vigila.</em></h2>
+        <div className="mixta-contact-actions">
+          <a className="mixta-button mixta-button-light" href="mailto:hola@buhomarc.cl">hola@buhomarc.cl <span>↗</span></a>
+          <a className="mixta-whatsapp-button" href="https://wa.me/56978083444" target="_blank" rel="noreferrer"><img src="https://cdn.simpleicons.org/whatsapp/C7FF9C" alt="" /> Escríbenos por WhatsApp <span>↗</span></a>
+        </div>
       </section>
 
       <footer className="mixta-footer">
         <div><p className="mixta-footer-brand">BUHO MARC<span>®</span></p><p>Revisión y vigilancia integral de marcas.</p></div>
         <div><span>VIGILANCIA</span><p>Fonética</p><p>Visual</p><p>Semántica</p></div>
-        <div><span>CONTACTO</span><a href="mailto:contacto@buhomarc.cl">contacto@buhomarc.cl</a><a href="https://wa.me/56978083444" target="_blank" rel="noreferrer">+56 9 7808 3444</a></div>
+        <div><span>CONTACTO</span><a href="mailto:hola@buhomarc.cl">hola@buhomarc.cl</a><a href="https://wa.me/56978083444" target="_blank" rel="noreferrer">+56 9 7808 3444</a></div>
         <small>© 2026 Buho Marc. Todos los derechos reservados.</small>
       </footer>
     </main>
