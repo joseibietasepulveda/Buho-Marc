@@ -1552,7 +1552,7 @@ footer { min-height: 150px; display: grid; grid-template-columns: 1fr 1fr auto; 
 @media (max-width: 500px) {
   .mixta-nav { grid-template-columns: 1fr auto; }
   .mixta-brand { font-size: 29px; }
-  .mixta-nav-email { display: none; }
+  .mixta-nav-email { display: inline; font-size: 9px; }
   .mixta-hero-panel { min-height: 510px; }
   .mixta-hero-watch { min-height: 590px; }
   .mixta-hero-panel h1,
