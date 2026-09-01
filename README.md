@@ -44,6 +44,7 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 
 ## Qué incluye la demo
 
+- Navegación lateral en el orden **Inicio → Revisor de factibilidad → Inscripción de marcas → Marcas registradas**, seguida por Vigilancia, Casos, Notificaciones y Usuarios.
 - Dashboard con métricas alineadas, alerta por vigilancias pendientes separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
 - Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT, tipos de marca y filas completas clickeables para revisar su cartera de vigilancias.
 - Vigilancia con búsqueda por nombre, filtros acumulables por similitud y estado, edición directa de ambos valores, comparación visual lado a lado y desplazamiento horizontal seguro para tablas angostas.
@@ -52,22 +53,46 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 - Tablero de casos por etapa, creación manual y arrastre fluido entre Preparación, Presentado, Seguimiento y Concluido.
 - Ficha de caso con acceso superpuesto a la coincidencia de origen y opción confirmada para desvincularla sin cerrar el caso.
 - Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
+- Revisor de factibilidad previo a la inscripción: acepta texto e imagen, permite acumular clases Niza opcionales, simula un análisis y presenta un resumen de riesgo junto con una tabla de coincidencias visuales, fonéticas y conceptuales.
+- Canvas de inscripción de marcas con macrofases INAPI y Diario Oficial, estados legales, plazos en días hábiles chilenos, alertas de atención e historial de cambios por solicitud.
 - Lista y alta de usuarios.
 - API persistente para crear marcas, casos y usuarios; revisar coincidencias; mover casos; desvincular coincidencias; y gestionar notificaciones.
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
-- Diseño responsive para escritorio, tablet y móvil.
+- Diseño optimizado prioritariamente para uso en computador. Tablet y móvil conservan compatibilidad básica, pero no son superficies principales del producto.
 
 Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. Las cantidades visibles cambian a medida que se clasifican vigilancias o se convierten en casos.
 
 ## Qué no está implementado
 
-No hay autenticación real, almacenamiento de archivos, envío de correo, fuentes oficiales ni motor de cruces. La app no calcula similitudes: las coincidencias iniciales son ejemplos y las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
+No hay autenticación real, almacenamiento persistente de archivos, envío de correo, fuentes oficiales ni motor de cruces. La app no calcula similitudes ni probabilidades jurídicas reales: las coincidencias y porcentajes del Revisor de factibilidad son datos mock para la demostración. Las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
+
+### Backlog · Revisor de factibilidad
+
+- Reemplazar los resultados, porcentajes y razones mock por un motor que combine búsqueda denominativa, fonética, visual y coincidencia de clases Niza.
+- Conectar la búsqueda con datos oficiales o una fuente de marcas versionada, conservando fecha y procedencia de cada resultado.
+- Guardar análisis, imágenes y clases seleccionadas por organización, con controles de acceso y retención.
+- Calibrar los porcentajes con evidencia histórica y revisión experta; mantener siempre la distinción entre estimación orientativa y decisión oficial de INAPI.
+- Incorporar estados de error, indisponibilidad de fuente y resultados parciales del motor antes de producción.
+
+### Backlog · Inscripción de marcas
+
+> Criterio de producto: esta sección está pensada para escritorio. La adaptación móvil es secundaria y sólo debe asegurar acceso básico, sin condicionar la densidad ni la distribución del Canvas en computador.
+
+- Reemplazar el selector manual de estados y los datos mock del Canvas por estados provenientes de la API de expedientes.
+- Registrar cada cambio de estado como un evento inmutable de historial, conservando fecha y fuente.
+- Alimentar fechas de notificación/publicación desde la fuente oficial antes de calcular vencimientos; si falta una fecha fuente, la interfaz mantiene “Fecha de vencimiento pendiente de confirmar”.
+- Mantener y versionar el calendario de feriados chilenos, incluidos los feriados electorales o regionales que correspondan al expediente.
+- Generar notificaciones persistentes cuando un plazo pase a “próximo a vencer” o “vencido / requiere revisión”.
 
 ## Despliegue en Railway
 
 El repositorio incluye `railway.json`, migraciones y un health check en `/api/health`. El servicio web necesita una instancia PostgreSQL y la variable `DATABASE_URL`. Al iniciar, aplica las migraciones; la primera carga crea los datos ficticios de forma idempotente.
 
 Railway publica la web app en `/app` y sirve la landing principal en `/`. La URL anterior `/landing-de-prueba-js` redirige a esa landing. La landing comercial se despliega por separado en Vercel, también en `/`.
+
+Las secciones **Revisor de factibilidad** e **Inscripción de marcas** se validan y publican primero en el ambiente Railway **Dev** (`buho-marc-web-dev.up.railway.app`). El ambiente `production` sólo se actualiza mediante una solicitud explícita posterior.
+
+Última publicación Dev verificada: **28 de agosto de 2026**, despliegue Railway `fd17c0b7-00ba-4c2b-871c-69ee81da297e`, estado `SUCCESS` y base de datos conectada.
 
 La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md).
 
@@ -86,6 +111,7 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 - `app/page.tsx`: ruta principal de la landing comercial.
 - `app/Landing/page.tsx` y `app/landing-de-prueba-js/page.tsx`: rutas anteriores que redirigen a la landing principal.
 - `app/app/page.tsx`: interfaz y modo de respaldo local.
+- `app/app/feasibility-review.tsx`: flujo interactivo y datos mock del Revisor de factibilidad.
 - `app/api/demo/route.ts`: lectura y mutaciones de la demo persistente.
 - `db/schema.ts`: esquema PostgreSQL; `drizzle/`: migraciones versionadas.
 - `db/demo.ts`: datos iniciales ficticios y consultas de la demo.
