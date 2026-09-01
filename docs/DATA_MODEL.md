@@ -28,7 +28,7 @@
 
 ## Coincidencias y revisión
 
-- `matches(id, organization_id, brand_id, monitoring_job_id, source, source_record_id, official_url, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, legal_deadline, case_id)`.
+- `matches(id, organization_id, brand_id, monitoring_job_id, source, source_record_id, official_url, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, legal_deadline, case_id)`. La interfaz de la demo usa `level` (Alta, Media o Baja) y no muestra el puntaje porcentual.
 - `match_scores(match_id, score_type, score, engine_version, evidence)`; único por coincidencia y tipo.
 - `match_reviews(id, organization_id, match_id, reviewer_id, decision, reason, comment, comparison_snapshot, created_at)`; append-only.
 
@@ -41,14 +41,14 @@ Restricciones: puntajes entre 0 y 100; una coincidencia solo puede apuntar a un 
 - `case_tasks(id, organization_id, case_id, title, status, assignee_id, due_at, completed_at)`.
 - `legal_deadlines(id, organization_id, case_id, match_id, brand_id, legal_date, internal_date, source, rule_code, verification_status, status)`.
 
-`source_match_id` no se borra al cerrar un caso. La comparación original se conserva mediante snapshot en la revisión y referencia al payload del motor.
+`source_match_id` se conserva mientras la coincidencia forme parte del caso. La acción explícita **Sacar de caso** puede dejarlo en `NULL`, libera `matches.case_id`, devuelve la coincidencia a estado `Pendiente` y registra el cambio en `audit_events`; cerrar un caso por sí solo no desvincula la comparación.
 
 ## Colaboración, archivos y comunicación
 
 - `files(id, organization_id, storage_key, original_name, mime_type, size, sha256, uploaded_by, scan_status)`.
 - `comments(id, organization_id, entity_type, entity_id, author_id, body, created_at, edited_at)`.
 - `notifications(id, organization_id, user_id, entity_type, entity_id, type, urgency, read_at, managed_at)`.
-- `email_drafts(id, organization_id, notification_id, template_version, recipient, subject, body, generated_by, generated_at, copied_at, marked_sent_at)`.
+- `email_drafts(id, organization_id, notification_id, template_version, recipient, subject, body, generated_by, generated_at, copied_at, marked_sent_at)`. Es soporte técnico del contenido copiable de una notificación; la demo no expone un flujo ni aviso de borradores.
 - `saved_views(id, organization_id, user_id, module, name, filters, sort, is_default)`.
 - `audit_events(id, organization_id, actor_user_id, action, entity_type, entity_id, before_data, after_data, request_id, occurred_at)`; append-only y particionable por fecha.
 

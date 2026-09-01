@@ -9,7 +9,8 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 - Next.js 16, TypeScript y Route Handlers.
 - PostgreSQL mediante Drizzle ORM y migraciones versionadas.
 - Datos demo idempotentes y modo local sin base.
-- Altas de marcas, casos y miembros; revisiones, conversiones, cambios de etapa y borradores persistentes.
+- Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, desvinculación de coincidencias, cambios de etapa y notificaciones persistentes.
+- Tablero de casos con `dnd-kit` para mover una tarjeta completa entre cuatro etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.
 - Configuración de despliegue y health check para Railway.
 
@@ -30,7 +31,7 @@ Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordat
 ### Backend for Frontend
 
 - Route Handlers o un servicio TypeScript separado cuando aumente la carga.
-- API orientada a recursos con comandos explícitos para transiciones: revisar coincidencia, convertir en caso, mover caso, generar borrador.
+- API orientada a recursos con comandos explícitos para transiciones: revisar coincidencia, convertir en caso, mover caso y gestionar una notificación.
 - PostgreSQL administrado para datos transaccionales y auditoría.
 - Almacenamiento S3/R2 para archivos; la base guarda metadatos, hashes y permisos.
 - Cola administrada para trabajos asíncronos. El BFF crea trabajos, pero no ejecuta el motor de cruces.
@@ -47,10 +48,10 @@ Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordat
 
 ## Flujo de creación de marca
 
-1. El cliente valida campos básicos y conserva el borrador.
+1. El cliente solicita un número de registro INAPI y valida su formato básico.
 2. `POST /api/brands` valida sesión, membresía, cupo, duplicados y archivos.
 3. En una transacción crea `brand`, clases, archivos y un `monitoring_job` con clave idempotente.
-4. La implementación demo responde con la foto actualizada y deja la marca en `Procesando` y el trabajo en `awaiting_engine`.
+4. La implementación demo devuelve parámetros ficticios y presenta la marca en monitoreo; en persistencia deja un trabajo `awaiting_engine` listo para el motor externo.
 5. Publica el evento `brand.monitoring_requested`.
 6. Un adaptador envía el trabajo al motor externo.
 7. El frontend consulta `GET /api/monitoring-jobs/:id` o recibe actualizaciones por SSE.
@@ -60,12 +61,12 @@ Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordat
 
 La revisión usa control optimista solo para comentarios y asignaciones de bajo riesgo. Descartar o convertir en caso espera confirmación del servidor. `POST /api/matches/:id/reviews` registra la evidencia visible, el usuario y la fecha. `POST /api/matches/:id/convert-to-case` crea el caso y conserva una referencia inmutable a la coincidencia original dentro de la misma transacción.
 
-## Plazos y correos
+## Plazos y notificaciones
 
 - Los plazos guardan fecha legal, fecha interna, fuente, regla y estado de verificación.
 - Cambiar un plazo crea una versión histórica y reprograma recordatorios de forma idempotente.
-- El backend genera el borrador desde una plantilla versionada; el usuario lo edita y copia.
-- Marcar como enviado registra una acción manual. El MVP no envía correos.
+- La demo muestra notificaciones de publicación y vencimiento, con contenido de referencia copiable; no expone una etapa de borrador.
+- Marcar una notificación como gestionada registra una acción manual. El MVP no envía correos.
 
 ## Observabilidad y seguridad
 

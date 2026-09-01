@@ -8,7 +8,7 @@ const DEMO_SUBSCRIPTION_ID = "10000000-0000-4000-8000-000000000011";
 const ids = {
   users: [DEMO_USER_ID, "10000000-0000-4000-8000-000000000102", "10000000-0000-4000-8000-000000000103", "10000000-0000-4000-8000-000000000104"],
   brands: ["10000000-0000-4000-8000-000000000201", "10000000-0000-4000-8000-000000000202", "10000000-0000-4000-8000-000000000203", "10000000-0000-4000-8000-000000000204", "10000000-0000-4000-8000-000000000205"],
-  matches: ["10000000-0000-4000-8000-000000000401", "10000000-0000-4000-8000-000000000402", "10000000-0000-4000-8000-000000000403", "10000000-0000-4000-8000-000000000404", "10000000-0000-4000-8000-000000000405"],
+  matches: ["10000000-0000-4000-8000-000000000401", "10000000-0000-4000-8000-000000000402", "10000000-0000-4000-8000-000000000403", "10000000-0000-4000-8000-000000000404", "10000000-0000-4000-8000-000000000405", "10000000-0000-4000-8000-000000000406", "10000000-0000-4000-8000-000000000407", "10000000-0000-4000-8000-000000000408", "10000000-0000-4000-8000-000000000409", "10000000-0000-4000-8000-000000000410"],
   cases: ["10000000-0000-4000-8000-000000000501", "10000000-0000-4000-8000-000000000502", "10000000-0000-4000-8000-000000000503", "10000000-0000-4000-8000-000000000504"],
   notices: ["10000000-0000-4000-8000-000000000601", "10000000-0000-4000-8000-000000000602", "10000000-0000-4000-8000-000000000603"],
   drafts: ["10000000-0000-4000-8000-000000000701", "10000000-0000-4000-8000-000000000702", "10000000-0000-4000-8000-000000000703"],
@@ -48,11 +48,16 @@ const seedMatches = [
   [ids.matches[2], "CO-2472", ids.brands[2], "INAPI", "1569912", "2026-08-18", "CASANUBE", "Desarrollos Urbanos S.A.", "1569912", "Media", 73, "En observación", null, ids.users[0]],
   [ids.matches[3], "CO-2468", ids.brands[0], "INAPI", "1569781", "2026-08-18", "NOVO FOOD LAB", "Novo Lab Chile", "1569781", "Media", 66, "Pendiente", null, ids.users[2]],
   [ids.matches[4], "CO-2451", ids.brands[4], "Diario Oficial", "1569114", "2026-08-15", "LINAR", "Cosmética Natural Chile", "1569114", "Baja", 48, "Descartada", null, ids.users[2]],
+  [ids.matches[5], "CO-2485", ids.brands[0], "Diario Oficial", "1570284", "2026-08-20", "NOVA NUTRA", "Nutra Chile SpA", "1570284", "Alta", 91, "Pendiente", "2026-08-31", ids.users[0]],
+  [ids.matches[6], "CO-2483", ids.brands[1], "INAPI", "1570256", "2026-08-20", "TIERRA SUR", "Tierra Sur Comercial SpA", "1570256", "Media", 79, "Pendiente", null, ids.users[1]],
+  [ids.matches[7], "CO-2476", ids.brands[2], "Diario Oficial", "1570117", "2026-08-19", "CASA NUBIA", "Nubia Desarrollos Ltda.", "1570117", "Media", 70, "Pendiente", null, ids.users[2]],
+  [ids.matches[8], "CO-2463", ids.brands[3], "INAPI", "1569564", "2026-08-18", "PULSO VITAL", "Vital Salud S.A.", "1569564", "Baja", 55, "Pendiente", null, ids.users[0]],
+  [ids.matches[9], "CO-2458", "10000000-0000-4000-8000-000000000300", "Diario Oficial", "1569372", "2026-08-17", "ALTURIA", "Alturia Outdoor SpA", "1569372", "Baja", 43, "Pendiente", null, ids.users[1]],
 ] as const;
 
 const seedCases = [
   [ids.cases[0], "BM-1042", ids.matches[0], ids.brands[0], "Grupo Nova SpA", "Oposición Nova Fuds", "Preparación", "Alta", "2026-08-20", ids.users[0]],
-  [ids.cases[1], "BM-1038", ids.matches[1], ids.brands[1], "Terra Sur Limitada", "Revisión Terra del Sur", "Evaluación", "Alta", "2026-08-22", ids.users[1]],
+  [ids.cases[1], "BM-1038", ids.matches[1], ids.brands[1], "Terra Sur Limitada", "Revisión Terra del Sur", "Preparación", "Alta", "2026-08-22", ids.users[1]],
   [ids.cases[2], "BM-1036", ids.matches[2], ids.brands[2], "Inmobiliaria Casa Nube", "Oposición CasaNube", "Presentado", "Media", "2026-09-02", ids.users[2]],
   [ids.cases[3], "BM-1027", null, ids.brands[3], "Pulso Salud SpA", "Seguimiento resolución Pulso", "Seguimiento", "Baja", "2026-09-11", ids.users[0]],
 ] as const;
@@ -60,7 +65,6 @@ const seedCases = [
 const seedNotices = [
   [ids.notices[0], "NO-114", ids.matches[0], "Coincidencia de alta similitud", "NOVA FOODS", "Alta", null, "2026-08-19T09:42:00-04:00", "Alerta de marca: posible similitud con NOVA FOODS", "Hola,\n\nDetectamos la publicación de la solicitud NOVA FUDS, que presenta una similitud alta con la marca NOVA FOODS. La publicación corresponde a la solicitud N° 1570234 y su plazo preliminar de revisión vence el 27 de agosto de 2026.\n\nSugerimos revisar los antecedentes para definir si corresponde presentar una oposición. Puedes ver la referencia oficial en la ficha adjunta.\n\nQuedo atento a tus comentarios.\n\nSaludos,"],
   [ids.notices[1], "NO-112", ids.matches[1], "Plazo legal próximo", "TERRA SUR", "Alta", null, "2026-08-18T16:20:00-04:00", "Próximo plazo: TERRA SUR", "Hola,\n\nTe informamos que el plazo asociado a la revisión de TERRA DEL SUR se encuentra próximo. Recomendamos confirmar la estrategia antes del 22 de agosto.\n\nSaludos,"],
-  [ids.notices[2], "NO-108", ids.matches[2], "Borrador de revisión disponible", "CASA NUBE", "Media", "2026-08-15T11:12:00-04:00", "2026-08-15T11:08:00-04:00", "Revisión de coincidencia para CASA NUBE", "Hola,\n\nYa se encuentra disponible nuestra revisión inicial de la solicitud CASANUBE. La mantendremos en observación y te avisaremos ante cualquier cambio.\n\nSaludos,"],
 ] as const;
 
 export async function ensureDemoSeed() {
@@ -88,6 +92,7 @@ export async function ensureDemoSeed() {
     }
     for (const item of seedCases) await tx`INSERT INTO cases (id, organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${item[0]}, ${DEMO_ORG_ID}, ${item[1]}, ${item[2]}, ${item[3]}, ${item[4]}, ${item[5]}, ${item[6]}, ${item[7]}, ${item[8]}, ${item[9]}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
     for (let index = 0; index < 3; index += 1) await tx`UPDATE matches SET case_id = ${ids.cases[index]} WHERE id = ${ids.matches[index]} AND case_id IS NULL`;
+    await tx`DELETE FROM notifications WHERE organization_id = ${DEMO_ORG_ID} AND public_code = 'NO-108'`;
     for (const notice of seedNotices) {
       await tx`INSERT INTO notifications (id, organization_id, public_code, user_id, entity_type, entity_id, type, title, brand_name, urgency, managed_at, created_at, updated_at) VALUES (${notice[0]}, ${DEMO_ORG_ID}, ${notice[1]}, ${DEMO_USER_ID}, 'match', ${notice[2]}, 'client_email_draft', ${notice[3]}, ${notice[4]}, ${notice[5]}, ${notice[6]}, ${notice[7]}, ${notice[7]}) ON CONFLICT (id) DO NOTHING`;
       const draftId = ids.drafts[seedNotices.indexOf(notice)];
@@ -107,22 +112,24 @@ function shortDate(value: string | Date | null, includeYear = false) {
 export async function getDemoSnapshot() {
   const sql = getSql();
   const brandRows = await sql`SELECT b.id, b.public_code, b.name, b.owner_name, b.registration_number, b.jurisdiction, b.status, b.updated_at, b.monitoring_config, COALESCE(string_agg(DISTINCT lpad(bc.nice_class::text, 2, '0'), ', ' ORDER BY lpad(bc.nice_class::text, 2, '0')), '') AS classes, count(DISTINCT m.id)::int AS matches_count, count(DISTINCT c.id)::int AS cases_count FROM brands b LEFT JOIN brand_classes bc ON bc.brand_id = b.id LEFT JOIN matches m ON m.brand_id = b.id LEFT JOIN cases c ON c.brand_id = b.id WHERE b.organization_id = ${DEMO_ORG_ID} AND b.archived_at IS NULL GROUP BY b.id ORDER BY b.public_code DESC`;
-  const matchRows = await sql`SELECT m.public_code, b.public_code AS brand_code, b.name AS brand_name, b.monitoring_config, m.found_name, m.applicant, m.application_number, m.total_score, m.level, m.review_status, m.published_at, m.legal_deadline, m.source, m.official_url, COALESCE(u.name, 'Sin asignar') AS owner_name FROM matches m JOIN brands b ON b.id = m.brand_id LEFT JOIN users u ON u.id = m.owner_id WHERE m.organization_id = ${DEMO_ORG_ID} ORDER BY m.total_score DESC`;
-  const caseRows = await sql`SELECT c.public_code, c.title, COALESCE(b.name, 'Sin marca') AS brand_name, c.client_name, c.stage, c.priority, c.next_deadline, COALESCE(u.name, 'Sin asignar') AS owner_name, m.public_code AS source_match FROM cases c LEFT JOIN brands b ON b.id = c.brand_id LEFT JOIN users u ON u.id = c.owner_id LEFT JOIN matches m ON m.id = c.source_match_id WHERE c.organization_id = ${DEMO_ORG_ID} AND c.status = 'active' ORDER BY c.created_at DESC`;
+  const matchRows = await sql`SELECT m.public_code, b.public_code AS brand_code, b.name AS brand_name, b.registration_number AS brand_registration, b.monitoring_config, m.source_record_id, m.found_name, m.applicant, m.application_number, m.total_score, m.level, m.review_status, m.published_at, m.legal_deadline, m.source, m.official_url, m.explanation, COALESCE(u.name, 'Sin asignar') AS owner_name FROM matches m JOIN brands b ON b.id = m.brand_id LEFT JOIN users u ON u.id = m.owner_id WHERE m.organization_id = ${DEMO_ORG_ID} ORDER BY m.total_score DESC`;
+  const caseRows = await sql`SELECT c.public_code, c.title, c.description, COALESCE(b.name, 'Sin marca') AS brand_name, c.client_name, c.stage, c.priority, c.next_deadline, COALESCE(u.name, 'Sin asignar') AS owner_name, m.public_code AS source_match FROM cases c LEFT JOIN brands b ON b.id = c.brand_id LEFT JOIN users u ON u.id = c.owner_id LEFT JOIN matches m ON m.id = c.source_match_id WHERE c.organization_id = ${DEMO_ORG_ID} AND c.status = 'active' ORDER BY c.created_at DESC`;
   const userRows = await sql`SELECT u.id, u.name, u.email, u.initials, om.created_at FROM organization_members om JOIN users u ON u.id = om.user_id WHERE om.organization_id = ${DEMO_ORG_ID} ORDER BY om.created_at`;
   const noticeRows = await sql`SELECT n.public_code, n.title, n.brand_name, n.urgency, n.managed_at, n.created_at, d.subject, d.body FROM notifications n JOIN email_drafts d ON d.notification_id = n.id WHERE n.organization_id = ${DEMO_ORG_ID} ORDER BY n.created_at DESC`;
 
   return {
     brands: brandRows.map((row) => {
-      const config = (row.monitoring_config ?? {}) as { rut?: string; inapiUrl?: string; visual?: string };
-      return { id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Pausada" : "En monitoreo", matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
+      const config = (row.monitoring_config ?? {}) as { rut?: string; inapiUrl?: string; visual?: string; type?: string };
+      return { id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
     }),
     matches: matchRows.map((row) => {
-      const config = (row.monitoring_config ?? {}) as { rut?: string };
+      const config = (row.monitoring_config ?? {}) as { rut?: string; type?: string };
       const applicationDigits = String(row.application_number).replace(/\D/g, "").slice(-6).padStart(6, "0");
-      return { id: row.public_code, brandId: row.brand_code, brand: row.brand_name, found: row.found_name, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: displayPersonName(row.owner_name), rut: config.rut ?? `77.100.${String(row.brand_code).replace(/\D/g, "").padStart(3, "0")}-1`, applicantRut: `77.${applicationDigits}-${Number(applicationDigits) % 10}`, officialUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx" };
+      const foundType = String(row.explanation ?? "").match(/Tipo:\s*(Denominativa|Figurativa|Mixta|Otra)/)?.[1];
+      const explicitRut = String(row.explanation ?? "").match(/RUT:\s*([^·]+)/)?.[1]?.trim();
+      return { id: row.public_code, brandId: row.brand_code, brand: row.brand_name, brandType: config.type, found: row.found_name, foundType, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: displayPersonName(row.owner_name), rut: config.rut ?? `77.100.${String(row.brand_code).replace(/\D/g, "").padStart(3, "0")}-1`, applicantRut: explicitRut ?? `77.${applicationDigits}-${Number(applicationDigits) % 10}`, officialUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", brandRegistration: row.brand_registration ?? undefined, officialRegistration: row.source_record_id ? `DO-${row.source_record_id}` : undefined };
     }),
-    cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage, priority: row.priority, deadline: shortDate(row.next_deadline), owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
+    cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage === "Evaluación" ? "Preparación" : row.stage, priority: row.priority, deadline: shortDate(row.next_deadline, true), deadlineDescription: String(row.description ?? "").match(/Plazo:\s*(.+)/)?.[1], owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
     users: userRows.map((row) => ({ id: row.id, name: displayPersonName(row.name), email: row.name === "Rosario Vial" ? "jose.ignacio@ibieta.cl" : row.email, createdAt: shortDate(row.created_at, true), initials: row.name === "Rosario Vial" ? "JI" : row.initials })),
     notices: noticeRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body })),
   };

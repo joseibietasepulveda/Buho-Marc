@@ -24,11 +24,18 @@ test("the enhanced demo includes RUT import, full calendar and interactive case 
     source("db/demo.ts"),
     source("app/api/demo/route.ts"),
   ]);
-  for (const copy of ["Buenos días, José Ignacio.", "Marcas en seguimiento", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Agosto 2026", "Victor Tirreau", "Coca-Cola de Chile S.A.", "Suelta aquí para mover", "Descartar por ahora", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial"]) {
+  for (const copy of ["Buenos días, José Ignacio.", "Marcas en seguimiento", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Mes anterior", "Mes siguiente", "Victor Tirreau", "Coca-Cola de Chile S.A.", "Suelta aquí para mover", "Descartar por ahora", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial"]) {
     assert.match(page, new RegExp(copy));
   }
   assert.match(page, /bulkCreateBrands/);
   assert.match(api, /bulkCreateBrands/);
+  for (const behavior of ["N.º de registro", "Sin monitoreo", "Dejar de monitorear", "Empezar a monitorear", "Concluido", "Visual", "Fonético", "Conceptual"]) {
+    assert.match(page, new RegExp(behavior));
+  }
+  assert.match(page, /buho-demo-v3/);
+  assert.match(api, /toggleBrandMonitoring/);
+  assert.match(api, /unlinkCaseMatch/);
+  assert.match(api, /Concluido/);
   assert.match(demo, /supplementalSeedBrands/);
   assert.match(demo, /José Ignacio Ibieta/);
   assert.match(page, /buscadormarcas\.inapi\.cl/);

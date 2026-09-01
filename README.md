@@ -1,6 +1,16 @@
 # Buho Marc
 
-Demo funcional y navegable de la plataforma web para administrar marcas, revisar coincidencias precargadas y gestionar casos legales. La landing vive en `/` y la aplicación en `/app`.
+Demo funcional y navegable de la plataforma web para administrar marcas, revisar vigilancias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
+
+## Accesos publicados
+
+| Superficie | URL | Uso |
+| --- | --- | --- |
+| Landing comercial | [buho-marc.vercel.app](https://buho-marc.vercel.app/) | Presentación pública del servicio, sistema, dashboard de muestra y pricing. |
+| Web app | [buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
+| URL anterior de prueba | [buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Redirige a la landing principal para mantener los enlaces existentes. |
+
+La landing principal se publica en Vercel y la ruta anterior de prueba redirige a la raíz. Los enlaces de pricing dentro de la web app dirigen a `https://buho-marc.vercel.app/#pricing`.
 
 ## Ejecutar en local
 
@@ -34,19 +44,20 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 
 ## Qué incluye la demo
 
-- Dashboard con métricas, alertas, bandeja priorizada y agenda legal.
-- Administración de marcas y formulario de alta.
-- Coincidencias filtrables, comparación lado a lado y decisiones de revisión.
-- Conversión de una coincidencia en caso.
-- Tablero de casos por etapa, creación manual y avance entre columnas.
-- Centro de notificaciones con correo editable, copia al portapapeles y estado de gestión.
+- Dashboard con métricas alineadas, alerta por vigilancias pendientes separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
+- Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT, tipos de marca y filas completas clickeables para revisar su cartera de vigilancias.
+- Vigilancia con búsqueda por nombre, filtros acumulables por similitud y estado, edición directa de ambos valores, comparación visual lado a lado y desplazamiento horizontal seguro para tablas angostas.
+- Alta manual de vigilancia: se elige una marca ya seguida, se busca un número de inscripción o solicitud y se completan datos ficticios, incluida la fecha de publicación en Diario Oficial.
+- Conversión de una vigilancia en caso y calendario de plazos de casos.
+- Tablero de casos por etapa, creación manual y arrastre fluido entre Preparación, Presentado, Seguimiento y Concluido.
+- Ficha de caso con acceso superpuesto a la coincidencia de origen y opción confirmada para desvincularla sin cerrar el caso.
+- Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
 - Lista y alta de usuarios.
-- Configuración demostrativa y restauración de los datos iniciales.
-- API persistente para crear marcas, casos y usuarios; revisar coincidencias; avanzar casos; y editar notificaciones.
+- API persistente para crear marcas, casos y usuarios; revisar coincidencias; mover casos; desvincular coincidencias; y gestionar notificaciones.
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
 - Diseño responsive para escritorio, tablet y móvil.
 
-Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. La opción **Restaurar datos demo** está en Configuración.
+Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. Las cantidades visibles cambian a medida que se clasifican vigilancias o se convierten en casos.
 
 ## Qué no está implementado
 
@@ -55,6 +66,8 @@ No hay autenticación real, almacenamiento de archivos, envío de correo, fuente
 ## Despliegue en Railway
 
 El repositorio incluye `railway.json`, migraciones y un health check en `/api/health`. El servicio web necesita una instancia PostgreSQL y la variable `DATABASE_URL`. Al iniciar, aplica las migraciones; la primera carga crea los datos ficticios de forma idempotente.
+
+Railway publica la web app en `/app` y sirve la landing principal en `/`. La URL anterior `/landing-de-prueba-js` redirige a esa landing. La landing comercial se despliega por separado en Vercel, también en `/`.
 
 La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md).
 
@@ -69,7 +82,9 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 
 ## Estructura relevante
 
-- `app/portada-3/`: landing pública actual.
+- `app/portada-3/`: componentes compartidos de la landing y del dashboard promocional estático.
+- `app/page.tsx`: ruta principal de la landing comercial.
+- `app/Landing/page.tsx` y `app/landing-de-prueba-js/page.tsx`: rutas anteriores que redirigen a la landing principal.
 - `app/app/page.tsx`: interfaz y modo de respaldo local.
 - `app/api/demo/route.ts`: lectura y mutaciones de la demo persistente.
 - `db/schema.ts`: esquema PostgreSQL; `drizzle/`: migraciones versionadas.
@@ -80,4 +95,4 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 
 ## Sistema visual
 
-La app reutiliza los valores de la landing: tinta `#100d18`, fondo claro `#f3efe8`, violeta `#a855f7`, tipografías Geist y Geist Mono, radios pequeños y bordes translúcidos. La superficie de trabajo es deliberadamente más clara y densa que la landing para favorecer sesiones largas, legibilidad y escaneo de datos.
+La app reutiliza los valores de la landing: tinta `#100d18`, fondo claro `#f3efe8`, violeta `#a855f7`, tipografías Geist y Geist Mono, radios pequeños y bordes translúcidos. En escritorio la superficie se presenta con la densidad equivalente a una visualización al 90 %, sin que el visitante deba cambiar el zoom de su navegador. El nombre Buho Marc es identificador visual, no un hipervínculo dentro de la app.

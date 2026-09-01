@@ -1,5 +1,20 @@
 # Despliegue y operación en Railway
 
+## Rutas publicadas
+
+| Ruta | URL | Propósito |
+| --- | --- | --- |
+| Web app | [https://buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
+| Web app de producción | [https://buho-marc-web-production.up.railway.app/app](https://buho-marc-web-production.up.railway.app/app) | Versión estable compartible. |
+| Landing principal | [https://buho-marc-web-dev.up.railway.app/](https://buho-marc-web-dev.up.railway.app/) | Landing comercial con escáner multimodal y dashboard promocional estático. |
+| URL anterior de prueba | [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Redirige a la landing principal. |
+
+La landing comercial se publica separadamente en Vercel: [https://buho-marc.vercel.app/](https://buho-marc.vercel.app/). Los enlaces de pricing de la web app deben apuntar a `https://buho-marc.vercel.app/#pricing`.
+
+## Ambientes
+
+Railway mantiene ambientes separados de **Dev** y **production**. Cada uno debe tener su propio servicio PostgreSQL y, por lo tanto, una base de datos independiente. Los cambios de esta demo se prueban y verifican primero en Dev; Production solo se actualiza cuando se aprueba expresamente.
+
 ## Servicios necesarios
 
 El proyecto de Railway debe contener:
@@ -36,10 +51,13 @@ No guardar credenciales en GitHub. Railway debe inyectar la URL como referencia 
 Después de desplegar:
 
 1. `/api/health` debe responder `ok: true`, `database: connected` y `engine: not-connected`.
-2. `/app` debe mostrar **DATOS EN RAILWAY** bajo el logotipo.
+2. `/app` debe cargar el dashboard navegable con sus datos demo.
 3. Crear una marca, recargar y comprobar que permanece.
-4. La marca debe quedar `Procesando` y su trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
+4. La búsqueda simulada por número de registro debe mostrar RUT, marca, titular, Clases de Niza y estado antes de permitir agregar al seguimiento. En base queda un trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
 5. Convertir una coincidencia ficticia en caso dos veces debe conservar un solo caso.
+6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/#pricing`.
+7. Confirmar que el dashboard muestre las vigilancias pendientes por nivel, las cuatro métricas alineadas a ancho de escritorio, que Casos activos indique los vencimientos dentro de 14 días y que Notificaciones no contenga avisos de borradores.
+8. Revisar Vigilancia a ancho de escritorio y angosto: las insignias y controles de Similitud y Estado no deben superponerse, los filtros acumulables deben limpiarse con Todas o Todos y la tabla debe ofrecer desplazamiento horizontal cuando sea necesario.
 
 ## Antes de producción real
 
