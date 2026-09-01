@@ -10,11 +10,17 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 - PostgreSQL mediante Drizzle ORM y migraciones versionadas.
 - Datos demo idempotentes y modo local sin base.
 - Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, desvinculación de coincidencias, cambios de etapa y notificaciones persistentes.
+- Canvas de inscripción de marcas con macrofases INAPI y Diario Oficial, 17 estados mock, cálculo de plazos hábiles, filtros, detalle e historial visual.
+- Revisor de factibilidad frontend con texto, vista previa de imagen, clases Niza acumulativas, resumen probabilístico y cuatro coincidencias mock explicables.
 - Tablero de casos con `dnd-kit` para mover una tarjeta completa entre cuatro etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.
 - Configuración de despliegue y health check para Railway.
 
 Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordatorios asíncronos y el motor externo.
+
+El Canvas de inscripción es actualmente una capa frontend de demostración. Sus cambios de estado usan `localStorage`; no deben confundirse con datos oficiales ni con eventos persistentes de PostgreSQL. La fuente definitiva será una API de expedientes y cada transición deberá llegar como un evento fechado e inmutable.
+
+El Revisor de factibilidad también es una simulación frontend. La imagen se mantiene sólo durante la sesión del navegador y no se sube al servidor. Los porcentajes, similitudes y explicaciones están curados para el caso “Cafeteras Mistral”; una implementación real deberá producirlos mediante servicios independientes de búsqueda denominativa/fonética, comparación visual, cruce de clases Niza y calibración de riesgo.
 
 ## Capas recomendadas
 
@@ -67,6 +73,8 @@ La revisión usa control optimista solo para comentarios y asignaciones de bajo 
 - Cambiar un plazo crea una versión histórica y reprograma recordatorios de forma idempotente.
 - La demo muestra notificaciones de publicación y vencimiento, con contenido de referencia copiable; no expone una etapa de borrador.
 - Marcar una notificación como gestionada registra una acción manual. El MVP no envía correos.
+- Las solicitudes de registro deben guardar la fecha fuente, regla aplicada, calendario de feriados utilizado y estado de verificación. Si falta la fecha fuente, el BFF debe devolver un vencimiento no confirmado en vez de estimarlo.
+- Los estados sin plazo público fijo, como el examen de fondo INAPI, no generan cuenta regresiva. Las ventanas próximas a vencer y vencidas alimentan el centro de notificaciones.
 
 ## Observabilidad y seguridad
 

@@ -15,6 +15,10 @@ La landing comercial se publica separadamente en Vercel: [https://buho-marc.verc
 
 Railway mantiene ambientes separados de **Dev** y **production**. Cada uno debe tener su propio servicio PostgreSQL y, por lo tanto, una base de datos independiente. Los cambios de esta demo se prueban y verifican primero en Dev; Production solo se actualiza cuando se aprueba expresamente.
 
+La publicación de **Revisor de factibilidad** e **Inscripción de marcas** se dirige al ambiente **Dev**, servicio `buho-marc-web`. No debe promoverse a `production` sin una solicitud posterior y explícita.
+
+Último despliegue verificado: `fd17c0b7-00ba-4c2b-871c-69ee81da297e`, completado con estado `SUCCESS` el 28 de agosto de 2026. El health check respondió `database: connected` y `engine: not-connected`.
+
 ## Servicios necesarios
 
 El proyecto de Railway debe contener:
@@ -58,6 +62,11 @@ Después de desplegar:
 6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/#pricing`.
 7. Confirmar que el dashboard muestre las vigilancias pendientes por nivel, las cuatro métricas alineadas a ancho de escritorio, que Casos activos indique los vencimientos dentro de 14 días y que Notificaciones no contenga avisos de borradores.
 8. Revisar Vigilancia a ancho de escritorio y angosto: las insignias y controles de Similitud y Estado no deben superponerse, los filtros acumulables deben limpiarse con Todas o Todos y la tabla debe ofrecer desplazamiento horizontal cuando sea necesario.
+9. Confirmar el orden lateral **Inicio → Revisor de factibilidad → Inscripción de marcas → Marcas registradas**.
+10. En **Revisor de factibilidad**, verificar el caso Cafeteras Mistral, la carga local de imagen, las clases Niza acumulativas, el resumen 72%/88% y las cuatro coincidencias con solicitante y porcentaje visible.
+11. En **Inscripción de marcas**, verificar las dos macrofases, los 12 ejemplos, los plazos normal/próximo/vencido, la solicitud sin fecha confirmada y los estados terminales.
+12. Abrir una tarjeta y comprobar estado primero, datos completos, referencia a INAPI e historial vertical. Cambiar temporalmente el estado debe mover la tarjeta de macrofase.
+13. Confirmar que las notificaciones incluyan un plazo de inscripción próximo a vencer y otro vencido, ambos identificados como seguimiento interno.
 
 ## Antes de producción real
 
