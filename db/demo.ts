@@ -56,10 +56,10 @@ const seedMatches = [
 ] as const;
 
 const seedCases = [
-  [ids.cases[0], "BM-1042", ids.matches[0], ids.brands[0], "Grupo Nova SpA", "Oposición Nova Fuds", "Preparación", "Alta", "2026-08-20", ids.users[0]],
-  [ids.cases[1], "BM-1038", ids.matches[1], ids.brands[1], "Terra Sur Limitada", "Revisión Terra del Sur", "Preparación", "Alta", "2026-08-22", ids.users[1]],
-  [ids.cases[2], "BM-1036", ids.matches[2], ids.brands[2], "Inmobiliaria Casa Nube", "Oposición CasaNube", "Presentado", "Media", "2026-09-02", ids.users[2]],
-  [ids.cases[3], "BM-1027", null, ids.brands[3], "Pulso Salud SpA", "Seguimiento resolución Pulso", "Seguimiento", "Baja", "2026-09-11", ids.users[0]],
+  [ids.cases[0], "BM-1042", ids.matches[0], ids.brands[0], "Grupo Nova SpA", "Oposición Nova Fuds", "Esperando confirmación de cliente", "Alta", "2026-08-20", ids.users[0]],
+  [ids.cases[1], "BM-1038", ids.matches[1], ids.brands[1], "Terra Sur Limitada", "Revisión Terra del Sur", "Esperando confirmación de cliente", "Alta", "2026-08-22", ids.users[1]],
+  [ids.cases[2], "BM-1036", ids.matches[2], ids.brands[2], "Inmobiliaria Casa Nube", "Oposición CasaNube", "En seguimiento", "Media", "2026-09-02", ids.users[2]],
+  [ids.cases[3], "BM-1027", null, ids.brands[3], "Pulso Salud SpA", "Seguimiento resolución Pulso", "En seguimiento", "Baja", "2026-09-11", ids.users[0]],
 ] as const;
 
 const seedNotices = [

@@ -266,11 +266,10 @@ export function FeasibilityReview() {
             <span className="feasibility-evaluated"><Check size={15} weight="bold" /> 4 coincidencias evaluadas</span>
           </header>
           <div className="feasibility-risk-grid">
-            <RiskCard label="Observaciones formales antes de la publicación en el Diario Oficial" value={72} />
-            <RiskCard label="Objeciones u observaciones de fondo después de la publicación" value={88} />
+            <RiskCard label="Riesgo de observaciones de fondo: similitud gráfica o fonética con marcas previas, fama y notoriedad, emblemas nacionales, nombres propios o un signo descriptivo o genérico." value={88} />
             <article className="feasibility-finding">
               <Sparkle size={22} weight="fill" />
-              <div><span>Hallazgo principal</span><strong>Similitud visual y fonética relevante</strong><p>“Cafeteras Las Delicias” comparte elementos gráficos y “Hotel Mistral” coincide en el componente denominativo dominante.</p></div>
+              <div><span>Hallazgo principal · motores simulados</span><strong>Similitud visual, fonética y semántica relevante</strong><p>“Cafeteras Las Delicias” comparte elementos gráficos, “Hotel Mistral” coincide en el componente denominativo y las coberturas presentan cercanía conceptual.</p></div>
             </article>
           </div>
           <footer><Info size={16} /><span>Estimación orientativa elaborada con datos mock para la demo. No corresponde a una resolución, búsqueda oficial ni pronóstico de INAPI.</span></footer>

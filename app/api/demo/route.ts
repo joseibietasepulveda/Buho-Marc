@@ -5,19 +5,20 @@ import { getSql } from "@/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+const BRAND_LIMITS_ENABLED = false;
 
 const brandTypeSchema = z.enum(["Denominativa", "Figurativa", "Mixta", "Otra"]);
 const brandInputSchema = z.object({ name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional(), rut: z.string().min(3).max(30), inapiUrl: z.string().url().max(1500), visual: z.string().min(1).max(160), type: brandTypeSchema.default("Mixta") });
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createBrand") }).extend(brandInputSchema.shape),
-  z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(25) }),
+  z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(250) }),
   z.object({ action: z.literal("createCase"), title: z.string().min(2).max(220), brand: z.string().min(2).max(180), client: z.string().min(2).max(180), priority: z.enum(["Alta", "Media", "Baja"]), deadline: z.string().min(2).max(40), deadlineDescription: z.string().min(2).max(500), owner: z.string().min(2).max(180), description: z.string().max(5000).optional() }),
   z.object({ action: z.literal("createManualMatch"), brandId: z.string().min(1).max(30), found: z.string().min(2).max(180), foundType: brandTypeSchema, applicant: z.string().min(2).max(180), applicantRut: z.string().min(3).max(30), application: z.string().min(2).max(100), level: z.enum(["Alta", "Media", "Baja"]), source: z.string().min(2).max(100), publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
   z.object({ action: z.literal("createUser"), name: z.string().min(2).max(180), email: z.string().email().max(255) }),
   z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente de clasificación", "En seguimiento", "Descartada", "Convertida en caso"]) }),
   z.object({ action: z.literal("updateMatchLevel"), id: z.string().min(1), level: z.enum(["Alta", "Media", "Baja"]) }),
   z.object({ action: z.literal("toggleBrandMonitoring"), id: z.string().min(1), enabled: z.boolean() }),
-  z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Preparación", "Presentado", "Seguimiento", "Concluido"]) }),
+  z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Esperando confirmación de cliente", "En seguimiento", "Concluido"]) }),
   z.object({ action: z.literal("updateCaseOwner"), id: z.string().min(1), owner: z.string().min(2).max(180) }),
   z.object({ action: z.literal("discardCase"), id: z.string().min(1) }),
   z.object({ action: z.literal("unlinkCaseMatch"), id: z.string().min(1) }),
@@ -73,10 +74,12 @@ export async function POST(request: Request) {
       });
     } else if (input.action === "bulkCreateBrands") {
       await sql.begin(async (tx) => {
-        const [usage] = await tx`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL AND status <> 'Pausada'`;
-        const available = Math.max(0, 25 - Number(usage.count));
         const uniqueInputs = input.brands.filter((brand, index, all) => all.findIndex((candidate) => candidate.name.toUpperCase() === brand.name.toUpperCase()) === index);
-        if (uniqueInputs.length > available) throw new Error(`Solo quedan ${available} cupos disponibles en el plan Estudio`);
+        if (BRAND_LIMITS_ENABLED) {
+          const [usage] = await tx`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL AND status <> 'Pausada'`;
+          const available = Math.max(0, 25 - Number(usage.count));
+          if (uniqueInputs.length > available) throw new Error(`Solo quedan ${available} cupos disponibles en el plan Estudio`);
+        }
         const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 18) + 1 AS next FROM brands WHERE organization_id = ${DEMO_ORG_ID}`;
         let next = Number(counter.next);
         for (const candidate of uniqueInputs) {
@@ -98,7 +101,7 @@ export async function POST(request: Request) {
         const [brand] = await tx`SELECT id FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND name = ${input.brand} LIMIT 1`;
         const [owner] = await tx`SELECT u.id FROM users u JOIN organization_members om ON om.user_id = u.id WHERE om.organization_id = ${DEMO_ORG_ID} AND u.name = ${input.owner} LIMIT 1`;
         const caseDescription = `${input.description || ""}\nPlazo: ${input.deadlineDescription}`.trim();
-        const [created] = await tx`INSERT INTO cases (organization_id, public_code, brand_id, client_name, title, description, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${brand?.id ?? null}, ${input.client}, ${input.title}, ${caseDescription}, 'Preparación', ${input.priority}, ${deadline}, ${owner?.id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) RETURNING id`;
+        const [created] = await tx`INSERT INTO cases (organization_id, public_code, brand_id, client_name, title, description, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${brand?.id ?? null}, ${input.client}, ${input.title}, ${caseDescription}, 'Esperando confirmación de cliente', ${input.priority}, ${deadline}, ${owner?.id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) RETURNING id`;
         await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'case.created', 'case', ${created.id}, ${tx.json({ source: "manual" })})`;
       });
     } else if (input.action === "createManualMatch") {
@@ -125,7 +128,7 @@ export async function POST(request: Request) {
         if (input.status === "Convertida en caso") {
           const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 1042) + 1 AS next FROM cases WHERE organization_id = ${DEMO_ORG_ID}`;
           const priority = match.level === "Alta" ? "Alta" : "Media";
-          const [created] = await tx`INSERT INTO cases (organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${match.id}, ${match.brand_id}, ${match.owner_name}, ${`Revisión ${match.found_name}`}, 'Preparación', ${priority}, ${match.legal_deadline}, ${match.owner_id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) ON CONFLICT (organization_id, source_match_id) DO UPDATE SET updated_at = now() RETURNING id`;
+          const [created] = await tx`INSERT INTO cases (organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${DEMO_ORG_ID}, ${nextCode("BM", counter.next, 4)}, ${match.id}, ${match.brand_id}, ${match.owner_name}, ${`Revisión ${match.found_name}`}, 'Esperando confirmación de cliente', ${priority}, ${match.legal_deadline}, ${match.owner_id ?? DEMO_USER_ID}, ${DEMO_USER_ID}) ON CONFLICT (organization_id, source_match_id) DO UPDATE SET updated_at = now() RETURNING id`;
           await tx`UPDATE matches SET case_id = ${created.id} WHERE id = ${match.id}`;
         }
       });
@@ -135,7 +138,7 @@ export async function POST(request: Request) {
       if (!match) throw new Error("Coincidencia no encontrada");
     } else if (input.action === "toggleBrandMonitoring") {
       const status = input.enabled ? "Activa" : "Pausada";
-      if (input.enabled) {
+      if (BRAND_LIMITS_ENABLED && input.enabled) {
         const [usage] = await sql`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL AND status <> 'Pausada'`;
         if (Number(usage.count) >= 25) throw new Error("No quedan cupos activos en el plan Estudio");
       }

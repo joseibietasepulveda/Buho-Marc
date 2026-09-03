@@ -10,7 +10,7 @@ async function source(path) {
 
 test("the navigable demo exposes its main product modules", async () => {
   const page = await source("app/app/page.tsx");
-  for (const label of ["Inicio", "Marcas", "Coincidencias", "Casos", "Notificaciones", "Usuarios"]) {
+  for (const label of ["Resumen Vigilancia", "Marcas registradas", "Vigilancia", "Casos", "Resumen Inscripciones", "Revisor de factibilidad", "Inscripción de marcas", "Notificaciones", "Usuarios", "Bitácora de auditoría", "Acerca de esta versión"]) {
     assert.match(page, new RegExp(`label: "${label}"`));
   }
   assert.match(page, /fetch\("\/api\/demo"/);
@@ -24,15 +24,15 @@ test("the enhanced demo includes RUT import, full calendar and interactive case 
     source("db/demo.ts"),
     source("app/api/demo/route.ts"),
   ]);
-  for (const copy of ["Buenos días, José Ignacio.", "Marcas en seguimiento", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Mes anterior", "Mes siguiente", "Victor Tirreau", "Coca-Cola de Chile S.A.", "Suelta aquí para mover", "Descartar por ahora", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial"]) {
+  for (const copy of ["Buenos días, José Ignacio.", "MARCAS EN SEGUIMIENTO", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Mes anterior", "Mes siguiente", "Victor Tirreau", "Suelta aquí para mover", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial", "Subir desde Excel", "Próximas versiones", "Contactar cliente", "Abrir informe PDF"]) {
     assert.match(page, new RegExp(copy));
   }
   assert.match(page, /bulkCreateBrands/);
   assert.match(api, /bulkCreateBrands/);
-  for (const behavior of ["N.º de registro", "Sin monitoreo", "Dejar de monitorear", "Empezar a monitorear", "Concluido", "Visual", "Fonético", "Conceptual"]) {
+  for (const behavior of ["N.º de registro", "Sin monitoreo", "Pausar seguimiento", "Reactivar seguimiento", "Concluido", "Visual", "Fonético", "Conceptual"]) {
     assert.match(page, new RegExp(behavior));
   }
-  assert.match(page, /buho-demo-v3/);
+  assert.match(page, /buho-demo-v5/);
   assert.match(api, /toggleBrandMonitoring/);
   assert.match(api, /unlinkCaseMatch/);
   assert.match(api, /Concluido/);

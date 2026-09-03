@@ -854,3 +854,50 @@ button, a { -webkit-tap-highlight-color:transparent; }
 
 .buho-dashboard-matches.is-registrations .buho-match-row b { overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.25; }
 .buho-dashboard-matches.is-registrations .buho-match-row { align-items: flex-start; }
+
+/* Version 0.2: auditoria, hoja de ruta y tablas de vigilancia. */
+.buho-wordmark { display:grid; gap:5px; margin-bottom:26px; }
+.buho-wordmark small { color:#c995f4; font-family:var(--font-geist-mono),monospace; font-size:11px; font-weight:760; letter-spacing:.12em; }
+.buho-sidebar nav { gap:5px; }
+.buho-sidebar nav button { min-height:40px; gap:10px; padding-inline:10px; font-size:13px; }
+.buho-kanban { grid-template-columns:repeat(3,minmax(275px,1fr)); }
+.tone-stage-esperando-confirmacion-de-cliente { color:#87551b; border-color:#e8c47c; background:#fff0c8; }
+.tone-stage-en-seguimiento { color:#286586; border-color:#acd0e2; background:#dff0f8; }
+.buho-logo-mark.type-denominativa.is-empty { border-style:dashed; border-color:#c8c0c9; color:#756d77; background:#f5f2ef; }
+.buho-logo-mark.type-denominativa.is-empty i { min-width:0; min-height:0; color:#756d77; background:transparent; font-family:var(--font-geist-sans),sans-serif; font-size:12px; font-weight:760; letter-spacing:.02em; text-transform:uppercase; }
+.buho-sort-button { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0; border:0; color:inherit; background:transparent; cursor:pointer; font:inherit; font-weight:inherit; letter-spacing:inherit; text-align:left; text-transform:inherit; }
+.buho-sort-button span { color:#8b5fab; font-size:13px; }
+.buho-row-actions { display:flex; gap:7px; }
+.buho-row-actions button,.buho-row-actions a,.buho-action-link { min-height:34px; display:inline-flex; align-items:center; justify-content:center; padding:0 10px; border:1px solid #d4b8e8; border-radius:7px; color:#63358e; background:#fbf6fe; cursor:pointer; font-size:12px; font-weight:800; text-decoration:none; white-space:nowrap; }
+.buho-action-link { min-height:43px; padding-inline:14px; }
+.buho-history header span { color:#766c79; font-size:12px; font-weight:750; }
+.buho-history p { position:relative; margin:0; padding:13px 10px 13px 26px; border-bottom:1px solid var(--line); color:#514855; font-size:14px; }
+.buho-history p:last-child { border-bottom:0; }
+.buho-history p::before { position:absolute; top:18px; left:7px; width:8px; height:8px; border-radius:50%; background:#9e62c7; content:""; }
+.buho-report-card { display:grid; grid-template-columns:42px 1fr auto; align-items:center; gap:12px; padding:15px; border:1px solid #d3b8e6; border-radius:9px; color:var(--ink); background:#fbf6fe; text-decoration:none; }
+.buho-report-card > span { width:40px; height:40px; display:grid; place-items:center; border-radius:8px; color:#fff; background:#6e388f; font-size:11px; font-weight:900; }
+.buho-report-card strong,.buho-report-card small { display:block; }
+.buho-report-card small { margin-top:4px; color:#756b77; }
+.buho-report-card b { color:#65358c; }
+.buho-audit,.buho-about article { overflow:hidden; border:1px solid rgba(255,255,255,.62); border-radius:13px; background:var(--surface); box-shadow:0 12px 28px rgba(31,21,35,.11); }
+.buho-audit > header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding:25px 28px; border-bottom:1px solid var(--line); }
+.buho-audit h2,.buho-about h2 { margin:7px 0 0; font-size:30px; letter-spacing:-.055em; }
+.buho-audit header p { margin:8px 0 0; color:#706771; }
+.buho-audit-lock { padding:8px 11px; border:1px solid #c8b2d8; border-radius:99px; color:#67398b; background:#f0e5f7; font-size:12px; font-weight:800; white-space:nowrap; }
+.buho-audit-list article { display:grid; grid-template-columns:12px minmax(0,1fr) minmax(190px,.35fr); align-items:start; gap:16px; padding:20px 28px; border-bottom:1px solid var(--line); }
+.buho-audit-list article:last-child { border-bottom:0; }
+.buho-audit-dot { width:9px; height:9px; margin-top:6px; border-radius:50%; background:#9256bc; box-shadow:0 0 0 5px #eee1f6; }
+.buho-audit-list strong { font-size:17px; }
+.buho-audit-list p { margin:6px 0 0; color:#6a616c; line-height:1.45; }
+.buho-audit-list article > div:last-child { display:grid; gap:4px; color:#4b414d; font-size:13px; }
+.buho-audit-list small,.buho-audit-list code { color:#7b717e; font-size:11px; }
+.buho-about { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch; }
+.buho-about article { padding:28px 30px; }
+.buho-about-kicker { display:inline-flex; padding:6px 9px; border-radius:6px; color:#5d2b82; background:#ead8f6; font-size:11px; font-weight:850; letter-spacing:.08em; }
+.buho-about-kicker.is-next { color:#79571c; background:#fff0c9; }
+.buho-about ul { display:grid; gap:13px; margin:22px 0 0; padding-left:22px; }
+.buho-about li { padding-left:4px; color:#4f4652; font-size:16px; line-height:1.42; }
+.buho-about li::marker { color:#9256bc; }
+.feasibility-risk-grid { grid-template-columns:minmax(280px,.8fr) minmax(340px,1.2fr); }
+@media (max-width:1100px) { .buho-kanban { grid-template-columns:repeat(3,270px); }.buho-about { grid-template-columns:1fr; } }
+@media (max-width:680px) { .buho-wordmark small { display:none; }.buho-audit > header { flex-direction:column; }.buho-audit-list article { grid-template-columns:10px 1fr; padding:17px; }.buho-audit-list article > div:last-child { grid-column:2; }.buho-about article { padding:22px 20px; }.feasibility-risk-grid { grid-template-columns:1fr; } }
