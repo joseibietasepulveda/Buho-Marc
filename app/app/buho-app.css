@@ -851,3 +851,6 @@ button, a { -webkit-tap-highlight-color:transparent; }
   .feasibility-risk-grid { grid-template-columns:1fr; }
   .feasibility-finding { grid-column:auto; }
 }
+
+.buho-dashboard-matches.is-registrations .buho-match-row b { overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.25; }
+.buho-dashboard-matches.is-registrations .buho-match-row { align-items: flex-start; }

@@ -50,7 +50,7 @@ type StatusDefinition = {
 
 type HistoryEvent = { date: string; status?: string; detail?: string; intake?: boolean };
 
-type RegistrationApplication = {
+export type RegistrationApplication = {
   id: string;
   name: string;
   logo?: string;
@@ -91,7 +91,7 @@ const STATUS_DEFINITIONS: StatusDefinition[] = [
   { id: "abandoned-gazette", label: "Solicitud abandonada", phase: "gazette", terminal: "neutral" },
 ];
 
-const STATUS_BY_ID = Object.fromEntries(STATUS_DEFINITIONS.map((status) => [status.id, status])) as Record<RegistrationStatusId, StatusDefinition>;
+export const STATUS_BY_ID = Object.fromEntries(STATUS_DEFINITIONS.map((status) => [status.id, status])) as Record<RegistrationStatusId, StatusDefinition>;
 
 const INITIAL_APPLICATIONS: RegistrationApplication[] = [
   {
@@ -230,7 +230,7 @@ function formatDate(value?: string | Date) {
   return new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "long", year: "numeric" }).format(date);
 }
 
-function deadlineInfo(application: RegistrationApplication) {
+export function deadlineInfo(application: RegistrationApplication) {
   const status = STATUS_BY_ID[application.statusId];
   if (status.terminal) return { attention: "terminal" as Attention };
   if (!status.deadlineDays) return { attention: "none" as Attention };
@@ -256,7 +256,7 @@ function AttentionIcon({ attention }: { attention: Attention }) {
   return <Hourglass aria-hidden size={18} weight="bold" />;
 }
 
-function useRegistrationApplications() {
+export function useRegistrationApplications() {
   const [applications, setApplications] = useState(INITIAL_APPLICATIONS);
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -293,9 +293,6 @@ export function TrademarkRegistrationCanvas() {
   }), [applications, attention, phase, query, status]);
 
   const selected = applications.find((application) => application.id === selectedId);
-  const activeDeadlines = applications.filter((application) => ["normal", "soon", "overdue"].includes(deadlineInfo(application).attention));
-  const urgentCount = applications.filter((application) => ["soon", "overdue"].includes(deadlineInfo(application).attention)).length;
-  const terminalCount = applications.filter((application) => Boolean(STATUS_BY_ID[application.statusId].terminal)).length;
 
   function changeStatus(application: RegistrationApplication, nextStatus: RegistrationStatusId) {
     if (application.statusId === nextStatus) return;
@@ -316,13 +313,6 @@ export function TrademarkRegistrationCanvas() {
   }
 
   return <section className="trademark-registration-view">
-    <section className="trademark-summary" aria-label="Resumen de solicitudes">
-      <div><span>Solicitudes</span><strong>{String(applications.length).padStart(2, "0")}</strong><small>en seguimiento</small></div>
-      <div><span>Plazos activos</span><strong>{String(activeDeadlines.length).padStart(2, "0")}</strong><small>calculados en días hábiles</small></div>
-      <div className="is-urgent"><span>Requieren atención</span><strong>{String(urgentCount).padStart(2, "0")}</strong><small>próximos o vencidos</small></div>
-      <div><span>Estados terminales</span><strong>{String(terminalCount).padStart(2, "0")}</strong><small>concedidos, abandonados o rechazados</small></div>
-    </section>
-
     <section className="trademark-toolbar" aria-label="Buscar y filtrar solicitudes">
       <label className="trademark-search"><MagnifyingGlass aria-hidden size={18} /><span>Buscar</span><input aria-label="Buscar solicitudes" onChange={(event) => setQuery(event.target.value)} placeholder="Marca, solicitud, titular o cliente" type="search" value={query} /></label>
       <label><span>Fase</span><select aria-label="Filtrar por fase" onChange={(event) => setPhase(event.target.value as "all" | RegistrationPhase)} value={phase}><option value="all">Todas</option><option value="inapi">INAPI</option><option value="gazette">Diario Oficial</option></select></label>
