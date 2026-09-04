@@ -1,3 +1,4 @@
+import { expandedDemoBrands, demoBrandDetails } from "../lib/demo-brand-catalogue";
 import { getSql } from "./index";
 
 export const DEMO_ORG_ID = "10000000-0000-4000-8000-000000000001";
@@ -70,6 +71,7 @@ const seedNotices = [
 export async function ensureDemoSeed() {
   const sql = getSql();
   await sql.begin(async (tx) => {
+    await tx`SELECT pg_advisory_xact_lock(741026)`;
     await tx`INSERT INTO plans (id, code, name, brand_limit) VALUES (${DEMO_PLAN_ID}, 'study', 'Estudio', 25) ON CONFLICT (id) DO NOTHING`;
     await tx`INSERT INTO organizations (id, name, slug) VALUES (${DEMO_ORG_ID}, 'Estudio Ibieta IP', 'estudio-ibieta-ip') ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, slug = EXCLUDED.slug, updated_at = now()`;
     for (const user of seedUsers) {
@@ -85,6 +87,13 @@ export async function ensureDemoSeed() {
     for (const brand of supplementalSeedBrands.slice(0, Math.max(0, 20 - Number(brandCount.count)))) {
       await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', ${brand.status}, ${tx.json({ rut: brand.rut, inapiUrl: 'https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx', visual: brand.visual })}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
       for (const niceClass of brand.niceClasses) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
+    }
+    // Fill the demo up to 100 records, without replacing archived user records.
+    const existingBrands = await tx`SELECT public_code FROM brands WHERE organization_id = ${DEMO_ORG_ID}`;
+    const missingBrands = expandedDemoBrands.filter((brand) => !existingBrands.some((row) => row.public_code === brand.code)).slice(0, Math.max(0, 100 - existingBrands.length));
+    for (const brand of missingBrands) {
+      await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', 'Activa', ${tx.json({ rut: brand.rut, type: brand.type, visual: brand.type, ...demoBrandDetails(brand.code) })}, ${DEMO_USER_ID}) ON CONFLICT DO NOTHING`;
+      for (const niceClass of brand.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
     }
     for (const match of seedMatches) {
       await tx`INSERT INTO matches (id, organization_id, public_code, brand_id, source, source_record_id, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, legal_deadline, owner_id, created_at, updated_at) VALUES (${match[0]}, ${DEMO_ORG_ID}, ${match[1]}, ${match[2]}, ${match[3]}, ${match[4]}, ${match[5]}, ${match[6]}, ${match[7]}, ${match[8]}, ${match[9]}, ${match[10]}, ${`Coincidencia de demostración con puntaje ${match[10]}. El motor real no está conectado.`}, ${match[11]}, ${match[12]}, ${match[13]}, ${`${match[5]}T14:00:00Z`}, ${`${match[5]}T14:00:00Z`}) ON CONFLICT (id) DO NOTHING`;
@@ -120,7 +129,7 @@ export async function getDemoSnapshot() {
   return {
     brands: brandRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as { rut?: string; inapiUrl?: string; visual?: string; type?: string };
-      return { id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
+      return { ...demoBrandDetails(row.public_code), id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
     }),
     matches: matchRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as { rut?: string; type?: string };
