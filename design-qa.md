@@ -43,6 +43,36 @@ final result: passed
 
 ---
 
+## Design QA — Escala de escritorio y tabla de Vigilancia · 4 Sep 2026
+
+### Comparison target
+
+- Referencia visual principal al 80%: `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-028f956b-e3b1-4fe4-964b-d70d40c5a022.png`.
+- Referencias del problema de Vigilancia: `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-64166b44-7718-4151-9a84-f9eb1d9dba97.png`, `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-53cc9fd4-e427-42fe-8717-aa5792853a20.png` y `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-24660863-bec6-4e2b-a28a-fc7a61855b3e.png`.
+- Referencia del historial del caso: `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-a8ef23a1-a2d0-45c1-8d7c-107787656fa0.png`; patrón de destino: historial vertical de Inscripción de marcas.
+- Implementación local verificada en Google Chrome: `/tmp/buho-qa-brands-final.png`, `/tmp/buho-qa-vigilancia-final.png` y `/tmp/buho-qa-historial.png`.
+- Comparaciones combinadas: `/tmp/buho-compare-brands.png` y `/tmp/buho-compare-vigilancia.png`.
+
+### Visual comparison
+
+- La aplicación de escritorio usa una escala interna de 80%, por lo que Chrome puede permanecer al 100% manteniendo la densidad de las referencias.
+- El menú lateral conserva el mismo ritmo y queda deliberadamente un poco más legible que la referencia, con títulos de 15 px antes de aplicar la escala.
+- La tabla de Vigilancia y su barra superior comparten ahora un ancho de 2380 px. Las 15 columnas tienen una asignación explícita y conservan desplazamiento horizontal.
+- El encabezado de Vigilancia mide 58 px y las primeras cinco filas miden 67 px cada una en la verificación de Chrome. Solo la casilla de selección queda bajo 50 px, como corresponde; ninguna columna de texto termina vertical.
+- El historial del caso usa tres hitos unidos por una línea vertical y dos flechas hacia abajo, replicando la gramática visual de Inscripción de marcas.
+- No quedan superposiciones, columnas ilegibles ni alturas de fila desproporcionadas en los estados revisados.
+
+### Verification
+
+- `npm test`: passed; incluye build de producción, TypeScript y cinco pruebas automatizadas.
+- `git diff --check`: passed.
+- Consola de Google Chrome: sin errores ni advertencias.
+- Interacciones verificadas: navegación entre Marcas registradas, Vigilancia y Casos; apertura del caso; presencia de tres hitos y dos flechas en el historial.
+
+final result: passed
+
+---
+
 ## Design QA — Revisor de factibilidad · 28 Aug 2026
 
 ### Comparison target

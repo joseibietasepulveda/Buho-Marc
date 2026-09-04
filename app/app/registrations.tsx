@@ -50,7 +50,7 @@ type StatusDefinition = {
 
 type HistoryEvent = { date: string; status?: string; detail?: string; intake?: boolean };
 
-type RegistrationApplication = {
+export type RegistrationApplication = {
   id: string;
   name: string;
   logo?: string;
@@ -91,17 +91,17 @@ const STATUS_DEFINITIONS: StatusDefinition[] = [
   { id: "abandoned-gazette", label: "Solicitud abandonada", phase: "gazette", terminal: "neutral" },
 ];
 
-const STATUS_BY_ID = Object.fromEntries(STATUS_DEFINITIONS.map((status) => [status.id, status])) as Record<RegistrationStatusId, StatusDefinition>;
+export const STATUS_BY_ID = Object.fromEntries(STATUS_DEFINITIONS.map((status) => [status.id, status])) as Record<RegistrationStatusId, StatusDefinition>;
 
 const INITIAL_APPLICATIONS: RegistrationApplication[] = [
   {
-    id: "IM-014", name: "NOVA FOODS", logo: "/logos/logo-00.png", applicationNumber: "1582491", type: "Mixta", filedAt: "2026-08-05", statusId: "accepted-publication", deadlineSource: "2026-08-20", recentEvent: "Solicitud aceptada a trámite", niceClasses: "29, 30 y 35", holderRut: "77.104.290-6", holder: "Grupo Nova SpA", client: "Grupo Nova SpA", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
+    id: "IM-014", name: "CERRO AZUL", logo: "/logos/logo-00.png", applicationNumber: "1582491", type: "Mixta", filedAt: "2026-08-05", statusId: "accepted-publication", deadlineSource: "2026-08-20", recentEvent: "Solicitud aceptada a trámite", niceClasses: "29, 30 y 35", holderRut: "77.614.290-6", holder: "Alimentos Cerro Azul SpA", client: "Cerro Azul", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
       { date: "2026-08-05", intake: true },
       { date: "2026-08-20", status: "Aceptado a trámite — esperando pago y publicación", detail: "Debe requerirse y pagarse la publicación." },
     ],
   },
   {
-    id: "IM-013", name: "TERRA SUR", logo: "/logos/logo-03.png", applicationNumber: "1582407", type: "Denominativa", filedAt: "2026-06-28", statusId: "form-observation", deadlineSource: "2026-07-17", recentEvent: "INAPI formuló observación de forma", niceClasses: "33 y 35", holderRut: "76.991.842-1", holder: "Terra Sur Limitada", client: "Viñas Terra Sur", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
+    id: "IM-013", name: "ALBA JURÍDICA", applicationNumber: "1582407", type: "Denominativa", filedAt: "2026-06-28", statusId: "form-observation", deadlineSource: "2026-07-17", recentEvent: "INAPI formuló observación de forma", niceClasses: "35 y 45", holderRut: "76.521.842-1", holder: "Alba Servicios Legales Ltda.", client: "Alba Jurídica", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
       { date: "2026-06-28", intake: true },
       { date: "2026-07-17", status: "Observación de forma", detail: "Respuesta pendiente." },
     ],
@@ -110,21 +110,21 @@ const INITIAL_APPLICATIONS: RegistrationApplication[] = [
     id: "IM-012", name: "IMAGO LAB", logo: "/logos/logo-01.png", applicationNumber: "1582316", type: "Mixta", filedAt: "2026-08-12", statusId: "inapi-waiting", recentEvent: "Solicitud ingresada y en revisión inicial", niceClasses: "9, 35 y 42", holderRut: "77.881.452-7", holder: "Imago Tecnología SpA", client: "Imago Tecnología", history: [{ date: "2026-08-12", intake: true }],
   },
   {
-    id: "IM-011", name: "LINARIA", logo: "/logos/logo-02.png", applicationNumber: "1579840", type: "Denominativa", filedAt: "2026-04-22", statusId: "abandoned-inapi", recentEvent: "Solicitud declarada abandonada", niceClasses: "3 y 5", holderRut: "77.034.518-2", holder: "Laboratorios Linaria", client: "Laboratorios Linaria", history: [
+    id: "IM-011", name: "BOTÁNICA NORTE", applicationNumber: "1579840", type: "Denominativa", filedAt: "2026-04-22", statusId: "abandoned-inapi", recentEvent: "Solicitud declarada abandonada", niceClasses: "3 y 5", holderRut: "77.634.518-2", holder: "Botánica Norte SpA", client: "Botánica Norte", history: [
       { date: "2026-04-22", intake: true },
       { date: "2026-06-18", status: "Observación de forma" },
       { date: "2026-08-08", status: "Solicitud abandonada", detail: "Procedimiento terminado." },
     ],
   },
   {
-    id: "IM-010", name: "PULSO", logo: "/logos/logo-06.png", applicationNumber: "1579652", type: "Figurativa", filedAt: "2026-03-18", statusId: "opposition-window", deadlineSource: "2026-07-16", publishedAt: "2026-07-16", recentEvent: "Solicitud publicada en Diario Oficial", niceClasses: "5, 10 y 44", holderRut: "76.770.241-9", holder: "Pulso Salud SpA", client: "Pulso Salud", history: [
+    id: "IM-010", name: "VÉRTICE SALUD", logo: "/logos/logo-06.png", applicationNumber: "1579652", type: "Figurativa", filedAt: "2026-03-18", statusId: "opposition-window", deadlineSource: "2026-07-16", publishedAt: "2026-07-16", recentEvent: "Solicitud publicada en Diario Oficial", niceClasses: "5, 10 y 44", holderRut: "76.870.241-9", holder: "Vértice Salud SpA", client: "Vértice Salud", history: [
       { date: "2026-03-18", intake: true },
       { date: "2026-05-02", status: "Aceptado a trámite — esperando pago y publicación" },
       { date: "2026-07-16", status: "En ventana de oposición", detail: "Publicada en Diario Oficial." },
     ],
   },
   {
-    id: "IM-009", name: "BRISA PACÍFICO", logo: "/logos/logo-08.png", applicationNumber: "1579018", type: "Mixta", filedAt: "2026-02-09", statusId: "substantive-objection", deadlineSource: "2026-07-10", publishedAt: "2026-04-06", recentEvent: "Objeción de fondo notificada", niceClasses: "29, 30 y 32", holderRut: "77.402.508-3", holder: "Alimentos Brisa SpA", client: "Alimentos Brisa", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
+    id: "IM-009", name: "COSTA VERDE", logo: "/logos/logo-08.png", applicationNumber: "1579018", type: "Mixta", filedAt: "2026-02-09", statusId: "substantive-objection", deadlineSource: "2026-07-10", publishedAt: "2026-04-06", recentEvent: "Objeción de fondo notificada", niceClasses: "29, 30 y 32", holderRut: "77.482.508-3", holder: "Alimentos Costa Verde SpA", client: "Costa Verde", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
       { date: "2026-02-09", intake: true },
       { date: "2026-04-06", status: "En ventana de oposición" },
       { date: "2026-05-21", status: "Examen de fondo INAPI" },
@@ -132,7 +132,7 @@ const INITIAL_APPLICATIONS: RegistrationApplication[] = [
     ],
   },
   {
-    id: "IM-008", name: "KORA", logo: "/logos/logo-04.png", applicationNumber: "1578840", type: "Mixta", filedAt: "2026-01-29", statusId: "evidence-period", deadlineSource: "2026-08-10", publishedAt: "2026-04-01", recentEvent: "Se abrió el período probatorio", niceClasses: "18, 25 y 35", holderRut: "77.300.982-4", holder: "Kora Diseño SpA", client: "Kora", history: [
+    id: "IM-008", name: "ALMA TEXTIL", logo: "/logos/logo-04.png", applicationNumber: "1578840", type: "Mixta", filedAt: "2026-01-29", statusId: "evidence-period", deadlineSource: "2026-08-10", publishedAt: "2026-04-01", recentEvent: "Se abrió el período probatorio", niceClasses: "18, 25 y 35", holderRut: "77.320.982-4", holder: "Alma Textil SpA", client: "Alma Textil", history: [
       { date: "2026-01-29", intake: true },
       { date: "2026-04-01", status: "En ventana de oposición" },
       { date: "2026-05-14", status: "Juicio de oposición — esperando contestación del solicitante" },
@@ -141,7 +141,7 @@ const INITIAL_APPLICATIONS: RegistrationApplication[] = [
     ],
   },
   {
-    id: "IM-007", name: "ENLACE", logo: "/logos/logo-07.png", applicationNumber: "1578124", type: "Denominativa", filedAt: "2025-12-18", statusId: "accepted-payment", deadlineSource: "2026-08-04", publishedAt: "2026-03-03", recentEvent: "Resolución de aceptación dictada", niceClasses: "35, 38 y 42", holderRut: "76.809.714-6", holder: "Enlace Digital Ltda.", client: "Enlace Digital", history: [
+    id: "IM-007", name: "NODO DIGITAL", applicationNumber: "1578124", type: "Denominativa", filedAt: "2025-12-18", statusId: "accepted-payment", deadlineSource: "2026-08-04", publishedAt: "2026-03-03", recentEvent: "Resolución de aceptación dictada", niceClasses: "35, 38 y 42", holderRut: "76.819.714-6", holder: "Nodo Digital Ltda.", client: "Nodo Digital", history: [
       { date: "2025-12-18", intake: true },
       { date: "2026-03-03", status: "En ventana de oposición" },
       { date: "2026-04-16", status: "Examen de fondo INAPI" },
@@ -149,7 +149,7 @@ const INITIAL_APPLICATIONS: RegistrationApplication[] = [
     ],
   },
   {
-    id: "IM-006", name: "ALTURA", logo: "/logos/logo-09.png", applicationNumber: "1577804", type: "Mixta", filedAt: "2025-11-24", statusId: "partial-appeal", deadlineSource: "2026-08-12", publishedAt: "2026-02-02", recentEvent: "Resolución de aceptación parcial notificada", niceClasses: "9, 18 y 25", holderRut: "77.300.000-0", holder: "Altura Outdoor SpA", client: "Altura Outdoor", history: [
+    id: "IM-006", name: "CUMBRE OUTDOOR", logo: "/logos/logo-09.png", applicationNumber: "1577804", type: "Mixta", filedAt: "2025-11-24", statusId: "partial-appeal", deadlineSource: "2026-08-12", publishedAt: "2026-02-02", recentEvent: "Resolución de aceptación parcial notificada", niceClasses: "9, 18 y 25", holderRut: "77.390.000-0", holder: "Cumbre Outdoor SpA", client: "Cumbre Outdoor", history: [
       { date: "2025-11-24", intake: true },
       { date: "2026-02-02", status: "En ventana de oposición" },
       { date: "2026-03-17", status: "Examen de fondo INAPI" },
@@ -157,7 +157,7 @@ const INITIAL_APPLICATIONS: RegistrationApplication[] = [
     ],
   },
   {
-    id: "IM-005", name: "CASA NUBE", logo: "/logos/logo-05.png", applicationNumber: "1577029", type: "Mixta", filedAt: "2025-10-28", statusId: "substantive-exam", publishedAt: "2026-01-15", recentEvent: "Finalizó la ventana de oposición sin oposiciones", niceClasses: "36 y 37", holderRut: "77.291.808-4", holder: "Inmobiliaria Casa Nube", client: "Casa Nube", history: [
+    id: "IM-005", name: "HABITAR UNO", logo: "/logos/logo-05.png", applicationNumber: "1577029", type: "Mixta", filedAt: "2025-10-28", statusId: "substantive-exam", publishedAt: "2026-01-15", recentEvent: "Finalizó la ventana de oposición sin oposiciones", niceClasses: "36 y 37", holderRut: "77.291.898-4", holder: "Inmobiliaria Habitar Uno", client: "Habitar Uno", history: [
       { date: "2025-10-28", intake: true },
       { date: "2026-01-15", status: "En ventana de oposición" },
       { date: "2026-03-02", status: "Examen de fondo INAPI", detail: "Sin plazo público fijo de resolución." },
@@ -172,7 +172,7 @@ const INITIAL_APPLICATIONS: RegistrationApplication[] = [
     ],
   },
   {
-    id: "IM-003", name: "ORIGEN", logo: "/logos/logo-02.png", applicationNumber: "1575128", registrationNumber: "1439920", registrationDate: "2026-08-19", type: "Mixta", filedAt: "2025-07-30", statusId: "registered", publishedAt: "2025-10-27", recentEvent: "Registro concedido por INAPI", niceClasses: "29, 30 y 43", holderRut: "76.722.482-8", holder: "Origen Gastronomía SpA", client: "Origen", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
+    id: "IM-003", name: "SABOR RAÍZ", logo: "/logos/logo-02.png", applicationNumber: "1575128", registrationNumber: "1439920", registrationDate: "2026-08-19", type: "Mixta", filedAt: "2025-07-30", statusId: "registered", publishedAt: "2025-10-27", recentEvent: "Registro concedido por INAPI", niceClasses: "29, 30 y 43", holderRut: "76.722.492-8", holder: "Sabor Raíz SpA", client: "Sabor Raíz", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
       { date: "2025-07-30", intake: true },
       { date: "2025-10-27", status: "En ventana de oposición" },
       { date: "2025-12-12", status: "Examen de fondo INAPI" },
@@ -230,7 +230,7 @@ function formatDate(value?: string | Date) {
   return new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "long", year: "numeric" }).format(date);
 }
 
-function deadlineInfo(application: RegistrationApplication) {
+export function deadlineInfo(application: RegistrationApplication) {
   const status = STATUS_BY_ID[application.statusId];
   if (status.terminal) return { attention: "terminal" as Attention };
   if (!status.deadlineDays) return { attention: "none" as Attention };
@@ -256,20 +256,20 @@ function AttentionIcon({ attention }: { attention: Attention }) {
   return <Hourglass aria-hidden size={18} weight="bold" />;
 }
 
-function useRegistrationApplications() {
+export function useRegistrationApplications() {
   const [applications, setApplications] = useState(INITIAL_APPLICATIONS);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const stored = window.localStorage.getItem("buho-registration-mock-v1");
+        const stored = window.localStorage.getItem("buho-registration-mock-v2");
         if (stored) setApplications(JSON.parse(stored) as RegistrationApplication[]);
       } catch { /* keep bundled mock data */ }
       setReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
-  useEffect(() => { if (ready) window.localStorage.setItem("buho-registration-mock-v1", JSON.stringify(applications)); }, [applications, ready]);
+  useEffect(() => { if (ready) window.localStorage.setItem("buho-registration-mock-v2", JSON.stringify(applications)); }, [applications, ready]);
   return [applications, setApplications] as const;
 }
 
@@ -293,9 +293,6 @@ export function TrademarkRegistrationCanvas() {
   }), [applications, attention, phase, query, status]);
 
   const selected = applications.find((application) => application.id === selectedId);
-  const activeDeadlines = applications.filter((application) => ["normal", "soon", "overdue"].includes(deadlineInfo(application).attention));
-  const urgentCount = applications.filter((application) => ["soon", "overdue"].includes(deadlineInfo(application).attention)).length;
-  const terminalCount = applications.filter((application) => Boolean(STATUS_BY_ID[application.statusId].terminal)).length;
 
   function changeStatus(application: RegistrationApplication, nextStatus: RegistrationStatusId) {
     if (application.statusId === nextStatus) return;
@@ -316,13 +313,6 @@ export function TrademarkRegistrationCanvas() {
   }
 
   return <section className="trademark-registration-view">
-    <section className="trademark-summary" aria-label="Resumen de solicitudes">
-      <div><span>Solicitudes</span><strong>{String(applications.length).padStart(2, "0")}</strong><small>en seguimiento</small></div>
-      <div><span>Plazos activos</span><strong>{String(activeDeadlines.length).padStart(2, "0")}</strong><small>calculados en días hábiles</small></div>
-      <div className="is-urgent"><span>Requieren atención</span><strong>{String(urgentCount).padStart(2, "0")}</strong><small>próximos o vencidos</small></div>
-      <div><span>Estados terminales</span><strong>{String(terminalCount).padStart(2, "0")}</strong><small>concedidos, abandonados o rechazados</small></div>
-    </section>
-
     <section className="trademark-toolbar" aria-label="Buscar y filtrar solicitudes">
       <label className="trademark-search"><MagnifyingGlass aria-hidden size={18} /><span>Buscar</span><input aria-label="Buscar solicitudes" onChange={(event) => setQuery(event.target.value)} placeholder="Marca, solicitud, titular o cliente" type="search" value={query} /></label>
       <label><span>Fase</span><select aria-label="Filtrar por fase" onChange={(event) => setPhase(event.target.value as "all" | RegistrationPhase)} value={phase}><option value="all">Todas</option><option value="inapi">INAPI</option><option value="gazette">Diario Oficial</option></select></label>
