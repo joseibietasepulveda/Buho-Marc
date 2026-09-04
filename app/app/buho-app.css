@@ -460,7 +460,7 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-bulk-actions { min-height:62px; display:flex; align-items:center; gap:9px; margin-bottom:14px; padding:10px 14px; border:1px solid #ccb0df; border-radius:10px; background:#f5ebfb; }
 .buho-bulk-actions strong { margin-right:auto; font-size:15px; }
 .buho-bulk-actions button { min-height:38px; padding:0 12px; border:1px solid #b899cc; border-radius:7px; color:#422652; background:#fff; cursor:pointer; font-size:13px; font-weight:800; }
-.buho-view-matches .buho-matches-table { min-width:1510px !important; table-layout:fixed; }
+.buho-view-matches .buho-matches-table { width:2380px !important; min-width:2380px !important; table-layout:fixed; }
 .buho-view-matches .buho-matches-table th:nth-child(n) { width:auto; }
 .buho-view-matches .buho-matches-table th:nth-child(1) { width:52px; }
 .buho-view-matches .buho-matches-table th:nth-child(2) { width:145px; }
@@ -470,6 +470,11 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-view-matches .buho-matches-table th:nth-child(8) { width:140px; }
 .buho-view-matches .buho-matches-table th:nth-child(9) { width:205px; }
 .buho-view-matches .buho-matches-table th:nth-child(10) { width:145px; }
+.buho-view-matches .buho-matches-table th:nth-child(11) { width:180px; }
+.buho-view-matches .buho-matches-table th:nth-child(12) { width:145px; }
+.buho-view-matches .buho-matches-table th:nth-child(13) { width:220px; }
+.buho-view-matches .buho-matches-table th:nth-child(14) { width:190px; }
+.buho-view-matches .buho-matches-table th:nth-child(15) { width:160px; }
 .buho-view-matches .buho-matches-table td:nth-child(1) input,.buho-view-matches .buho-matches-table th:nth-child(1) input { width:19px; height:19px; accent-color:#8150aa; }
 
 .tone-match-pendiente-de-clasificacion { color:#68418a; border-color:#d8bae9; background:#eee1f6; }
@@ -874,6 +879,26 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .buho-history p { position:relative; margin:0; padding:13px 10px 13px 26px; border-bottom:1px solid var(--line); color:#514855; font-size:14px; }
 .buho-history p:last-child { border-bottom:0; }
 .buho-history p::before { position:absolute; top:18px; left:7px; width:8px; height:8px; border-radius:50%; background:#9e62c7; content:""; }
+.buho-case-history ol { display:grid; gap:0; margin:0; padding:15px 18px 5px; list-style:none; }
+.buho-case-history li { position:relative; display:grid; grid-template-columns:17px minmax(0,1fr); gap:11px; min-height:64px; }
+.buho-case-history li:not(:last-child)::after { position:absolute; top:18px; bottom:0; left:7px; width:1px; background:#c79be5; content:""; }
+.buho-case-history li > i { z-index:1; width:15px; height:15px; margin-top:2px; border:3px solid #f2e5fb; border-radius:50%; background:#8d4fba; box-shadow:0 0 0 1px #b77bdc; }
+.buho-case-history li strong { display:block; color:#514855; font-size:14px; line-height:1.4; }
+.buho-history-arrow { display:block; height:20px; margin-top:4px; color:#8d4fba; font-size:17px; font-weight:900; line-height:20px; }
+
+/* Escala de escritorio equivalente al 80% de Chrome, manteniendo el viewport completo. */
+@media (min-width:901px) {
+  .buho-app { width:125%; height:125vh; zoom:.8; }
+  .buho-sidebar,.buho-workspace { height:125vh; }
+  .buho-sidebar nav button { font-size:15px; }
+  .buho-sidebar nav button span { font-size:11px; }
+}
+
+/* Vigilancia usa el mismo ancho que su barra de desplazamiento superior. */
+.buho-view-matches .buho-matches-table th,
+.buho-view-matches .buho-matches-table td { overflow-wrap:normal; word-break:normal; }
+.buho-view-matches .buho-matches-table th { vertical-align:middle; }
+.buho-view-matches .buho-matches-table td { height:92px; }
 .buho-report-card { display:grid; grid-template-columns:42px 1fr auto; align-items:center; gap:12px; padding:15px; border:1px solid #d3b8e6; border-radius:9px; color:var(--ink); background:#fbf6fe; text-decoration:none; }
 .buho-report-card > span { width:40px; height:40px; display:grid; place-items:center; border-radius:8px; color:#fff; background:#6e388f; font-size:11px; font-weight:900; }
 .buho-report-card strong,.buho-report-card small { display:block; }
