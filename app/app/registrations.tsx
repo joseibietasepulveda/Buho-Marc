@@ -105,18 +105,26 @@ function AttentionIcon({ attention }: { attention: Attention }) {
 
 export function useRegistrationApplications() {
   const [applications, setApplications] = useState<RegistrationApplication[]>([]);
+  const [loadState, setLoadState] = useState({ loading: true, error: "" });
   useEffect(() => {
     let active = true;
     const refresh = async () => {
-      try { const r = await fetch("/api/registrations", { cache: "no-store" }); if (r.ok) { const p = await r.json(); if (active) setApplications(p.applications); } }
-      catch { /* Keep the last known view; source data is changed only in the administrator. */ }
+      try {
+        const r = await fetch("/api/registrations", { cache: "no-store" });
+        if (!r.ok) throw new Error("No se pudieron actualizar las solicitudes.");
+        const p = await r.json();
+        if (!Array.isArray(p.applications)) throw new Error("Respuesta de solicitudes incompleta.");
+        if (active) { setApplications(p.applications); setLoadState({ loading: false, error: "" }); }
+      } catch {
+        if (active) setLoadState({ loading: false, error: "No se pudieron actualizar las solicitudes. Se conservan los últimos datos disponibles; reintentaremos automáticamente." });
+      }
     };
     void refresh();
     const timer = window.setInterval(() => void refresh(), 30000);
     window.addEventListener("buho-source-reviewed", refresh);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener("buho-source-reviewed", refresh); };
   }, []);
-  return [applications, setApplications] as const;
+  return [applications, setApplications, loadState] as const;
 }
 
 export function TrademarkRegistrationCanvas() {

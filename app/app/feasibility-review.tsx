@@ -135,18 +135,6 @@ const DEMO_MATCHES: FeasibilityMatch[] = [
 
 const DEMO_CLASSES = [11, 30, 43];
 
-function riskTone(value: number) {
-  if (value < 15) return "risk-low";
-  if (value === 15) return "risk-neutral";
-  return "risk-high";
-}
-
-function riskLabel(value: number) {
-  if (value < 15) return "Probabilidad baja";
-  if (value === 15) return "Punto de referencia";
-  return value >= 65 ? "Probabilidad alta" : "Probabilidad sobre la referencia";
-}
-
 export function FeasibilityReview() {
   const [brandName, setBrandName] = useState("Cafeteras Mistral");
   const [selectedClasses, setSelectedClasses] = useState<number[]>(DEMO_CLASSES);
@@ -156,6 +144,10 @@ export function FeasibilityReview() {
   const [phase, setPhase] = useState<"ready" | "loading" | "results">("ready");
   const [selectedMatch, setSelectedMatch] = useState<FeasibilityMatch | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const analysisTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [mode, setMode] = useState("contains");
+  function invalidate() { if (analysisTimer.current) clearTimeout(analysisTimer.current); setPhase("ready"); setSelectedMatch(null); }
+  useEffect(() => () => { if (analysisTimer.current) clearTimeout(analysisTimer.current); }, []);
 
   useEffect(() => () => {
     if (imageUrl.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
@@ -171,6 +163,7 @@ export function FeasibilityReview() {
     if (!number) return;
     setSelectedClasses((current) => current.includes(number) ? current : [...current, number].sort((a, b) => a - b));
     setClassChoice("");
+    invalidate();
   }
 
   function uploadImage(event: ChangeEvent<HTMLInputElement>) {
@@ -181,17 +174,19 @@ export function FeasibilityReview() {
       return URL.createObjectURL(file);
     });
     setUploadedName(file.name);
-    setPhase("ready");
+    invalidate();
   }
 
   function analyze(event: FormEvent) {
     event.preventDefault();
     if (!brandName.trim()) return;
     setPhase("loading");
-    window.setTimeout(() => setPhase("results"), 1150);
+    if (analysisTimer.current) clearTimeout(analysisTimer.current);
+    analysisTimer.current = setTimeout(() => setPhase("results"), 350);
   }
 
   function restoreDemo() {
+    invalidate(); setMode("contains");
     if (imageUrl.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
     setBrandName("Cafeteras Mistral");
     setSelectedClasses(DEMO_CLASSES);
@@ -209,15 +204,16 @@ export function FeasibilityReview() {
           <div>
             <span className="buho-overline">ANÁLISIS PREVIO A LA SOLICITUD</span>
             <h2>Revisa una marca antes de inscribirla</h2>
-            <p>Busca coincidencias por nombre, imagen y clases Niza para preparar una primera evaluación.</p>
+            <p>Prepara el nombre, la imagen y las clases Niza que deseas revisar.</p>
           </div>
           <button className="feasibility-reset" onClick={restoreDemo} type="button"><ArrowClockwise size={16} /> Restablecer caso demo</button>
         </div>
 
+        <p className="feasibility-demo-notice"><Info size={20} aria-hidden /><span><strong>Demostración con resultados simulados.</strong> La búsqueda real aún no está conectada. Los cuatro ejemplos y sus porcentajes son fijos; no miden la probabilidad de registro ni el riesgo jurídico de la marca ingresada.</span></p>
         <div className="feasibility-searchbar">
           <label className="feasibility-mode">
             <span className="sr-only">Tipo de coincidencia</span>
-            <select aria-label="Tipo de coincidencia" defaultValue="contains">
+            <select aria-label="Tipo de coincidencia" value={mode} onChange={event => { setMode(event.target.value); invalidate(); }}>
               <option value="contains">Contiene</option>
               <option value="exact">Coincidencia exacta</option>
               <option value="starts">Comienza con</option>
@@ -226,7 +222,7 @@ export function FeasibilityReview() {
           <label className="feasibility-name">
             <MagnifyingGlass aria-hidden="true" size={22} />
             <span className="sr-only">Nombre de la marca</span>
-            <input aria-label="Nombre de la marca" onChange={(event) => { setBrandName(event.target.value); setPhase("ready"); }} placeholder="Introduce el nombre de la marca" value={brandName} />
+            <input aria-label="Nombre de la marca" onChange={(event) => { setBrandName(event.target.value); invalidate(); }} placeholder="Introduce el nombre de la marca" value={brandName} />
           </label>
           <input accept="image/*" className="sr-only" onChange={uploadImage} ref={fileRef} type="file" />
           <button aria-label="Subir logo de la marca" className={`feasibility-upload${imageUrl ? " has-image" : ""}`} onClick={() => fileRef.current?.click()} type="button">
@@ -234,7 +230,7 @@ export function FeasibilityReview() {
             <span>{imageUrl ? "Cambiar logo" : "Subir logo"}</span>
           </button>
           <button className="feasibility-submit" disabled={!brandName.trim() || phase === "loading"} type="submit">
-            {phase === "loading" ? <><span className="feasibility-spinner" /> Analizando</> : <><Sparkle size={19} weight="fill" /> Analizar factibilidad</>}
+            {phase === "loading" ? <><span className="feasibility-spinner" /> Preparando ejemplo</> : <><Sparkle size={19} weight="fill" /> Ver comparación de ejemplo</>}
           </button>
         </div>
 
@@ -247,7 +243,7 @@ export function FeasibilityReview() {
             </select>
           </div>
           <div aria-label="Clases Niza seleccionadas" className="feasibility-class-chips">
-            {selectedClasses.map((number) => <button aria-label={`Quitar clase ${number}`} key={number} onClick={() => setSelectedClasses((current) => current.filter((item) => item !== number))} title={NICE_CLASSES.find((item) => item.number === number)?.meaning} type="button"><span>{number}</span><X size={12} weight="bold" /></button>)}
+            {selectedClasses.map((number) => <button aria-label={`Quitar clase ${number}`} key={number} onClick={() => { setSelectedClasses((current) => current.filter((item) => item !== number)); invalidate(); }} title={NICE_CLASSES.find((item) => item.number === number)?.meaning} type="button"><span>{number}</span><X size={12} weight="bold" /></button>)}
             {!selectedClasses.length && <small>Sin clases seleccionadas</small>}
           </div>
           <div className="feasibility-file"><FileImage size={19} /><div><span>Imagen para comparar</span><strong>{uploadedName}</strong></div><Check aria-label="Imagen cargada" size={17} weight="bold" /></div>
@@ -255,31 +251,28 @@ export function FeasibilityReview() {
         {!!selectedMeanings.length && <details className="feasibility-class-detail"><summary>Ver significado de las clases seleccionadas</summary><ul>{selectedMeanings.map((item) => <li key={item.number}><b>{item.number}</b>{item.meaning}</li>)}</ul></details>}
       </form>
 
-      {phase === "ready" && <section className="feasibility-ready" aria-live="polite"><ShieldCheck size={30} /><div><strong>Caso demo listo para analizar</strong><p>Presiona “Analizar factibilidad” para revisar Cafeteras Mistral frente a cuatro marcas mock.</p></div></section>}
+      {phase === "ready" && <section className="feasibility-ready" aria-live="polite"><ShieldCheck size={30} /><div><strong>Datos listos para la demostración</strong><p>Abre los ejemplos para comparar logos y clases. Si modificas un criterio, vuelve a abrir la comparación.</p></div></section>}
 
-      {phase === "loading" && <section aria-live="polite" className="feasibility-loading"><span className="feasibility-spinner is-large" /><div><strong>Comparando nombre, logo y clases Niza…</strong><p>Revisando coincidencias visuales, fonéticas y conceptuales.</p></div></section>}
+      {phase === "loading" && <section aria-live="polite" className="feasibility-loading"><span className="feasibility-spinner is-large" /><div><strong>Preparando los ejemplos…</strong><p>Resultados simulados para explorar la comparación.</p></div></section>}
 
       {phase === "results" && <div className="feasibility-results" aria-live="polite">
         <section className="feasibility-summary">
           <header>
-            <div><span className="buho-overline">RESUMEN</span><h2>Factibilidad de “{brandName}”</h2></div>
-            <span className="feasibility-evaluated"><Check size={15} weight="bold" /> 4 coincidencias evaluadas</span>
+            <div><span className="buho-overline">RESUMEN</span><h2>Demostración para “{brandName}”</h2></div>
+            <span className="feasibility-evaluated"><Check size={15} weight="bold" /> 4 ejemplos de comparación</span>
           </header>
-          <div className="feasibility-risk-grid">
-            <RiskCard label="Riesgo de observaciones de fondo: similitud gráfica o fonética con marcas previas, fama y notoriedad, emblemas nacionales, nombres propios o un signo descriptivo o genérico." value={88} />
-            <article className="feasibility-finding">
-              <Sparkle size={22} weight="fill" />
-              <div><span>Hallazgo principal · motores simulados</span><strong>Similitud visual, fonética y semántica relevante</strong><p>“Cafeteras Las Delicias” comparte elementos gráficos, “Hotel Mistral” coincide en el componente denominativo y las coberturas presentan cercanía conceptual.</p></div>
-            </article>
+          <div className="feasibility-example-grid">
+            <article className="feasibility-example-summary"><ShieldCheck size={26} aria-hidden /><h3>Evaluación jurídica pendiente</h3><p>Esta demostración permite explorar la comparación. No entrega un pronóstico de concesión ni de observaciones de fondo.</p></article>
+            <article className="feasibility-finding"><Sparkle size={22} aria-hidden /><div><span>Contenido del ejemplo</span><strong>Comparación visual, fonética y conceptual</strong><p>Las marcas y las razones corresponden al caso Cafeteras Mistral. Al cambiar tus datos, los ejemplos permanecen fijos.</p></div></article>
           </div>
-          <footer><Info size={16} /><span>Estimación orientativa elaborada con datos mock para la demo. No corresponde a una resolución, búsqueda oficial ni pronóstico de INAPI.</span></footer>
+          <footer><Info size={16} /><span>Ejemplo ilustrativo con datos simulados. No corresponde a una búsqueda oficial, evaluación jurídica ni pronóstico de INAPI.</span></footer>
         </section>
 
         <section className="feasibility-table-panel">
-          <header><div><span className="buho-overline">POSIBLES COINCIDENCIAS</span><h2>Marcas que conviene revisar</h2></div><span>Ordenadas por similitud</span></header>
+          <header><div><span className="buho-overline">RESULTADOS SIMULADOS</span><h2>Marcas del ejemplo</h2></div><span>Similitud simulada</span></header>
           <div className="feasibility-table-wrap">
             <table>
-              <thead><tr><th aria-label="Comparar marcas" /><th>Representación gráfica</th><th>Nombre de la marca</th><th>Fecha de solicitud</th><th>Clases Niza</th><th>Situación</th><th>Número de solicitud</th><th>Nombre del solicitante</th><th>Coincidencia</th></tr></thead>
+              <thead><tr><th aria-label="Comparar marcas" /><th>Representación gráfica</th><th>Nombre de la marca</th><th>Fecha de solicitud</th><th>Clases Niza</th><th>Situación</th><th>Número de solicitud</th><th>Nombre del solicitante</th><th>Similitud simulada</th></tr></thead>
               <tbody>{DEMO_MATCHES.map((match) => (
                 <tr className="feasibility-comparable-row" key={match.id} onClick={(event) => {
                   if ((event.target as HTMLElement).closest("button")) return;
@@ -306,16 +299,6 @@ export function FeasibilityReview() {
   );
 }
 
-function RiskCard({ label, value }: { label: string; value: number }) {
-  const tone = riskTone(value);
-  return <article className={`feasibility-risk-card ${tone}`}>
-    <div className="feasibility-risk-value"><strong>{value}%</strong><span>{riskLabel(value)}</span></div>
-    <p>{label}</p>
-    <div aria-label={`${value} por ciento`} className="feasibility-risk-scale"><span style={{ width: `${value}%` }} /></div>
-    <small><i /> Bajo 15% <i /> 15% referencia <i /> Sobre 15%</small>
-  </article>;
-}
-
 function ComparisonLogo({ src, name, onEnlarge }: { src: string; name: string; onEnlarge: () => void }) {
   const [failed, setFailed] = useState(false);
   return src && !failed ? <button className="comparison-logo" aria-label={`Ampliar logo de ${name}`} onClick={onEnlarge} type="button">
@@ -337,7 +320,7 @@ function BrandComparison({ match, name, logo, classes, onClose }: { match: Feasi
           <div className="comparison-classes"><strong>Clases Niza</strong><ul>{brand.classes.map((number) => <li key={number} className={shared.includes(number) ? "is-shared" : ""}>Clase {number}{shared.includes(number) && <span> · Compartida</span>}</li>)}</ul>{!brand.classes.length && <p>Sin clases seleccionadas</p>}</div>
         </section>)}
       </div>
-      <section className="comparison-reason"><Sparkle size={22} aria-hidden /><div><h3>Por qué aparece esta marca</h3><p>{match.reason}</p><strong>Similitud {match.matchType.toLowerCase()}: {match.similarity}% · Dato simulado</strong></div></section>
+      <section className="comparison-reason"><Sparkle size={22} aria-hidden /><div><h3>Motivo en el caso de demostración</h3><p>{match.reason}</p><strong>Similitud {match.matchType.toLowerCase()}: {match.similarity}% · Dato simulado</strong></div></section>
       <details className="comparison-coverage"><summary>Ver significado de las clases y datos de la solicitud</summary>
         <dl className="comparison-record"><div><dt>Solicitud de la marca encontrada</dt><dd>{match.application}</dd></div><div><dt>Fecha de solicitud</dt><dd>{match.appliedAt}</dd></div><div><dt>Solicitante</dt><dd>{match.applicant}</dd></div></dl>
         <ul>{[...new Set([...classes, ...match.classes])].sort((a, b) => a - b).map((number) => <li key={number}><strong>Clase {number}</strong> — {NICE_CLASSES.find((item) => item.number === number)?.meaning}</li>)}</ul>

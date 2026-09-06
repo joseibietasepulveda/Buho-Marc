@@ -77,3 +77,7 @@ Después de desplegar:
 - Añadir almacenamiento de archivos con URLs firmadas y escaneo.
 - Añadir rate limiting y pruebas automáticas de aislamiento.
 - Conectar el motor únicamente mediante el contrato documentado en `MATCHING_ENGINE_INTEGRATION.md`.
+
+## Promoción del 6 de septiembre de 2026
+
+Base `60ea09c` promovida desde Dev a main por solicitud expresa del usuario. Railway completó production (`153c9c2a-f07b-474e-a72d-78351ad079a3`) y Dev (`1dc66f23-ed9b-46d4-b8dd-6418df762a80`) con estado SUCCESS. La segunda ronda de UX continúa únicamente en Dev. Las comprobaciones de interfaz antiguas de esta guía se complementan con [UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md); el porcentaje global de factibilidad y el selector manual de expedientes importados ya no forman parte de la versión nueva.

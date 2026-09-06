@@ -18,8 +18,8 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 
 1. Abrir **Inicio** y explicar la jerarquía: atención inmediata separada por nivel de similitud, indicadores alineados, vigilancias y plazos. El KPI de Casos activos destaca los vencimientos dentro de 14 días.
 2. Entrar a **Revisor de factibilidad**. El caso demo viene preparado como “Cafeteras Mistral”, con logo y clases Niza 11, 30 y 43.
-3. Mostrar que las clases son opcionales y acumulativas: el desplegable explica el significado completo y, al seleccionar, agrega sólo el número como etiqueta. Presionar **Analizar factibilidad**.
-4. Recorrer el resumen y explicar que 15% es el punto gris de referencia; bajo ese valor se usa verde y sobre ese valor rojo. Aclarar que son estimaciones mock, no decisiones de INAPI.
+3. Mostrar que las clases son opcionales y acumulativas: el desplegable explica el significado completo y, al seleccionar, agrega sólo el número como etiqueta. Presionar **Ver comparación de ejemplo**.
+4. Revisar el aviso de demostración antes de abrir los ejemplos. No hay porcentaje global de concesión o riesgo jurídico; los porcentajes de cada coincidencia son simulados. Cambiar el nombre, imagen, tipo de coincidencia o clases invalida la vista anterior.
 5. Revisar la tabla: “Cafeteras Las Delicias” destaca por similitud visual, “Hotel Mistral” por fonética, “Pisco Mistral” por coincidencia baja y “Museo Gabriela Mistral” por coincidencia muy baja. Abrir una fila para comparar ambos logos, ampliar cada imagen y revisar las clases compartidas y la razón.
 6. Entrar a **Inscripción de marcas**. Revisar el Canvas de escritorio, que separa INAPI de **Diario Oficial · desde la publicación**, y comparar ejemplos de plazo normal, próximo a vencer, vencido y estado terminal.
 7. Buscar una solicitud por marca, número, titular o cliente; filtrar por fase, estado o atención; abrir una tarjeta y revisar que el estado aparezca primero, seguido por los antecedentes y el historial vertical.
@@ -63,3 +63,7 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 - Los formularios no borran datos hasta que el usuario confirma o cierra el panel.
 - Las tablas pueden desplazarse horizontalmente cuando el ancho disponible no alcanza y el tablero conserva sus columnas. En escritorio se aplica una densidad visual equivalente al 90 % de zoom.
 - La experiencia está optimizada para computador. Tablet y móvil ofrecen acceso básico, pero no condicionan la densidad ni la distribución principal del Canvas.
+
+## Ronda UX de septiembre
+
+El resumen abre la agenda en el mes actual y muestra «Mi día» con asuntos existentes. La prioridad interna y el estado temporal de los plazos se presentan por separado. Las solicitudes sin fecha fuente aparecen como pendientes de confirmar, y las notificaciones de plazo nunca usan etiquetas de similitud. El administrador distingue expedientes e historial de consultas y muestra la última consulta completada.
