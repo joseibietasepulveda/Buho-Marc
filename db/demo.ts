@@ -1,5 +1,6 @@
 import { expandedDemoBrands, demoBrandDetails } from "../lib/demo-brand-catalogue";
 import { getSql } from "./index";
+import { isRealSource } from "../lib/inapi-provider";
 
 export const DEMO_ORG_ID = "10000000-0000-4000-8000-000000000001";
 export const DEMO_PLAN_ID = "10000000-0000-4000-8000-000000000010";
@@ -68,7 +69,12 @@ const seedNotices = [
   [ids.notices[1], "NO-112", ids.matches[1], "Plazo legal próximo", "TERRA SUR", "Alta", null, "2026-08-18T16:20:00-04:00", "Próximo plazo: TERRA SUR", "Hola,\n\nTe informamos que el plazo asociado a la revisión de TERRA DEL SUR se encuentra próximo. Recomendamos confirmar la estrategia antes del 22 de agosto.\n\nSaludos,"],
 ] as const;
 
+let seedPromise: Promise<void> | undefined;
 export async function ensureDemoSeed() {
+  if (!seedPromise) seedPromise = seedDemo().catch(error => { seedPromise = undefined; throw error; });
+  return seedPromise;
+}
+async function seedDemo() {
   const sql = getSql();
   await sql.begin(async (tx) => {
     await tx`SELECT pg_advisory_xact_lock(741026)`;
@@ -79,21 +85,22 @@ export async function ensureDemoSeed() {
       await tx`INSERT INTO organization_members (organization_id, user_id, role) VALUES (${DEMO_ORG_ID}, ${user[0]}, ${user[0] === DEMO_USER_ID ? "admin" : "member"}) ON CONFLICT DO NOTHING`;
     }
     await tx`INSERT INTO subscriptions (id, organization_id, plan_id, status, period_start, period_end) VALUES (${DEMO_SUBSCRIPTION_ID}, ${DEMO_ORG_ID}, ${DEMO_PLAN_ID}, 'active', '2026-08-01', '2026-08-31') ON CONFLICT (id) DO NOTHING`;
+    if (isRealSource()) return;
     for (const brand of seedBrands) {
-      await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, created_by, last_reviewed_at, created_at, updated_at) VALUES (${brand[0]}, ${DEMO_ORG_ID}, ${brand[1]}, ${brand[2]}, ${brand[2]}, ${brand[3]}, ${brand[4]}, ${brand[5]}, ${brand[6]}, ${DEMO_USER_ID}, ${brand[7]}, ${brand[7]}, ${brand[7]}) ON CONFLICT (id) DO NOTHING`;
-      for (const niceClass of brand[8]) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand[0]}, ${niceClass}) ON CONFLICT DO NOTHING`;
+      const inserted = await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, created_by, last_reviewed_at, created_at, updated_at) VALUES (${brand[0]}, ${DEMO_ORG_ID}, ${brand[1]}, ${brand[2]}, ${brand[2]}, ${brand[3]}, ${brand[4]}, ${brand[5]}, ${brand[6]}, ${DEMO_USER_ID}, ${brand[7]}, ${brand[7]}, ${brand[7]}) ON CONFLICT (id) DO NOTHING RETURNING id`;
+      if (inserted.length) for (const niceClass of brand[8]) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand[0]}, ${niceClass}) ON CONFLICT DO NOTHING`;
     }
     const [brandCount] = await tx`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL`;
     for (const brand of supplementalSeedBrands.slice(0, Math.max(0, 20 - Number(brandCount.count)))) {
-      await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', ${brand.status}, ${tx.json({ rut: brand.rut, inapiUrl: 'https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx', visual: brand.visual })}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
-      for (const niceClass of brand.niceClasses) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
+      const inserted = await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', ${brand.status}, ${tx.json({ rut: brand.rut, inapiUrl: 'https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx', visual: brand.visual })}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING RETURNING id`;
+      if (inserted.length) for (const niceClass of brand.niceClasses) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
     }
     // Fill the demo up to 100 records, without replacing archived user records.
     const existingBrands = await tx`SELECT public_code FROM brands WHERE organization_id = ${DEMO_ORG_ID}`;
     const missingBrands = expandedDemoBrands.filter((brand) => !existingBrands.some((row) => row.public_code === brand.code)).slice(0, Math.max(0, 100 - existingBrands.length));
     for (const brand of missingBrands) {
-      await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', 'Activa', ${tx.json({ rut: brand.rut, type: brand.type, visual: brand.type, ...demoBrandDetails(brand.code) })}, ${DEMO_USER_ID}) ON CONFLICT DO NOTHING`;
-      for (const niceClass of brand.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
+      const inserted = await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, monitoring_config, created_by) VALUES (${brand.id}, ${DEMO_ORG_ID}, ${brand.code}, ${brand.name}, ${brand.name}, ${brand.owner}, ${brand.registration}, 'Chile', 'Activa', ${tx.json({ rut: brand.rut, type: brand.type, visual: brand.type, ...demoBrandDetails(brand.code) })}, ${DEMO_USER_ID}) ON CONFLICT DO NOTHING RETURNING id`;
+      if (inserted.length) for (const niceClass of brand.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
     }
     for (const match of seedMatches) {
       await tx`INSERT INTO matches (id, organization_id, public_code, brand_id, source, source_record_id, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, legal_deadline, owner_id, created_at, updated_at) VALUES (${match[0]}, ${DEMO_ORG_ID}, ${match[1]}, ${match[2]}, ${match[3]}, ${match[4]}, ${match[5]}, ${match[6]}, ${match[7]}, ${match[8]}, ${match[9]}, ${match[10]}, ${`Coincidencia de demostración con puntaje ${match[10]}. El motor real no está conectado.`}, ${match[11]}, ${match[12]}, ${match[13]}, ${`${match[5]}T14:00:00Z`}, ${`${match[5]}T14:00:00Z`}) ON CONFLICT (id) DO NOTHING`;
@@ -121,15 +128,16 @@ function shortDate(value: string | Date | null, includeYear = false) {
 export async function getDemoSnapshot() {
   const sql = getSql();
   const brandRows = await sql`SELECT b.id, b.public_code, b.name, b.owner_name, b.registration_number, b.jurisdiction, b.status, b.updated_at, b.monitoring_config, COALESCE(string_agg(DISTINCT lpad(bc.nice_class::text, 2, '0'), ', ' ORDER BY lpad(bc.nice_class::text, 2, '0')), '') AS classes, count(DISTINCT m.id)::int AS matches_count, count(DISTINCT c.id)::int AS cases_count FROM brands b LEFT JOIN brand_classes bc ON bc.brand_id = b.id LEFT JOIN matches m ON m.brand_id = b.id LEFT JOIN cases c ON c.brand_id = b.id WHERE b.organization_id = ${DEMO_ORG_ID} AND b.archived_at IS NULL GROUP BY b.id ORDER BY b.public_code DESC`;
-  const matchRows = await sql`SELECT m.public_code, b.public_code AS brand_code, b.name AS brand_name, b.registration_number AS brand_registration, b.monitoring_config, m.source_record_id, m.found_name, m.applicant, m.application_number, m.total_score, m.level, m.review_status, m.published_at, m.legal_deadline, m.source, m.official_url, m.explanation, COALESCE(u.name, 'Sin asignar') AS owner_name FROM matches m JOIN brands b ON b.id = m.brand_id LEFT JOIN users u ON u.id = m.owner_id WHERE m.organization_id = ${DEMO_ORG_ID} ORDER BY m.total_score DESC`;
-  const caseRows = await sql`SELECT c.public_code, c.title, c.description, COALESCE(b.name, 'Sin marca') AS brand_name, c.client_name, c.stage, c.priority, c.next_deadline, COALESCE(u.name, 'Sin asignar') AS owner_name, m.public_code AS source_match FROM cases c LEFT JOIN brands b ON b.id = c.brand_id LEFT JOIN users u ON u.id = c.owner_id LEFT JOIN matches m ON m.id = c.source_match_id WHERE c.organization_id = ${DEMO_ORG_ID} AND c.status = 'active' ORDER BY c.created_at DESC`;
+  const matchRows = await sql`SELECT m.public_code, b.public_code AS brand_code, b.name AS brand_name, b.registration_number AS brand_registration, b.monitoring_config, m.source_record_id, m.found_name, m.applicant, m.application_number, m.total_score, m.level, m.review_status, m.published_at, m.legal_deadline, m.source, m.official_url, m.explanation, COALESCE(u.name, 'Sin asignar') AS owner_name FROM matches m JOIN brands b ON b.id = m.brand_id LEFT JOIN users u ON u.id = m.owner_id WHERE m.organization_id = ${DEMO_ORG_ID} AND (${!isRealSource()} OR b.archived_at IS NULL) ORDER BY m.total_score DESC`;
+  const caseRows = await sql`SELECT c.public_code, c.title, c.description, COALESCE(b.name, 'Sin marca') AS brand_name, c.client_name, c.stage, c.priority, c.next_deadline, COALESCE(u.name, 'Sin asignar') AS owner_name, m.public_code AS source_match FROM cases c LEFT JOIN brands b ON b.id = c.brand_id LEFT JOIN users u ON u.id = c.owner_id LEFT JOIN matches m ON m.id = c.source_match_id WHERE c.organization_id = ${DEMO_ORG_ID} AND c.status = 'active' AND (${!isRealSource()} OR b.archived_at IS NULL) ORDER BY c.created_at DESC`;
   const userRows = await sql`SELECT u.id, u.name, u.email, u.initials, om.created_at FROM organization_members om JOIN users u ON u.id = om.user_id WHERE om.organization_id = ${DEMO_ORG_ID} ORDER BY om.created_at`;
-  const noticeRows = await sql`SELECT n.public_code, n.title, n.brand_name, n.urgency, n.managed_at, n.created_at, d.subject, d.body FROM notifications n JOIN email_drafts d ON d.notification_id = n.id WHERE n.organization_id = ${DEMO_ORG_ID} ORDER BY n.created_at DESC`;
+  const noticeRows = await sql`SELECT n.public_code, n.title, n.brand_name, n.urgency, n.managed_at, n.created_at, n.change_detail, d.subject, d.body FROM notifications n JOIN email_drafts d ON d.notification_id = n.id WHERE n.organization_id = ${DEMO_ORG_ID} AND COALESCE(n.change_detail->>'invalidated', 'false') <> 'true' ORDER BY n.created_at DESC`;
 
   return {
+    provider: isRealSource() ? "inapi" : "simulated",
     brands: brandRows.map((row) => {
-      const config = (row.monitoring_config ?? {}) as { rut?: string; inapiUrl?: string; visual?: string; type?: string };
-      return { ...demoBrandDetails(row.public_code), id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
+      const config = (row.monitoring_config ?? {}) as Partial<ReturnType<typeof demoBrandDetails>> & { provider?: string; rut?: string; inapiUrl?: string; visual?: string; type?: string; registrationState?: string; legalStatus?: string; logo?: string };
+      return { ...(config.provider === "inapi" ? {} : demoBrandDetails(row.public_code)), ...config, provider: config.provider === "inapi" ? "inapi" : "mock", registrationState: config.registrationState ?? "Registrada", legalStatus: config.legalStatus ?? "registered", id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: config.inapiUrl ?? "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
     }),
     matches: matchRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as { rut?: string; type?: string };
@@ -140,11 +148,13 @@ export async function getDemoSnapshot() {
     }),
     cases: caseRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, client: row.client_name, stage: row.stage === "Evaluación" ? "Preparación" : row.stage, priority: row.priority, deadline: shortDate(row.next_deadline, true), deadlineDescription: String(row.description ?? "").match(/Plazo:\s*(.+)/)?.[1], owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
     users: userRows.map((row) => ({ id: row.id, name: displayPersonName(row.name), email: row.name === "Rosario Vial" ? "jose.ignacio@ibieta.cl" : row.email, createdAt: shortDate(row.created_at, true), initials: row.name === "Rosario Vial" ? "JI" : row.initials })),
-    notices: noticeRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body })),
+    notices: noticeRows.map((row) => ({ id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body, changeDetail: row.change_detail ?? undefined })),
   };
 }
 
 export async function resetDemoData() {
+  if (isRealSource()) throw new Error("La cartera real no puede restablecerse con datos de demostración");
+  seedPromise = undefined;
   const sql = getSql();
   await sql`DELETE FROM organizations WHERE id = ${DEMO_ORG_ID}`;
   await ensureDemoSeed();

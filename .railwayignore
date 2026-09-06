@@ -4,3 +4,11 @@
 /db/schema 2.ts
 /design-qa 2.md
 /design-qa-layout.md
+/tmp/
+/output/
+/outputs/
+/.env*
+/.git/
+/.next/
+/.next-local/
+/node_modules/

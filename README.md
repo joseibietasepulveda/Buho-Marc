@@ -40,7 +40,7 @@ npm run build
 npm run start
 ```
 
-Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcionando sin instalaciones adicionales. Con `DATABASE_URL`, usa PostgreSQL automáticamente.
+La aplicación actual requiere PostgreSQL mediante `DATABASE_URL` para cargar la cartera y las solicitudes. Una vista con respuestas simuladas sirve para verificar la interfaz, pero no valida persistencia ni sincronización.
 
 ## Qué incluye la demo
 
@@ -60,11 +60,19 @@ Sin `DATABASE_URL`, la app usa `localStorage` para que la demo local siga funcio
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
 - Diseño optimizado prioritariamente para uso en computador. Tablet y móvil conservan compatibilidad básica, pero no son superficies principales del producto.
 
-Los datos son ficticios. En Railway se comparten mediante PostgreSQL; en local, si no se configura una base, quedan en el navegador. Las cantidades visibles cambian a medida que se clasifican vigilancias o se convierten en casos.
+La cartera combina ejemplos identificados como simulados y expedientes importados mediante el proveedor INAPI configurado. En Railway se comparten mediante PostgreSQL. Las cantidades visibles cambian a medida que se clasifican vigilancias o se convierten en casos.
 
 ## Qué no está implementado
 
-No hay autenticación real, almacenamiento persistente de archivos, envío de correo, fuentes oficiales ni motor de cruces. La app no calcula similitudes ni probabilidades jurídicas reales: las coincidencias y porcentajes del Revisor de factibilidad son datos mock para la demostración. Las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
+No hay autenticación real, almacenamiento persistente de archivos, envío de correo ni motor de cruces. Sí existe consulta de expedientes mediante un proveedor de datos de INAPI; su configuración y límites se describen en [docs/inapi-dev.md](docs/inapi-dev.md). La app no calcula similitudes ni probabilidades jurídicas reales: las coincidencias y porcentajes del Revisor de factibilidad son datos mock para la demostración. Las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
+
+### Mejoras de UX entregadas
+
+- Comparación de marcas al abrir una fila, con logos ampliables y clases compartidas.
+- Historial de actuaciones ordenado desde la más reciente, con detalle íntegro desplegable y tratamiento de datos ausentes.
+- Consulta de expedientes, origen de datos, sincronización y seguimiento de novedades INAPI.
+
+El alcance aprobado y los pendientes vigentes están en [docs/UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md).
 
 ### Backlog · Revisor de factibilidad
 
@@ -78,9 +86,7 @@ No hay autenticación real, almacenamiento persistente de archivos, envío de co
 
 > Criterio de producto: esta sección está pensada para escritorio. La adaptación móvil es secundaria y sólo debe asegurar acceso básico, sin condicionar la densidad ni la distribución del Canvas en computador.
 
-- Reemplazar el selector manual de estados y los datos mock del Canvas por estados provenientes de la API de expedientes.
 - Registrar cada cambio de estado como un evento inmutable de historial, conservando fecha y fuente.
-- Alimentar fechas de notificación/publicación desde la fuente oficial antes de calcular vencimientos; si falta una fecha fuente, la interfaz mantiene “Fecha de vencimiento pendiente de confirmar”.
 - Mantener y versionar el calendario de feriados chilenos, incluidos los feriados electorales o regionales que correspondan al expediente.
 - Generar notificaciones persistentes cuando un plazo pase a “próximo a vencer” o “vencido / requiere revisión”.
 
@@ -92,7 +98,7 @@ Railway publica la web app en `/app` y sirve la landing principal en `/`. La URL
 
 Las secciones **Revisor de factibilidad** e **Inscripción de marcas** se validan y publican primero en el ambiente Railway **Dev** (`buho-marc-web-dev.up.railway.app`). El ambiente `production` sólo se actualiza mediante una solicitud explícita posterior.
 
-Última publicación Dev verificada: **28 de agosto de 2026**, despliegue Railway `fd17c0b7-00ba-4c2b-871c-69ee81da297e`, estado `SUCCESS` y base de datos conectada.
+La integración INAPI se verificó en Dev el 4 de septiembre de 2026; véase [el registro de verificación](docs/inapi-dev.md). La promoción de ramas y los cambios de UX de septiembre se documentan en [docs/UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md).
 
 La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md).
 

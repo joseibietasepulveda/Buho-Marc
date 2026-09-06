@@ -10,7 +10,9 @@
 - [x] Revisor de factibilidad de escritorio con texto, imagen local, clases Niza acumulativas, resumen de riesgo y cuatro resultados mock explicables.
 - [x] Despliegue preparado para Railway con modo local de respaldo.
 - [ ] Autenticación, archivos, email real, permisos, recordatorios y operación productiva.
-- [ ] Motor de cruces y fuentes oficiales, deliberadamente fuera de alcance.
+- [x] Proveedor de expedientes INAPI, seguimiento, historial de consultas y novedades.
+- [x] Comparación ampliable de logos e historial de actuaciones sin estados inexistentes.
+- [ ] Motor de similitud real, todavía pendiente.
 
 ## Fase 0 — decisiones y diseño técnico
 
@@ -37,7 +39,6 @@ Criterio de salida: una organización puede crear una marca, verla procesando y 
 - Extender el motor al flujo previo a la inscripción: búsqueda denominativa y fonética, similitud visual, cruce de clases Niza y explicación por candidato.
 - Calibrar probabilidades de observación formal y de fondo con datos históricos revisados por especialistas.
 - Bandeja, filtros persistentes, vistas guardadas y detalle lateral.
-- Registro inmutable de decisiones.
 - Conversión transaccional a caso.
 - Actualización en tiempo real por SSE o polling adaptativo.
 
@@ -50,7 +51,7 @@ Criterio de salida: un resultado se recibe una sola vez, se revisa y puede origi
 - Plazos versionados, recordatorios e historial.
 - Plantillas de comunicación versionadas, copia y confirmación manual de envío, sin exponer borradores como estado de producto.
 - Persistencia de solicitudes de registro, eventos inmutables de estado y vínculo con el expediente oficial.
-- Sustitución del selector mock por sincronización desde API; cálculo versionado de días hábiles chilenos y notificaciones idempotentes de próximos vencimientos.
+- Completar calendario versionado de días hábiles y notificaciones idempotentes de próximos vencimientos. La sincronización de estados desde API ya está implementada.
 
 Criterio de salida: el equipo puede gestionar una causa completa y demostrar quién cambió cada dato.
 
@@ -70,8 +71,12 @@ Criterio de salida: pruebas críticas aprobadas, restauración ensayada y monito
 - Repetir un callback no duplica coincidencias.
 - Convertir la misma coincidencia dos veces produce un solo caso.
 - Un cambio de plazo cancela y recrea recordatorios correctamente.
-- Cada decisión relevante aparece en auditoría con actor, fecha y evidencia.
+- Cada modificación relevante aparece en auditoría con actor y fecha; no se exige al usuario documentar fundamentos de decisiones.
 - Navegación completa por teclado, foco visible y etiquetas que no dependan solo del color.
 - Formularios conservan borradores ante errores recuperables.
 - Una transición recibida dos veces desde la API no duplica el historial ni las notificaciones de la solicitud.
 - Un estado sin plazo legal fijo no genera fecha de vencimiento; una fecha fuente ausente se presenta como pendiente de confirmar.
+
+## Priorización vigente — septiembre de 2026
+
+Consultar [UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md) para el alcance aprobado, las mejoras ya realizadas y los pendientes de la próxima versión. Las decisiones documentadas y la búsqueda global quedan fuera del alcance aprobado.

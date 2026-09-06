@@ -1,3 +1,5 @@
+> Estado actualizado: la aplicación combina expedientes importados y ejemplos simulados. Ver [UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md) y [inapi-dev.md](inapi-dev.md) para distinguir funciones disponibles y limitaciones.
+
 # Guía de la demo
 
 ## Objetivo
@@ -18,10 +20,10 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 2. Entrar a **Revisor de factibilidad**. El caso demo viene preparado como “Cafeteras Mistral”, con logo y clases Niza 11, 30 y 43.
 3. Mostrar que las clases son opcionales y acumulativas: el desplegable explica el significado completo y, al seleccionar, agrega sólo el número como etiqueta. Presionar **Analizar factibilidad**.
 4. Recorrer el resumen y explicar que 15% es el punto gris de referencia; bajo ese valor se usa verde y sobre ese valor rojo. Aclarar que son estimaciones mock, no decisiones de INAPI.
-5. Revisar la tabla: “Cafeteras Las Delicias” destaca por similitud visual, “Hotel Mistral” por fonética, “Pisco Mistral” por coincidencia baja y “Museo Gabriela Mistral” por coincidencia muy baja. Expandir una fila para mostrar la razón.
+5. Revisar la tabla: “Cafeteras Las Delicias” destaca por similitud visual, “Hotel Mistral” por fonética, “Pisco Mistral” por coincidencia baja y “Museo Gabriela Mistral” por coincidencia muy baja. Abrir una fila para comparar ambos logos, ampliar cada imagen y revisar las clases compartidas y la razón.
 6. Entrar a **Inscripción de marcas**. Revisar el Canvas de escritorio, que separa INAPI de **Diario Oficial · desde la publicación**, y comparar ejemplos de plazo normal, próximo a vencer, vencido y estado terminal.
 7. Buscar una solicitud por marca, número, titular o cliente; filtrar por fase, estado o atención; abrir una tarjeta y revisar que el estado aparezca primero, seguido por los antecedentes y el historial vertical.
-8. Usar el selector **Estado mock** para demostrar cómo una solicitud cambia automáticamente de macrofase. Este control es temporal y se elimina cuando la API entregue los cambios registrados.
+8. En expedientes importados, revisar el estado recibido de la fuente y el historial de actuaciones, con fechas y detalle desplegable. Los datos oficiales no se cambian mediante el selector de la demo.
 9. Entrar a **Marcas registradas**, revisar el cupo, agregar una marca por número de registro INAPI o usar la importación por RUT. Cualquier fila abre su ficha con el enlace a INAPI y los datos de tipo de marca.
 10. Entrar a **Vigilancia**, buscar por nombre y aplicar uno o varios filtros de **Similitud** y **Estado**. El botón **Todas** o **Todos** limpia el grupo respectivo. La tabla comienza por **Similitud** y **Estado**, que se pueden cambiar directamente; cuando el ancho disponible no alcanza, usa sus barras horizontales en lugar de superponer columnas.
 11. Agregar una vigilancia manual: elegir una marca en seguimiento, buscar un número de inscripción o solicitud y confirmar los campos completados, incluida la fecha de publicación en Diario Oficial.

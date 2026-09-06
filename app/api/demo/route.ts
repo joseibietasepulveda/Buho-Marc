@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { DEMO_ORG_ID, DEMO_USER_ID, ensureDemoSeed, getDemoSnapshot, resetDemoData } from "@/db/demo";
 import { getSql } from "@/db";
+import { isRealSource } from "@/lib/inapi-provider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
   try {
     await ensureDemoSeed();
     const input = actionSchema.parse(await request.json());
+    if (isRealSource() && ["reset", "createBrand", "bulkCreateBrands"].includes(input.action)) return NextResponse.json({ message: "Use Agregar por número de solicitud para consultar e incorporar datos reales de INAPI." }, { status: 409 });
     const sql = getSql();
 
     if (input.action === "reset") {

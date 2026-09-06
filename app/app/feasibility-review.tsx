@@ -2,7 +2,6 @@
 
 import {
   ArrowClockwise,
-  CaretDown,
   CaretRight,
   Check,
   FileImage,
@@ -13,7 +12,8 @@ import {
   UploadSimple,
   X,
 } from "@phosphor-icons/react";
-import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ReviewDialog } from "./review-dialog";
 
 type NiceClass = { number: number; meaning: string };
 type FeasibilityMatch = {
@@ -154,7 +154,7 @@ export function FeasibilityReview() {
   const [imageUrl, setImageUrl] = useState("/feasibility/cafeteras-mistral.png");
   const [uploadedName, setUploadedName] = useState("cafeteras-mistral.png");
   const [phase, setPhase] = useState<"ready" | "loading" | "results">("ready");
-  const [expanded, setExpanded] = useState<string | null>("FM-001");
+  const [selectedMatch, setSelectedMatch] = useState<FeasibilityMatch | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => () => {
@@ -197,7 +197,7 @@ export function FeasibilityReview() {
     setSelectedClasses(DEMO_CLASSES);
     setImageUrl("/feasibility/cafeteras-mistral.png");
     setUploadedName("cafeteras-mistral.png");
-    setExpanded("FM-001");
+    setSelectedMatch(null);
     setPhase("ready");
     if (fileRef.current) fileRef.current.value = "";
   }
@@ -279,28 +279,29 @@ export function FeasibilityReview() {
           <header><div><span className="buho-overline">POSIBLES COINCIDENCIAS</span><h2>Marcas que conviene revisar</h2></div><span>Ordenadas por similitud</span></header>
           <div className="feasibility-table-wrap">
             <table>
-              <thead><tr><th aria-label="Expandir detalle" /><th>Representación gráfica</th><th>Nombre de la marca</th><th>Fecha de solicitud</th><th>Clases Niza</th><th>Situación</th><th>Número de solicitud</th><th>Nombre del solicitante</th><th>Coincidencia</th></tr></thead>
-              <tbody>{DEMO_MATCHES.map((match) => {
-                const isOpen = expanded === match.id;
-                return [
-                  <tr className={isOpen ? "is-open" : ""} key={match.id}>
-                    <td><button aria-expanded={isOpen} aria-label={`${isOpen ? "Cerrar" : "Abrir"} detalle de ${match.name}`} className="feasibility-expand" onClick={() => setExpanded(isOpen ? null : match.id)} type="button">{isOpen ? <CaretDown size={18} /> : <CaretRight size={18} />}</button></td>
-                    <td><button className="feasibility-logo" onClick={() => setExpanded(isOpen ? null : match.id)} type="button"><img alt={`Logo ${match.name}`} src={match.logo} /></button></td>
-                    <td><button className="feasibility-brand-name" onClick={() => setExpanded(isOpen ? null : match.id)} type="button">{match.name}</button><small>{match.matchType}</small></td>
-                    <td>{match.appliedAt}</td>
-                    <td><div className="feasibility-table-classes">{match.classes.map((number) => <span key={number}>{number}</span>)}</div></td>
-                    <td><span className={`feasibility-status ${match.status === "Registrada" ? "is-registered" : "is-pending"}`}>{match.status}</span></td>
-                    <td>{match.application}</td>
-                    <td><strong>{match.applicant}</strong></td>
-                    <td><span className={`feasibility-match-score score-${match.similarity >= 70 ? "high" : match.similarity >= 15 ? "medium" : "low"}`}><b>{match.similarity}%</b><small>{match.matchType}</small></span></td>
-                  </tr>,
-                  isOpen && <tr className="feasibility-detail-row" key={`${match.id}-detail`}><td /><td colSpan={8}><div><Sparkle size={18} weight="fill" /><p><strong>Por qué aparece:</strong> {match.reason}</p></div></td></tr>,
-                ];
-              })}</tbody>
+              <thead><tr><th aria-label="Comparar marcas" /><th>Representación gráfica</th><th>Nombre de la marca</th><th>Fecha de solicitud</th><th>Clases Niza</th><th>Situación</th><th>Número de solicitud</th><th>Nombre del solicitante</th><th>Coincidencia</th></tr></thead>
+              <tbody>{DEMO_MATCHES.map((match) => (
+                <tr className="feasibility-comparable-row" key={match.id} onClick={(event) => {
+                  if ((event.target as HTMLElement).closest("button")) return;
+                  event.currentTarget.querySelector<HTMLButtonElement>("button")?.focus();
+                  setSelectedMatch(match);
+                }}>
+                  <td><button aria-label={`Comparar tu marca con ${match.name}`} aria-haspopup="dialog" className="feasibility-expand" onClick={() => setSelectedMatch(match)} type="button"><CaretRight size={18} /></button></td>
+                  <td><button aria-label={`Ampliar y comparar logo de ${match.name}`} aria-haspopup="dialog" className="feasibility-logo" onClick={() => setSelectedMatch(match)} type="button"><img alt={`Logo ${match.name}`} src={match.logo} /></button></td>
+                  <td><button aria-haspopup="dialog" className="feasibility-brand-name" onClick={() => setSelectedMatch(match)} type="button">{match.name}</button><small>{match.matchType} · Ver comparación</small></td>
+                  <td>{match.appliedAt}</td>
+                  <td><div className="feasibility-table-classes">{match.classes.map((number) => <span key={number}>{number}</span>)}</div></td>
+                  <td><span className={`feasibility-status ${match.status === "Registrada" ? "is-registered" : "is-pending"}`}>{match.status}</span></td>
+                  <td>{match.application}</td>
+                  <td><strong>{match.applicant}</strong></td>
+                  <td><span className={`feasibility-match-score score-${match.similarity >= 70 ? "high" : match.similarity >= 15 ? "medium" : "low"}`}><b>{match.similarity}%</b><small>{match.matchType}</small></span></td>
+                </tr>
+              ))}</tbody>
             </table>
           </div>
         </section>
       </div>}
+      {selectedMatch && <BrandComparison match={selectedMatch} name={brandName} logo={imageUrl} classes={selectedClasses} onClose={() => setSelectedMatch(null)} />}
     </section>
   );
 }
@@ -313,4 +314,56 @@ function RiskCard({ label, value }: { label: string; value: number }) {
     <div aria-label={`${value} por ciento`} className="feasibility-risk-scale"><span style={{ width: `${value}%` }} /></div>
     <small><i /> Bajo 15% <i /> 15% referencia <i /> Sobre 15%</small>
   </article>;
+}
+
+function ComparisonLogo({ src, name, onEnlarge }: { src: string; name: string; onEnlarge: () => void }) {
+  const [failed, setFailed] = useState(false);
+  return src && !failed ? <button className="comparison-logo" aria-label={`Ampliar logo de ${name}`} onClick={onEnlarge} type="button">
+    <img alt={`Logo de ${name}`} src={src} onError={() => setFailed(true)} />
+    <span><MagnifyingGlass size={18} aria-hidden /> Ampliar logo</span>
+  </button> : <div className="comparison-logo is-unavailable"><FileImage size={32} aria-hidden /><p>Logo no disponible</p></div>;
+}
+
+function BrandComparison({ match, name, logo, classes, onClose }: { match: FeasibilityMatch; name: string; logo: string; classes: number[]; onClose: () => void }) {
+  const [enlarged, setEnlarged] = useState<{ name: string; src: string } | null>(null);
+  const shared = classes.filter((number) => match.classes.includes(number));
+  return <ReviewDialog title="Comparación de marcas" onClose={onClose} className="brand-comparison-dialog">
+    <div className="comparison-content">
+      <p className="comparison-context">Revisión preliminar · Coincidencia de demostración</p>
+      <div className="comparison-brands">
+        {[{ label: "Tu marca", name, logo, classes, status: "Marca en evaluación" }, { label: "Marca encontrada", name: match.name, logo: match.logo, classes: match.classes, status: match.status }].map((brand) => <section className="comparison-brand" key={brand.label} aria-label={brand.label}>
+          <header><span>{brand.label}</span><h3>{brand.name}</h3><p>{brand.status}</p></header>
+          <ComparisonLogo key={brand.logo} src={brand.logo} name={brand.name} onEnlarge={() => setEnlarged({ name: brand.name, src: brand.logo })} />
+          <div className="comparison-classes"><strong>Clases Niza</strong><ul>{brand.classes.map((number) => <li key={number} className={shared.includes(number) ? "is-shared" : ""}>Clase {number}{shared.includes(number) && <span> · Compartida</span>}</li>)}</ul>{!brand.classes.length && <p>Sin clases seleccionadas</p>}</div>
+        </section>)}
+      </div>
+      <section className="comparison-reason"><Sparkle size={22} aria-hidden /><div><h3>Por qué aparece esta marca</h3><p>{match.reason}</p><strong>Similitud {match.matchType.toLowerCase()}: {match.similarity}% · Dato simulado</strong></div></section>
+      <details className="comparison-coverage"><summary>Ver significado de las clases y datos de la solicitud</summary>
+        <dl className="comparison-record"><div><dt>Solicitud de la marca encontrada</dt><dd>{match.application}</dd></div><div><dt>Fecha de solicitud</dt><dd>{match.appliedAt}</dd></div><div><dt>Solicitante</dt><dd>{match.applicant}</dd></div></dl>
+        <ul>{[...new Set([...classes, ...match.classes])].sort((a, b) => a - b).map((number) => <li key={number}><strong>Clase {number}</strong> — {NICE_CLASSES.find((item) => item.number === number)?.meaning}</li>)}</ul>
+      </details>
+      <p className="comparison-note">Los porcentajes y las coincidencias de esta demostración son simulados. Compartir una clase no determina por sí solo un conflicto entre marcas.</p>
+    </div>
+    <footer><button onClick={onClose} type="button">Volver a los resultados</button></footer>
+    {enlarged && <LogoViewer name={enlarged.name} src={enlarged.src} onClose={() => setEnlarged(null)} />}
+  </ReviewDialog>;
+}
+
+function LogoViewer({ name, src, onClose }: { name: string; src: string; onClose: () => void }) {
+  const [zoom, setZoom] = useState(100);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.scrollLeft = (canvas.scrollWidth - canvas.clientWidth) / 2;
+      canvas.scrollTop = (canvas.scrollHeight - canvas.clientHeight) / 2;
+    }
+  }, [zoom]);
+  return <ReviewDialog title={`Logo de ${name}`} onClose={onClose} className="logo-viewer-dialog">
+    <div className="logo-viewer-toolbar"><label>Ampliación <input aria-label="Ampliación del logo" type="range" min="100" max="300" step="25" value={zoom} onChange={(event) => setZoom(Number(event.target.value))} /></label><output>{zoom}%</output><button onClick={() => setZoom(100)} type="button">Ajustar</button></div>
+    {/* The scrollable image region must be focusable for keyboard panning. */}
+    {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
+    <div ref={canvasRef} className="logo-viewer-canvas" tabIndex={0} role="region" aria-label="Logo ampliado; desplázate para ver sus detalles"><div style={{ width: `${zoom}%`, height: `${zoom}%` }}><img alt={`Logo de ${name}`} src={src} /></div></div>
+    <footer><span>La nitidez depende de la imagen original.</span><button onClick={onClose} type="button">Volver a la comparación</button></footer>
+  </ReviewDialog>;
 }

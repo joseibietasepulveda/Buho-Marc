@@ -8,6 +8,41 @@ const timestamps = {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 };
 
+export const clientContacts = pgTable("client_contacts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  publicCode: varchar("public_code", { length: 30 }).notNull(),
+  data: jsonb("data").notNull(), version: integer("version").default(1).notNull(),
+  isMock: boolean("is_mock").default(true).notNull(), ...timestamps,
+}, table => [uniqueIndex("client_contacts_org_code_uq").on(table.organizationId, table.publicCode)]);
+
+// The replaceable source has its own records and never writes the monitored portfolio.
+export const sourceRecords = pgTable("source_records", {
+  id: uuid("id").defaultRandom().primaryKey(), applicationNumber: varchar("application_number", { length: 30 }).notNull(),
+  registrationNumber: varchar("registration_number", { length: 30 }), data: jsonb("data").notNull(),
+  version: integer("version").default(1).notNull(), ...timestamps,
+}, t => [uniqueIndex("source_application_uq").on(t.applicationNumber), uniqueIndex("source_registration_uq").on(t.registrationNumber)]);
+
+export const registrationApplications = pgTable("registration_applications", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  publicCode: varchar("public_code", { length: 30 }).notNull(), data: jsonb("data").notNull(), ...timestamps,
+}, t => [uniqueIndex("applications_org_code_uq").on(t.organizationId, t.publicCode)]);
+
+export const sourceSnapshots = pgTable("source_snapshots", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  entityId: uuid("entity_id").notNull(), entityType: varchar("entity_type", { length: 30 }).notNull(), publicCode: varchar("public_code", { length: 30 }).notNull(),
+  sourceId: uuid("source_id").notNull().references(() => sourceRecords.id), data: jsonb("data").notNull(), ...timestamps,
+}, t => [uniqueIndex("snapshots_entity_uq").on(t.organizationId, t.entityType, t.entityId)]);
+
+export const sourceSyncRuns = pgTable("source_sync_runs", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  trigger: varchar("trigger", { length: 20 }).notNull(), scheduledDay: date("scheduled_day"), status: varchar("status", { length: 20 }).notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(), completedAt: timestamp("completed_at", { withTimezone: true }),
+  requested: integer("requested").default(0).notNull(), received: integer("received").default(0).notNull(), changed: integer("changed").default(0).notNull(),
+  notifications: integer("notifications").default(0).notNull(), baseline: integer("baseline").default(0).notNull(), request: jsonb("request").notNull(),
+  error: text("error"), detail: jsonb("detail").default([]).notNull(),
+}, t => [index("sync_runs_org_date_idx").on(t.organizationId, t.startedAt)]);
+
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(), name: varchar("name", { length: 180 }).notNull(),
   slug: varchar("slug", { length: 120 }).notNull(), status: varchar("status", { length: 30 }).default("active").notNull(), ...timestamps,
@@ -152,6 +187,7 @@ export const comments = pgTable("comments", {
 }, (table) => [index("comments_entity_idx").on(table.organizationId, table.entityType, table.entityId, table.createdAt)]);
 
 export const notifications = pgTable("notifications", {
+  changeDetail: jsonb("change_detail"),
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   publicCode: varchar("public_code", { length: 30 }).notNull(), userId: uuid("user_id").references(() => users.id), entityType: varchar("entity_type", { length: 40 }).notNull(),
   entityId: uuid("entity_id").notNull(), type: varchar("type", { length: 80 }).notNull(), title: varchar("title", { length: 220 }).notNull(),
