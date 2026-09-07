@@ -10,6 +10,7 @@ const BRAND_LIMITS_ENABLED = false;
 
 const brandTypeSchema = z.enum(["Denominativa", "Figurativa", "Mixta", "Otra"]);
 const brandInputSchema = z.object({ name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional(), rut: z.string().min(3).max(30), inapiUrl: z.string().url().max(1500), visual: z.string().min(1).max(160), type: brandTypeSchema.default("Mixta") });
+const taskSchema = z.object({ id: z.string().uuid(), title: z.string().trim().min(1).max(255), status: z.enum(["not-applicable", "pending", "completed"]) });
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createBrand") }).extend(brandInputSchema.shape),
   z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(250) }),
@@ -24,6 +25,7 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("discardCase"), id: z.string().min(1) }),
   z.object({ action: z.literal("unlinkCaseMatch"), id: z.string().min(1) }),
   z.object({ action: z.literal("updateNotice"), id: z.string().min(1), subject: z.string().max(500).optional(), body: z.string().max(20000).optional(), status: z.enum(["Pendiente", "Gestionada"]).optional() }),
+  z.object({ action: z.literal("saveCaseTask"), id: z.string().min(1), task: taskSchema }),
   z.object({ action: z.literal("reset") }),
 ]);
 
@@ -150,6 +152,14 @@ export async function POST(request: Request) {
     } else if (input.action === "moveCase") {
       const [item] = await sql`UPDATE cases SET stage = ${input.stage}, updated_at = now() WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} RETURNING id`;
       if (item) await sql`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'case.stage_changed', 'case', ${item.id}, ${sql.json({ stage: input.stage })})`;
+    } else if (input.action === "saveCaseTask") {
+      await sql.begin(async tx => {
+        const [item] = await tx`SELECT id FROM cases WHERE organization_id = ${DEMO_ORG_ID} AND public_code = ${input.id} AND status = 'active' FOR UPDATE`;
+        if (!item) throw new Error("Caso no encontrado");
+        const [existing] = await tx`SELECT case_id, organization_id FROM case_tasks WHERE id = ${input.task.id}`;
+        if (existing && (existing.case_id !== item.id || existing.organization_id !== DEMO_ORG_ID)) throw new Error("La tarea no pertenece a este caso");
+        await tx`INSERT INTO case_tasks (id, organization_id, case_id, title, status, completed_at) VALUES (${input.task.id}, ${DEMO_ORG_ID}, ${item.id}, ${input.task.title}, ${input.task.status}, ${input.task.status === "completed" ? new Date() : null}) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, completed_at = CASE WHEN EXCLUDED.status = 'completed' THEN COALESCE(case_tasks.completed_at, EXCLUDED.completed_at) ELSE NULL END, updated_at = now()`;
+      });
     } else if (input.action === "updateCaseOwner") {
       const [owner] = await sql`SELECT u.id FROM users u JOIN organization_members om ON om.user_id = u.id WHERE om.organization_id = ${DEMO_ORG_ID} AND u.name = ${input.owner} LIMIT 1`;
       if (!owner) throw new Error("Abogado no encontrado");

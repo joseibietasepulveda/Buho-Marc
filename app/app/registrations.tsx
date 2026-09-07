@@ -16,6 +16,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
+import { RegistrationLogo } from "./registration-logo";
 import { ClientNameLink } from "./client-provider";
 import { activityContent, activityDate, latestActivityFirst } from "@/lib/registration-activity";
 import { deadlineInfo, registrationDeadlines, deadlineLabel, type Attention, type ProcedureDeadline } from "@/lib/registration-procedure";
@@ -104,9 +105,9 @@ export function TrademarkRegistrationCanvas({ initialSelection = {} }: { initial
     {examples && <section className="procedure-route" aria-label="Etapas del procedimiento"><span>Presentación y examen de forma</span><span>Requerimiento y publicación</span><span>Oposición y examen de fondo</span><span>Resolución y recursos</span><span>Ejecutoria, pago y registro</span><p>La oposición y la observación de fondo pueden coexistir. La prueba, la apelación y los desenlaces dependen de las actuaciones del expediente.</p></section>}
     <section className="trademark-toolbar" aria-label="Buscar y filtrar solicitudes">
       <label className="trademark-search"><MagnifyingGlass aria-hidden size={18} /><span>Buscar</span><input aria-label="Buscar solicitudes" onChange={(event) => setQuery(event.target.value)} placeholder="Marca, solicitud, titular o cliente" type="search" value={query} /></label>
-      <label><span>Fase</span><select aria-label="Filtrar por fase" onChange={(event) => setPhase(event.target.value as "all" | RegistrationPhase)} value={phase}><option value="all">Todas</option><option value="inapi">Ingreso y publicación</option><option value="gazette">Oposición, fondo y resolución</option></select></label>
+      <label><span>Fase</span><select aria-label="Filtrar por fase" onChange={(event) => setPhase(event.target.value as "all" | RegistrationPhase)} value={phase}><option value="all">Todas</option><option value="inapi">INAPI: Ingreso y publicación</option><option value="gazette">Diario Oficial: Oposición, fondo y resolución</option></select></label>
       <label><span>Estado</span><select aria-label="Filtrar por estado" onChange={(event) => setStatus(event.target.value as "all" | RegistrationStatusId)} value={status}><option value="all">Todos</option>{STATUS_DEFINITIONS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-      <label><span>Atención</span><select aria-label="Filtrar por atención" onChange={(event) => setAttention(event.target.value as typeof attention)} value={attention}><option value="all">Todas las gestiones</option><option value="soon">Próximo a vencer</option><option value="overdue">Vencido</option><option value="pending">Vencimiento no determinado</option><option value="none">Esperando actuación</option><option value="terminal">Procedimiento terminado</option></select></label>
+      <label><span>Atención</span><select aria-label="Filtrar por atención" onChange={(event) => setAttention(event.target.value as typeof attention)} value={attention}><option value="all">Todas las gestiones</option><option value="soon">Próximo a vencer</option><option value="overdue">Vencido</option><option value="pending">Antecedente pendiente</option><option value="none">Esperando actuación</option><option value="terminal">Procedimiento terminado</option></select></label>
       {!applications.some(a => a.provider === "inapi") && <label className="trademark-demo-control"><span>Vista demo</span><select aria-label="Cambiar estado de demostración" onChange={(event) => setDemoState(event.target.value as typeof demoState)} value={demoState}><option value="canvas">Canvas</option><option value="loading">Cargando</option><option value="empty">Sin solicitudes</option></select></label>}
       <button className="trademark-clear-filters" onClick={resetFilters} type="button"><Funnel aria-hidden size={16} /> Limpiar</button>
     </section>
@@ -134,7 +135,7 @@ function PhaseColumn({ applications, onSelect, phase }: { applications: Registra
   return <section className={`trademark-phase phase-${phase}`}>
     <header>
       <div className="trademark-phase-icon">{isInapi ? <Gavel aria-hidden size={22} weight="duotone" /> : <NewspaperClipping aria-hidden size={22} weight="duotone" />}</div>
-      <div><span>{isInapi ? "MACROFASE 01" : "MACROFASE 02"}</span><h2>{isInapi ? "Ingreso y publicación" : "Oposición, fondo y resolución"}</h2><p>{isInapi ? "Presentación y examen de forma en INAPI; requerimiento de publicación ante Diario Oficial." : "Desde la publicación: oposición y examen de fondo en INAPI, recursos ante TDPI y eventual registro."}</p></div>
+      <div><span>{isInapi ? "MACROFASE 01" : "MACROFASE 02"}</span><h2>{isInapi ? "INAPI: Ingreso y publicación" : "Diario Oficial: Oposición, fondo y resolución"}</h2><p>{isInapi ? "Presentación y examen de forma en INAPI; requerimiento de publicación ante Diario Oficial." : "Desde la publicación: oposición y examen de fondo en INAPI, recursos ante TDPI y eventual registro."}</p></div>
       <b>{applications.length}</b>
     </header>
     {applications.length ? <div className="trademark-card-grid">{applications.map((application) => <RegistrationCard application={application} key={application.id} onSelect={onSelect} />)}</div> : <div className="trademark-phase-empty"><Hourglass aria-hidden size={22} /><span>No hay solicitudes en esta fase con los filtros actuales.</span></div>}
@@ -148,22 +149,27 @@ function RegistrationCard({ application, onSelect }: { application: Registration
   return <article className={`trademark-card attention-${deadline.attention}${status.terminal ? ` terminal-${status.terminal}` : ""}`}>
     <button className="trademark-card-main" onClick={() => onSelect(application.id)} type="button">
       <div className="trademark-card-brand">
-        {application.logo ? <img alt={`Logo de ${application.name}`} height="48" src={application.logo} width="48" /> : <span className="trademark-no-logo">{application.type === "Denominativa" ? "Marca denominativa" : "Imagen no informada"}</span>}
-        <div><small>{application.id}</small><h3>{application.name}</h3></div>
+        <RegistrationLogo key={application.logo ?? application.id} application={application} />
+        <div><small>{application.id}</small><h3>{application.name}</h3>{!application.logo && <span className="trademark-brand-type">{application.type === "Denominativa" ? "Marca denominativa" : "Imagen no informada"}</span>}</div>
       </div>
       <strong className="trademark-card-status">{status.label}</strong>
       {application.demoScenario && <p className="procedure-scenario">Ejemplo simulado · {application.demoScenario}</p>}
       {status.phase === "gazette" && application.publishedAt && <span className="trademark-published"><CalendarBlank aria-hidden size={15} /> Publicada el {formatDate(application.publishedAt)}</span>}
-      {registrationDeadlines(application, today).map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} />)}
+      {registrationDeadlines(application, today).map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} />)}
       <footer><span>Solicitud N.º {application.applicationNumber}</span><b>Abrir detalle <ArrowRight aria-hidden size={14} /></b></footer>
     </button>
     <p className="procedure-source">{application.demoScenario ? "Escenario ficticio" : application.provider === "inapi" ? "Etapa según actuaciones de INAPI" : "Datos simulados de seguimiento"}</p>
   </article>;
 }
 
-function ProcedureDeadlinePanel({ deadline: d, today, detailed = false }: { deadline: ProcedureDeadline; today?: string; detailed?: boolean }) {
+function ProcedureDeadlinePanel({ deadline: d, today, application, detailed = false }: { deadline: ProcedureDeadline; today?: string; application: RegistrationApplication; detailed?: boolean }) {
   const origin = d.origin === "source" ? "Informado por la fuente" : d.origin === "calculated" ? "Calculado desde el antecedente indicado · calendario LPI 2026" : d.origin === "simulated" ? "Plazo simulado · referencia 7 sep. 2026" : "";
-  return <div className={`trademark-deadline deadline-${d.attention}`}><AttentionIcon attention={d.attention} /><div><span>{d.label}</span><strong>{deadlineLabel(d, today)}</strong>{d.dueDate && <small>Vence el {formatDate(d.dueDate)} · {origin}</small>}{(d.attention === "pending" || d.attention === "none" || detailed) && <small>{d.explanation}</small>}{detailed && d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ": fecha no informada"}</small>}</div></div>;
+  if (d.attention === "pending") {
+    const act = d.key === application.statusId ? application.procedure : application.procedure?.concurrent?.find(item => item.statusId === d.key);
+    const missing = !d.sourceDate ? `${d.trigger}: fecha no disponible en la fuente` : "Cómputo pendiente de revisión";
+    return <div className="trademark-deadline deadline-pending procedure-pending"><AttentionIcon attention={d.attention} /><div><strong>{d.label}</strong>{act?.sourceActDate && <small>Actuación de referencia · {formatDate(act.sourceActDate)}</small>}<small>{missing}</small>{detailed && <><p>{d.explanation}</p>{d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ""}</small>}</>}</div></div>;
+  }
+  return <div className={`trademark-deadline deadline-${d.attention}`}><AttentionIcon attention={d.attention} /><div><span>{d.label}</span><strong>{deadlineLabel(d, today)}</strong>{d.dueDate && <small>Vence el {formatDate(d.dueDate)} · {origin}</small>}{(d.attention === "none" || detailed) && <small>{d.explanation}</small>}{detailed && d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ": fecha no informada"}</small>}</div></div>;
 }
 
 function RegistrationDrawer({ application, onClose }: { application: RegistrationApplication; onClose: () => void }) {
@@ -177,12 +183,12 @@ function RegistrationDrawer({ application, onClose }: { application: Registratio
           <span>ESTADO ACTUAL</span>
           <strong>{status.label}</strong>
           {application.demoScenario && <p className="procedure-scenario">Ejemplo simulado · {application.demoScenario}</p>}
-          {registrationDeadlines(application, today).map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} detailed />)}
+          {registrationDeadlines(application, today).map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} detailed />)}
           {application.procedure?.sourceActDate && <p className="procedure-source">Actuación de referencia: {formatDate(application.procedure.sourceActDate)} · {application.procedure.sourceActDescription}</p>}
         </section>
 
         <section className="trademark-detail-identity">
-          {application.logo ? <img alt={`Logo de ${application.name}`} height="104" src={application.logo} width="104" /> : <span className="trademark-no-logo is-large">{application.type === "Denominativa" ? "Marca denominativa" : "Imagen no informada"}</span>}
+          <RegistrationLogo key={application.logo ?? application.id} application={application} large />
           <div><span>MARCA</span><h3>{application.name}</h3><p>{application.type} · Clases {application.niceClasses}</p></div>
         </section>
 

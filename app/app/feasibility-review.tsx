@@ -262,8 +262,8 @@ export function FeasibilityReview() {
             <span className="feasibility-evaluated"><Check size={15} weight="bold" /> 4 ejemplos de comparación</span>
           </header>
           <div className="feasibility-example-grid">
-            <article className="feasibility-example-summary"><ShieldCheck size={26} aria-hidden /><h3>Evaluación jurídica pendiente</h3><p>Esta demostración permite explorar la comparación. No entrega un pronóstico de concesión ni de observaciones de fondo.</p></article>
-            <article className="feasibility-finding"><Sparkle size={22} aria-hidden /><div><span>Contenido del ejemplo</span><strong>Comparación visual, fonética y conceptual</strong><p>Las marcas y las razones corresponden al caso Cafeteras Mistral. Al cambiar tus datos, los ejemplos permanecen fijos.</p></div></article>
+            <article className="feasibility-example-summary"><ShieldCheck size={26} aria-hidden /><h3>Evaluación jurídica pendiente</h3><strong className="feasibility-mock-probability">35 % <span>Dato mock</span></strong><p>Probabilidad simulada de oposición de terceros. Evaluación jurídica pendiente; el algoritmo se incorporará después. Este valor es fijo para el ejemplo Cafeteras Mistral.</p></article>
+            <article className="feasibility-example-summary feasibility-comparison-summary"><Sparkle size={26} aria-hidden /><h3>Comparación visual, fonética y conceptual</h3><p>Las marcas y las razones corresponden al caso Cafeteras Mistral. Al cambiar tus datos, los ejemplos permanecen fijos.</p></article>
           </div>
           <footer><Info size={16} /><span>Ejemplo ilustrativo con datos simulados. No corresponde a una búsqueda oficial, evaluación jurídica ni pronóstico de INAPI.</span></footer>
         </section>

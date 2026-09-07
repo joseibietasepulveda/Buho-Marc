@@ -18,7 +18,7 @@ Commit `60ea09c`: documentación, integración INAPI y primera ronda de UX. Prom
 
 ## Segunda ronda implementada en Dev
 
-- Resumen de vigilancia: período actual en agenda y bandeja «Mi día» que priorice trabajo ya existente, sin nuevas tareas administrativas para el usuario.
+- Resumen de vigilancia: período actual en agenda. Por petición posterior, se retiró «Mi día» y se agregó una sección específica de tareas pendientes vinculadas a Casos.
 - Casos: distinguir prioridad interna y situación temporal; presentar con claridad plazos vencidos, próximos y fechas sin definir.
 - Notificaciones: etiquetas según tipo de evento y situación del plazo; una alerta de plazo nunca se presenta como similitud.
 - Clientes: lectura íntegra de RUT y correos sin cortes arbitrarios.
