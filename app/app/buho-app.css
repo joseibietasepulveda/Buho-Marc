@@ -1230,6 +1230,25 @@ button, a { -webkit-tap-highlight-color:transparent; }
 @media (min-width:901px) { .review-dialog { zoom:1.25; } }
 .review-dialog > footer { position:sticky; bottom:0; z-index:2; min-height:0; }
 
+/* Procedure evidence and separate demonstration scenarios. */
+.procedure-view-switch { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:24px; margin-bottom:20px; border:1px solid #d9d0de; border-radius:14px; background:#fff; }
+.procedure-view-switch h2 { margin:0 0 7px; font-size:23px; }
+.procedure-view-switch p,.procedure-route p { margin:0; color:#675b6b; font-size:14px; line-height:1.5; }
+.procedure-view-switch button { flex-shrink:0; padding:12px 18px; border:1px solid #776185; border-radius:8px; background:#f8f3fc; color:#4d315e; font-weight:750; cursor:pointer; }
+.procedure-route { display:flex; flex-wrap:wrap; gap:10px; padding:20px; margin-bottom:20px; border:1px solid #d9d0de; border-radius:12px; background:#faf7fc; }
+.procedure-route > span { padding:8px 12px; color:#493253; background:#eee5f3; border-radius:6px; font-size:13px; font-weight:750; }
+.procedure-route p { flex-basis:100%; margin-top:5px; }
+.procedure-scenario { margin:10px 0; padding:10px 12px; background:#f5eff9; border-radius:7px; color:#5e476a; font-size:13px; line-height:1.55; font-weight:550; }
+.procedure-source { margin:0; padding:10px 15px; color:#766b7d; font-size:12px; line-height:1.5; }
+.trademark-card-main .trademark-deadline + .trademark-deadline { margin-top:8px; }
+.trademark-deadline.deadline-overdue strong { color:#913149; }
+.trademark-deadline.deadline-pending strong,.trademark-deadline.deadline-none strong { color:#665871; }
+.trademark-deadline.deadline-terminal strong { color:#2f7452; }
+.terminal-negative .trademark-deadline.deadline-terminal strong,.terminal-neutral .trademark-deadline.deadline-terminal strong { color:#625a63; }
+.trademark-no-logo { padding:5px; font-size:9px; line-height:1.3; }
+.trademark-no-logo.is-large { font-size:12px; }
+.buho-pending-dates > button span:nth-child(2) { line-height:1.5; }
+
 /* Desktop workflow: distinguish deadlines, priority and similarity. */
 .work-status { display:inline-flex; align-items:center; width:fit-content; padding:6px 10px; border:1px solid #d7cde0; border-radius:7px; background:#f2edf5; color:#56386b; font-size:13px; font-weight:650; line-height:1.4; white-space:normal; }
 .work-overdue { background:#fce8ee; border-color:#e5b3c1; color:#94294a; }

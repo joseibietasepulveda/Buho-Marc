@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { displayWorkDate, workDeadline } from "@/lib/work-priorities";
-import { deadlineInfo, useRegistrationApplications } from "./registrations";
+import { useRegistrationApplications } from "./registrations";
+import { registrationDeadlines } from "@/lib/registration-procedure";
 
 type CaseItem = { id: string; title: string; owner: string; stage: string; deadline: string; brand: string; priority: string };
 type MatchItem = { id: string; brand: string; found: string; status: string };
@@ -21,9 +22,10 @@ export function MyDay({ cases, matches, notices, onCase, onMatch, onNotice, onRe
   });
   // Unassigned reviews remain visible only in the team view; no ownership is inferred.
   if (!owner) {
-    for (const [attention, label, rank] of [["overdue", "Solicitudes con plazo vencido", 0], ["soon", "Solicitudes próximas a vencer", 1], ["pending", "Solicitudes con fecha por confirmar", 2]] as const) {
-      const count = applications.filter(item => deadlineInfo(item).attention === attention).length;
-      if (count) items.push({ id: `registrations-${attention}`, title: `${count} ${label.toLowerCase()}`, context: "Inscripciones · Abrir solicitudes", label: attention === "pending" ? "Fecha por confirmar" : attention === "overdue" ? "Plazo vencido" : "Próximo a vencer", tone: attention === "pending" ? "unknown" : attention, rank, open: onRegistrations });
+    const deadlines = applications.flatMap(item => registrationDeadlines(item));
+    for (const [attention, label, rank] of [["overdue", "gestiones con plazo vencido", 0], ["soon", "gestiones próximas a vencer", 1], ["pending", "gestiones con vencimiento no determinado", 2]] as const) {
+      const due = deadlines.filter(item => item.attention === attention);
+      if (due.length) items.push({ id: `registrations-${attention}`, title: `${due.length} ${label}`, context: `Inscripciones · ${[...new Set(due.map(item => item.label))].join(" · ")}`, label: attention === "pending" ? "Revisar antecedente" : attention === "overdue" ? "Plazo vencido" : "Próximo a vencer", tone: attention === "pending" ? "unknown" : attention, rank, open: onRegistrations });
     }
     const pending = matches.filter(item => item.status === "Pendiente de clasificación");
     items.push(...pending.map(item => ({ id: `match-${item.id}`, title: `${item.brand} / ${item.found}`, context: "Vigilancia · Pendiente de clasificación", label: "Revisar coincidencia", tone: "review", rank: 3, open: () => onMatch(item.id) })));

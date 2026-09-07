@@ -35,6 +35,13 @@ export function displayWorkDate(value?: string): string {
   return date ? new Intl.DateTimeFormat("es-CL", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00Z`)) : "Sin fecha definida";
 }
 
+export function caseDeadlineDescription(value?: string): string {
+  if (!value?.trim()) return "Gestión asociada al plazo no informada";
+  if (value === "Límite para publicar en Diario Oficial (20 días hábiles desde la aceptación)") return "Requerir y pagar publicación (20 días hábiles desde la notificación de aceptación)";
+  if (value === "Límite para pagar derechos finales (60 días hábiles desde la aceptación)") return "Pagar y acreditar derechos finales (60 días hábiles desde la ejecutoria)";
+  return value;
+}
+
 type NoticeInput = { title: string; brand: string; urgency: string; changeDetail?: unknown };
 export function noticePresentation(notice: NoticeInput, deadline?: string, today = chileToday()) {
   if (notice.changeDetail) return { title: notice.title, label: "Novedad del expediente", tone: "neutral", kind: "activity" };

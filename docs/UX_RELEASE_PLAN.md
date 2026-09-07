@@ -52,3 +52,19 @@ Compilación local aprobada. 32 pruebas aprobadas (27 de lógica y 5 verificacio
 Comprobar casos sin fecha, vencidos y próximos; notificaciones con y sin coincidencia; origen importado y simulado; resultado invalidado al modificar criterios; contactos largos. «Mi día» reutiliza datos existentes y no genera avisos, casos ni obligaciones nuevos por sí sola.
 
 La sección «Acerca de esta versión» también retira la actualización diaria de INAPI de los pendientes y añade la mejora de vigilancia y la ficha integral opcional.
+
+## Revisión de lógica procesal — 7 de septiembre
+
+Ampliación autorizada en Dev: revisar el procedimiento completo con el bosquejo aportado y corregir las incongruencias, incluyendo ejemplos para presentación a abogados. Se mantienen las dos columnas del seguimiento y se precisan sus nombres: ingreso/publicación y oposición/fondo/resolución.
+
+- Gestiones y hechos activadores compartidos entre fichas, resumen, agenda y Mi día; oposición sólo desde publicación efectiva, pago final desde ejecutoria.
+- Actuación vigente como origen del vencimiento; la fecha de resolución no se presume notificación. Se admite oposición y observación de fondo concurrentes.
+- Estados distintos para aceptación, firmeza, pago/acreditación, registro, recurso pendiente y desenlaces informados. Vencer un plazo no dicta un desenlace automático.
+- Casos: la etapa interna no determina qué gestión jurídica corresponde a una fecha. Corregidas las opciones de publicación y pago final.
+- Historial: conserva el título del acto y su detalle. Las solicitudes sin registro no muestran un vencimiento registral genérico.
+- 22 escenarios separados, identificados como ficticios y con fecha de referencia fija, accesibles desde «Explorar ejemplos del proceso».
+- Las lecturas de Fuente, Cartera e Inscripciones usan la misma interpretación de la evidencia guardada; actualizar reglas no debe generar avisos de novedades inexistentes.
+
+Reglas, fuentes oficiales y límites en [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md). Permanecen pendientes calendario plurianual/regional, constancias estructuradas de notificación y ejecutoria, respaldo automatizado de prórrogas, renovaciones e incidencias especiales. Esta revisión no implementa decisiones documentadas ni búsqueda global y se publica sólo en Dev.
+
+Validación de esta revisión: 55 pruebas de lógica y 5 verificaciones existentes aprobadas, compilación aprobada y componentes sin errores de análisis estático. Se contrastaron 200 registros reales y 100 solicitudes con la nueva proyección, sin errores y sin forzar consultas ni modificar expedientes. Pruebas de navegador: grupos de gestiones, filtros, 22 ejemplos separados, obligaciones concurrentes, pago desde ejecutoria, historial y acceso a detalle. La reclasificación de reglas no se notifica como novedad de la fuente.

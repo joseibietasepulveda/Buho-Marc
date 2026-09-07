@@ -1,5 +1,12 @@
 export type RegistrationPhase = "inapi" | "gazette";
 export type RegistrationStatusId =
+  | "publication-pending"
+  | "not-filed"
+  | "decision-pending"
+  | "decision-review"
+  | "finality-pending"
+  | "payment-verification"
+  | "abandoned-payment"
   | "appeal-pending"
   | "expired"
   | "cancelled"
@@ -34,6 +41,18 @@ type StatusDefinition = {
 type HistoryEvent = { date: string; status?: string; detail?: string; intake?: boolean };
 
 export type RegistrationApplication = {
+  demoScenario?: string;
+  procedure?: {
+    notifiedAt?: string;
+    finalAt?: string;
+    publicationRequestedAt?: string;
+    responseFiledAt?: string;
+    paymentAccreditedAt?: string;
+    evidenceExtensionDays?: number;
+    sourceActDate?: string;
+    sourceActDescription?: string;
+    concurrent?: { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string }[];
+  };
   provider?: "inapi";
   officialDeadline?: string;
   sourceStatus?: string;
@@ -62,6 +81,13 @@ export type RegistrationApplication = {
 };
 
 export const STATUS_DEFINITIONS: StatusDefinition[] = [
+  { id: "publication-pending", label: "Gestión de publicación registrada — esperando Diario Oficial", phase: "inapi", helper: "Consta una gestión de requerimiento o pago de publicación. Revisar su comprobante; la oposición comienza con la publicación efectiva." },
+  { id: "not-filed", label: "Solicitud tenida por no presentada", phase: "inapi", terminal: "neutral", helper: "Consta la resolución que tiene por no presentada la solicitud; el vencimiento por sí solo no cambia el estado." },
+  { id: "decision-pending", label: "Oposición — pendiente de fallo de INAPI", phase: "gazette", helper: "La contestación y la prueba no conceden ni rechazan por sí solas el registro." },
+  { id: "decision-review", label: "Resolución dictada — resultado por revisar", phase: "gazette", helper: "La actuación recibida no identifica suficientemente el resultado o la ejecutoria. Revisar la resolución." },
+  { id: "finality-pending", label: "Aceptación a registro — firmeza por confirmar", phase: "gazette", helper: "El plazo de pago final comienza cuando la resolución queda ejecutoriada." },
+  { id: "payment-verification", label: "Pago final acreditado — esperando registro", phase: "gazette", helper: "La acreditación del pago no equivale a la concesión. Se espera la asignación del registro." },
+  { id: "abandoned-payment", label: "Solicitud abandonada por falta de pago final", phase: "gazette", terminal: "neutral", helper: "Abandono informado en el expediente. No se presume solo por el transcurso del plazo." },
   { id: "appeal-pending", label: "Apelación en tramitación", phase: "gazette" },
   { id: "expired", label: "Registro vencido", phase: "gazette", terminal: "neutral" },
   { id: "cancelled", label: "Registro cancelado", phase: "gazette", terminal: "negative" },

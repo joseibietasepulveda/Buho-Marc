@@ -19,7 +19,19 @@ export const sourceRecordSchema = z.object({
   if (!v.provider && !v.classes.length) ctx.addIssue({ code: "custom", message: "Seleccione al menos una clase", path: ["classes"] });
   if (v.publicationDate && v.filingDate && v.publicationDate < v.filingDate) ctx.addIssue({ code: "custom", message: "La publicación no puede preceder a la presentación", path: ["publicationDate"] });
   if (v.status === "registered" && !v.registrationNumber) ctx.addIssue({ code: "custom", message: "Un registro concedido requiere número de registro", path: ["registrationNumber"] });
-  if (v.status === "opposition-window" && !v.publicationDate) ctx.addIssue({ code: "custom", message: "La ventana de oposición requiere fecha de publicación", path: ["publicationDate"] });
+  if (!v.provider && v.status === "opposition-window" && !v.publicationDate) ctx.addIssue({ code: "custom", message: "La ventana de oposición requiere fecha de publicación", path: ["publicationDate"] });
+  if (v.registrationDate && !v.registrationNumber) ctx.addIssue({ code: "custom", message: "Una fecha de registro requiere el número de registro correspondiente", path: ["registrationNumber"] });
+  if (v.registrationDate && ((v.filingDate && v.registrationDate < v.filingDate) || (v.publicationDate && v.registrationDate < v.publicationDate))) ctx.addIssue({ code: "custom", message: "La fecha de registro no puede preceder a la presentación ni a la publicación", path: ["registrationDate"] });
+  if (v.expirationDate && v.registrationDate && v.expirationDate <= v.registrationDate) ctx.addIssue({ code: "custom", message: "El vencimiento del registro debe ser posterior a su concesión", path: ["expirationDate"] });
+  // Simulated edits must describe a possible procedural situation. Real source
+  // records may omit historical dates; retain that omission for the UI to explain.
+  if (!v.provider) {
+    const beforePublication = ["accepted-publication", "publication-pending", "not-filed"];
+    const afterPublication = ["opposition-answer", "opposition-answered", "evidence-period", "substantive-exam", "substantive-objection", "finality-pending", "accepted-payment", "partial-payment", "partial-appeal", "payment-verification", "abandoned-payment", "decision-pending"];
+    if (beforePublication.includes(v.status) && v.publicationDate) ctx.addIssue({ code: "custom", message: "Una solicitud pendiente de publicación no puede tener una publicación efectiva registrada", path: ["publicationDate"] });
+    if (afterPublication.includes(v.status) && !v.publicationDate) ctx.addIssue({ code: "custom", message: "Esta etapa requiere que la publicación efectiva esté registrada", path: ["publicationDate"] });
+    if (v.expirationDate && !v.registrationNumber) ctx.addIssue({ code: "custom", message: "El vencimiento del registro requiere un registro asignado", path: ["expirationDate"] });
+  }
 });
 export type SourceRecord = z.infer<typeof sourceRecordSchema>;
 export const lookupSchema = z.object({ registrationIds: z.array(z.string().regex(/^\d{1,30}$/)).max(2000), applicationIds: z.array(z.string().regex(/^\d{1,30}$/)).max(2000) }).strict();
@@ -28,7 +40,7 @@ export const sourceResponseSchema = z.object({ version: z.literal(1), records: z
 export const fieldLabels: Record<keyof SourceRecord, string> = {
   provider: "Fuente", inapi: "Antecedentes del expediente",
   applicationNumber: "N.º de solicitud", registrationNumber: "N.º de registro", name: "Denominación", status: "Estado del expediente", type: "Tipo de marca",
-  filingDate: "Fecha de presentación", publicationDate: "Fecha de publicación", expirationDate: "Fecha de vencimiento", registrationDate: "Fecha de registro", statusDate: "Fecha de la actuación",
+  filingDate: "Fecha de presentación", publicationDate: "Fecha de publicación", expirationDate: "Vencimiento del registro", registrationDate: "Fecha de registro", statusDate: "Fecha de la actuación",
   owner: "Titular", ownerRut: "RUT del titular", ownerCountry: "País del titular", representativeName: "Representante", representativeCountry: "País del representante", classes: "Clases de Niza", logo: "Logo o etiqueta", officialUrl: "Enlace al expediente",
 };
 type JsonValue = null | string | number | boolean | JsonValue[] | { [key: string]: JsonValue };
@@ -71,27 +83,34 @@ export function displayValue(value: unknown): string {
 export function describeChanges(before: SourceRecord, after: SourceRecord, changes = compareRecords(before, after)) {
   const subjects: string[] = [];
   const name = after.name;
-  if (!before.publicationDate && after.publicationDate) subjects.push(`La solicitud de ${name} fue publicada en ${after.applicationNumber.length === 9 ? "la Gaceta de Marcas de INAPI" : "el Diario Oficial"}`);
+  if (!before.publicationDate && after.publicationDate) subjects.push(`La solicitud de ${name} fue publicada en el Diario Oficial`);
   if (before.status !== after.status) {
     const events: Record<string, string> = {
       "appeal-pending": `Se registró una actuación de apelación respecto de ${name}`,
       "inapi-waiting": `La solicitud de ${name} se encuentra en revisión inicial de INAPI`,
       "form-observation": `INAPI formuló una observación de forma a ${name}`,
       "accepted-publication": `${name} fue aceptada a trámite y está pendiente de publicación`,
+      "publication-pending": `Se registró el requerimiento de publicación de ${name}; la publicación efectiva sigue pendiente`,
+      "not-filed": `INAPI tuvo por no presentada la solicitud de ${name}`,
       "opposition-window": `${name} ingresó a la etapa de oposición`,
       "opposition-answer": `Se registró una oposición contra la solicitud de ${name}`,
       "opposition-answered": `Se registró la contestación a la oposición de ${name}`,
       "evidence-period": `Se abrió el período probatorio en la oposición de ${name}`,
       "substantive-exam": `${name} ingresó a examen de fondo en INAPI`,
       "substantive-objection": `INAPI formuló una observación de fondo a ${name}`,
+      "decision-pending": `La oposición relativa a ${name} quedó pendiente de fallo`,
+      "decision-review": `Se registró una resolución respecto de ${name}; corresponde revisar su resultado`,
+      "finality-pending": `INAPI aceptó a registro ${name}; falta confirmar la ejecutoria de la resolución`,
       "accepted-payment": `INAPI aceptó a registro ${name}; el pago de derechos finales está pendiente`,
       "partial-payment": `INAPI aceptó parcialmente ${name}; el pago de derechos finales está pendiente`,
+      "payment-verification": `Se acreditó el pago final de ${name}; la asignación del registro sigue pendiente`,
       "registered": `INAPI concedió el registro de ${name}`,
       "rejected-appeal": `INAPI rechazó ${name}; corresponde revisar la procedencia de una apelación`,
       "partial-appeal": `${name} fue aceptada parcialmente; corresponde revisar la resolución`,
       "rejected-final": `Se registró el rechazo definitivo de ${name}`,
       "abandoned-inapi": `La solicitud de ${name} fue declarada abandonada`,
       "abandoned-gazette": `La solicitud de ${name} fue declarada abandonada`,
+      "abandoned-payment": `INAPI declaró abandonada la solicitud de ${name} por falta de pago final`,
       expired: `El registro de ${name} figura vencido`, cancelled: `El registro de ${name} figura cancelado`,
     };
     if (!(after.status === "opposition-window" && subjects.length)) subjects.push(events[after.status] ?? `Se actualizó el estado de ${name}: ${statusLabel(after.status)}`);

@@ -16,7 +16,7 @@ export function activityDate(value: string): string {
 export function activityContent(event: HistoryEvent) {
   const detail = text(event.detail);
   const status = text(event.status);
-  const heading = event.intake ? "Ingreso de solicitud a INAPI" : detail.split(" · ")[0] || status || "Movimiento sin descripción disponible";
+  const heading = event.intake ? "Ingreso de solicitud a INAPI" : status || detail.split(" · ")[0] || "Movimiento sin descripción disponible";
   const title = heading.length > 160 ? `${heading.slice(0, 157).trimEnd()}…` : heading;
   return { title, detail: detail && detail !== title ? detail : "" };
 }

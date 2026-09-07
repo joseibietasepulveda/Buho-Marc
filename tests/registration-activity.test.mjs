@@ -6,6 +6,11 @@ test("INAPI movements without status display the act and preserve the complete o
   const detail = "Resolución de observaciones de forma 2026/184063 · Acompañe poder.\nhttps://tramites.inapi.cl/documento";
   assert.deepEqual(activityContent({ date: "2026-07-31", detail }), { title: "Resolución de observaciones de forma 2026/184063", detail });
 });
+test("an identified procedural act stays visible above its explanatory detail", () => {
+  assert.deepEqual(activityContent({ status: "Traslado de oposición notificado", detail: "El solicitante dispone de 30 días hábiles para contestar." }), {
+    title: "Traslado de oposición notificado", detail: "El solicitante dispone de 30 días hábiles para contestar."
+  });
+});
 test("missing, whitespace and legacy sentinel values never become user-facing statuses", () => {
   for (const event of [{}, { status: "undefined", detail: " null " }, { status: " ", detail: "" }]) {
     assert.equal(activityContent(event).title, "Movimiento sin descripción disponible");

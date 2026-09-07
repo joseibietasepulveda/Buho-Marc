@@ -22,7 +22,7 @@ Los bloqueos de PostgreSQL evitan revisiones simultáneas. Se permiten hasta tre
 
 Se comparan todos los antecedentes de negocio devueltos, incluyendo actuaciones, anotaciones, cobertura, titulares y representantes. Metadatos de extracción y orden de claves no son cambios jurídicos. La primera incorporación de fecha de vencimiento o registro se guarda sin aviso aislado. Los avisos agrupan las novedades por expediente usando la denominación de la marca.
 
-Un número y fecha de registro, junto con las actuaciones, pueden acreditar una concesión aunque el estado general siga diciendo En Trámite. La ficha y el administrador conservan ambos datos. Los plazos reales solo se muestran cuando vienen informados por la fuente; no se calculan fechas jurídicas ficticias.
+Un número y fecha de registro, junto con las actuaciones, pueden acreditar una concesión aunque el estado general siga diciendo En Trámite. La ficha y el administrador conservan ambos datos y las actuaciones posteriores. Los plazos se muestran como informados por la fuente o calculados desde el antecedente específico identificado. No se presume notificación a partir de una resolución ni ejecutoria a partir de la aceptación. El cálculo LPI sólo cubre 2026; véase [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).
 
 La Gran base real es de solo lectura: no permite generar seis cambios ni editar antecedentes que se presentan como oficiales. Las corridas y sus errores son visibles en la segunda pestaña del administrador.
 

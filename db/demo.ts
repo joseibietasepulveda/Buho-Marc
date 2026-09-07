@@ -1,6 +1,7 @@
 import { expandedDemoBrands, demoBrandDetails } from "../lib/demo-brand-catalogue";
 import { getSql } from "./index";
-import { isRealSource } from "../lib/inapi-provider";
+import { isRealSource, reprojectInapiRecord } from "../lib/inapi-provider";
+import type { SourceRecord } from "../lib/source-contract";
 
 export const DEMO_ORG_ID = "10000000-0000-4000-8000-000000000001";
 export const DEMO_PLAN_ID = "10000000-0000-4000-8000-000000000010";
@@ -132,12 +133,19 @@ export async function getDemoSnapshot() {
   const caseRows = await sql`SELECT c.public_code, c.title, c.description, COALESCE(b.name, 'Sin marca') AS brand_name, c.client_name, c.stage, c.priority, c.next_deadline, COALESCE(u.name, 'Sin asignar') AS owner_name, m.public_code AS source_match FROM cases c LEFT JOIN brands b ON b.id = c.brand_id LEFT JOIN users u ON u.id = c.owner_id LEFT JOIN matches m ON m.id = c.source_match_id WHERE c.organization_id = ${DEMO_ORG_ID} AND c.status = 'active' AND (${!isRealSource()} OR b.archived_at IS NULL) ORDER BY c.created_at DESC`;
   const userRows = await sql`SELECT u.id, u.name, u.email, u.initials, om.created_at FROM organization_members om JOIN users u ON u.id = om.user_id WHERE om.organization_id = ${DEMO_ORG_ID} ORDER BY om.created_at`;
   const noticeRows = await sql`SELECT n.public_code, n.title, n.brand_name, n.urgency, n.managed_at, n.created_at, n.change_detail, d.subject, d.body FROM notifications n JOIN email_drafts d ON d.notification_id = n.id WHERE n.organization_id = ${DEMO_ORG_ID} AND COALESCE(n.change_detail->>'invalidated', 'false') <> 'true' ORDER BY n.created_at DESC`;
+  const savedSources = brandRows.some(row => row.monitoring_config?.provider === "inapi")
+    ? await sql`SELECT s.entity_id, r.data FROM source_snapshots s JOIN source_records r ON r.id = s.source_id WHERE s.organization_id = ${DEMO_ORG_ID} AND s.entity_type = 'brand' AND r.data->>'provider' = 'inapi'`
+    : [];
+  const projectedSources = new Map(savedSources.map(row => [row.entity_id, reprojectInapiRecord(row.data as SourceRecord)]));
 
   return {
     provider: isRealSource() ? "inapi" : "simulated",
     brands: brandRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as Partial<ReturnType<typeof demoBrandDetails>> & { provider?: string; rut?: string; inapiUrl?: string; visual?: string; type?: string; registrationState?: string; legalStatus?: string; logo?: string };
-      return { ...(config.provider === "inapi" ? {} : demoBrandDetails(row.public_code)), ...config, provider: config.provider === "inapi" ? "inapi" : "mock", registrationState: config.registrationState ?? "Registrada", legalStatus: config.legalStatus ?? "registered", id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: config.inapiUrl ?? "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
+      const source = config.provider === "inapi" ? projectedSources.get(row.id) : undefined;
+      const legalStatus = source?.status ?? config.legalStatus ?? "registered";
+      const registrationState = source ? ["registered", "expired", "cancelled"].includes(legalStatus) ? "Registrada" : legalStatus.startsWith("rejected") || legalStatus.startsWith("abandoned") || legalStatus === "not-filed" ? "Rechazada" : "En trámite" : config.registrationState ?? "Registrada";
+      return { ...(config.provider === "inapi" ? {} : demoBrandDetails(row.public_code)), ...config, provider: config.provider === "inapi" ? "inapi" : "mock", registrationState, legalStatus, id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: config.inapiUrl ?? "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
     }),
     matches: matchRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as { rut?: string; type?: string };

@@ -3,7 +3,8 @@ import { getSql } from "./index";
 import { DEMO_ORG_ID, ensureDemoSeed, getDemoSnapshot } from "./demo";
 import { INITIAL_APPLICATIONS, STATUS_BY_ID, type RegistrationApplication } from "../lib/registration-data";
 import { chileClock, compareRecords, describeChanges, sourceRecordSchema, type Lookup, type SourceRecord } from "../lib/source-contract";
-import { isRealSource } from "../lib/inapi-provider";
+import { inapiProcedure, isRealSource, orderedInapiActs, type InapiAct } from "../lib/inapi-provider";
+import { activityDate } from "../lib/registration-activity";
 
 export function iso(value?: string | null): string | null {
   if (!value) return null;
@@ -114,11 +115,13 @@ export async function editSource(id: string, version: number, data: SourceRecord
 export function updatedApplication(a: RegistrationApplication, r: SourceRecord, detail: string): RegistrationApplication {
   const statusId = r.status in STATUS_BY_ID ? r.status as RegistrationApplication["statusId"] : a.statusId;
   if (r.provider === "inapi") {
-    const events = (r.inapi?.events ?? []) as { event_date?: string; status_description?: string; observation?: string; due_date?: string }[];
-    const ordered = [...events].sort((a,b) => (a.event_date ?? "").localeCompare(b.event_date ?? ""));
+    const events = (r.inapi?.events ?? []) as InapiAct[];
+    const ordered = orderedInapiActs(events);
     const latest = ordered.at(-1);
-    return { ...a, provider: "inapi", name: r.name, logo: r.logo || undefined, type: r.type, applicationNumber: r.applicationNumber, registrationNumber: r.registrationNumber ?? undefined, registrationDate: r.registrationDate ?? undefined, filedAt: r.filingDate ?? "", publishedAt: r.publicationDate ?? undefined, expirationDate: r.expirationDate ?? undefined, statusId, deadlineSource: undefined, officialDeadline: latest?.due_date?.slice(0,10) || undefined, sourceStatus: String((r.inapi?.status as { description?: string })?.description ?? "No informado"), holder: r.owner, holderRut: r.ownerRut, ownerCountry: r.ownerCountry, representativeName: r.representativeName, representativeCountry: r.representativeCountry, niceClasses: r.classes.join(", ") || "No informadas", fileUrl: r.officialUrl, recentEvent: latest?.status_description || detail, history: ordered.map(e => ({ date: e.event_date?.slice(0,10) ?? "", detail: [e.status_description, e.observation].filter(Boolean).join(" · ") })) };
+    const projection = inapiProcedure(events);
+    const officialDeadline = projection.status === statusId ? activityDate(projection.sourceAct?.due_date ?? "") || undefined : undefined;
+    return { ...a, provider: "inapi", name: r.name, logo: r.logo || undefined, type: r.type, applicationNumber: r.applicationNumber, registrationNumber: r.registrationNumber ?? undefined, registrationDate: r.registrationDate ?? undefined, filedAt: r.filingDate ?? "", publishedAt: r.publicationDate ?? undefined, expirationDate: r.expirationDate ?? undefined, statusId, deadlineSource: undefined, officialDeadline, procedure: projection.procedure, sourceStatus: String((r.inapi?.status as { description?: string })?.description ?? "No informado"), holder: r.owner, holderRut: r.ownerRut, ownerCountry: r.ownerCountry, representativeName: r.representativeName, representativeCountry: r.representativeCountry, niceClasses: r.classes.join(", ") || "No informadas", fileUrl: r.officialUrl, recentEvent: latest?.status_description || detail, history: ordered.map(e => ({ date: activityDate(e.event_date ?? ""), detail: [e.status_description, e.observation].filter(Boolean).join(" · ") })) };
   }
-  return { ...a, expirationDate: r.expirationDate ?? undefined, ownerCountry: r.ownerCountry, representativeName: r.representativeName, representativeCountry: r.representativeCountry, name: r.name, logo: r.logo || undefined, type: r.type, applicationNumber: r.applicationNumber, registrationNumber: r.registrationNumber ?? undefined, registrationDate: r.registrationDate ?? undefined, filedAt: r.filingDate ?? a.filedAt, publishedAt: r.publicationDate ?? undefined, statusId, deadlineSource: r.statusDate ?? undefined, holder: r.owner, holderRut: r.ownerRut, niceClasses: r.classes.join(", "), fileUrl: r.officialUrl, recentEvent: detail, history: [...a.history, { date: chileClock().day, status: statusLabelForApplication(r), detail }] };
+  return { ...a, expirationDate: r.expirationDate ?? undefined, ownerCountry: r.ownerCountry, representativeName: r.representativeName, representativeCountry: r.representativeCountry, name: r.name, logo: r.logo || undefined, type: r.type, applicationNumber: r.applicationNumber, registrationNumber: r.registrationNumber ?? undefined, registrationDate: r.registrationDate ?? undefined, filedAt: r.filingDate ?? a.filedAt, publishedAt: r.publicationDate ?? undefined, statusId, deadlineSource: r.statusDate ?? undefined, officialDeadline: a.statusId === statusId ? a.officialDeadline : undefined, procedure: a.statusId === statusId ? a.procedure : { sourceActDate: r.statusDate ?? undefined }, holder: r.owner, holderRut: r.ownerRut, niceClasses: r.classes.join(", "), fileUrl: r.officialUrl, recentEvent: detail, history: [...a.history, { date: chileClock().day, status: statusLabelForApplication(r), detail }] };
 }
 function statusLabelForApplication(r: SourceRecord) { return STATUS_BY_ID[r.status as RegistrationApplication["statusId"]]?.label ?? r.status; }

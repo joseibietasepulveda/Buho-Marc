@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { sourceRecordSchema, type SourceRecord, type Lookup } from "./source-contract";
-import type { RegistrationStatusId } from "./registration-data";
+import type { RegistrationApplication, RegistrationStatusId } from "./registration-data";
 
 const party = z.object({ name: z.string(), rut: z.string().nullable().optional(), dv: z.string().nullable().optional(), country: z.string().nullable().optional() }).passthrough();
 const event = z.object({ event_id: z.string().nullable().optional(), event_date: z.string().nullable(), due_date: z.string().nullable().optional(), status_code: z.string().nullable(), status_description: z.string().nullable(), observation: z.string().nullable().optional() }).passthrough();
@@ -15,30 +15,102 @@ const documentSchema = z.object({
 }).passthrough();
 export type InapiDocument = z.infer<typeof documentSchema>;
 export const isRealSource = () => process.env.SOURCE_PROVIDER === "inapi";
-const day = (v: string | null | undefined) => v ? v.slice(0, 10) : null;
+const day = (v: string | null | undefined) => {
+  const value = v?.slice(0, 10);
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const parsed = new Date(`${value}T12:00:00Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : null;
+};
 const plain = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const isFinalAct = (s: string) => /\b(firme|ejecutoria|ejecutoriada)\b/.test(s) && !/\bno (?:se encuentra )?(?:firme|ejecutoriada)|sin (?:firmeza|ejecutoria)|(?:ejecutoria|firmeza).*(pendiente|por confirmar)/.test(s);
+const isResponseRecorded = (s: string) => !/incumplimiento|no (?:se )?(?:present|contesta|cumpl)|sin (?:contestacion|cumplimiento)|pendiente/.test(s);
+const observationResponse = (s: string) => isResponseRecorded(s) && /\bcumplimiento.*(forma|fondo)|contesta.*observacion.*(forma|fondo)/.test(s);
+export type InapiAct = { event_id?: string | null; event_date?: string | null; due_date?: string | null; status_description?: string | null; observation?: string | null; [key: string]: unknown };
 
 // Only recognized procedural acts change the stage. A payment or clerical entry
 // must not send a case back to an older stage merely because it is the latest row.
 export function stageForAct(description: string): RegistrationStatusId | undefined {
   const s = plain(description);
-  if (/cancelacion|nulidad.*(acog|declara)/.test(s)) return "cancelled";
-  if (/caducid|registro vencido/.test(s)) return "expired";
-  if (/concesion de marca|otorga registro/.test(s)) return "registered";
-  if (/apelacion|recurso.*tpi|devolucion de tpi/.test(s)) return "appeal-pending";
+  if (/resolucion.*cancelacion|registro cancelado|nulidad.*(acog|declara)/.test(s)) return "cancelled";
+  if (/declara.*caducidad|registro (vencido|caducado)/.test(s)) return "expired";
+  if (/no presentada|tiene por no presentad/.test(s)) return "not-filed";
+  if (/abandono.*(pago|derechos)|abandonada.*(pago|derechos)/.test(s)) return "abandoned-payment";
   if (/abandono|abandonada/.test(s)) return "abandoned-inapi";
-  if (/fallo de rechazo|resolucion.*rechazo|rechazo definitivo/.test(s)) return "rejected-appeal";
-  if (/aceptacion parcial/.test(s)) return "partial-payment";
-  if (/aceptacion a registro/.test(s)) return "accepted-payment";
+  if (/concesion de marca|otorga registro/.test(s)) return "registered";
+  const specificRegistrationResult = !/oposicion|apelacion|recurso/.test(s) || /aceptacion.*registro|rechazo.*(?:marca|solicitud)/.test(s);
+  if (isFinalAct(s) && specificRegistrationResult) {
+    if (/rechaz/.test(s)) return "rejected-final";
+    if (/parcial/.test(s)) return "partial-payment";
+    if (/aceptacion|concede|concesion/.test(s)) return "accepted-payment";
+  }
+  if (/acredita.*(pago|derechos finales)|pago.*acreditad|derechos finales.*pagados/.test(s) && !/falta|pendiente|no (?:se )?acredit|sin acredit|(?:requiere|requerimiento|solicita|solicitud|orden|debe).*acredit/.test(s)) return "payment-verification";
+  if (/autos para fallo|citacion.*sentencia/.test(s)) return "decision-pending";
+  if (/admision.*apelacion|apelacion.*admitid|(?:concede|concesion).*recurso.*apelacion/.test(s) && !/deniega|rechaza|inadmisib/.test(s)) return "appeal-pending";
+  // A judgment on an appeal is not a new appeal; its operative result is needed.
+  if (/fallo.*(tpi|tribunal)|sentencia.*(tpi|tribunal)|devolucion.*tpi|(fallo|sentencia|resolucion).*apelacion|apelacion.*(acogida|rechazada|resuelta)/.test(s)) return "decision-review";
+  if (/interposicion.*apelacion|presentacion.*apelacion|recurso de apelacion|apelacion en tramita|recurso.*tpi/.test(s)) return "appeal-pending";
+  if (/aceptacion parcial/.test(s)) return "partial-appeal";
+  if (/aceptacion a registro/.test(s)) return "finality-pending";
+  if (/rechazo.*oposicion|oposicion.*rechazada/.test(s)) return "substantive-exam";
+  if (/rechazo definitivo.*firme/.test(s)) return "rejected-final";
+  if (/fallo de rechazo|resolucion.*rechazo|rechazo definitivo|oposicion.*acogida/.test(s)) return "rejected-appeal";
+  if (isResponseRecorded(s) && /\bcumplimiento.*fondo|contesta.*observacion.*fondo/.test(s)) return "substantive-exam";
   if (/observaciones de fondo|observacion de fondo/.test(s)) return "substantive-objection";
-  if (/cumplimiento.*fondo|examen de fondo/.test(s)) return "substantive-exam";
+  if (/examen de fondo/.test(s)) return "substantive-exam";
   if (/recibe.*prueba|periodo probatorio|termino probatorio/.test(s)) return "evidence-period";
-  if (/contestacion.*oposicion|contesta.*oposicion/.test(s)) return "opposition-answered";
+  if (isResponseRecorded(s) && /contestacion.*oposicion|contesta.*oposicion/.test(s)) return "opposition-answered";
   if (/traslado.*oposicion|oposicion.*demanda|demanda.*oposicion/.test(s)) return "opposition-answer";
-  if (/fin de plazo/.test(s)) return "substantive-exam";
+  if (/fin.*plazo.*oposicion|cierre.*(ventana|plazo).*oposicion/.test(s)) return "substantive-exam";
+  if (/(requerimiento|solicitud|pago).*publicacion/.test(s) && !/falta|pendiente|orden de|rechaz|deneg|no (?:se )?(?:ha )?(?:pag|requer)|sin pago/.test(s)) return "publication-pending";
   if (/publicacion de marca|publicada.*diario|publicacion.*gaceta/.test(s)) return "opposition-window";
   if (/aceptacion a tramite/.test(s)) return "accepted-publication";
+  if (isResponseRecorded(s) && /\bcumplimiento.*forma|contesta.*observacion.*forma/.test(s)) return "inapi-waiting";
   if (/observaciones de forma|observacion de forma/.test(s)) return "form-observation";
+}
+
+export function orderedInapiActs(events: InapiAct[]): InapiAct[] {
+  return [...events].sort((a, b) => (a.event_date ?? "").localeCompare(b.event_date ?? "") || String(a.event_id ?? "").localeCompare(String(b.event_id ?? ""), undefined, { numeric: true }));
+}
+
+export function inapiProcedure(events: InapiAct[]) {
+  let status: RegistrationStatusId = "inapi-waiting";
+  let sourceAct: InapiAct | undefined;
+  const procedure: NonNullable<RegistrationApplication["procedure"]> = {};
+  const pending = new Map<RegistrationStatusId, { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string }>();
+  for (const act of orderedInapiActs(events)) {
+    const description = plain(act.status_description ?? "");
+    let next = stageForAct(act.status_description ?? "");
+    // A bare finality certificate inherits the decision it makes final.
+    if (isFinalAct(description) && !next) {
+      if (status === "partial-appeal") next = "partial-payment";
+      else if (status === "finality-pending") next = "accepted-payment";
+      else if (status === "rejected-appeal") next = "rejected-final";
+    }
+    if (next === "abandoned-inapi" && ["accepted-payment", "partial-payment", "payment-verification"].includes(status)) next = "abandoned-payment";
+    if (!next) continue;
+    const actDay = day(act.event_date) ?? undefined;
+    if (next !== status) procedure.notifiedAt = undefined;
+    status = next;
+    sourceAct = act;
+    if (["form-observation", "substantive-objection", "opposition-answer"].includes(status)) procedure.responseFiledAt = undefined;
+    if (["appeal-pending", "decision-review", "finality-pending", "partial-appeal", "rejected-appeal"].includes(status)) { procedure.finalAt = undefined; procedure.paymentAccreditedAt = undefined; }
+    if (status === "accepted-publication") procedure.publicationRequestedAt = undefined;
+    if (/notificad|notificacion/.test(description)) procedure.notifiedAt = actDay;
+    if (isFinalAct(description)) procedure.finalAt = actDay;
+    if (status === "publication-pending") procedure.publicationRequestedAt = actDay;
+    if (status === "opposition-answered" || observationResponse(description)) procedure.responseFiledAt = actDay;
+    if (status === "payment-verification") procedure.paymentAccreditedAt = actDay;
+    if (status === "substantive-objection" || status === "opposition-answer" || status === "evidence-period") pending.set(status, { statusId: status, sourceActDate: actDay, notifiedAt: /notificad|notificacion/.test(description) ? actDay : undefined, officialDeadline: day(act.due_date) ?? undefined });
+    if (observationResponse(description) && /fondo/.test(description)) pending.delete("substantive-objection");
+    if (status === "opposition-answered" || status === "evidence-period") pending.delete("opposition-answer");
+    if (status === "decision-pending") { pending.delete("opposition-answer"); pending.delete("evidence-period"); }
+    if (["finality-pending", "partial-appeal", "accepted-payment", "partial-payment", "registered", "rejected-appeal", "rejected-final", "not-filed", "abandoned-inapi", "abandoned-payment", "cancelled"].includes(status)) pending.clear();
+  }
+  procedure.sourceActDate = day(sourceAct?.event_date) ?? undefined;
+  procedure.sourceActDescription = sourceAct?.status_description ?? undefined;
+  const concurrent = [...pending.values()].filter(item => item.statusId !== status);
+  if (concurrent.length) procedure.concurrent = concurrent;
+  return { status, sourceAct, procedure };
 }
 
 // Retrieval timestamps and sequence positions are transport metadata, not legal
@@ -51,17 +123,18 @@ export function canonical(value: unknown): unknown {
 
 export function normalizeInapi(input: unknown): SourceRecord {
   const d = documentSchema.parse(input);
-  const events = [...d.events].sort((a,b) => (a.event_date ?? "").localeCompare(b.event_date ?? "") || Number(a.seq ?? 0) - Number(b.seq ?? 0));
-  let status: RegistrationStatusId = "inapi-waiting", statusDate: string | null = null;
-  for (const e of events) {
-    const stage = stageForAct(e.status_description ?? "");
-    if (stage) { status = stage; statusDate = day(e.event_date); }
-  }
+  const projection = inapiProcedure(d.events);
+  let status = projection.status;
+  let statusDate = day(projection.sourceAct?.event_date);
   // The general description is often "En Trámite" even after a grant.
-  if (d.registration_number && d.dates.registered_at && !["expired", "cancelled"].includes(status)) status = "registered";
+  const registeredAt = day(d.dates.registered_at);
+  const laterProceeding = !["inapi-waiting", "registered"].includes(status) && (!statusDate || !registeredAt || statusDate >= registeredAt);
+  if (d.registration_number && registeredAt && !laterProceeding && !["expired", "cancelled"].includes(status)) { status = "registered"; statusDate = registeredAt; }
   if (/(cancelad|vencid|caducad)/i.test(d.status.description ?? "")) status = /cancelad/i.test(d.status.description!) ? "cancelled" : "expired";
-  if (status === "registered" && !d.registration_number) status = "accepted-payment";
-  if (status === "opposition-window" && !d.dates.published_at) status = "inapi-waiting";
+  if (status === "registered" && !d.registration_number) status = "decision-review";
+  // The actual publication act can provide the date when its summary field is absent.
+  const publicationDate = day(d.dates.published_at) ?? day(orderedInapiActs(d.events).findLast(e => stageForAct(e.status_description ?? "") === "opposition-window")?.event_date);
+  if (publicationDate && ["inapi-waiting", "form-observation", "accepted-publication", "publication-pending"].includes(status) && (!statusDate || publicationDate >= statusDate)) { status = "opposition-window"; statusDate = publicationDate; }
   const country = (v?: string | null) => v ? new Intl.DisplayNames(["es"], { type: "region" }).of(v.toUpperCase()) ?? v : "No informado";
   const extra = { ...d } as Record<string, unknown>;
   for (const key of ["application_id", "registration_number", "name", "source", "dates"]) delete extra[key];
@@ -73,10 +146,22 @@ export function normalizeInapi(input: unknown): SourceRecord {
     provider: "inapi", inapi: canonical(extra), applicationNumber: String(d.application_id), registrationNumber: d.registration_number ? String(d.registration_number) : null,
     name: (d.name?.trim() || "Marca figurativa sin denominación").slice(0,180), status,
     type: ["Denominativa", "Figurativa", "Mixta"].includes(d.trademark.sign_type ?? "") ? d.trademark.sign_type : "Otra",
-    filingDate: day(d.dates.filed_at), publicationDate: day(d.dates.published_at), expirationDate: day(d.dates.expires_at), registrationDate: day(d.dates.registered_at), statusDate,
+    filingDate: day(d.dates.filed_at), publicationDate, expirationDate: day(d.dates.expires_at), registrationDate: registeredAt, statusDate,
     owner: parties(d.holders), ownerRut: rut, ownerCountry: country(d.holders[0]?.country), representativeName: parties(d.representatives), representativeCountry: country(d.representatives[0]?.country),
     classes: d.classes.map(c => c.nice_class), logo: ["Mixta", "Figurativa"].includes(d.trademark.sign_type ?? "") ? `/api/inapi/logo/${d.application_id}` : "",
     officialUrl: `https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx`,
+  });
+}
+
+// Rebuild the presentation from saved source evidence after a rules update. This
+// does not change the stored source or simulate a new external consultation.
+export function reprojectInapiRecord(record: SourceRecord): SourceRecord {
+  if (record.provider !== "inapi" || !record.inapi) return record;
+  return normalizeInapi({
+    ...record.inapi,
+    application_id: Number(record.applicationNumber), registration_number: record.registrationNumber ? Number(record.registrationNumber) : null, name: record.name,
+    dates: { ...(record.inapi.dates as Record<string, unknown> ?? {}), filed_at: record.filingDate, published_at: record.publicationDate, registered_at: record.registrationDate, expires_at: record.expirationDate, last_changed_at: null },
+    source: {},
   });
 }
 

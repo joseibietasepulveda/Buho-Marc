@@ -10,7 +10,7 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 - PostgreSQL mediante Drizzle ORM y migraciones versionadas.
 - Datos demo idempotentes y modo local sin base.
 - Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, desvinculación de coincidencias, cambios de etapa y notificaciones persistentes.
-- Canvas de inscripción de marcas con macrofases INAPI y Diario Oficial, 17 estados mock, cálculo de plazos hábiles, filtros, detalle e historial visual.
+- Seguimiento de inscripción con gestiones y hechos activadores diferenciados, plazos concurrentes y 22 escenarios ficticios separados de la cartera. Reglas de LPI/RLPI en un módulo compartido y calendario limitado a 2026.
 - Revisor de factibilidad frontend con texto, vista previa de imagen, clases Niza acumulativas, resumen probabilístico y cuatro coincidencias mock explicables.
 - Tablero de casos con `dnd-kit` para mover una tarjeta completa entre cuatro etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.

@@ -6,7 +6,7 @@
 - [x] CRUD demostrativo de marcas, casos y miembros.
 - [x] Revisión y conversión transaccional de coincidencias precargadas.
 - [x] Tablero de casos con arrastre entre cuatro etapas, coincidencias desvinculables con confirmación, notificaciones gestionables y auditoría básica.
-- [x] Canvas de inscripción de marcas para escritorio con macrofases, 17 estados mock, plazos hábiles, alertas, filtros, detalle e historial visual.
+- [x] Seguimiento de inscripción para escritorio con gestiones y activadores diferenciados, concurrencia de oposición/fondo, estados basados en actuaciones y 22 ejemplos simulados separados de la cartera.
 - [x] Revisor de factibilidad de escritorio con texto, imagen local, clases Niza acumulativas, resumen de riesgo y cuatro resultados mock explicables.
 - [x] Despliegue preparado para Railway con modo local de respaldo.
 - [ ] Autenticación, archivos, email real, permisos, recordatorios y operación productiva.
@@ -18,7 +18,7 @@
 
 - Confirmar proveedor de identidad, PostgreSQL, almacenamiento y cola.
 - Cerrar el contrato versionado con el motor de cruces.
-- Definir fuentes oficiales y responsabilidades legales sobre plazos.
+- Completar la integración de constancias de notificación/ejecutoria y un calendario plurianual para automatizar las reglas documentadas en [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).
 - Convertir el mockup en un pequeño sistema de componentes documentado.
 
 Criterio de salida: contratos aprobados, ambientes definidos y datos sensibles clasificados.

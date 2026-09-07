@@ -5,7 +5,7 @@ import { DEMO_ORG_ID } from "@/db/demo";
 import { advanceSource, editSource, ensureSourceSeed } from "@/db/source";
 import { sourceRecordSchema } from "@/lib/source-contract";
 import { hasToken, sameOrigin, sourceError } from "@/lib/source-api";
-import { isRealSource } from "@/lib/inapi-provider";
+import { isRealSource, reprojectInapiRecord } from "@/lib/inapi-provider";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET() {
@@ -17,7 +17,8 @@ export async function GET() {
     // Invalidated test runs remain in PostgreSQL for audit, without sending their
     // redundant historical payload to every browser poll.
     for (const run of runs) if (run.error?.startsWith("Corrida invalidada durante verificación:")) run.detail = [];
-    return NextResponse.json({ records: records.filter(r => !isRealSource() || r.data.provider === "inapi"), runs, provider: isRealSource() ? "inapi" : "simulated", schedule: "Todos los días a las 12:30 · America/Santiago", automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true" });
+    const displayedRecords = records.filter(r => !isRealSource() || r.data.provider === "inapi").map(row => ({ ...row, data: reprojectInapiRecord(row.data) }));
+    return NextResponse.json({ records: displayedRecords, runs, provider: isRealSource() ? "inapi" : "simulated", schedule: "Todos los días a las 12:30 · America/Santiago", automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true" });
   } catch (error) { return sourceError(error); }
 }
 const action = z.discriminatedUnion("action", [z.object({ action: z.literal("advance") }), z.object({ action: z.literal("edit"), id: z.string().uuid(), version: z.number().int().positive(), data: sourceRecordSchema })]);

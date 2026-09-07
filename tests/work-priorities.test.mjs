@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseWorkDate, workDeadline, chileToday, noticePresentation } from '../lib/work-priorities.ts';
+import { parseWorkDate, workDeadline, chileToday, noticePresentation, caseDeadlineDescription } from '../lib/work-priorities.ts';
+
+test('case stages cannot invent the legal act behind a missing deadline description', () => {
+  assert.equal(caseDeadlineDescription(), 'Gestión asociada al plazo no informada');
+  assert.equal(caseDeadlineDescription('  '), 'Gestión asociada al plazo no informada');
+  assert.equal(caseDeadlineDescription('Revisar instrucciones del cliente'), 'Revisar instrucciones del cliente');
+  assert.match(caseDeadlineDescription('Límite para pagar derechos finales (60 días hábiles desde la aceptación)'), /ejecutoria/);
+  assert.match(caseDeadlineDescription('Límite para publicar en Diario Oficial (20 días hábiles desde la aceptación)'), /notificación/);
+});
 
 test('unknown dates remain unknown and impossible dates are rejected', () => {
   for (const value of ['', 'Por definir 2026', '2026-02-30', '31 abr 2026', '15 ago']) assert.equal(parseWorkDate(value), null);

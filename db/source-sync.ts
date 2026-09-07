@@ -1,10 +1,10 @@
 import { getSql } from "./index";
 import { DEMO_ORG_ID, DEMO_USER_ID } from "./demo";
 import { ensureSourceSeed, updatedApplication } from "./source";
-import { chileClock, compareRecords, describeChanges, type SourceRecord, type Lookup } from "../lib/source-contract";
+import { chileClock, compareRecords, describeChanges, stableJson, type SourceRecord, type Lookup } from "../lib/source-contract";
 import { fetchSource } from "../lib/source-provider";
 import type { RegistrationApplication } from "../lib/registration-data";
-import { isRealSource } from "../lib/inapi-provider";
+import { isRealSource, reprojectInapiRecord } from "../lib/inapi-provider";
 import { realBrandConfig, importRealRecord } from "./inapi-portfolio";
 
 export async function syncSource(trigger: "manual" | "scheduled", provider = fetchSource, now = new Date()) {
@@ -42,13 +42,19 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
       let changed = 0, notices = 0;
       const detail = [];
       for (const target of targets!) {
-        const before = target.data as SourceRecord;
+        const savedBefore = target.data as SourceRecord;
+        const before = reprojectInapiRecord(savedBefore);
         const after = response.records.find(r => r.applicationNumber === before.applicationNumber);
         if (!after) throw new Error(`Respuesta incompleta para la solicitud ${before.applicationNumber}`);
         const changes = compareRecords(before, after);
         if (after.provider === "inapi") await tx`UPDATE source_records SET data = ${tx.json(after)}, registration_number = ${after.registrationNumber}, updated_at = now(), version = version + ${changes.length ? 1 : 0} WHERE id = ${target.source_id}`;
         if (target.entity_type === "brand") await tx`UPDATE brands SET last_reviewed_at = now() WHERE id = ${target.entity_id}`;
-        if (!changes.length) continue;
+        if (!changes.length) {
+          // A rules correction changes the projection, not the external facts.
+          // Refresh the baseline silently so it does not remain marked pending.
+          if (stableJson(savedBefore) !== stableJson(after)) await tx`UPDATE source_snapshots SET data = ${tx.json(after)}, updated_at = now() WHERE id = ${target.id}`;
+          continue;
+        }
         changed++;
         const message = describeChanges(before, after, changes);
         const reportable = changes.some(c => !c.ancillary);

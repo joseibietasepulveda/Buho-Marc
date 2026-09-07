@@ -38,7 +38,7 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 - Las vigilancias se pueden clasificar como pendientes, en seguimiento, descartadas o pasadas a caso; la similitud también se puede ajustar manualmente.
 - Los casos se pueden mover arrastrándolos o desde el detalle de caso; también se puede devolver su coincidencia de origen a revisión sin cerrar el caso.
 - Las notificaciones se pueden marcar como gestionadas y su contenido de referencia se puede copiar. No existe una etapa de borrador visible.
-- Los estados del Canvas de inscripción se pueden cambiar para la demostración y quedan guardados sólo en el navegador; todavía no se escriben en PostgreSQL.
+- Los estados de inscripciones provienen de las actuaciones. «Explorar ejemplos del proceso» abre 22 expedientes ficticios sin editar estados ni incorporarlos a la cartera.
 - El Revisor de factibilidad permite cambiar el texto, subir una imagen local y acumular clases; al analizar devuelve el conjunto curado de cuatro coincidencias de la demo.
 - En Railway los cambios se guardan en PostgreSQL y son visibles para todos quienes abran la demo.
 - En local, si no existe `DATABASE_URL`, se usa `localStorage` como respaldo sin configuración.
@@ -48,9 +48,9 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 - La búsqueda por número de registro INAPI rellena parámetros ficticios; no consulta aún la fuente oficial.
 - Los niveles y explicaciones de vigilancia son datos ficticios; la interfaz muestra Alta, Media o Baja, sin porcentajes de similitud.
 - El enlace a la fuente oficial abre INAPI como referencia, no una publicación específica.
-- El Canvas calcula días hábiles con un calendario mock 2026. Cuando falta la fecha fuente muestra “Fecha de vencimiento pendiente de confirmar” y nunca inventa un plazo para el examen de fondo.
+- El seguimiento identifica cada gestión, su activador y la procedencia de su fecha. Si faltan antecedentes muestra «Vencimiento no determinado» para esa gestión. El cálculo LPI cubre 2026 y no fecha la resolución de etapas sin plazo fijo.
 - Los porcentajes de factibilidad y similitud son mock. La interfaz lo indica expresamente y no los presenta como búsqueda, pronóstico o resolución oficial.
-- Finalizar la ventana de oposición no concede la marca: la solicitud continúa a examen de fondo INAPI.
+- El transcurso del plazo no modifica automáticamente el estado, acredita ausencia de oposición ni concede la marca; se espera la actuación correspondiente.
 - Cargar un archivo, exportar, vistas guardadas y filtros secundarios son controles visuales.
 - Copiar un correo usa el portapapeles del navegador; nunca se envía automáticamente.
 
@@ -66,4 +66,8 @@ El dashboard incluido dentro de las landings es una vista previa estática, pens
 
 ## Ronda UX de septiembre
 
-El resumen abre la agenda en el mes actual y muestra «Mi día» con asuntos existentes. La prioridad interna y el estado temporal de los plazos se presentan por separado. Las solicitudes sin fecha fuente aparecen como pendientes de confirmar, y las notificaciones de plazo nunca usan etiquetas de similitud. El administrador distingue expedientes e historial de consultas y muestra la última consulta completada.
+El resumen abre la agenda en el mes actual y muestra «Mi día» con asuntos existentes. La prioridad interna y el estado temporal se presentan por separado. Inscripciones agrupa las gestiones con vencimiento no determinado según la actuación pendiente. Las notificaciones de plazo nunca usan etiquetas de similitud. El administrador distingue expedientes e historial de consultas y muestra la última consulta completada.
+
+## Recorrido del procedimiento para abogados
+
+En **Inscripción de marcas → Explorar ejemplos del proceso**, todos los expedientes son ficticios y usan como referencia el 7 de septiembre de 2026. Recorrer UMBRAL (DEMO-004, requerir publicación), PÁGINA (DEMO-005, esperando publicación), NEXO (DEMO-014, oposición y fondo concurrentes), FRONDA (DEMO-016, aceptación parcial), PRISMA (DEMO-017, apelación), CIMA (DEMO-018, ejecutoria y pago), HUELLA (DEMO-019, pago acreditado) y RAÍZ (DEMO-020, registro). Los filtros permiten revisar los demás supuestos: forma, prueba, prórroga y cierres por resolución. Ninguno genera avisos ni cambios en la cartera. Las reglas y límites están en [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).

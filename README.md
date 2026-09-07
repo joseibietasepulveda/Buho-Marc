@@ -54,7 +54,7 @@ La aplicación actual requiere PostgreSQL mediante `DATABASE_URL` para cargar la
 - Ficha de caso con acceso superpuesto a la coincidencia de origen y opción confirmada para desvincularla sin cerrar el caso.
 - Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
 - Revisor de factibilidad previo a la inscripción: acepta texto e imagen, permite acumular clases Niza opcionales, simula un análisis y presenta un resumen de riesgo junto con una tabla de coincidencias visuales, fonéticas y conceptuales.
-- Canvas de inscripción de marcas con macrofases INAPI y Diario Oficial, estados legales, plazos en días hábiles chilenos, alertas de atención e historial de cambios por solicitud.
+- Seguimiento de inscripción con gestiones y activadores diferenciados, plazos concurrentes, historial de actuaciones y 22 ejemplos del procedimiento separados de la cartera. El calendario LPI está acotado a 2026.
 - Lista y alta de usuarios.
 - API persistente para crear marcas, casos y usuarios; revisar coincidencias; mover casos; desvincular coincidencias; y gestionar notificaciones.
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
@@ -73,6 +73,8 @@ No hay autenticación real, almacenamiento persistente de archivos, envío de co
 - Consulta de expedientes, origen de datos, sincronización y seguimiento de novedades INAPI.
 
 El alcance aprobado y los pendientes vigentes están en [docs/UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md).
+
+La lógica procesal contrastada con las Directrices INAPI 2026 y la Ley 19.039 se detalla en [docs/REGISTRATION_PROCESS_REVIEW.md](docs/REGISTRATION_PROCESS_REVIEW.md), incluidos activadores, límites de automatización y escenarios simulados.
 
 ### Backlog · Revisor de factibilidad
 
