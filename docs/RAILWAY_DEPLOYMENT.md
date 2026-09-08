@@ -15,9 +15,9 @@ La landing comercial se publica separadamente en Vercel: [https://buho-marc.verc
 
 Railway mantiene ambientes separados de **Dev** y **production**. Cada uno debe tener su propio servicio PostgreSQL y, por lo tanto, una base de datos independiente. Los cambios de esta demo se prueban y verifican primero en Dev; Production solo se actualiza cuando se aprueba expresamente.
 
-La publicación de **Revisor de factibilidad** e **Inscripción de marcas** se dirige al ambiente **Dev**, servicio `buho-marc-web`. No debe promoverse a `production` sin una solicitud posterior y explícita.
+La publicación de cambios de la aplicación se dirige primero al ambiente **Dev**, servicio `buho-marc-web`. No debe promoverse a `production` sin una solicitud posterior y explícita.
 
-Último despliegue verificado: `fd17c0b7-00ba-4c2b-871c-69ee81da297e`, completado con estado `SUCCESS` el 28 de agosto de 2026. El health check respondió `database: connected` y `engine: not-connected`.
+Último despliegue Dev verificado: `24e72a29-3ece-4701-9859-623aa9f28aad`, commit `24300f9`, completado con estado `SUCCESS` el 8 de septiembre de 2026. Production permanece en la base aprobada `60ea09c`.
 
 ## Servicios necesarios
 
@@ -60,12 +60,12 @@ Después de desplegar:
 4. La búsqueda simulada por número de registro debe mostrar RUT, marca, titular, Clases de Niza y estado antes de permitir agregar al seguimiento. En base queda un trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
 5. Convertir una coincidencia ficticia en caso dos veces debe conservar un solo caso.
 6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/#pricing`.
-7. Confirmar que el dashboard muestre las vigilancias pendientes por nivel, las cuatro métricas alineadas a ancho de escritorio, que Casos activos indique los vencimientos dentro de 14 días y que Notificaciones no contenga avisos de borradores.
+7. Confirmar que Resumen Vigilancia muestre la tabla de tareas pendientes con las columnas Tareas pendientes y Caso, sin contador interno; que las vigilancias se separen por nivel, las cuatro métricas estén alineadas y Casos activos indique los vencimientos dentro de 14 días.
 8. Revisar Vigilancia a ancho de escritorio y angosto: las insignias y controles de Similitud y Estado no deben superponerse, los filtros acumulables deben limpiarse con Todas o Todos y la tabla debe ofrecer desplazamiento horizontal cuando sea necesario.
-9. Confirmar el orden lateral **Inicio → Revisor de factibilidad → Inscripción de marcas → Marcas registradas**.
-10. En **Revisor de factibilidad**, verificar el caso Cafeteras Mistral, la carga local de imagen, las clases Niza acumulativas, el resumen 72%/88% y las cuatro coincidencias con solicitante y porcentaje visible.
-11. En **Inscripción de marcas**, verificar las dos macrofases, los 12 ejemplos, los plazos normal/próximo/vencido, la solicitud sin fecha confirmada y los estados terminales.
-12. Abrir una tarjeta y comprobar estado primero, datos completos, referencia a INAPI e historial vertical. Cambiar temporalmente el estado debe mover la tarjeta de macrofase.
+9. Confirmar el orden lateral actual desde **Resumen Vigilancia** hasta **Acerca de esta versión**, incluidos Clientes y Administrador de fuente.
+10. En **Revisor de factibilidad**, verificar el caso Cafeteras Mistral, la carga local de imagen, las clases Niza acumulativas, la probabilidad mock de oposición de terceros y las cuatro coincidencias explicables.
+11. En **Inscripción de marcas**, verificar las dos macrofases, los 22 ejemplos separados, los plazos normal/próximo/vencido, las gestiones cuyo antecedente activador falta y los estados terminales.
+12. Abrir una tarjeta y comprobar estado primero, datos completos, referencia a INAPI e historial ascendente con flechas. En Administrador de fuente, abrir una fila y comprobar cobertura, actuaciones, resoluciones desplegables y cierre fijo.
 13. Confirmar que las notificaciones incluyan un plazo de inscripción próximo a vencer y otro vencido, ambos identificados como seguimiento interno.
 
 ## Antes de producción real

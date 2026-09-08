@@ -10,15 +10,17 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 - PostgreSQL mediante Drizzle ORM y migraciones versionadas.
 - Datos demo idempotentes y modo local sin base.
 - Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, desvinculación de coincidencias, cambios de etapa y notificaciones persistentes.
+- Clientes editables y tareas de casos persistentes con estados `not-applicable`, `pending` y `completed`.
+- Proveedor INAPI, registros de fuente, snapshots por expediente, revisiones programadas/manuales e historial de consultas. El Administrador de fuente es de solo lectura cuando el proveedor es INAPI.
 - Seguimiento de inscripción con gestiones y hechos activadores diferenciados, plazos concurrentes y 22 escenarios ficticios separados de la cartera. Reglas de LPI/RLPI en un módulo compartido y calendario limitado a 2026.
 - Revisor de factibilidad frontend con texto, vista previa de imagen, clases Niza acumulativas, resumen probabilístico y cuatro coincidencias mock explicables.
-- Tablero de casos con `dnd-kit` para mover una tarjeta completa entre cuatro etapas sin recargar la pantalla.
+- Tablero de casos con `dnd-kit` para mover una tarjeta completa entre tres etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.
 - Configuración de despliegue y health check para Railway.
 
 Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordatorios asíncronos y el motor externo.
 
-El Canvas de inscripción es actualmente una capa frontend de demostración. Sus cambios de estado usan `localStorage`; no deben confundirse con datos oficiales ni con eventos persistentes de PostgreSQL. La fuente definitiva será una API de expedientes y cada transición deberá llegar como un evento fechado e inmutable.
+El Canvas de inscripción combina solicitudes persistidas en PostgreSQL con antecedentes del proveedor y una vista separada de 22 escenarios ficticios. La proyección actual se guarda como JSONB y no debe confundirse con un historial jurídico normalizado: una versión de producto deberá almacenar cada transición como evento fechado e inmutable, junto con su fuente y antecedente activador. El respaldo local usa `localStorage` cuando no existe base configurada.
 
 El Revisor de factibilidad también es una simulación frontend. La imagen se mantiene sólo durante la sesión del navegador y no se sube al servidor. Los porcentajes, similitudes y explicaciones están curados para el caso “Cafeteras Mistral”; una implementación real deberá producirlos mediante servicios independientes de búsqueda denominativa/fonética, comparación visual, cruce de clases Niza y calibración de riesgo.
 

@@ -10,6 +10,8 @@
 
 Commit `60ea09c`: documentación, integración INAPI y primera ronda de UX. Promoción realizada antes de editar la segunda ronda. Railway verificó esa base en Dev y production con estado SUCCESS el 6 de septiembre de 2026.
 
+Estado al 8 de septiembre de 2026: Dev contiene la segunda ronda hasta `24300f9` y fue verificado en Railway con estado SUCCESS. Production permanece en `60ea09c`; esta documentación no autoriza ni ejecuta su promoción.
+
 ## Ya realizado (retirado del backlog)
 
 - Consulta de expedientes INAPI, estados y antecedentes importados, origen visible, historial de consultas y detección de novedades.
@@ -18,7 +20,7 @@ Commit `60ea09c`: documentación, integración INAPI y primera ronda de UX. Prom
 
 ## Segunda ronda implementada en Dev
 
-- Resumen de vigilancia: período actual en agenda. Por petición posterior, se retiró «Mi día» y se agregó una sección específica de tareas pendientes vinculadas a Casos.
+- Resumen de vigilancia: período actual en agenda. Por petición posterior, se retiró «Mi día» y se agregó una tabla de tareas pendientes vinculadas a Casos, con borde consistente, sin título de caja ni contador y con encabezados «Tareas pendientes» y «Caso».
 - Casos: distinguir prioridad interna y situación temporal; presentar con claridad plazos vencidos, próximos y fechas sin definir.
 - Notificaciones: etiquetas según tipo de evento y situación del plazo; una alerta de plazo nunca se presenta como similitud.
 - Clientes: lectura íntegra de RUT y correos sin cortes arbitrarios.
@@ -47,10 +49,10 @@ Commit `60ea09c`: documentación, integración INAPI y primera ronda de UX. Prom
 
 ## Validación
 
-Compilación local aprobada. 32 pruebas aprobadas (27 de lógica y 5 verificaciones existentes). Revisión automática de los componentes sin errores; permanecen advertencias conocidas sobre imágenes nativas. Pruebas de navegador en escritorio: filtro de Mi día y apertura de caso, fechas pendientes y actuaciones, etiquetas de notificaciones, criterios que invalidan el resultado, contactos y última consulta de INAPI. Las verificaciones usan lectura de datos de Dev sin modificar expedientes ni enviar comunicaciones.
+Compilación local aprobada en las entregas de esta ronda. Pruebas de lógica, fuente y componentes aprobadas según cada entrega. Pruebas de navegador en escritorio: apertura de tareas y casos, fechas pendientes y actuaciones, etiquetas de notificaciones, criterios que invalidan el resultado, contactos, última consulta de INAPI y ficha del Administrador de fuente. Las verificaciones usan lectura de datos de Dev sin modificar expedientes ni enviar comunicaciones.
 
 
-Comprobar casos sin fecha, vencidos y próximos; notificaciones con y sin coincidencia; origen importado y simulado; resultado invalidado al modificar criterios; contactos largos. «Mi día» reutiliza datos existentes y no genera avisos, casos ni obligaciones nuevos por sí sola.
+Comprobar casos sin fecha, vencidos y próximos; tareas en sus tres estados; notificaciones con y sin coincidencia; origen importado y simulado; resultado invalidado al modificar criterios; contactos largos y expedientes con resoluciones extensas.
 
 La sección «Acerca de esta versión» también retira la actualización diaria de INAPI de los pendientes y añade la mejora de vigilancia y la ficha integral opcional.
 
@@ -58,7 +60,7 @@ La sección «Acerca de esta versión» también retira la actualización diaria
 
 Ampliación autorizada en Dev: revisar el procedimiento completo con el bosquejo aportado y corregir las incongruencias, incluyendo ejemplos para presentación a abogados. Se mantienen las dos columnas del seguimiento y se precisan sus nombres: ingreso/publicación y oposición/fondo/resolución.
 
-- Gestiones y hechos activadores compartidos entre fichas, resumen, agenda y Mi día; oposición sólo desde publicación efectiva, pago final desde ejecutoria.
+- Gestiones y hechos activadores compartidos entre fichas, resumen y agenda de inscripciones; oposición sólo desde publicación efectiva, pago final desde ejecutoria.
 - Actuación vigente como origen del vencimiento; la fecha de resolución no se presume notificación. Se admite oposición y observación de fondo concurrentes.
 - Estados distintos para aceptación, firmeza, pago/acreditación, registro, recurso pendiente y desenlaces informados. Vencer un plazo no dicta un desenlace automático.
 - Casos: la etapa interna no determina qué gestión jurídica corresponde a una fecha. Corregidas las opciones de publicación y pago final.

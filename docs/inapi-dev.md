@@ -43,4 +43,12 @@ Pruebas: estados, cambios de actuaciones, fechas complementarias, orden JSONB, l
 - Revisar manual completado: 200/200 expedientes, 0 cambios, 0 avisos. Reintento automático posterior completado con el mismo resultado.
 - Las incidencias de verificación y un rechazo HTTP 403 del proveedor permanecen en Corridas de la API; no alteraron los datos válidos.
 - La suspensión de Dev está deshabilitada. La ejecución automática de esta jornada se recuperó después de iniciar el servicio; el horario habitual es 12:30 de Chile.
-- Producción conserva el despliegue `d4bbaa9e-cb2e-4183-ba0c-157dcaaaebf3`.
+- Producción conservaba entonces el despliegue `d4bbaa9e-cb2e-4183-ba0c-157dcaaaebf3`.
+
+## Presentación vigente en Dev — 8 de septiembre de 2026
+
+El Administrador de fuente muestra una tabla resumida de expedientes y conserva el detalle en una ficha lateral de solo lectura. La ficha presenta estado, datos principales, clases y cobertura, titulares, representantes y actuaciones. Las fechas se formatean para lectura humana; las actuaciones se ordenan de la más antigua a la más reciente, con flechas, y las resoluciones extensas se despliegan sin modificar su texto. Los códigos que no tienen una interpretación incorporada se conservan como valores originales de la fuente.
+
+Las filas admiten clic, Enter y Espacio. El panel mantiene cabecera y cierre visibles, tiene desplazamiento interno y no desborda horizontalmente con resoluciones extensas. La fuente INAPI no se edita desde esta vista; las revisiones manuales se inician desde Marcas registradas y las automáticas conservan el horario configurado.
+
+Última interfaz Dev verificada en Railway: despliegue `24e72a29-3ece-4701-9859-623aa9f28aad`, commit `24300f9`, estado `SUCCESS`. Production permanece en `60ea09c`.

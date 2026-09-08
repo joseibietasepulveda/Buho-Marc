@@ -5,7 +5,9 @@
 - [x] Esquema PostgreSQL y migración inicial.
 - [x] CRUD demostrativo de marcas, casos y miembros.
 - [x] Revisión y conversión transaccional de coincidencias precargadas.
-- [x] Tablero de casos con arrastre entre cuatro etapas, coincidencias desvinculables con confirmación, notificaciones gestionables y auditoría básica.
+- [x] Tablero de casos con arrastre entre tres etapas, coincidencias desvinculables con confirmación, notificaciones gestionables y auditoría básica.
+- [x] Tareas jurídicas persistentes por caso, con texto libre, tres estados y resumen de pendientes asociado al caso.
+- [x] Directorio de clientes editable y Administrador de fuente con ficha legible e historial de consultas.
 - [x] Seguimiento de inscripción para escritorio con gestiones y activadores diferenciados, concurrencia de oposición/fondo, estados basados en actuaciones y 22 ejemplos simulados separados de la cartera.
 - [x] Revisor de factibilidad de escritorio con texto, imagen local, clases Niza acumulativas, resumen de riesgo y cuatro resultados mock explicables.
 - [x] Despliegue preparado para Railway con modo local de respaldo.
@@ -46,8 +48,8 @@ Criterio de salida: un resultado se recibe una sola vez, se revisa y puede origi
 
 ## Fase 3 — casos, plazos y comunicación
 
-- Tablero y página completa de caso.
-- Tareas, comentarios, responsables, actividad y documentos.
+- Completar la página integral de caso sobre la ficha lateral existente.
+- Ampliar las tareas ya implementadas con vencimientos, responsables y recordatorios; agregar comentarios, actividad y documentos.
 - Plazos versionados, recordatorios e historial.
 - Plantillas de comunicación versionadas, copia y confirmación manual de envío, sin exponer borradores como estado de producto.
 - Persistencia de solicitudes de registro, eventos inmutables de estado y vínculo con el expediente oficial.

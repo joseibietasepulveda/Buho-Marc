@@ -41,7 +41,7 @@ Los días de esta tabla corresponden a las reglas de la LPI/RLPI: lunes a vierne
 - **Las actuaciones posteriores importan.** Un registro previo no oculta una apelación o actuación posterior identificada; una fila administrativa incidental no reemplaza el acto que sustenta la etapa ni aporta su plazo.
 - **Las fechas incompatibles no generan cuentas regresivas.** Se comprueban fechas inválidas, hechos activadores futuros o anteriores a la solicitud y vencimientos anteriores a su hecho base. Un vencimiento pasado en fin de semana no se presenta como “Vence hoy”.
 
-La implementación se concentra en `lib/registration-procedure.ts`, `lib/inapi-provider.ts` y el contrato de `lib/registration-data.ts`. La presentación de inscripciones, su resumen y Mi día consumen las reglas compartidas. Las pruebas de regresión de estas reglas están en `tests/registration-procedure.test.mjs` y `tests/inapi-procedure.test.mjs`; los resultados de ejecución deben consultarse en la validación de la entrega.
+La implementación se concentra en `lib/registration-procedure.ts`, `lib/inapi-provider.ts` y el contrato de `lib/registration-data.ts`. La presentación y el resumen de inscripciones consumen las reglas compartidas; Resumen Vigilancia muestra las tareas pendientes de los casos y no proyecta plazos jurídicos adicionales. Las pruebas de regresión de estas reglas están en `tests/registration-procedure.test.mjs` y `tests/inapi-procedure.test.mjs`; los resultados de ejecución deben consultarse en la validación de la entrega.
 
 ## Casos de demostración
 

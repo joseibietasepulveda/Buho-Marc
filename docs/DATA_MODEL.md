@@ -39,13 +39,15 @@ Restricciones: puntajes entre 0 y 100; una coincidencia solo puede apuntar a un 
 - `cases(id, organization_id, source_match_id, brand_id, client_name, title, description, status, stage, priority, created_by, owner_id, strategy, result, closed_at, close_reason)`.
 - `case_members(case_id, user_id)`; PK compuesta.
 - `case_tasks(id, organization_id, case_id, title, status, assignee_id, due_at, completed_at)`.
+
+La demo ya persiste `title` y `status`. Los estados de interfaz son No aplica (`not-applicable`), Pendiente (`pending`) y Completado (`completed`); al completar se conserva `completed_at`. `assignee_id` y `due_at` quedan disponibles para una versión posterior.
 - `legal_deadlines(id, organization_id, case_id, match_id, brand_id, legal_date, internal_date, source, rule_code, verification_status, status)`.
 
 `source_match_id` se conserva mientras la coincidencia forme parte del caso. La acción explícita **Sacar de caso** puede dejarlo en `NULL`, libera `matches.case_id`, devuelve la coincidencia a estado `Pendiente` y registra el cambio en `audit_events`; cerrar un caso por sí solo no desvincula la comparación.
 
 ## Solicitudes de registro marcario
 
-Modelo propuesto para reemplazar los datos mock del Canvas:
+La demo ya usa `registration_applications` con una proyección JSONB por organización. La normalización siguiente sigue siendo el modelo objetivo para reemplazar esa proyección:
 
 - `trademark_applications(id, organization_id, application_number, brand_name, brand_type, filed_at, holder_rut, holder_name, client_name, logo_file_id, official_url, published_at, registration_number, registration_date, current_status_code, current_phase, created_at, updated_at)`.
 - `trademark_application_classes(application_id, nice_class, description)`; PK compuesta.
@@ -53,6 +55,15 @@ Modelo propuesto para reemplazar los datos mock del Canvas:
 - `trademark_deadlines(id, organization_id, application_id, status_event_id, rule_code, source_date, due_date, business_days, calendar_version, verification_status, status)`.
 
 `current_status_code` es una proyección para lectura rápida; la fuente de verdad es `trademark_status_events`. Una actualización de la API agrega un evento y recalcula la proyección de forma idempotente. Nunca se persiste una fecha estimada como oficial y los estados sin regla pública fija dejan `due_date` en `NULL`.
+
+## Fuente y sincronización
+
+- `source_records`: copia reemplazable del expediente consultado, identificada por solicitud y registro, con payload y versión.
+- `source_snapshots`: antecedente guardado por la organización para una marca o solicitud; permite comparar la siguiente consulta sin alterar la fuente.
+- `source_sync_runs`: ejecución inicial, manual o programada, con cantidades solicitadas/recibidas, cambios, avisos, errores y detalle.
+- `client_contacts`: ficha editable del cliente como JSONB versionado dentro de la organización.
+
+La fuente INAPI es de solo lectura desde el Administrador. Una revisión actualiza la proyección de cartera y el snapshot de forma idempotente; sólo una diferencia material genera un aviso. La interfaz conserva los códigos originales y presenta etiquetas, fechas y actuaciones en formato legible.
 
 ## Revisiones de factibilidad
 

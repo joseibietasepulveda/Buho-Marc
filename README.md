@@ -44,19 +44,20 @@ La aplicación actual requiere PostgreSQL mediante `DATABASE_URL` para cargar la
 
 ## Qué incluye la demo
 
-- Navegación lateral en el orden **Inicio → Revisor de factibilidad → Inscripción de marcas → Marcas registradas**, seguida por Vigilancia, Casos, Notificaciones y Usuarios.
-- Dashboard con métricas alineadas, alerta por vigilancias pendientes separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
+- Navegación lateral organizada por trabajo: **Resumen Vigilancia**, cartera y vigilancia, Casos, inscripciones, factibilidad, notificaciones, usuarios, clientes, fuente y auditoría.
+- Dashboard con tareas jurídicas pendientes y su caso asociado, alerta por vigilancias separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
 - Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT, tipos de marca y filas completas clickeables para revisar su cartera de vigilancias.
 - Vigilancia con búsqueda por nombre, filtros acumulables por similitud y estado, edición directa de ambos valores, comparación visual lado a lado y desplazamiento horizontal seguro para tablas angostas.
 - Alta manual de vigilancia: se elige una marca ya seguida, se busca un número de inscripción o solicitud y se completan datos ficticios, incluida la fecha de publicación en Diario Oficial.
 - Conversión de una vigilancia en caso y calendario de plazos de casos.
-- Tablero de casos por etapa, creación manual y arrastre fluido entre Preparación, Presentado, Seguimiento y Concluido.
-- Ficha de caso con acceso superpuesto a la coincidencia de origen y opción confirmada para desvincularla sin cerrar el caso.
+- Tablero de casos por etapa, creación manual y arrastre entre Esperando confirmación de cliente, En seguimiento y Concluido.
+- Ficha de caso con acceso superpuesto a la coincidencia de origen, tareas jurídicas persistentes —incluidas tareas escritas por el usuario— y opción confirmada para desvincular la coincidencia sin cerrar el caso.
 - Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
 - Revisor de factibilidad previo a la inscripción: acepta texto e imagen, permite acumular clases Niza opcionales, simula un análisis y presenta un resumen de riesgo junto con una tabla de coincidencias visuales, fonéticas y conceptuales.
 - Seguimiento de inscripción con gestiones y activadores diferenciados, plazos concurrentes, historial de actuaciones y 22 ejemplos del procedimiento separados de la cartera. El calendario LPI está acotado a 2026.
-- Lista y alta de usuarios.
-- API persistente para crear marcas, casos y usuarios; revisar coincidencias; mover casos; desvincular coincidencias; y gestionar notificaciones.
+- Directorio de clientes con filas clickeables y edición en ficha lateral; lista y alta de usuarios.
+- Administrador de fuente con expedientes INAPI, historial de consultas y ficha de solo lectura con cobertura, antecedentes y resoluciones completas.
+- API persistente para crear marcas, casos, tareas y usuarios; revisar coincidencias; mover casos; desvincular coincidencias; editar clientes y gestionar notificaciones.
 - Esquema PostgreSQL con migraciones, datos iniciales, auditoría y aislamiento por organización.
 - Diseño optimizado prioritariamente para uso en computador. Tablet y móvil conservan compatibilidad básica, pero no son superficies principales del producto.
 
@@ -69,8 +70,9 @@ No hay autenticación real, almacenamiento persistente de archivos, envío de co
 ### Mejoras de UX entregadas
 
 - Comparación de marcas al abrir una fila, con logos ampliables y clases compartidas.
-- Historial de actuaciones ordenado desde la más reciente, con detalle íntegro desplegable y tratamiento de datos ausentes.
-- Consulta de expedientes, origen de datos, sincronización y seguimiento de novedades INAPI.
+- Historiales de inscripción y fuente ordenados de la actuación más antigua a la más reciente, con flechas, detalle íntegro desplegable y tratamiento de datos ausentes.
+- Consulta de expedientes, origen de datos, sincronización y seguimiento de novedades INAPI; tabla principal resumida y ficha lateral accesible desde cada fila.
+- Tareas de casos con estados No aplica, Pendiente y Completado; las pendientes aparecen en Resumen Vigilancia junto al caso correspondiente.
 
 El alcance aprobado y los pendientes vigentes están en [docs/UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md).
 
@@ -98,7 +100,7 @@ El repositorio incluye `railway.json`, migraciones y un health check en `/api/he
 
 Railway publica la web app en `/app` y sirve la landing principal en `/`. La URL anterior `/landing-de-prueba-js` redirige a esa landing. La landing comercial se despliega por separado en Vercel, también en `/`.
 
-Las secciones **Revisor de factibilidad** e **Inscripción de marcas** se validan y publican primero en el ambiente Railway **Dev** (`buho-marc-web-dev.up.railway.app`). El ambiente `production` sólo se actualiza mediante una solicitud explícita posterior.
+Los cambios de la aplicación se validan y publican primero en el ambiente Railway **Dev** (`buho-marc-web-dev.up.railway.app`). El ambiente `production` sólo se actualiza mediante una solicitud explícita posterior.
 
 La integración INAPI se verificó en Dev el 4 de septiembre de 2026; véase [el registro de verificación](docs/inapi-dev.md). La promoción de ramas y los cambios de UX de septiembre se documentan en [docs/UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md).
 
@@ -120,6 +122,8 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 - `app/Landing/page.tsx` y `app/landing-de-prueba-js/page.tsx`: rutas anteriores que redirigen a la landing principal.
 - `app/app/page.tsx`: interfaz y modo de respaldo local.
 - `app/app/feasibility-review.tsx`: flujo interactivo y datos mock del Revisor de factibilidad.
+- `app/app/source-admin.tsx` y `app/app/source-inspector.tsx`: administración de la fuente y ficha legible del expediente.
+- `lib/registration-procedure.ts` y `lib/registration-scenarios.ts`: reglas compartidas del seguimiento y casos ficticios del proceso.
 - `app/api/demo/route.ts`: lectura y mutaciones de la demo persistente.
 - `db/schema.ts`: esquema PostgreSQL; `drizzle/`: migraciones versionadas.
 - `db/demo.ts`: datos iniciales ficticios y consultas de la demo.
