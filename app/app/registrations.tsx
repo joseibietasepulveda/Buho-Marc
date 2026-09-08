@@ -18,7 +18,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { RegistrationLogo } from "./registration-logo";
 import { ClientNameLink } from "./client-provider";
-import { activityContent, activityDate, latestActivityFirst } from "@/lib/registration-activity";
+import { activityContent, activityDate, oldestActivityFirst } from "@/lib/registration-activity";
 import { deadlineInfo, registrationDeadlines, deadlineLabel, type Attention, type ProcedureDeadline } from "@/lib/registration-procedure";
 import { PROCESS_DEMO_DATE, PROCESS_SCENARIOS } from "@/lib/registration-scenarios";
 export { deadlineInfo } from "@/lib/registration-procedure";
@@ -213,8 +213,8 @@ function RegistrationDrawer({ application, onClose }: { application: Registratio
         </dl>
 
         <section className="trademark-history">
-          <header><span>HISTORIAL DE ACTIVIDAD</span><h3>Actividad del expediente</h3><p>Más reciente primero · {application.history.length} movimientos</p></header>
-          {application.history.length ? <ol>{latestActivityFirst(application.history).map((event, index) => {
+          <header><span>HISTORIAL DE ACTIVIDAD</span><h3>Actividad del expediente</h3><p>De más antiguo a más reciente · {application.history.length} movimientos</p></header>
+          {application.history.length ? <ol>{oldestActivityFirst(application.history).map((event, index) => {
             const activity = activityContent(event);
             const date = activityDate(event.date);
             return <li key={`${event.date}-${index}`}>
@@ -223,6 +223,7 @@ function RegistrationDrawer({ application, onClose }: { application: Registratio
                 {date ? <time dateTime={date}>{formatDate(date)}</time> : <span className="trademark-activity-date">Fecha no informada</span>}
                 <strong>{activity.title}</strong>
                 {activity.detail && <details><summary>Ver detalle<span className="sr-only">: {activity.title}</span></summary><p>{activity.detail}</p></details>}
+                {index < application.history.length - 1 && <span aria-hidden className="trademark-history-arrow">↓</span>}
               </div>
             </li>;
           })}</ol> : <p className="trademark-activity-empty">No hay movimientos disponibles para esta solicitud.</p>}

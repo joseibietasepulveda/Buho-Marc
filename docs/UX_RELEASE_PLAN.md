@@ -14,7 +14,7 @@ Commit `60ea09c`: documentación, integración INAPI y primera ronda de UX. Prom
 
 - Consulta de expedientes INAPI, estados y antecedentes importados, origen visible, historial de consultas y detección de novedades.
 - Comparación de logos desde las filas de factibilidad, ampliación independiente y clases compartidas.
-- Historial de actuaciones con fechas, orden reciente primero y detalle completo; no muestra `undefined`.
+- Historial de actuaciones con fechas y detalle completo; no muestra `undefined`. Desde el 8 de septiembre, la ficha de inscripción muestra las actuaciones de arriba hacia abajo desde la más antigua a la más reciente, con flechas descendentes entre ellas, como Casos. Los movimientos sin fecha quedan al final; el resumen conserva la selección de la última actuación.
 
 ## Segunda ronda implementada en Dev
 

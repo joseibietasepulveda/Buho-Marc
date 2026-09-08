@@ -26,3 +26,14 @@ export function latestActivityFirst(history: HistoryEvent[]) {
   // Missing dates belong at the end; the source record is never mutated.
   return [...history].sort((a, b) => activityDate(b.date).localeCompare(activityDate(a.date)));
 }
+
+export function oldestActivityFirst(history: HistoryEvent[]) {
+  // Keep undated movements last and preserve source order for same-day events.
+  return [...history].sort((a, b) => {
+    const first = activityDate(a.date);
+    const second = activityDate(b.date);
+    if (!first) return second ? 1 : 0;
+    if (!second) return -1;
+    return first.localeCompare(second);
+  });
+}
