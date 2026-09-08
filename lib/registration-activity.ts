@@ -27,7 +27,7 @@ export function latestActivityFirst(history: HistoryEvent[]) {
   return [...history].sort((a, b) => activityDate(b.date).localeCompare(activityDate(a.date)));
 }
 
-export function oldestActivityFirst(history: HistoryEvent[]) {
+export function oldestActivityFirst<T extends HistoryEvent>(history: T[]): T[] {
   // Keep undated movements last and preserve source order for same-day events.
   return [...history].sort((a, b) => {
     const first = activityDate(a.date);

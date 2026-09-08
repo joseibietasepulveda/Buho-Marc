@@ -25,6 +25,7 @@ Commit `60ea09c`: documentación, integración INAPI y primera ronda de UX. Prom
 - Resumen de inscripciones: diferenciar falta de datos de ausencia de pendientes y mostrar procedencia correctamente.
 - Factibilidad: resultado simulado explícito y significado inequívoco de los indicadores; cambios en criterios invalidan el resultado anterior.
 - Fuente: vocabulario de trabajo para abogados especialistas en marcas; conservar conceptos como expediente, actuación, INAPI y sincronización, con última consulta visible.
+- Administrador de fuente (ampliación autorizada el 8 de septiembre): tabla resumida, ficha lateral organizada, fechas legibles, actuaciones ascendentes con flechas y resoluciones desplegables. Tipografía ligeramente mayor, sin ampliar el título. Detalle en [UX_TASKS_AND_PRESENTATION.md](UX_TASKS_AND_PRESENTATION.md).
 
 ## Pendientes para una próxima versión
 

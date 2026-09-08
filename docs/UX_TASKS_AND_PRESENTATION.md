@@ -1,6 +1,6 @@
 # Ajustes de presentación y tareas — 7 de septiembre de 2026
 
-Implementación en Dev; Administrador de fuente permanece sin cambios.
+Implementación inicial en Dev; Administrador de fuente permaneció sin cambios en esta ronda. Su mejora posterior, autorizada el 8 de septiembre, se detalla abajo.
 
 - Se retira Mi día. Resumen Vigilancia muestra las tareas pendientes de los casos, con asunto, marca y abogado responsable, y acceso al caso.
 - Casos permite escribir tareas libres de hasta 255 caracteres y activar sugerencias jurídicas. Estados: No aplica (predeterminado), Pendiente y Completado. Se guardan en case_tasks y sobreviven a la recarga; el resumen sólo incluye Pendiente.
@@ -14,3 +14,13 @@ Implementación en Dev; Administrador de fuente permanece sin cambios.
 ## Pendiente de producto
 
 Calibrar la probabilidad con el algoritmo y datos de validación antes de ofrecerla como resultado real. Se conservan los pendientes de UX_RELEASE_PLAN; este ajuste no agrega búsqueda global, decisiones documentadas ni ficha integral.
+
+## Administrador de fuente — 8 de septiembre de 2026
+
+- Tabla INAPI con siete columnas principales y filas que abren la ficha mediante clic, Enter o Espacio. El resto de los antecedentes se consulta dentro de la ficha.
+- Ficha lateral con cabecera y cierre fijos, desplazamiento interno, estado, datos del expediente, cobertura y antecedentes agrupados. Fechas legibles y etiquetas en español; los códigos de la fuente conservan su valor original.
+- Actuaciones de más antigua a más reciente, con flechas. Las resoluciones extensas se despliegan bajo cada actuación y conservan su texto completo.
+- Aumento discreto de textos, principalmente de 14 a 15 px, con estilos limitados a esta sección. Se conserva el tamaño de los títulos principales.
+- Filtros, pestañas, contraste de botones y paginación revisados. Se conserva la separación entre consulta INAPI y edición de fuente simulada; no se cambian datos ni reglas procesales.
+
+Validación: compilación y análisis estático aprobados; 11 pruebas existentes de actuaciones, fuente y procedencia aprobadas. Comprobación en navegador con el expediente ALIMENTOS WINKLER: ficha a altura completa, fechas ascendentes, flechas, resoluciones desplegables y ausencia de desbordamiento horizontal.
