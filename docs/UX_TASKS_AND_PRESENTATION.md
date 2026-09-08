@@ -3,6 +3,7 @@
 Implementación inicial en Dev; Administrador de fuente permaneció sin cambios en esta ronda. Su mejora posterior, autorizada el 8 de septiembre, se detalla abajo.
 
 - Se retira Mi día. Resumen Vigilancia muestra las tareas pendientes de los casos, con asunto, marca y abogado responsable, y acceso al caso.
+- Ajuste visual del 8 de septiembre: la caja de tareas usa el borde lila de las cajas contiguas y no tiene título ni contador propios. La tabla lleva los encabezados «Tareas pendientes» y «Caso»; conserva el acceso al caso desde cada fila.
 - Casos permite escribir tareas libres de hasta 255 caracteres y activar sugerencias jurídicas. Estados: No aplica (predeterminado), Pendiente y Completado. Se guardan en case_tasks y sobreviven a la recarga; el resumen sólo incluye Pendiente.
 - Clientes abre la ficha lateral al pulsar una fila o usar Enter/Espacio. La edición permanece en la ficha, con el guardado y control de versiones existentes.
 - Macrofases: INAPI: Ingreso y publicación; Diario Oficial: Oposición, fondo y resolución. El subtítulo conserva las autoridades de cada etapa.

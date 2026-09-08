@@ -1253,12 +1253,17 @@ button, a { -webkit-tap-highlight-color:transparent; }
 .trademark-deadline.procedure-pending strong { font-size:15px; line-height:1.4; }
 .trademark-deadline.procedure-pending small { font-weight:450; margin-top:5px; }
 .procedure-pending p { font-size:14px; line-height:1.5; }
-.pending-tasks { padding:22px; }
-.pending-tasks > header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-.pending-tasks h2 { margin:0; font-size:24px; }
-.pending-tasks > button { width:100%; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:6px 20px; text-align:left; background:transparent; border:0; border-top:1px solid #e6dfe9; padding:16px 0; cursor:pointer; }
-.pending-tasks > button:hover { background:#f5eff8; }
-.pending-tasks > button small { grid-column:1/-1; color:#6d6074; }
+.pending-tasks { padding:8px 22px; border:1px solid #e4cafa; box-shadow:none; }
+.pending-tasks table { width:100%; border-collapse:collapse; table-layout:fixed; text-align:left; }
+.pending-tasks th { padding:18px 0; border-bottom:1px solid var(--line); font-size:24px; font-weight:700; letter-spacing:-.04em; }
+.pending-tasks th:first-child,.pending-tasks td:first-child { padding-right:20px; }
+.pending-tasks td { padding:16px 0; vertical-align:top; overflow-wrap:anywhere; }
+.pending-tasks tbody tr + tr td { border-top:1px solid #e6dfe9; }
+.pending-tasks tbody tr { cursor:pointer; }
+.pending-tasks tbody tr:hover { background:#f5eff8; }
+.pending-tasks td button { width:100%; padding:0; text-align:left; color:inherit; font:inherit; background:transparent; border:0; cursor:pointer; }
+.pending-tasks td button:focus-visible { outline:2px solid var(--purple); outline-offset:4px; border-radius:3px; }
+.pending-tasks td small { display:block; margin-top:6px; color:#6d6074; }
 .case-tasks .case-task-row { display:grid; grid-template-columns:minmax(0,1fr) 140px; align-items:center; gap:16px; padding:12px 0; border-bottom:1px solid #e6dfe9; }
 .case-task-row span { overflow-wrap:anywhere; }
 .case-tasks select,.case-task-form input { width:100%; padding:9px; border:1px solid #cfc4d5; border-radius:6px; background:white; color:#2a2030; }
