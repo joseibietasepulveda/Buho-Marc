@@ -1,7 +1,7 @@
 import type { RegistrationApplication } from "./registration-data";
 
 /** Fixed reference date for the educational examples; these records never enter the client portfolio. */
-export const PROCESS_DEMO_DATE = "2026-09-07";
+export const PROCESS_DEMO_DATE = "2026-09-10";
 
 type ScenarioInput = Pick<RegistrationApplication, "name" | "filedAt" | "statusId" | "recentEvent" | "demoScenario" | "history"> & Partial<RegistrationApplication>;
 
@@ -155,14 +155,14 @@ export const PROCESS_SCENARIOS: RegistrationApplication[] = [
     publishedAt: "2026-03-16",
     recentEvent: "Causa recibida a prueba; término probatorio abierto",
     demoScenario: "La prueba se abre por resolución cuando existen hechos sustanciales, pertinentes y controvertidos. No se agrega como etapa automática a toda oposición.",
-    procedure: { notifiedAt: "2026-08-17", sourceActDate: "2026-08-14", sourceActDescription: "Resolución que recibe la causa a prueba, notificada por estado diario el 17 de agosto (ejemplo)." },
+    procedure: { notifiedAt: "2026-08-24", sourceActDate: "2026-08-21", sourceActDescription: "Resolución que recibe la causa a prueba, notificada por estado diario el 24 de agosto (ejemplo)." },
     history: [
       { date: "2026-02-02", intake: true },
       { date: "2026-03-16", status: "Publicación en Diario Oficial" },
       { date: "2026-04-08", status: "Oposición presentada" },
       { date: "2026-05-18", status: "Traslado de oposición notificado" },
       { date: "2026-06-08", status: "Contestación presentada", detail: "El solicitante controvierte los hechos que sustentan la oposición." },
-      { date: "2026-08-17", status: "Resolución de prueba notificada", detail: "Se fijan hechos a probar. Término probatorio de 30 días hábiles." },
+      { date: "2026-08-24", status: "Resolución de prueba notificada", detail: "Se fijan hechos a probar. Término probatorio de 30 días hábiles." },
     ],
   }),
   scenario(10, {
@@ -172,16 +172,16 @@ export const PROCESS_SCENARIOS: RegistrationApplication[] = [
     publishedAt: "2026-03-02",
     recentEvent: "Prórroga de término probatorio concedida por 20 días hábiles",
     demoScenario: "Una prórroga requiere solicitud oportuna y concesión expresa. Este ejemplo suma sólo los 20 días concedidos, dentro del máximo adicional de 30.",
-    procedure: { notifiedAt: "2026-07-06", evidenceExtensionDays: 20, sourceActDate: "2026-08-05", sourceActDescription: "Prórroga de 20 días hábiles concedida expresamente; término original notificado el 6 de julio (ejemplo)." },
+    procedure: { notifiedAt: "2026-07-27", evidenceExtensionDays: 20, sourceActDate: "2026-09-03", sourceActDescription: "Prórroga de 20 días hábiles concedida expresamente; término original notificado el 27 de julio (ejemplo)." },
     history: [
       { date: "2026-01-12", intake: true },
       { date: "2026-03-02", status: "Publicación en Diario Oficial" },
       { date: "2026-03-25", status: "Oposición presentada" },
       { date: "2026-04-20", status: "Traslado de oposición notificado" },
       { date: "2026-05-11", status: "Contestación presentada" },
-      { date: "2026-07-06", status: "Resolución de prueba notificada", detail: "Término probatorio original de 30 días hábiles." },
-      { date: "2026-07-31", status: "Prórroga solicitada", detail: "Solicitud fundada presentada antes del vencimiento del término original." },
-      { date: "2026-08-05", status: "Prórroga concedida", detail: "Resolución concede 20 días hábiles adicionales. No se aplica la extensión máxima automáticamente." },
+      { date: "2026-07-27", status: "Resolución de prueba notificada", detail: "Término probatorio original de 30 días hábiles." },
+      { date: "2026-09-01", status: "Prórroga solicitada", detail: "Solicitud fundada presentada antes del vencimiento del término original." },
+      { date: "2026-09-03", status: "Prórroga concedida", detail: "Resolución concede 20 días hábiles adicionales. No se aplica la extensión máxima automáticamente." },
     ],
   }),
   scenario(11, {
@@ -203,30 +203,30 @@ export const PROCESS_SCENARIOS: RegistrationApplication[] = [
   }),
   scenario(12, {
     name: "CAUCE DE EJEMPLO",
-    filedAt: "2026-03-02",
+    filedAt: "2026-04-01",
     statusId: "substantive-exam",
     publishedAt: "2026-05-18",
     recentEvent: "Examen de fondo en curso; sin actuación de respuesta pendiente",
     demoScenario: "Aunque no exista oposición, INAPI examina las prohibiciones de registro. La etapa no tiene una fecha de resolución fijada en este ejemplo.",
     history: [
-      { date: "2026-03-02", intake: true },
+      { date: "2026-04-01", intake: true },
       { date: "2026-05-18", status: "Publicación en Diario Oficial" },
       { date: "2026-07-06", status: "Examen de fondo", detail: "El expediente informa ausencia de oposiciones. Se examinan prohibiciones absolutas y relativas de registro." },
     ],
   }),
   scenario(13, {
     name: "MATIZ DE EJEMPLO",
-    filedAt: "2026-01-19",
+    filedAt: "2026-04-01",
     statusId: "substantive-objection",
-    publishedAt: "2026-03-30",
-    recentEvent: "Plazo de respuesta a observación de fondo transcurrido; resolución pendiente",
-    demoScenario: "El plazo de 30 días hábiles transcurrió sin respuesta registrada. Se conserva la observación pendiente: la aplicación no inventa un rechazo ni un abandono.",
-    procedure: { notifiedAt: "2026-06-15", sourceActDate: "2026-06-12", sourceActDescription: "Observación de fondo depositada en casilla electrónica el 15 de junio; no consta pronunciamiento posterior (ejemplo)." },
+    publishedAt: "2026-04-20",
+    recentEvent: "Observación de fondo notificada; respuesta pendiente",
+    demoScenario: "El plazo de respuesta de 30 días hábiles sigue abierto. La observación no constituye rechazo ni abandono; incluso después del vencimiento sería necesaria la resolución pertinente.",
+    procedure: { notifiedAt: "2026-08-24", sourceActDate: "2026-08-21", sourceActDescription: "Observación de fondo depositada en casilla electrónica el 24 de agosto; no consta respuesta posterior (ejemplo)." },
     history: [
-      { date: "2026-01-19", intake: true },
-      { date: "2026-03-30", status: "Publicación en Diario Oficial" },
-      { date: "2026-05-18", status: "Examen de fondo" },
-      { date: "2026-06-15", status: "Observación de fondo notificada", detail: "Se objeta falta de distintividad respecto de parte de la cobertura solicitada. No consta respuesta ni resolución final posterior." },
+      { date: "2026-04-01", intake: true },
+      { date: "2026-04-20", status: "Publicación en Diario Oficial" },
+      { date: "2026-06-08", status: "Examen de fondo" },
+      { date: "2026-08-24", status: "Observación de fondo notificada", detail: "Se objeta falta de distintividad respecto de parte de la cobertura solicitada. No consta respuesta ni resolución final posterior." },
     ],
   }),
   scenario(14, {
@@ -273,14 +273,14 @@ export const PROCESS_SCENARIOS: RegistrationApplication[] = [
     publishedAt: "2026-03-23",
     recentEvent: "Aceptación parcial notificada; plazo de apelación abierto",
     demoScenario: "Una aceptación parcial puede limitar productos o servicios dentro de una misma clase. La parte denegada puede impugnarse dentro del plazo aplicable; no se presume aceptación total.",
-    procedure: { notifiedAt: "2026-09-01", sourceActDate: "2026-08-31", sourceActDescription: "Resolución de aceptación parcial notificada el 1 de septiembre (ejemplo)." },
+    procedure: { notifiedAt: "2026-09-08", sourceActDate: "2026-09-07", sourceActDescription: "Resolución de aceptación parcial notificada el 8 de septiembre (ejemplo)." },
     history: [
       { date: "2026-01-26", intake: true },
       { date: "2026-03-23", status: "Publicación en Diario Oficial" },
       { date: "2026-05-11", status: "Examen de fondo" },
       { date: "2026-06-01", status: "Observación de fondo notificada" },
       { date: "2026-06-22", status: "Respuesta a observación de fondo presentada" },
-      { date: "2026-09-01", status: "Aceptación parcial notificada", detail: "Se aceptan café e infusiones de clase 30 y servicios de clase 35; se rechazan preparaciones de cacao de clase 30. Plazo de apelación de 15 días hábiles." },
+      { date: "2026-09-08", status: "Aceptación parcial notificada", detail: "Se aceptan café e infusiones de clase 30 y servicios de clase 35; se rechazan preparaciones de cacao de clase 30. Plazo de apelación de 15 días hábiles." },
     ],
   }),
   scenario(17, {

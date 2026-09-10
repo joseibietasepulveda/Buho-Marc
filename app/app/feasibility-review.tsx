@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   ArrowClockwise,
   CaretRight,
@@ -212,28 +214,32 @@ export function FeasibilityReview() {
         </div>
 
         <p className="feasibility-demo-notice"><Info size={20} aria-hidden /><span><strong>Demostración con resultados simulados.</strong> La búsqueda real aún no está conectada. Los cuatro ejemplos y sus porcentajes son fijos; no miden la probabilidad de registro ni el riesgo jurídico de la marca ingresada.</span></p>
-        <div className="feasibility-searchbar">
-          <label className="feasibility-mode">
-            <span className="sr-only">Tipo de coincidencia</span>
-            <select aria-label="Tipo de coincidencia" value={mode} onChange={event => { setMode(event.target.value); invalidate(); }}>
-              <option value="approximate">Búsqueda aproximada</option>
-              <option value="contains">Contiene</option>
-              <option value="exact">Coincidencia exacta</option>
-              <option value="starts">Comienza con</option>
-            </select>
-          </label>
-          <label className="feasibility-name">
-            <MagnifyingGlass aria-hidden="true" size={22} />
-            <span className="sr-only">Nombre de la marca</span>
-            <input aria-label="Nombre de la marca" onChange={(event) => { setBrandName(event.target.value); invalidate(); }} placeholder="Introduce el nombre de la marca" value={brandName} />
-          </label>
+        <div className="feasibility-search-layout">
+          <div className="feasibility-input-area">
+            <div className="feasibility-searchbar">
+              <label className="feasibility-mode">
+                <span className="sr-only">Tipo de coincidencia</span>
+                <select aria-label="Tipo de coincidencia" value={mode} onChange={event => { setMode(event.target.value); invalidate(); }}>
+                  <option value="approximate">Búsqueda aproximada</option>
+                  <option value="contains">Contiene</option>
+                  <option value="exact">Coincidencia exacta</option>
+                  <option value="starts">Comienza con</option>
+                </select>
+              </label>
+              <label className="feasibility-name">
+                <MagnifyingGlass aria-hidden="true" size={22} />
+                <span className="sr-only">Nombre de la marca</span>
+                <input aria-label="Nombre de la marca" onChange={(event) => { setBrandName(event.target.value); invalidate(); }} placeholder="Introduce el nombre de la marca" value={brandName} />
+              </label>
+            </div>
+            <button className="feasibility-submit" disabled={(!brandName.trim() && !description.trim() && !imageUrl) || phase === "loading"} type="submit">
+              {phase === "loading" ? <><span className="feasibility-spinner" /> Preparando ejemplo</> : <><Sparkle size={19} weight="fill" /> Ver comparación de ejemplo</>}
+            </button>
+          </div>
           <input accept="image/*" className="sr-only" onChange={uploadImage} ref={fileRef} type="file" />
-          <button aria-label="Subir logo de la marca" className={`feasibility-upload${imageUrl ? " has-image" : ""}`} onClick={() => fileRef.current?.click()} type="button">
-            {imageUrl ? <img alt="Logo cargado para analizar" src={imageUrl} /> : <UploadSimple size={23} />}
+          <button aria-label={imageUrl ? "Cambiar logo de la marca" : "Subir logo de la marca"} className={`feasibility-upload${imageUrl ? " has-image" : ""}`} onClick={() => fileRef.current?.click()} type="button">
+            {imageUrl ? <Image alt="Logo cargado para analizar" src={imageUrl} width={160} height={112} unoptimized /> : <UploadSimple size={32} />}
             <span>{imageUrl ? "Cambiar logo" : "Subir logo"}</span>
-          </button>
-          <button className="feasibility-submit" disabled={(!brandName.trim() && !description.trim() && !imageUrl) || phase === "loading"} type="submit">
-            {phase === "loading" ? <><span className="feasibility-spinner" /> Preparando ejemplo</> : <><Sparkle size={19} weight="fill" /> Ver comparación de ejemplo</>}
           </button>
         </div>
 

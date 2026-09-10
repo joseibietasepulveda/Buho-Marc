@@ -40,7 +40,7 @@ Restricciones: puntajes entre 0 y 100; una coincidencia solo puede apuntar a un 
 - `case_members(case_id, user_id)`; PK compuesta.
 - `case_tasks(id, organization_id, case_id, title, status, assignee_id, due_at, completed_at)`.
 
-La demo ya persiste `title` y `status`. Los estados de interfaz son No aplica (`not-applicable`), Pendiente (`pending`) y Completado (`completed`); al completar se conserva `completed_at`. `assignee_id` y `due_at` quedan disponibles para una versión posterior.
+La demo ya persiste `title`, `status`, `assignee_id` y `due_at`. Los estados de interfaz son No aplica (`not-applicable`), Pendiente (`pending`) y Completado (`completed`); al completar se conserva `completed_at`. La fecha interna de la tarea no cambia la fecha de un plazo legal.
 - `legal_deadlines(id, organization_id, case_id, match_id, brand_id, legal_date, internal_date, source, rule_code, verification_status, status)`.
 
 `source_match_id` se conserva mientras la coincidencia forme parte del caso. La acción explícita **Sacar de caso** puede dejarlo en `NULL`, libera `matches.case_id`, devuelve la coincidencia a estado `Pendiente` y registra el cambio en `audit_events`; cerrar un caso por sí solo no desvincula la comparación.
@@ -96,3 +96,25 @@ Los porcentajes deben conservar la versión del modelo y los insumos utilizados 
 ## v0.4: tareas de solicitudes
 
 La migración `0003_huge_blazing_skull.sql` agrega `registration_tasks`, vinculada por organización y solicitud, con fecha civil, responsable del equipo y estado. Las tareas de casos reutilizan `case_tasks.due_at` y `assignee_id`. La fecha interna de una tarea no modifica ningún plazo legal. Las lecturas exponen fechas ISO sin conversión al huso local. Contratos y decisiones en [V0_4_RELEASE.md](V0_4_RELEASE.md).
+
+## v0.5: antecedentes jurídicos y proyecciones de lectura
+
+La implementación utiliza el JSONB existente `registration_applications.data`, sin agregar una tabla de evidencias normalizada:
+
+- `legalEvidence[]` conserva `id`, `kind`, `method`, `date`, `reference`, enlace opcional `sourceUrl`, vínculo exacto `actId`/`actDate`/`actDescription`, `recordedAt`, `recordedBy` y `revokedAt` opcional.
+- Los tipos son notificación (`notification`), ejecutoria (`finality`), expediente en estado de resolver (`ready-to-resolve`) y pago del certificado (`certificate-payment`). Cada tipo admite sólo los medios y etapas implementados en `evidenceKindAllowed`.
+- La fecha no puede ser futura ni anterior al acto acreditado. Una actuación posterior invalida la aplicabilidad del antecedente anterior; no se reutiliza una fecha sólo porque la solicitud o etapa coincida.
+- La revocación conserva el registro con `revokedAt`. Reemplazar un antecedente del mismo tipo y acto revoca el anterior antes de guardar el nuevo. Ambas acciones generan `audit_events` con antes/después en la misma transacción.
+- `procedure` es una proyección derivada. Sus pruebas de notificación, ejecutoria y otros habilitantes distinguen verificación por documento público, equipo o fuente; no sustituyen los eventos ni los snapshots crudos de INAPI.
+
+`POST /api/registrations/evidence` admite `save` y `revoke`, valida origen y esquema estricto, resuelve organización/actor de la identidad demo en el servidor, comprueba membresía y bloquea la solicitud durante la escritura. No acepta actor u organización aportados por el navegador; esto no equivale a autenticación productiva. El endpoint impide reemplazar mediante una fecha manual una notificación ya acreditada por el manifiesto público verificado.
+
+El manifiesto `lib/inapi-daily-evidence.ts` identifica 19 actos exactos de aceptación a trámite: solicitud, identificador/código/descripción del acto, fecha, sección/página, URL y huella del documento. Es evidencia versionada en código, no una marca genérica de que cualquier actuación de esa solicitud esté notificada. `GET /api/registrations` reproyecta los antecedentes existentes y aplica sólo evidencia vigente; una lectura no consulta nuevamente INAPI.
+
+Las fechas calculadas se clasifican como plazo legal (`legal`), control administrativo (`institutional`) o hito informativo (`milestone`). Controles e hitos no incrementan las alertas de plazos vencidos del abogado. El calendario de cómputo está identificado como `CL-LPI-LBPA-NATIONAL-2026-2027-v1`; sus límites están en [Calendario legal Chile 2026–2027](CALENDARIO_LEGAL_CHILE_2026_2027.md).
+
+Las cronologías de notificaciones reutilizan historiales disponibles y deltas antes/después de `change_detail`; conservan IDs y versiones en detalles desplegables. Se deduplican por ID de actuación y, cuando falta, por fecha/descripción. Si una denominación corresponde a expedientes ambiguos, no se incorpora la historia de otro expediente sólo por tener el mismo nombre.
+
+`GET /api/source/status` devuelve únicamente metadatos de revisiones manuales/programadas, hora de consulta, última revisión completa exitosa y próxima ejecución. No expone payloads de expedientes, listas de solicitudes ni errores internos. Una incorporación aislada o carga inicial no se presenta como actualización completa de la cartera.
+
+La actualización de fixtures `db/demo-v05.ts` es transaccional y se marca una sola vez mediante auditoría. Cambia fechas activas de ejemplos conocidos y añade cinco casos/tareas; no desplaza actos reales ni reescribe continuamente fechas según el reloj. El fallback del navegador tiene su actualización local separada. Estado de entrega: [v0.5 en preparación](V0_5_RELEASE.md).

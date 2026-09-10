@@ -6,6 +6,7 @@ import { sourceError } from "@/lib/source-api";
 import { isRealSource, reprojectInapiRecord } from "@/lib/inapi-provider";
 import type { SourceRecord } from "@/lib/source-contract";
 import type { RegistrationApplication } from "@/lib/registration-data";
+import { applyRegistrationEvidence } from "@/lib/registration-evidence";
 export const dynamic = "force-dynamic";
 export async function GET() {
   try {
@@ -14,7 +15,7 @@ export async function GET() {
     const applications = rows.map(row => {
       const application = row.data as RegistrationApplication;
       const record = row.source_data as SourceRecord | undefined;
-      return application.provider === "inapi" && record?.provider === "inapi" ? updatedApplication(application, reprojectInapiRecord(record), application.recentEvent) : application;
+      return application.provider === "inapi" && record?.provider === "inapi" ? updatedApplication(application, reprojectInapiRecord(record), application.recentEvent) : applyRegistrationEvidence(application);
     }).filter(a => !isRealSource() || a.provider === "inapi");
     const tasks = await getSql()`SELECT t.id, t.title, t.status, t.due_date::text AS due_date, t.assignee_id, a.public_code FROM registration_tasks t JOIN registration_applications a ON a.id = t.application_id WHERE t.organization_id = ${DEMO_ORG_ID} AND a.organization_id = ${DEMO_ORG_ID} ORDER BY t.created_at`;
     return NextResponse.json({ tasks: tasks.filter(task => applications.some(a => a.id === task.public_code)).map(task => ({ id: task.id, title: task.title, status: task.status, dueDate: task.due_date ? String(task.due_date).slice(0, 10) : null, assigneeId: task.assignee_id, applicationId: task.public_code })), provider: isRealSource() ? "inapi" : "simulated", applications });

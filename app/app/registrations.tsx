@@ -24,7 +24,9 @@ import { CaseTasks, TaskEditor } from "./case-tasks";
 import { RegistrationLogo } from "./registration-logo";
 import { ClientNameLink } from "./client-provider";
 import { activityContent, activityDate, oldestActivityFirst } from "@/lib/registration-activity";
-import { deadlineInfo, registrationDeadlines, deadlineLabel, type Attention, type ProcedureDeadline } from "@/lib/registration-procedure";
+import { deadlineInfo, registrationDeadlines, deadlineLabel, registrationProgress, type Attention, type ProcedureDeadline } from "@/lib/registration-procedure";
+import { RegistrationEvidenceEditor } from "./registration-evidence-editor";
+import "./registration-v05.css";
 import { PROCESS_DEMO_DATE, PROCESS_SCENARIOS } from "@/lib/registration-scenarios";
 export { deadlineInfo } from "@/lib/registration-procedure";
 
@@ -92,12 +94,12 @@ export function useRegistrationTasks() {
   return { tasks: state.tasks, save };
 }
 
-export type RegistrationSelection = { id?: string; status?: RegistrationStatusId };
+export type RegistrationSelection = { id?: string; status?: RegistrationStatusId; view?: "cards" | "list" | "calendar" };
 
 export function TrademarkRegistrationCanvas({ initialSelection = {}, members = [], currentUserId }: { initialSelection?: RegistrationSelection; members?: TaskMember[]; currentUserId?: string }) {
-  const [importedApplications, , loadState] = useRegistrationApplications();
+  const [importedApplications, refresh, loadState] = useRegistrationApplications();
   const [examples, setExamples] = useState(false);
-  const [viewMode, setViewMode] = useState<"cards" | "list" | "calendar">("list");
+  const [viewMode, setViewMode] = useState<"cards" | "list" | "calendar">(initialSelection.view ?? "cards");
   const { tasks, save } = useRegistrationTasks();
   const [taskEditor, setTaskEditor] = useState<{ task?: CaseTask; applicationId?: string; date?: string } | null>(null);
   const applications = examples ? PROCESS_SCENARIOS : importedApplications;
@@ -110,7 +112,7 @@ export function TrademarkRegistrationCanvas({ initialSelection = {}, members = [
 
   const visible = useMemo(() => applications.filter((application) => {
     const definition = STATUS_BY_ID[application.statusId];
-    const deadlines = registrationDeadlines(application, examples ? PROCESS_DEMO_DATE : undefined);
+    const deadlines = registrationDeadlines(application, examples ? PROCESS_DEMO_DATE : undefined).filter(item => item.kind !== "institutional");
     const searchable = `${application.name} ${application.applicationNumber} ${application.holder} ${application.client}`.toLowerCase();
     return searchable.includes(query.trim().toLowerCase())
       && (phase === "all" || definition.phase === phase)
@@ -136,7 +138,7 @@ export function TrademarkRegistrationCanvas({ initialSelection = {}, members = [
       <button className="trademark-clear-filters" onClick={resetFilters} type="button"><Funnel aria-hidden size={16} /> Limpiar</button>
     </section>
 
-    <div className="registration-view-modes"><div role="group" aria-label="Vista de solicitudes">{([["list", "Lista"], ["cards", "Tarjetas"], ["calendar", "Calendario"]] as const).map(([mode, label]) => <button type="button" aria-pressed={viewMode === mode} key={mode} onClick={() => setViewMode(mode)}>{label}</button>)}</div>{!examples && <button className="buho-secondary" type="button" disabled={!applications.length} onClick={() => setTaskEditor({})}>Agregar tarea +</button>}</div>
+    <div className="registration-view-modes"><div role="group" aria-label="Vista de solicitudes">{([["cards", "Tarjetas"], ["list", "Lista"], ["calendar", "Calendario"]] as const).map(([mode, label]) => <button type="button" aria-pressed={viewMode === mode} key={mode} onClick={() => setViewMode(mode)}>{label}</button>)}</div>{!examples && viewMode !== "calendar" && <button className="buho-secondary" type="button" disabled={!applications.length} onClick={() => setTaskEditor({})}>Agregar tarea +</button>}</div>
     <div className="trademark-legend" aria-label="Niveles de atención">
       <span className="deadline-normal"><ClockCountdown aria-hidden size={16} /> Normal</span>
       <span className="deadline-soon"><Bell aria-hidden size={16} /> Próximo a vencer</span>
@@ -152,7 +154,7 @@ export function TrademarkRegistrationCanvas({ initialSelection = {}, members = [
     </section>}
 
     {taskEditor && <TaskEditor task={taskEditor.task} members={members} currentUserId={currentUserId} targets={importedApplications.map(application => ({ id: application.id, label: `${application.name} · ${application.applicationNumber}` }))} defaultTarget={taskEditor.applicationId} defaultDate={taskEditor.date} onSave={save} onDelete={(id, task) => save(id, task, true)} onClose={() => setTaskEditor(null)} />}
-    {selected && <RegistrationDrawer application={selected} onClose={() => setSelectedId(null)}>{!examples && <CaseTasks tasks={tasks.filter(task => task.applicationId === selected.id)} onSave={task => save(selected.id, task)} onDelete={task => save(selected.id, task, true)} members={members} currentUserId={currentUserId} label={selected.name} suggestions={false} />}</RegistrationDrawer>}
+    {selected && <RegistrationDrawer application={selected} onClose={() => setSelectedId(null)} onEvidenceSaved={!examples ? refresh : undefined}>{!examples && <CaseTasks tasks={tasks.filter(task => task.applicationId === selected.id)} onSave={task => save(selected.id, task)} onDelete={task => save(selected.id, task, true)} members={members} currentUserId={currentUserId} label={selected.name} suggestions={false} />}</RegistrationDrawer>}
   </section>;
 }
 
@@ -163,10 +165,10 @@ function RegistrationList({ applications, onSelect }: { applications: Registrati
     {applications.map(application => {
       const milestone = significantRegistrationEvent(application);
       const today = application.demoScenario ? PROCESS_DEMO_DATE : undefined;
-      const deadlines = registrationDeadlines(application, today);
+      const deadlines = registrationDeadlines(application, today).filter(item => item.kind !== "institutional");
       return <button type="button" className="registration-list-row" key={application.id} onClick={() => onSelect(application.id)}>
         <span className="registration-list-brand"><RegistrationLogo application={application} /><span><strong>{application.name}</strong><small>{application.holder}</small><small>Solicitud {application.applicationNumber} · Clases {application.niceClasses}</small></span></span>
-        <span><strong>{milestone.status}</strong><small>{milestone.date ? formatDate(milestone.date) + " · " : ""}{milestone.title}</small>{application.demoScenario && <small>Ejemplo simulado</small>}</span>
+        <span><strong>{registrationProgress(application, today)}</strong><small>{milestone.date ? formatDate(milestone.date) + " · " : ""}{milestone.title}</small>{application.demoScenario && <small>Ejemplo simulado</small>}</span>
         <span>{deadlines.map(deadline => <span key={deadline.key} className={`registration-list-deadline deadline-${deadline.attention}`}><strong>{deadline.label}</strong><small>{deadline.dueDate ? `${formatDate(deadline.dueDate)} · ${deadlineLabel(deadline, today)}` : deadlineLabel(deadline, today)}</small></span>)}<b>Abrir solicitud →</b></span>
       </button>;
     })}
@@ -195,10 +197,10 @@ function RegistrationCard({ application, onSelect }: { application: Registration
         <RegistrationLogo key={application.logo ?? application.id} application={application} />
         <div><small>{application.id}</small><h3>{application.name}</h3>{!application.logo && <span className="trademark-brand-type">{application.type === "Denominativa" ? "Marca denominativa" : "Imagen no informada"}</span>}</div>
       </div>
-      <strong className="trademark-card-status">{status.label}</strong>
+      <strong className="trademark-card-status">{registrationProgress(application, today)}</strong>
       {application.demoScenario && <p className="procedure-scenario">Ejemplo simulado · {application.demoScenario}</p>}
       {status.phase === "gazette" && application.publishedAt && <span className="trademark-published"><CalendarBlank aria-hidden size={15} /> Publicada el {formatDate(application.publishedAt)}</span>}
-      {registrationDeadlines(application, today).map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} />)}
+      {registrationDeadlines(application, today).filter(item => item.kind !== "institutional").map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} />)}
       <footer><span>Solicitud N.º {application.applicationNumber}</span><b>Abrir detalle <ArrowRight aria-hidden size={14} /></b></footer>
     </button>
     <p className="procedure-source">{application.demoScenario ? "Escenario ficticio" : application.provider === "inapi" ? "Etapa según actuaciones de INAPI" : "Datos simulados de seguimiento"}</p>
@@ -206,29 +208,34 @@ function RegistrationCard({ application, onSelect }: { application: Registration
 }
 
 function ProcedureDeadlinePanel({ deadline: d, today, application, detailed = false }: { deadline: ProcedureDeadline; today?: string; application: RegistrationApplication; detailed?: boolean }) {
-  const origin = d.origin === "source" ? "Informado por la fuente" : d.origin === "calculated" ? "Calculado desde el antecedente indicado · calendario LPI 2026" : d.origin === "simulated" ? "Plazo simulado · referencia 7 sep. 2026" : "";
+  const origin = d.origin === "source" ? "Informado por la fuente" : d.origin === "calculated" ? d.kind === "institutional" ? "Control administrativo calculado · no es un vencimiento del abogado" : "Calculado desde el antecedente indicado" : d.origin === "simulated" ? "Fecha de demostración · no corresponde a un expediente real" : "";
   if (d.attention === "pending") {
     const act = d.key === application.statusId ? application.procedure : application.procedure?.concurrent?.find(item => item.statusId === d.key);
     const missing = !d.sourceDate ? `${d.trigger}: fecha no disponible en la fuente` : "Cómputo pendiente de revisión";
     return <div className="trademark-deadline deadline-pending procedure-pending"><AttentionIcon attention={d.attention} /><div><strong>{d.label}</strong>{act?.sourceActDate && <small>Actuación de referencia · {formatDate(act.sourceActDate)}</small>}<small>{missing}</small>{detailed && <><p>{d.explanation}</p>{d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ""}</small>}</>}</div></div>;
   }
-  return <div className={`trademark-deadline deadline-${d.attention}`}><AttentionIcon attention={d.attention} /><div><span>{d.label}</span><strong>{deadlineLabel(d, today)}</strong>{d.dueDate && <small>Vence el {formatDate(d.dueDate)} · {origin}</small>}{(d.attention === "none" || detailed) && <small>{d.explanation}</small>}{detailed && d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ": fecha no informada"}</small>}</div></div>;
+  return <div className={`trademark-deadline deadline-${d.attention}${d.kind === "institutional" ? " institutional-control" : ""}`}><AttentionIcon attention={d.attention} /><div><span>{d.label}</span><strong>{deadlineLabel(d, today)}</strong>{d.dueDate && <small>{d.kind === "institutional" || d.kind === "milestone" ? "Fecha" : "Vence el"} {formatDate(d.dueDate)} · {origin}</small>}{(d.attention === "none" || detailed) && <small>{d.explanation}</small>}{detailed && d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ": fecha no informada"}</small>}</div></div>;
 }
 
-function RegistrationDrawer({ application, onClose, children }: { application: RegistrationApplication; onClose: () => void; children?: ReactNode }) {
+function RegistrationDrawer({ application, onClose, children, onEvidenceSaved }: { application: RegistrationApplication; onClose: () => void; children?: ReactNode; onEvidenceSaved?: () => Promise<void> }) {
   const status = STATUS_BY_ID[application.statusId];
   const today = application.demoScenario ? PROCESS_DEMO_DATE : undefined;
+  const deadlines = registrationDeadlines(application, today);
   return <div className="trademark-drawer-overlay" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }} role="presentation">
     <aside aria-label={`Detalle de ${application.name}`} aria-modal="true" className="trademark-drawer" role="dialog">
       <header><div><span>Solicitud N.º {application.applicationNumber}</span><h2>{application.name}</h2></div><button aria-label="Cerrar detalle" onClick={onClose} type="button"><X size={22} /></button></header>
       <div className="trademark-drawer-scroll">
         <section className="trademark-detail-status">
           <span>ESTADO ACTUAL</span>
-          <strong>{status.label}</strong>
+          <strong>{registrationProgress(application, today)}</strong>
+          {registrationProgress(application, today) !== status.label && <small>Última etapa oficial: {status.label}</small>}
           {application.demoScenario && <p className="procedure-scenario">Ejemplo simulado · {application.demoScenario}</p>}
-          {registrationDeadlines(application, today).map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} detailed />)}
+          {deadlines.filter(item => item.kind !== "institutional").map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} detailed />)}
           {application.procedure?.sourceActDate && <p className="procedure-source">Actuación de referencia: {formatDate(application.procedure.sourceActDate)} · {application.procedure.sourceActDescription}</p>}
         </section>
+
+        {onEvidenceSaved && <RegistrationEvidenceEditor key={`${application.id}:${application.procedure?.sourceActId ?? application.statusId}`} application={application} onSaved={onEvidenceSaved} />}
+        {deadlines.some(item => item.kind === "institutional") && <details className="registration-controls"><summary>Controles de respuesta de INAPI ({deadlines.filter(item => item.kind === "institutional").length})</summary><p>Referencias para revisar demoras de la institución. No son plazos fatales del abogado ni cambian el estado del expediente.</p>{deadlines.filter(item => item.kind === "institutional").map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} detailed />)}</details>}
 
         {children}
         <section className="trademark-detail-identity">

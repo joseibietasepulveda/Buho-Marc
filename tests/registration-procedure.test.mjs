@@ -117,14 +117,15 @@ test('the covered LPI calendar excludes weekends and Chilean holidays and refuse
   assert.equal(addProcedureDays('2026-09-17', 1), '2026-09-21');
   assert.equal(addProcedureDays('2026-10-09', 1), '2026-10-13');
   assert.equal(addProcedureDays('2026-12-24', 1), '2026-12-28');
-  for (const [date, days] of [['2025-12-30', 1], ['2026-12-31', 1], ['2027-01-04', 20], ['2026-02-30', 1], ['2026-09-01', -1], ['2026-09-01', 1.5]]) {
+  assert.equal(addProcedureDays('2026-12-31', 1), '2027-01-04');
+  for (const [date, days] of [['2025-12-30', 1], ['2027-12-31', 1], ['2028-01-04', 20], ['2026-02-30', 1], ['2026-09-01', -1], ['2026-09-01', 1.5]]) {
     assert.equal(addProcedureDays(date, days), undefined);
   }
-  const crossYear = deadlineInfo(application({ statusId: 'accepted-publication', procedure: { notifiedAt: '2026-12-15' } }), '2026-12-16');
+  const crossYear = deadlineInfo(application({ statusId: 'accepted-publication', procedure: { notifiedAt: '2027-12-15' } }), '2027-12-16');
   assert.equal(crossYear.attention, 'pending');
   assert.equal(crossYear.dueDate, undefined);
-  const explicitSourceDate = deadlineInfo(application({ statusId: 'accepted-publication', officialDeadline: '2027-01-14', procedure: { notifiedAt: '2026-12-15' } }), '2026-12-16');
-  assert.equal(explicitSourceDate.dueDate, '2027-01-14', 'an explicit source deadline is displayed without estimating an unsupported calendar');
+  const explicitSourceDate = deadlineInfo(application({ statusId: 'accepted-publication', officialDeadline: '2028-01-14', procedure: { notifiedAt: '2027-12-15' } }), '2027-12-16');
+  assert.equal(explicitSourceDate.dueDate, '2028-01-14', 'an explicit source deadline is displayed without estimating an unsupported calendar');
   assert.equal(explicitSourceDate.remaining, undefined);
   assert.equal(explicitSourceDate.origin, 'source');
 });
@@ -196,7 +197,7 @@ test('concurrent opposition and substantive objections retain distinct deadlines
 });
 
 test('the 22 procedural examples are isolated, chronologically coherent and exercise distinct legal outcomes', () => {
-  assert.equal(PROCESS_DEMO_DATE, today);
+  assert.equal(PROCESS_DEMO_DATE, '2026-09-10');
   assert.equal(PROCESS_SCENARIOS.length, 22);
   assert.equal(new Set(PROCESS_SCENARIOS.map((item) => item.id)).size, 22);
   for (const item of PROCESS_SCENARIOS) {
@@ -212,7 +213,8 @@ test('the 22 procedural examples are isolated, chronologically coherent and exer
       preceding = event.date;
     }
     for (const result of registrationDeadlines(item, PROCESS_DEMO_DATE)) {
-      assert.notEqual(result.attention, 'pending', `${item.id}: the example must supply the evidence needed for its stated step`);
+      if (result.kind !== 'institutional') assert.notEqual(result.attention, 'pending', `${item.id}: the example must supply the evidence needed for its stated step`);
+      if (result.dueDate) assert.ok(result.dueDate >= '2026-09-30', `${item.id}: mock deadlines must be on or after the release cutoff`);
       if (result.dueDate) assert.equal(result.origin, 'simulated');
     }
   }
@@ -222,7 +224,7 @@ test('the 22 procedural examples are isolated, chronologically coherent and exer
   assert.equal(deadlineInfo(byId('DEMO-005'), today).attention, 'none');
   assert.equal(deadlineInfo(byId('DEMO-007'), today).sourceDate, byId('DEMO-007').publishedAt);
   assert.equal(deadlineInfo(byId('DEMO-010'), today).days, 50);
-  assert.equal(deadlineInfo(byId('DEMO-013'), today).attention, 'overdue');
+  assert.equal(deadlineInfo(byId('DEMO-013'), PROCESS_DEMO_DATE).attention, 'normal');
   assert.equal(byId('DEMO-013').statusId, 'substantive-objection');
   assert.equal(registrationDeadlines(byId('DEMO-014'), today).length, 2);
   assert.equal(deadlineInfo(byId('DEMO-015'), today).attention, 'none');

@@ -22,7 +22,8 @@ const day = (v: string | null | undefined) => {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : null;
 };
 const plain = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const isFinalAct = (s: string) => /\b(firme|ejecutoria|ejecutoriada)\b/.test(s) && !/\bno (?:se encuentra )?(?:firme|ejecutoriada)|sin (?:firmeza|ejecutoria)|(?:ejecutoria|firmeza).*(pendiente|por confirmar)/.test(s);
+const isFinalAct = (s: string) => /\b(firme|ejecutoria|ejecutoriada)\b/.test(s) && !/\b(?:no|sin|pendiente|solicita|solicitud|requiere|requerimiento)\b.{0,90}\b(?:firme|firmeza|ejecutoria|ejecutoriada)|(?:ejecutoria|firmeza|ejecutoriada).*(?:pendiente|por confirmar|solicitad)/.test(s);
+const isNotificationRecorded = (s: string) => /^(?:(?:constancia|certificacion|certificado) de )?notificacion\b|\bnotificad[ao]s?\b/.test(s) && !/\b(?:no|sin|pendiente|solicita|solicitud|requiere|requerimiento)\b.{0,90}notifica|notifica.{0,90}(?:fallid|frustrad|pendiente|por realizar|no practicad|solicitad|anulad|revocad)/.test(s);
 const isResponseRecorded = (s: string) => !/incumplimiento|no (?:se )?(?:present|contesta|cumpl)|sin (?:contestacion|cumplimiento)|pendiente/.test(s);
 const observationResponse = (s: string) => isResponseRecorded(s) && /\bcumplimiento.*(forma|fondo)|contesta.*observacion.*(forma|fondo)/.test(s);
 export type InapiAct = { event_id?: string | null; event_date?: string | null; due_date?: string | null; status_description?: string | null; observation?: string | null; [key: string]: unknown };
@@ -31,6 +32,9 @@ export type InapiAct = { event_id?: string | null; event_date?: string | null; d
 // must not send a case back to an older stage merely because it is the latest row.
 export function stageForAct(description: string): RegistrationStatusId | undefined {
   const s = plain(description);
+  if (/deja sin efecto|revoca.*concesion|anula.*concesion/.test(s)) return "decision-review";
+  if (/abandono|abandonada/.test(s) && /solicitud|solicita|requiere|rechaza|deniega/.test(s) && !/declara.*abandon|solicitud abandonada/.test(s)) return;
+  if (/prorroga|extension/.test(s) && /prueba|probatori/.test(s)) return;
   if (/resolucion.*cancelacion|registro cancelado|nulidad.*(acog|declara)/.test(s)) return "cancelled";
   if (/declara.*caducidad|registro (vencido|caducado)/.test(s)) return "expired";
   if (/no presentada|tiene por no presentad/.test(s)) return "not-filed";
@@ -52,7 +56,7 @@ export function stageForAct(description: string): RegistrationStatusId | undefin
   if (/aceptacion parcial/.test(s)) return "partial-appeal";
   if (/aceptacion a registro/.test(s)) return "finality-pending";
   if (/rechazo.*oposicion|oposicion.*rechazada/.test(s)) return "substantive-exam";
-  if (/rechazo definitivo.*firme/.test(s)) return "rejected-final";
+  if (/rechazo definitivo/.test(s) && isFinalAct(s)) return "rejected-final";
   if (/fallo de rechazo|resolucion.*rechazo|rechazo definitivo|oposicion.*acogida/.test(s)) return "rejected-appeal";
   if (isResponseRecorded(s) && /\bcumplimiento.*fondo|contesta.*observacion.*fondo/.test(s)) return "substantive-exam";
   if (/observaciones de fondo|observacion de fondo/.test(s)) return "substantive-objection";
@@ -76,9 +80,25 @@ export function inapiProcedure(events: InapiAct[]) {
   let status: RegistrationStatusId = "inapi-waiting";
   let sourceAct: InapiAct | undefined;
   const procedure: NonNullable<RegistrationApplication["procedure"]> = {};
-  const pending = new Map<RegistrationStatusId, { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string }>();
+  const pending = new Map<RegistrationStatusId, { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string; evidenceExtensionDays?: number }>();
+  const extensions = new Set<string>();
   for (const act of orderedInapiActs(events)) {
     const description = plain(act.status_description ?? "");
+    if (/prorroga|extension/.test(description) && /prueba|probatori/.test(description)) {
+      const days = Number(description.match(/\b(\d{1,2})\s*dias\b/)?.[1]);
+      const identity = `${act.event_id ?? ""}:${act.event_date ?? ""}:${description}`;
+      const granted = /concede|otorga|prorroga por/.test(description) && !/no concede|rechaza|deniega|solicita|solicitud|pendiente/.test(description);
+      if (granted && Number.isInteger(days) && days > 0 && days <= 30 && !extensions.has(identity) && pending.has("evidence-period")) {
+        const period = pending.get("evidence-period")!;
+        const total = (period.evidenceExtensionDays ?? 0) + days;
+        if (total <= 30) {
+          period.evidenceExtensionDays = total;
+          if (status === "evidence-period") procedure.evidenceExtensionDays = total;
+          extensions.add(identity);
+        }
+      }
+      continue;
+    }
     let next = stageForAct(act.status_description ?? "");
     // A bare finality certificate inherits the decision it makes final.
     if (isFinalAct(description) && !next) {
@@ -89,24 +109,29 @@ export function inapiProcedure(events: InapiAct[]) {
     if (next === "abandoned-inapi" && ["accepted-payment", "partial-payment", "payment-verification"].includes(status)) next = "abandoned-payment";
     if (!next) continue;
     const actDay = day(act.event_date) ?? undefined;
-    if (next !== status) procedure.notifiedAt = undefined;
+    // A fresh act creates a fresh obligation even if its stage is unchanged.
+    // Never reuse a former observation's notification for a new observation.
+    procedure.notifiedAt = undefined;
     status = next;
     sourceAct = act;
+    if (status === "evidence-period") { procedure.evidenceExtensionDays = undefined; extensions.clear(); }
     if (["form-observation", "substantive-objection", "opposition-answer"].includes(status)) procedure.responseFiledAt = undefined;
     if (["appeal-pending", "decision-review", "finality-pending", "partial-appeal", "rejected-appeal"].includes(status)) { procedure.finalAt = undefined; procedure.paymentAccreditedAt = undefined; }
     if (status === "accepted-publication") procedure.publicationRequestedAt = undefined;
-    if (/notificad|notificacion/.test(description)) procedure.notifiedAt = actDay;
+    if (isNotificationRecorded(description)) procedure.notifiedAt = actDay;
     if (isFinalAct(description)) procedure.finalAt = actDay;
     if (status === "publication-pending") procedure.publicationRequestedAt = actDay;
     if (status === "opposition-answered" || observationResponse(description)) procedure.responseFiledAt = actDay;
     if (status === "payment-verification") procedure.paymentAccreditedAt = actDay;
-    if (status === "substantive-objection" || status === "opposition-answer" || status === "evidence-period") pending.set(status, { statusId: status, sourceActDate: actDay, notifiedAt: /notificad|notificacion/.test(description) ? actDay : undefined, officialDeadline: day(act.due_date) ?? undefined });
+    if (status === "substantive-objection" || status === "opposition-answer" || status === "evidence-period") pending.set(status, { statusId: status, sourceActDate: actDay, notifiedAt: isNotificationRecorded(description) ? actDay : undefined, officialDeadline: day(act.due_date) ?? undefined });
     if (observationResponse(description) && /fondo/.test(description)) pending.delete("substantive-objection");
     if (status === "opposition-answered" || status === "evidence-period") pending.delete("opposition-answer");
     if (status === "decision-pending") { pending.delete("opposition-answer"); pending.delete("evidence-period"); }
     if (["finality-pending", "partial-appeal", "accepted-payment", "partial-payment", "registered", "rejected-appeal", "rejected-final", "not-filed", "abandoned-inapi", "abandoned-payment", "cancelled"].includes(status)) pending.clear();
   }
   procedure.sourceActDate = day(sourceAct?.event_date) ?? undefined;
+  procedure.sourceActId = sourceAct?.event_id ?? undefined;
+  procedure.sourceActCode = typeof sourceAct?.status_code === "string" ? sourceAct.status_code : undefined;
   procedure.sourceActDescription = sourceAct?.status_description ?? undefined;
   const concurrent = [...pending.values()].filter(item => item.statusId !== status);
   if (concurrent.length) procedure.concurrent = concurrent;

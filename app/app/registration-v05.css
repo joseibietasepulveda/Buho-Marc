@@ -1,0 +1,34 @@
+.trademark-registration-view .trademark-canvas { grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr); align-items:stretch; }
+.trademark-registration-view .trademark-phase { display:flex; flex-direction:column; }
+.trademark-registration-view .trademark-phase > header { min-height:190px; }
+.trademark-registration-view .trademark-card-grid { grid-template-columns:minmax(0,1fr); align-content:start; }
+.trademark-registration-view .trademark-phase-empty { flex:1; }
+.trademark-legend .deadline-soon,.trademark-deadline.deadline-soon { color:#a62635; border-color:#e4a3ac; background:#fff1f3; }
+.trademark-legend .deadline-overdue,.trademark-deadline.deadline-overdue { color:#17131b; border-color:#8a858d; background:#eeecef; }
+.trademark-deadline.deadline-overdue strong,.registration-list-deadline.deadline-overdue small { color:#17131b; }
+.registration-list-deadline.deadline-soon small { color:#a62635; }
+.trademark-card.attention-soon { border-top-color:#ba2f40; }
+.trademark-card.attention-overdue { border-top-color:#17131b; }
+.trademark-registration-view .agenda-event.is-overdue { color:#17131b; background:#eeecef; border-color:#8a858d; }
+.registration-evidence,.registration-controls { margin:0 24px 24px; padding:20px; border:1px solid #ded4e6; border-radius:12px; background:#faf7fc; }
+.registration-evidence h3 { margin:0 0 16px; font-size:20px; }
+.registration-evidence p,.registration-controls p { margin:8px 0; line-height:1.6; }
+.evidence-verified { padding:14px; border:1px solid #c7dfd2; border-radius:8px; background:#f1faf5; }
+.registration-evidence a { color:#673491; text-decoration:underline; }
+.registration-evidence details,.registration-controls { margin-top:18px; }
+.registration-evidence summary,.registration-controls summary { font-weight:700; padding:8px 0; cursor:pointer; }
+.registration-evidence form { display:grid; gap:16px; padding-top:16px; }
+.registration-evidence label { display:grid; gap:8px; font-size:14px; font-weight:650; }
+.registration-evidence input:not([type=checkbox]),.registration-evidence select,.registration-evidence textarea { width:100%; min-width:0; min-height:44px; border:1px solid #ccc0d5; border-radius:7px; padding:10px 12px; background:white; color:#24172f; font:inherit; }
+.registration-evidence textarea { min-height:84px; resize:vertical; }
+.evidence-input-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.registration-evidence .evidence-confirm { grid-template-columns:18px minmax(0,1fr); align-items:start; font-weight:450; line-height:1.5; }
+.evidence-confirm input { margin-top:4px; accent-color:#76439b; }
+.evidence-help { font-size:14px; color:#675c70; }
+.evidence-error { color:#a62635; }.evidence-success { color:#226046; }
+.evidence-audit ul { padding-left:20px; }.evidence-audit li { padding:12px 0; overflow-wrap:anywhere; }
+.evidence-audit button { padding:8px 0; text-decoration:underline; color:#714294; text-align:left; }
+.trademark-deadline.institutional-control { background:#f2f6fa; border-color:#c8d5e2; color:#345774; }
+.trademark-deadline.institutional-control strong { color:#345774; }
+@media(max-width:1100px) { .trademark-registration-view .trademark-canvas { grid-template-columns:minmax(0,1fr); gap:16px; }.trademark-registration-view .trademark-phase > header { min-height:150px; } }
+@media(max-width:600px) { .evidence-input-row { grid-template-columns:1fr; }.registration-evidence,.registration-controls { margin:0 14px 20px; padding:16px; } }

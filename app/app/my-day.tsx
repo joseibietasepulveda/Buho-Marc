@@ -22,10 +22,10 @@ export function MyDay({ cases, matches, notices, onCase, onMatch, onNotice, onRe
   });
   // Unassigned reviews remain visible only in the team view; no ownership is inferred.
   if (!owner) {
-    const deadlines = applications.flatMap(item => registrationDeadlines(item));
+    const deadlines = applications.flatMap(item => registrationDeadlines(item)).filter(item => item.kind !== "institutional" && item.kind !== "milestone");
     for (const [attention, label, rank] of [["overdue", "gestiones con plazo vencido", 0], ["soon", "gestiones próximas a vencer", 1], ["pending", "gestiones con vencimiento no determinado", 2]] as const) {
       const due = deadlines.filter(item => item.attention === attention);
-      if (due.length) items.push({ id: `registrations-${attention}`, title: `${due.length} ${label}`, context: `Inscripciones · ${[...new Set(due.map(item => item.label))].join(" · ")}`, label: attention === "pending" ? "Revisar antecedente" : attention === "overdue" ? "Plazo vencido" : "Próximo a vencer", tone: attention === "pending" ? "unknown" : attention, rank, open: onRegistrations });
+      if (due.length) items.push({ id: `registrations-${attention}`, title: `${due.length} ${label}`, context: `Registros · ${[...new Set(due.map(item => item.label))].join(" · ")}`, label: attention === "pending" ? "Revisar antecedente" : attention === "overdue" ? "Plazo vencido" : "Próximo a vencer", tone: attention === "pending" ? "unknown" : attention, rank, open: onRegistrations });
     }
     const pending = matches.filter(item => item.status === "Pendiente de clasificación");
     items.push(...pending.map(item => ({ id: `match-${item.id}`, title: `${item.brand} / ${item.found}`, context: "Vigilancia · Pendiente de clasificación", label: "Revisar coincidencia", tone: "review", rank: 3, open: () => onMatch(item.id) })));
@@ -36,7 +36,7 @@ export function MyDay({ cases, matches, notices, onCase, onMatch, onNotice, onRe
   return <section className="buho-my-day" aria-labelledby="my-day-heading">
     <header><div><span className="buho-overline">TRABAJO POR ATENDER</span><h2 id="my-day-heading">Mi día</h2><p>Plazos y revisiones pendientes. Abre el asunto para continuar.</p></div><label>Responsable de casos<select value={owner} onChange={event => { setOwner(event.target.value); setShowAll(false); }}><option value="">Todo el equipo</option>{owners.map(name => <option key={name}>{name}</option>)}</select></label></header>
     {owner && <p className="buho-work-note">Mostrando casos de {owner}. Las vigilancias y notificaciones sin responsable están en «Todo el equipo».</p>}
-    {!owner && (loadState.loading || loadState.error) && <p className="buho-work-note" role="status">{loadState.loading ? "Cargando los plazos de inscripciones…" : loadState.error}</p>}
+    {!owner && (loadState.loading || loadState.error) && <p className="buho-work-note" role="status">{loadState.loading ? "Cargando los plazos de registros…" : loadState.error}</p>}
     {visible.length ? <ol>{visible.map(item => <li key={item.id}><button onClick={item.open} type="button"><span className={`work-status work-${item.tone}`}>{item.label}</span><span className="my-day-identity"><strong>{item.title}</strong><small>{item.context}</small></span><span className="my-day-date">{item.date ? displayWorkDate(item.date) : "Abrir asunto"} <span aria-hidden>↗</span></span></button></li>)}</ol> : <p className="buho-work-note">No hay plazos vencidos, próximos o sin fecha ni revisiones pendientes en esta vista.</p>}
     {items.length > 6 && <button className="my-day-more" type="button" onClick={() => setShowAll(value => !value)}>{showAll ? "Mostrar menos" : "Ver toda la bandeja"}</button>}
   </section>;

@@ -1,0 +1,99 @@
+/* v0.5: aligned summary headings and explicit navigation to the full agenda. */
+.buho-dashboard-grid > :is(.buho-agenda,.buho-dashboard-matches) > header h2 {
+  margin:8px 0 0;
+  font-size:clamp(28px,2.3vw,34px);
+  line-height:1.12;
+  letter-spacing:-.055em;
+}
+.buho-dashboard-grid > :is(.buho-agenda,.buho-dashboard-matches) > header .buho-overline {
+  color:#5c4b69;
+  font-size:14px;
+  line-height:1.35;
+  letter-spacing:.13em;
+}
+.buho-dashboard-grid > .buho-dashboard-matches > header { align-items:flex-start; gap:18px; }
+.buho-dashboard-grid > .buho-dashboard-matches > header > div { min-width:0; }
+.buho-calendar-context { display:grid; justify-items:end; gap:7px; text-align:right; }
+.buho-calendar-context small { color:#675d68; font-size:14px; font-weight:700; line-height:1.3; }
+.buho-calendar-context a { color:#75459b; font-size:13px; font-weight:650; text-decoration:underline; text-underline-offset:3px; line-height:1.4; }
+.buho-calendar-context a:hover { color:#442254; }
+.buho-calendar-context a:focus-visible { outline:2px solid #8954b1; outline-offset:4px; border-radius:3px; }
+
+/* Box heights refer to the controls, not their labels. */
+.buho-topbar .buho-actions.brand-portfolio-actions {
+  display:grid;
+  grid-template-columns:minmax(190px,.9fr) minmax(250px,1.3fr) auto auto;
+  align-items:end;
+  width:min(100%,1060px);
+  gap:10px;
+}
+.brand-portfolio-actions .brand-attribute-select { min-width:0; }
+.brand-portfolio-actions .brand-attribute-select select,
+.brand-portfolio-actions .buho-search,
+.brand-portfolio-actions > button { height:52px; min-height:52px; box-sizing:border-box; }
+.brand-portfolio-actions .buho-search { min-width:0; border-radius:7px; }
+.brand-portfolio-actions .buho-search span { flex-shrink:0; white-space:nowrap; }
+.brand-portfolio-actions .buho-search input { height:100%; padding-block:0; }
+.brand-portfolio-actions > button { padding:0 18px; white-space:nowrap; }
+
+/* The logo has its own space: it no longer stretches the text input row. */
+.feasibility-search-layout { display:grid; grid-template-columns:minmax(0,1fr) 180px; align-items:start; gap:18px; }
+.feasibility-search-layout .feasibility-input-area { min-width:0; display:grid; justify-items:start; gap:14px; }
+.feasibility-search-layout .feasibility-searchbar {
+  width:100%;
+  min-height:62px;
+  grid-template-columns:minmax(240px,.55fr) minmax(220px,1fr);
+}
+.feasibility-search-layout .feasibility-mode { min-width:240px; }
+.feasibility-search-layout .feasibility-mode select { min-height:60px; padding:0 36px 0 18px; font-size:16px; }
+.feasibility-search-layout .feasibility-name { min-height:60px; }
+.feasibility-search-layout .feasibility-name input { font-size:18px; }
+.feasibility-search-layout .feasibility-upload,
+.feasibility-search-layout .feasibility-upload.has-image {
+  width:180px;
+  min-height:145px;
+  grid-template-columns:1fr;
+  gap:7px;
+  padding:10px;
+  border:1px solid #d8cbe0;
+  border-radius:10px;
+  text-align:center;
+}
+.feasibility-search-layout .feasibility-upload img { width:158px; height:112px; object-fit:contain; background:white; }
+.feasibility-search-layout .feasibility-submit {
+  min-height:50px;
+  width:auto;
+  max-width:100%;
+  grid-column:auto;
+  padding:14px 24px;
+  border-radius:8px;
+  font-size:16px;
+  line-height:1.35;
+  text-align:center;
+}
+.feasibility-search-layout .feasibility-submit svg { flex-shrink:0; }
+.feasibility-search-layout :is(.feasibility-upload,.feasibility-submit):focus-visible { outline:3px solid #ab83c7; outline-offset:3px; }
+
+.buho-about .buho-roadmap-group { margin-top:28px; padding-top:24px; border-top:1px solid #ded4e3; }
+.buho-about .buho-roadmap-group:first-of-type { margin-top:24px; padding-top:0; border-top:0; }
+.buho-about .buho-roadmap-group h3 { margin:0; color:#302038; font-size:19px; font-weight:750; line-height:1.35; letter-spacing:-.02em; }
+.buho-about .buho-roadmap-group ul { margin-top:13px; }
+
+@media(max-width:1300px) {
+  .buho-topbar .buho-actions.brand-portfolio-actions { grid-template-columns:minmax(210px,1fr) minmax(250px,1fr); width:100%; }
+  .feasibility-search-layout .feasibility-searchbar { grid-template-columns:1fr; }
+  .feasibility-search-layout .feasibility-mode { border-right:0; border-bottom:1px solid #ded3e5; }
+  .feasibility-search-layout .feasibility-mode select,.feasibility-search-layout .feasibility-name { min-height:54px; }
+}
+@media(max-width:700px) {
+  .buho-calendar-meta { flex-wrap:wrap; }
+  .buho-calendar-context { justify-items:start; text-align:left; }
+  .buho-topbar .buho-actions.brand-portfolio-actions { grid-template-columns:1fr; }
+  .feasibility-search-layout { grid-template-columns:1fr; gap:14px; }
+  .feasibility-search-layout .feasibility-searchbar { grid-template-columns:minmax(0,1fr); }
+  .feasibility-search-layout .feasibility-mode { min-width:0; }
+  .feasibility-search-layout .feasibility-submit { width:100%; }
+  .feasibility-search-layout .feasibility-upload,
+  .feasibility-search-layout .feasibility-upload.has-image { width:100%; min-height:112px; grid-template-columns:128px 1fr; text-align:left; }
+  .feasibility-search-layout .feasibility-upload img { width:128px; height:100px; }
+}

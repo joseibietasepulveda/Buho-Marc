@@ -2,6 +2,8 @@ import { expandedDemoBrands, demoBrandDetails } from "../lib/demo-brand-catalogu
 import { getSql } from "./index";
 import { isRealSource, reprojectInapiRecord } from "../lib/inapi-provider";
 import type { SourceRecord } from "../lib/source-contract";
+import { migrateDemoV05 } from "./demo-v05";
+import { DEMO_V05_CASE_DATES, DEMO_V05_MATCH_DATES } from "../lib/demo-v05-data";
 
 export const DEMO_ORG_ID = "10000000-0000-4000-8000-000000000001";
 export const DEMO_PLAN_ID = "10000000-0000-4000-8000-000000000010";
@@ -86,7 +88,7 @@ async function seedDemo() {
       await tx`INSERT INTO organization_members (organization_id, user_id, role) VALUES (${DEMO_ORG_ID}, ${user[0]}, ${user[0] === DEMO_USER_ID ? "admin" : "member"}) ON CONFLICT DO NOTHING`;
     }
     await tx`INSERT INTO subscriptions (id, organization_id, plan_id, status, period_start, period_end) VALUES (${DEMO_SUBSCRIPTION_ID}, ${DEMO_ORG_ID}, ${DEMO_PLAN_ID}, 'active', '2026-08-01', '2026-08-31') ON CONFLICT (id) DO NOTHING`;
-    if (isRealSource()) return;
+    if (isRealSource()) { await migrateDemoV05(tx, DEMO_ORG_ID, DEMO_USER_ID); return; }
     for (const brand of seedBrands) {
       const inserted = await tx`INSERT INTO brands (id, organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, status, created_by, last_reviewed_at, created_at, updated_at) VALUES (${brand[0]}, ${DEMO_ORG_ID}, ${brand[1]}, ${brand[2]}, ${brand[2]}, ${brand[3]}, ${brand[4]}, ${brand[5]}, ${brand[6]}, ${DEMO_USER_ID}, ${brand[7]}, ${brand[7]}, ${brand[7]}) ON CONFLICT (id) DO NOTHING RETURNING id`;
       if (inserted.length) for (const niceClass of brand[8]) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand[0]}, ${niceClass}) ON CONFLICT DO NOTHING`;
@@ -104,10 +106,10 @@ async function seedDemo() {
       if (inserted.length) for (const niceClass of brand.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
     }
     for (const match of seedMatches) {
-      await tx`INSERT INTO matches (id, organization_id, public_code, brand_id, source, source_record_id, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, legal_deadline, owner_id, created_at, updated_at) VALUES (${match[0]}, ${DEMO_ORG_ID}, ${match[1]}, ${match[2]}, ${match[3]}, ${match[4]}, ${match[5]}, ${match[6]}, ${match[7]}, ${match[8]}, ${match[9]}, ${match[10]}, ${`Coincidencia de demostración con puntaje ${match[10]}. El motor real no está conectado.`}, ${match[11]}, ${match[12]}, ${match[13]}, ${`${match[5]}T14:00:00Z`}, ${`${match[5]}T14:00:00Z`}) ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO matches (id, organization_id, public_code, brand_id, source, source_record_id, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, legal_deadline, owner_id, created_at, updated_at) VALUES (${match[0]}, ${DEMO_ORG_ID}, ${match[1]}, ${match[2]}, ${match[3]}, ${match[4]}, ${match[5]}, ${match[6]}, ${match[7]}, ${match[8]}, ${match[9]}, ${match[10]}, ${`Coincidencia de demostración con puntaje ${match[10]}. El motor real no está conectado.`}, ${match[11]}, ${DEMO_V05_MATCH_DATES[match[1]] ?? match[12]}, ${match[13]}, ${`${match[5]}T14:00:00Z`}, ${`${match[5]}T14:00:00Z`}) ON CONFLICT (id) DO NOTHING`;
       for (const [type, factor] of [["denominativa", 1], ["fonetica", 0.93], ["clase", 0.86]] as const) await tx`INSERT INTO match_scores (match_id, score_type, score, engine_version, evidence) VALUES (${match[0]}, ${type}, ${Math.round(match[10] * factor)}, 'demo-only', ${tx.json({ demo: true })}) ON CONFLICT DO NOTHING`;
     }
-    for (const item of seedCases) await tx`INSERT INTO cases (id, organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${item[0]}, ${DEMO_ORG_ID}, ${item[1]}, ${item[2]}, ${item[3]}, ${item[4]}, ${item[5]}, ${item[6]}, ${item[7]}, ${item[8]}, ${item[9]}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
+    for (const item of seedCases) await tx`INSERT INTO cases (id, organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${item[0]}, ${DEMO_ORG_ID}, ${item[1]}, ${item[2]}, ${item[3]}, ${item[4]}, ${item[5]}, ${item[6]}, ${item[7]}, ${DEMO_V05_CASE_DATES[item[1]] ?? item[8]}, ${item[9]}, ${DEMO_USER_ID}) ON CONFLICT (id) DO NOTHING`;
     for (let index = 0; index < 3; index += 1) await tx`UPDATE matches SET case_id = ${ids.cases[index]} WHERE id = ${ids.matches[index]} AND case_id IS NULL`;
     await tx`DELETE FROM notifications WHERE organization_id = ${DEMO_ORG_ID} AND public_code = 'NO-108'`;
     for (const notice of seedNotices) {
@@ -115,6 +117,7 @@ async function seedDemo() {
       const draftId = ids.drafts[seedNotices.indexOf(notice)];
       await tx`INSERT INTO email_drafts (id, organization_id, notification_id, subject, body, generated_by, generated_at) VALUES (${draftId}, ${DEMO_ORG_ID}, ${notice[0]}, ${notice[8]}, ${notice[9]}, ${DEMO_USER_ID}, ${notice[7]}) ON CONFLICT (id) DO NOTHING`;
     }
+    await migrateDemoV05(tx, DEMO_ORG_ID, DEMO_USER_ID);
   });
 }
 

@@ -1,0 +1,75 @@
+.priority-notice-list { overflow:hidden; border:1px solid #e1d7e7; border-radius:12px; }
+.priority-notice-list:empty { display:none; }
+.priority-notice-row { width:100%; display:flex; align-items:center; gap:18px; padding:24px; border:0; background:white; color:#291f31; text-align:left; }
+.priority-notice-row + .priority-notice-row { border-top:1px solid #e5ddeb; }
+.priority-notice-row:hover { background:#faf6fd; }
+.priority-notice-row.is-unread { background:#fcf9ff; }
+.priority-notice-copy { flex:1; min-width:0; }
+.priority-notice-copy > :is(small,strong,span) { display:block; }
+.priority-notice-copy small { color:#796883; font-size:14px; line-height:1.5; }
+.priority-notice-copy strong { margin:6px 0; font-size:19px; line-height:1.4; overflow-wrap:anywhere; }
+.priority-notice-copy > span { color:#796883; font-size:14px; }
+.priority-notice-source { padding:6px 10px; background:#f1eaf7; color:#6f4c84; border-radius:6px; font-size:13px; }
+.priority-notice-open { white-space:nowrap; color:#704294; font-size:15px; font-weight:700; }
+.priority-notice-drawer { position:fixed; inset:0 0 0 auto; width:min(780px,calc(100vw - 28px)); max-width:none; height:100dvh; max-height:100dvh; margin:0; margin-left:auto; padding:0; border:0; border-left:1px solid #ded4e5; border-radius:16px 0 0 16px; background:#fcfaf7; color:#291f31; box-shadow:-20px 0 70px #1b0e3033; font:16px/1.55 Arial,sans-serif; overflow:hidden; }
+.priority-notice-drawer[open] { display:flex; flex-direction:column; }
+.priority-notice-drawer::backdrop { background:#190e2866; backdrop-filter:blur(3px); }
+.priority-notice-drawer > header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex:0 0 auto; padding:25px 28px; border-bottom:1px solid #e1d8e6; background:#fff; }
+.priority-notice-drawer > header > div { min-width:0; }
+.priority-notice-drawer > header span { color:#80698b; font-size:12px; letter-spacing:.07em; }
+.priority-notice-drawer > header h2 { margin:7px 0 0; font-size:26px; line-height:1.2; letter-spacing:-.03em; overflow-wrap:anywhere; }
+.priority-notice-drawer > header button { flex-shrink:0; display:grid; place-items:center; width:42px; height:42px; border:1px solid #dfd4e6; border-radius:50%; color:#5f4a6b; background:white; font-size:28px; line-height:1; }
+.priority-notice-scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:28px; }
+.priority-notice-highlight { padding:22px; border:1px solid #d8c6e5; border-radius:12px; background:#f4ecfa; }
+.priority-notice-highlight small { color:#7a6388; font-size:14px; }
+.priority-notice-highlight h3 { margin:9px 0; font-size:23px; line-height:1.35; }
+.priority-notice-highlight p { margin:9px 0 0; font-size:15px; }
+.priority-notice-history { margin-top:32px; }
+.priority-notice-history > header { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; }
+.priority-notice-history h3,.priority-other-changes h3 { margin:0; font-size:21px; }
+.priority-notice-history > header span { font-size:13px; color:#806e89; }
+.priority-notice-history > p { margin:12px 0 24px; color:#7c6c84; font-size:14px; line-height:1.6; }
+.priority-timeline { list-style:none; margin:0; padding:0 0 0 9px; }
+.priority-timeline > li { position:relative; padding:0 0 27px 26px; border-left:2px solid #dfd5e6; }
+.priority-timeline > li:last-child { padding-bottom:0; border-left-color:transparent; }
+.priority-timeline-dot { position:absolute; top:5px; left:-6px; width:10px; height:10px; border-radius:50%; background:#b3a1bd; box-shadow:0 0 0 4px #fcfaf7; }
+.priority-timeline .is-current .priority-timeline-dot { background:#8852af; box-shadow:0 0 0 4px #eee1f7; }
+.priority-timeline small { color:#806e89; font-size:13px; }
+.priority-timeline h4 { margin:7px 0 10px; font-size:17px; line-height:1.45; font-weight:700; }
+.priority-timeline-tag { display:inline-block; margin-bottom:12px; padding:3px 9px; border-radius:5px; background:#eadcf6; color:#704292; font-size:12px; }
+.priority-notice-drawer details { margin-top:4px; border:1px solid #e1d7e7; border-radius:8px; background:white; overflow:hidden; }
+.priority-notice-drawer details > summary { display:flex; justify-content:space-between; gap:15px; list-style:none; padding:11px 14px; cursor:pointer; color:#6c4a81; font-size:14px; }
+.priority-notice-drawer details > summary::-webkit-details-marker { display:none; }
+.priority-notice-drawer details[open] > summary { border-bottom:1px solid #e7dfec; }
+.priority-notice-drawer details[open] > summary > span { transform:rotate(180deg); }
+.priority-evidence-fields { margin:0; padding:4px 15px 15px; }
+.priority-evidence-fields > div { padding-top:12px; }
+.priority-evidence-fields dt { margin:0 0 4px; color:#7a6983; font-size:12px; font-weight:700; }
+.priority-evidence-fields dd { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; }
+.priority-other-changes { margin-top:30px; }
+.priority-other-changes h3 { margin-bottom:14px; }
+.priority-other-changes details + details { margin-top:10px; }
+.priority-notice-drawer .priority-notice-reference { margin-top:26px; }
+.priority-notice-drawer .priority-history-warning { color:#79591f; font-size:14px; }
+.priority-notice-drawer > footer { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; flex:0 0 auto; min-height:0; margin:0; padding:18px 28px; border:0; border-top:1px solid #e1d8e6; background:white; color:inherit; }
+.priority-notice-drawer > footer button { border:1px solid #d5c4df; border-radius:7px; padding:11px 16px; color:#704292; background:white; font-size:15px; }
+.priority-notice-drawer > footer .priority-review-action { background:#2b1b35; color:white; border-color:#2b1b35; }
+.priority-notice-drawer :is(button,summary):focus-visible { outline:3px solid #8150aa; outline-offset:3px; }
+.priority-notice-drawer button { cursor:pointer; }
+.priority-notice-drawer button:disabled { opacity:.5; cursor:default; }
+/* The existing desktop shell scales html to .8. This top-level portal must
+   still cover the physical viewport and stay independent of content zoom. */
+@media (min-width:901px) { .priority-notice-drawer { zoom:1.25; } }
+@media (max-width:700px) {
+  .priority-notice-row { flex-wrap:wrap; gap:10px 14px; padding:18px; }
+  .priority-notice-copy { flex-basis:calc(100% - 35px); }
+  .priority-notice-copy strong { font-size:17px; }
+  .priority-notice-source { margin-left:22px; }
+  .priority-notice-open { margin-left:auto; }
+  .priority-notice-drawer { width:calc(100vw - 12px); border-radius:12px 0 0 12px; }
+  .priority-notice-drawer > header,.priority-notice-scroll { padding:20px; }
+  .priority-notice-drawer > header h2 { font-size:23px; }
+  .priority-notice-highlight { padding:17px; }
+  .priority-notice-highlight h3 { font-size:21px; }
+  .priority-notice-drawer > footer { padding:16px 20px; }
+}

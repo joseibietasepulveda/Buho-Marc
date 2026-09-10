@@ -8,7 +8,7 @@ export type AgendaCategory = keyof typeof AGENDA_CATEGORIES;
 export type AgendaEvent = {
   id: string; entityId: string; entityType: "case" | "application"; taskId?: string;
   title: string; context: string; date: string | null; category: AgendaCategory;
-  assigneeId?: string | null; owner?: string; fatal?: boolean; detail?: string;
+  assigneeId?: string | null; owner?: string; fatal?: boolean; detail?: string; institutional?: boolean; informational?: boolean;
 };
 type AgendaCase = { id: string; title: string; brand: string; stage: string; deadline: string; deadlineDescription: string; owner: string; tasks?: CaseTask[] };
 
@@ -29,12 +29,12 @@ export function registrationAgenda(applications: RegistrationApplication[], task
       id: `application:${application.id}:${deadline.key}`, entityId: application.id, entityType: "application" as const,
       title: deadline.label, context: `${application.name} · Solicitud ${application.applicationNumber}`, date: deadline.dueDate!,
       category: deadline.key === "accepted-publication" ? "gazette" as const : "inapi" as const,
-      fatal: true, detail: `${deadline.trigger}${deadline.sourceDate ? ` · ${deadline.sourceDate}` : ""}. ${deadline.explanation}`,
+      fatal: deadline.fatal ?? true, institutional: deadline.kind === "institutional", informational: deadline.kind === "milestone" && !deadline.fatal, detail: `${deadline.kind === "institutional" ? "Control administrativo, no vencimiento del abogado. " : ""}${deadline.trigger}${deadline.sourceDate ? ` · ${deadline.sourceDate}` : ""}. ${deadline.explanation}`,
     })),
     ...tasks.filter(task => task.applicationId === application.id && task.status === "pending").map(task => ({ id: `task:${task.id}`, entityId: application.id, entityType: "application" as const, taskId: task.id, title: task.title, context: `${application.name} · Solicitud ${application.applicationNumber}`, date: parseWorkDate(task.dueDate ?? undefined), category: "task" as const, assigneeId: task.assigneeId })),
   ]);
 }
 export function urgentAgenda(events: AgendaEvent[], today = chileToday()) {
-  return events.filter(event => event.date && ["soon", "overdue"].includes(workDeadline(event.date, false, today).tone))
+  return events.filter(event => !event.institutional && !event.informational && event.date && ["soon", "overdue"].includes(workDeadline(event.date, false, today).tone))
     .sort((a, b) => a.date!.localeCompare(b.date!) || Number(Boolean(b.fatal)) - Number(Boolean(a.fatal)));
 }

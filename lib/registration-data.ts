@@ -1,3 +1,4 @@
+import { upgradeDemoApplicationV05 } from "./demo-v05-data";
 export type RegistrationPhase = "inapi" | "gazette";
 export type RegistrationStatusId =
   | "publication-pending"
@@ -38,10 +39,28 @@ type StatusDefinition = {
   terminal?: "positive" | "negative" | "neutral";
 };
 
-type HistoryEvent = { date: string; status?: string; detail?: string; intake?: boolean };
+export type HistoryEvent = { date: string; status?: string; detail?: string; intake?: boolean; eventId?: string; code?: string };
+
+export type LegalEvidence = {
+  id: string;
+  kind: "notification" | "finality" | "ready-to-resolve" | "certificate-payment";
+  date: string;
+  method: "daily-state" | "inapi-inbox" | "personal" | "official-document";
+  reference: string;
+  sourceUrl?: string;
+  actId: string;
+  actDate: string;
+  actDescription: string;
+  recordedAt: string;
+  recordedBy: string;
+  revokedAt?: string;
+};
+
+export type NotificationProof = { date: string; method: string; reference: string; sourceUrl?: string; verifiedBy: "public-document" | "team" | "source" };
 
 export type RegistrationApplication = {
   demoScenario?: string;
+  legalEvidence?: LegalEvidence[];
   procedure?: {
     notifiedAt?: string;
     finalAt?: string;
@@ -50,8 +69,16 @@ export type RegistrationApplication = {
     paymentAccreditedAt?: string;
     evidenceExtensionDays?: number;
     sourceActDate?: string;
+    sourceActId?: string;
+    sourceActCode?: string;
     sourceActDescription?: string;
-    concurrent?: { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string }[];
+    notificationProof?: NotificationProof;
+    finalityProof?: NotificationProof;
+    readyToResolveAt?: string;
+    certificatePaymentAt?: string;
+    readyToResolveProof?: NotificationProof;
+    certificatePaymentProof?: NotificationProof;
+    concurrent?: { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string; evidenceExtensionDays?: number }[];
   };
   provider?: "inapi";
   officialDeadline?: string;
@@ -112,7 +139,7 @@ export const STATUS_DEFINITIONS: StatusDefinition[] = [
 
 export const STATUS_BY_ID = Object.fromEntries(STATUS_DEFINITIONS.map((status) => [status.id, status])) as Record<RegistrationStatusId, StatusDefinition>;
 
-export const INITIAL_APPLICATIONS: RegistrationApplication[] = [
+const LEGACY_INITIAL_APPLICATIONS: RegistrationApplication[] = [
   {
     id: "IM-014", name: "CERRO AZUL", logo: "/logos/logo-00.png", applicationNumber: "1582491", type: "Mixta", filedAt: "2026-08-05", statusId: "accepted-publication", deadlineSource: "2026-08-20", recentEvent: "Solicitud aceptada a trámite", niceClasses: "29, 30 y 35", holderRut: "77.614.290-6", holder: "Alimentos Cerro Azul SpA", client: "Cerro Azul", fileUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", history: [
       { date: "2026-08-05", intake: true },
@@ -200,3 +227,5 @@ export const INITIAL_APPLICATIONS: RegistrationApplication[] = [
     ],
   },
 ];
+
+export const INITIAL_APPLICATIONS = LEGACY_INITIAL_APPLICATIONS.map(upgradeDemoApplicationV05);

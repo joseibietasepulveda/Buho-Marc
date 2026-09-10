@@ -2,6 +2,7 @@
 import "./source-admin.css";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { displayValue, fieldLabels, sourceStatuses, statusLabel, type FieldChange, type SourceRecord } from "@/lib/source-contract";
+import { sourceReviewDate, type SourceReviewStatus } from "@/lib/source-schedule";
 
 import { SourceInspector, sourceDate } from "./source-inspector";
 
@@ -79,9 +80,43 @@ export function EnrollInapi({ onClose, onSaved }: { onClose: () => void; onSaved
 
 export function ReviewSource({ onReviewed, real = false }: { onReviewed: () => Promise<void>; real?: boolean }) {
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState(false);
+  const [status, setStatus] = useState<SourceReviewStatus | null>(null);
+  const [statusError, setStatusError] = useState("");
+  const request = useRef<AbortController | null>(null);
+  const loadStatus = useCallback(async () => {
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
+    try {
+      const response = await fetch("/api/source/status", { cache: "no-store", signal: controller.signal });
+      const payload = await response.json();
+      if (!response.ok) throw new Error("No se pudo confirmar el estado de actualización. Intenta nuevamente.");
+      if (!controller.signal.aborted) { setStatus(payload); setStatusError(""); }
+    } catch (caught) {
+      if (!controller.signal.aborted) setStatusError(caught instanceof Error ? caught.message : "No se pudo consultar el estado de actualización.");
+    }
+  }, []);
+  useEffect(() => {
+    const initial = setTimeout(() => void loadStatus(), 0);
+    const refresh = () => { if (document.visibilityState === "visible") void loadStatus(); };
+    const timer = setInterval(refresh, 60000);
+    window.addEventListener("buho-source-reviewed", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { clearTimeout(initial); clearInterval(timer); request.current?.abort(); window.removeEventListener("buho-source-reviewed", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [loadStatus]);
   async function review() {
     setBusy(true); setMessage(""); setError(false);
-    try { const r = await fetch("/api/monitoring/sync", { method: "POST" }); const p = await r.json(); if (!r.ok) throw new Error(p.message); await onReviewed(); window.dispatchEvent(new Event("buho-source-reviewed")); setMessage(p.skipped ? p.reason : `${p.received} expedientes revisados · ${p.changed} actualizados · ${p.notifications} notificaciones nuevas`); } catch (e) { setMessage(e instanceof Error ? e.message : "No se pudo revisar la fuente"); setError(true); } finally { setBusy(false); }
+    try { const r = await fetch("/api/monitoring/sync", { method: "POST" }); const p = await r.json(); if (!r.ok) throw new Error(p.message); await onReviewed(); window.dispatchEvent(new Event("buho-source-reviewed")); setMessage(p.skipped ? p.reason : `${p.received} expedientes revisados · ${p.changed} actualizados · ${p.notifications} notificaciones nuevas`); } catch (e) { setMessage(e instanceof Error ? e.message : "No se pudo revisar la fuente"); setError(true); } finally { setBusy(false); await loadStatus(); }
   }
-  return <div className="source-review"><div><b>Revisión de expedientes</b><span>Todos los días a las 12:30, hora de Chile · {real ? "INAPI · datos reales" : "Fuente simulada"}</span></div>{message && <p className={error ? "source-error" : ""} role={error ? "alert" : "status"}>{message}</p>}<a href="#sourceAdmin">Administrar fuente ↗</a><button className="buho-primary" disabled={busy} onClick={() => void review()}>{busy ? "Revisando…" : "Revisar"}</button></div>;
+  const checkedAt = status ? new Date(status.checkedAt) : null;
+  return <div className="source-review source-review-schedule"><div className="source-review-copy">
+    <b>{status ? status.lastSuccess?.completed_at && checkedAt ? `Actualizado por última vez ${sourceReviewDate(status.lastSuccess.completed_at, checkedAt)}` : "Aún no hay una revisión completa exitosa" : statusError ? "Actualización por confirmar" : "Consultando última actualización…"}</b>
+    {status && checkedAt && <span>{status.automaticEnabled && status.nextScheduledAt ? `Próxima actualización programada: ${sourceReviewDate(status.nextScheduledAt, checkedAt)}` : "Actualización automática desactivada. Puedes actualizar con Revisar."}</span>}
+    <small>{status?.automaticEnabled ? "Todos los días a las 12:30 p. m. · " : ""}Hora de Santiago de Chile · {real ? "INAPI · datos reales" : "Fuente simulada"}</small>
+    {status?.lastSuccess && <small>{status.lastSuccess.received} expedientes incluidos en la última revisión completa de la cartera. La fecha de consulta no reemplaza la fecha de actuación o notificación.</small>}
+    {status?.latest?.status === "failed" && <p className="source-review-warning" role="status">La revisión más reciente no se completó. {status.lastSuccess ? "Se conserva la información de la última revisión exitosa." : "Todavía no hay una revisión completa exitosa registrada."} Puedes reintentar con Revisar.</p>}
+    {status?.latest?.status === "running" && <p role="status">Revisión en curso. La última actualización cambiará cuando termine correctamente.</p>}
+    {statusError && <p className="source-error" role="status">{statusError} {status && "Los datos de actualización mostrados corresponden a la última consulta disponible."}<button type="button" className="source-review-retry" onClick={() => void loadStatus()}>Volver a consultar</button></p>}
+    {message && <p className={error ? "source-error" : ""} role={error ? "alert" : "status"}>{message}</p>}
+  </div><a href="#sourceAdmin">Administrar fuente ↗</a><button className="buho-primary" disabled={busy || status?.latest?.status === "running"} onClick={() => void review()}>{busy || status?.latest?.status === "running" ? "Revisando…" : "Revisar"}</button></div>;
 }

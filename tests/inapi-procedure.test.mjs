@@ -5,6 +5,39 @@ import { updatedApplication } from "../db/source.ts";
 import { compareRecords, describeChanges, sourceRecordSchema } from "../lib/source-contract.ts";
 
 const act = (description, date, extra = {}) => ({ event_id: date, event_date: date, status_code: null, status_description: description, ...extra });
+
+test('negative notification and finality wording never confirms the missing legal event', () => {
+  for (const description of ['Resolución de observaciones de fondo pendiente de notificación', 'Notificación fallida de observaciones de fondo', 'Observaciones de fondo sin notificación', 'Observaciones de fondo no notificadas', 'Notificación de observaciones de fondo solicitada', 'Notificación de observaciones de fondo anulada', 'Resolución sobre notificación de observación de fondo']) {
+    assert.equal(inapiProcedure([act(description, '2026-09-04')]).procedure.notifiedAt, undefined, description);
+  }
+  for (const description of ['Resolución de aceptación a registro no está firme', 'Resolución de aceptación a registro sin certificación de ejecutoria', 'Solicitud de certificado de ejecutoria', 'Certificado de ejecutoria solicitado']) {
+    const p = inapiProcedure([act('Resolución de aceptación a registro', '2026-09-01'), act(description, '2026-09-04')]);
+    assert.equal(p.procedure.finalAt, undefined, description);
+    assert.notEqual(p.status, 'accepted-payment', description);
+  }
+  assert.equal(stageForAct('Resolución de rechazo definitivo no firme'), 'rejected-appeal');
+  assert.equal(stageForAct('Resolución que rechaza solicitud de abandono'), undefined);
+  assert.equal(stageForAct('Resolución que deja sin efecto la concesión de marca'), 'decision-review');
+});
+
+test('a granted evidence extension adds only its stated days without resetting the original clock', () => {
+  const original = act('Notificación de resolución que recibe la causa a prueba', '2026-07-01');
+  const request = act('Solicitud de prórroga del término probatorio', '2026-07-10');
+  const ambiguous = act('Prórroga del término probatorio notificada', '2026-07-15');
+  const granted = act('Se concede prórroga de 20 días del término probatorio', '2026-07-20');
+  const result = inapiProcedure([original, request, ambiguous, granted, granted]);
+  assert.equal(result.procedure.notifiedAt, '2026-07-01');
+  assert.equal(result.procedure.sourceActDate, '2026-07-01');
+  assert.equal(result.procedure.evidenceExtensionDays, 20);
+  assert.equal(result.status, 'evidence-period');
+});
+
+test('new observations in the same stage cannot inherit an earlier notification', () => {
+  const result = inapiProcedure([act('Notificación de observaciones de fondo', '2026-08-03'), act('Resolución de observaciones de fondo', '2026-09-04')]);
+  assert.equal(result.status, 'substantive-objection');
+  assert.equal(result.procedure.sourceActDate, '2026-09-04');
+  assert.equal(result.procedure.notifiedAt, undefined);
+});
 function document(events, patch = {}) {
   return { application_id: 1663533, registration_number: null, name: "MARCA DE PRUEBA", status: { code: "016", description: "En Trámite" }, dates: { filed_at: "2026-01-05", published_at: "2026-03-10", registered_at: null, expires_at: null, last_changed_at: null }, trademark: { sign_type: "Denominativa" }, holders: [{ name: "Titular SpA", country: "CL" }], representatives: [], classes: [{ nice_class: 35 }], events, annotations: [], source: {}, ...patch };
 }

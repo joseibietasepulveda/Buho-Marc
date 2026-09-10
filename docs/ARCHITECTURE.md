@@ -8,11 +8,11 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 
 - Next.js 16, TypeScript y Route Handlers.
 - PostgreSQL mediante Drizzle ORM y migraciones versionadas.
-- Datos demo idempotentes y modo local sin base.
+- Datos demo idempotentes, PostgreSQL local independiente y respaldo de interfaz en el navegador; este respaldo no sustituye la persistencia del servidor.
 - Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, desvinculación de coincidencias, cambios de etapa y notificaciones persistentes.
 - Clientes editables y tareas de casos persistentes con estados `not-applicable`, `pending` y `completed`.
 - Proveedor INAPI, registros de fuente, snapshots por expediente, revisiones programadas/manuales e historial de consultas. El Administrador de fuente es de solo lectura cuando el proveedor es INAPI.
-- Seguimiento de inscripción con gestiones y hechos activadores diferenciados, plazos concurrentes y 22 escenarios ficticios separados de la cartera. Reglas de LPI/RLPI en un módulo compartido y calendario limitado a 2026.
+- Seguimiento de registros con gestiones y hechos activadores diferenciados, plazos concurrentes y 22 escenarios ficticios separados de la cartera. Reglas de LPI/RLPI en un módulo compartido y calendario nacional LPI/LBPA limitado a 2026–2027.
 - Revisor de factibilidad frontend con texto, vista previa de imagen, clases Niza acumulativas, resumen probabilístico y cuatro coincidencias mock explicables.
 - Tablero de casos con `dnd-kit` para mover una tarjeta completa entre tres etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.
@@ -20,7 +20,7 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 
 Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordatorios asíncronos y el motor externo.
 
-El Canvas de inscripción combina solicitudes persistidas en PostgreSQL con antecedentes del proveedor y una vista separada de 22 escenarios ficticios. La proyección actual se guarda como JSONB y no debe confundirse con un historial jurídico normalizado: una versión de producto deberá almacenar cada transición como evento fechado e inmutable, junto con su fuente y antecedente activador. El respaldo local usa `localStorage` cuando no existe base configurada.
+El Canvas de registros combina solicitudes persistidas en PostgreSQL con antecedentes del proveedor y una vista separada de 22 escenarios ficticios. La proyección actual se guarda como JSONB y no debe confundirse con un historial jurídico normalizado: una versión de producto deberá almacenar cada transición como evento fechado e inmutable, junto con su fuente y antecedente activador. El respaldo de interfaz usa `localStorage`; los flujos persistentes siguen necesitando PostgreSQL.
 
 El Revisor de factibilidad también es una simulación frontend. La imagen se mantiene sólo durante la sesión del navegador y no se sube al servidor. Los porcentajes, similitudes y explicaciones están curados para el caso “Cafeteras Mistral”; una implementación real deberá producirlos mediante servicios independientes de búsqueda denominativa/fonética, comparación visual, cruce de clases Niza y calibración de riesgo.
 
@@ -90,3 +90,22 @@ La revisión usa control optimista solo para comentarios y asignaciones de bajo 
 ## v0.4: agenda y notificaciones compartidas
 
 `RegistrationProvider` comparte solicitudes y tareas entre resumen, lista y calendario. `lib/agenda.ts` unifica eventos de casos y solicitudes; `LegalAgenda` conserva las tres categorías y `DeadlineAlerts` muestra urgencias globales. `notification-policy.ts` clasifica hitos relevantes y distingue título emitido de concesión; `source-contract.ts` conserva el cambio auditable. `client-email.ts` produce HTML escapado y texto para copia manual, sin envío. Alcance, flags y API de tareas en [V0_4_RELEASE.md](V0_4_RELEASE.md).
+
+## v0.5: evidencia, cronologías y actualización legible
+
+La entrega está [en preparación](V0_5_RELEASE.md); esta descripción del código no acredita su publicación en Dev.
+
+### Separación entre fuente y antecedente del equipo
+
+`inapi-provider.ts` proyecta actuaciones reconocidas, conservando la identidad del acto habilitante; una resolución no es automáticamente una notificación ni una ejecutoria. `registration-evidence.ts` aplica evidencia sólo cuando coincide el ID, la fecha y la descripción del acto vigente, y valida etapa, medio y fecha. El manifiesto `inapi-daily-evidence.ts` acredita 19 aceptaciones a trámite del Estado Diario verificado, sin extender esa prueba a las observaciones de fondo que necesitan constancia electrónica.
+
+`POST /api/registrations/evidence` guarda o revoca antecedentes en el JSONB de la solicitud y registra antes/después en auditoría, dentro de una transacción con bloqueo de fila. Los eventos y snapshots originales no se modifican. Organización y actor se resuelven con la identidad demo del servidor; origen, membresía, esquema y acto vigente se verifican antes de escribir. Una evidencia retirada sigue conservada y una fecha manual no reemplaza la constancia pública verificada.
+
+`GET /api/registrations` reproyecta las copias ya disponibles y aplica evidencia vigente, sin una nueva consulta a INAPI. `registration-procedure.ts` separa plazos legales de controles administrativos e hitos; sólo los plazos y tareas operativos alimentan urgencias. `legal-calendar.ts` usa una versión nacional LPI/LBPA 2026–2027 y devuelve falta de cobertura fuera del período, sin extrapolar feriados. Los límites jurídicos están en [Proceso y plazos](PROCESO_Y_PLAZOS_MARCAS_CHILE.md) y [Calendario legal](CALENDARIO_LEGAL_CHILE_2026_2027.md).
+
+### Interfaz compartida
+
+- Los enlaces de ambos resúmenes seleccionan directamente el calendario correspondiente; Solicitudes abre en tarjetas cuando no hay una selección explícita. La búsqueda «contiene» filtra la cartera local; el alta mantiene la consulta exacta disponible en su fuente.
+- `notification-timeline.ts` reúne historiales y deltas disponibles, preserva detalles y versiones anteriores y deduplica por identidad de actuación, con fecha/descripción como respaldo. Evita incorporar historiales de solicitudes homónimas cuando el vínculo es ambiguo. Prioritarias presenta esa información en un panel lateral; Todas mantiene sus desplegables.
+- `GET /api/source/status` es una lectura ligera, sin payloads de expedientes ni errores internos. Distingue última corrida y última revisión completa exitosa; las incorporaciones y cargas iniciales no cuentan como actualización de toda la cartera. `source-schedule.ts` calcula las 12:30 p. m. en `America/Santiago` para la fecha correspondiente, incluyendo el cambio de horario. Si el scheduler está deshabilitado, no promete una ejecución próxima.
+- `db/demo-v05.ts` y `demo-v05-data.ts` actualizan fixtures conocidos de forma idempotente, con fechas activas desde el 30 de septiembre. El navegador migra sus ejemplos por separado y no aplica esa política a las proyecciones reales. No se envían correos ni se recalculan fechas reales para mejorar la apariencia de la demo.
