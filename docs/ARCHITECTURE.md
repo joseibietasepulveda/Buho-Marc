@@ -93,7 +93,7 @@ La revisión usa control optimista solo para comentarios y asignaciones de bajo 
 
 ## v0.5: evidencia, cronologías y actualización legible
 
-La entrega está [en preparación](V0_5_RELEASE.md); esta descripción del código no acredita su publicación en Dev.
+La entrega está [publicada y verificada en Dev](V0_5_RELEASE.md). El documento de entrega registra compilación, pruebas, recorrido visual y diagnóstico de los 64 expedientes; `main` y producción no se modificaron.
 
 ### Separación entre fuente y antecedente del equipo
 

@@ -27,3 +27,7 @@ Fecha: 10 de septiembre de 2026. Revisión local en `http://127.0.0.1:3000/app`,
 - La aprobación visual anterior no afirma cobertura de todos los dispositivos. Tampoco acredita por sí sola un despliegue: compilación, suite y comprobación remota se registran en [la entrega v0.5](V0_5_RELEASE.md).
 
 No se pulsó «Revisar» ni se solicitó una sincronización externa durante el recorrido visual. Las fechas y estados reales no se modificaron para mejorar la demo.
+
+## Comprobación remota
+
+En Dev se verificaron v0.5, 19 plazos fechados/45 pendientes, la ficha y respaldo de RTsalud y la cronología real de 49 hitos de MOTE CON HUESILLO EL COPIHUE DE LONQUÉN. Se abrió un detalle con ID de actuación, código 009, descripción completa y la referencia de una versión anterior. El aviso ya no muestra el párrafo masivo como primera lectura. La actualización muestra fecha/hora real y la próxima ejecución a las 12:30 p. m. de Santiago. El despliegue y la comparación de integridad están documentados en [V0_5_RELEASE.md](V0_5_RELEASE.md).

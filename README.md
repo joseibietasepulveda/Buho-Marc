@@ -2,7 +2,7 @@
 
 Demo funcional y navegable de la plataforma web para administrar marcas, revisar vigilancias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
 
-La entrega v0.5 está **en preparación**: mejora la búsqueda de cartera, los calendarios y la lectura de notificaciones, e incorpora antecedentes verificables para los plazos. Alcance, validaciones y pendientes: [v0.5](docs/V0_5_RELEASE.md); la entrega anterior se conserva en [v0.4](docs/V0_4_RELEASE.md). Su destino autorizado es la rama `dev` y el ambiente Railway **Dev**; esta documentación no acredita que v0.5 ya esté publicada. Esta entrega no actualiza `main`, producción ni la landing independiente de Vercel.
+La entrega v0.5 está **publicada y verificada en Dev** desde el 10 de septiembre de 2026: mejora la búsqueda de cartera, los calendarios y la lectura de notificaciones, e incorpora antecedentes verificables para los plazos. De las 64 gestiones inicialmente sin fecha, 19 tienen plazo calculado desde una notificación acreditada y 45 requieren constancia de notificación de fondo. Alcance, evidencia y pendientes: [v0.5](docs/V0_5_RELEASE.md); la entrega anterior se conserva en [v0.4](docs/V0_4_RELEASE.md). Esta entrega no actualiza `main`, producción ni la landing independiente de Vercel.
 
 ## Accesos publicados
 
@@ -83,7 +83,7 @@ No hay autenticación real, almacenamiento persistente de archivos, envío de co
 - Consulta de expedientes, origen de datos, sincronización y seguimiento de novedades INAPI; tabla principal resumida y ficha lateral accesible desde cada fila.
 - Tareas de casos con estados No aplica, Pendiente y Completado; las pendientes aparecen en Resumen Vigilancia junto al caso correspondiente.
 
-El alcance y los pendientes de la entrega en preparación están en [v0.5](docs/V0_5_RELEASE.md). [UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md) conserva las rondas anteriores como historial.
+El alcance, la verificación y los pendientes de la entrega están en [v0.5](docs/V0_5_RELEASE.md). [UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md) conserva las rondas anteriores como historial.
 
 La lógica procesal contrastada con las Directrices INAPI 2026 y la Ley 19.039 se detalla en [docs/REGISTRATION_PROCESS_REVIEW.md](docs/REGISTRATION_PROCESS_REVIEW.md), incluidos activadores, límites de automatización y escenarios simulados.
 
@@ -120,7 +120,7 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 ## Documentación para convertirlo en producto
 
 - [Guía de la demo](docs/DEMO_GUIDE.md)
-- [Entrega v0.5 en preparación](docs/V0_5_RELEASE.md)
+- [Entrega v0.5 verificada en Dev](docs/V0_5_RELEASE.md)
 - [Verificación de v0.5](docs/V0_5_QA.md)
 - [Proceso y plazos de marcas en Chile](docs/PROCESO_Y_PLAZOS_MARCAS_CHILE.md)
 - [Calendario legal Chile 2026–2027](docs/CALENDARIO_LEGAL_CHILE_2026_2027.md)
