@@ -1,6 +1,8 @@
-# Buho Marc
+# Buho Marc · v0.4
 
 Demo funcional y navegable de la plataforma web para administrar marcas, revisar vigilancias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
+
+La entrega v0.4 incorpora calendarios y tareas asignables, lista de solicitudes, notificaciones Prioritarias/Todas y correo comparativo para clientes. Alcance y pendientes concretos: [v0.4](docs/V0_4_RELEASE.md). Su destino autorizado es la rama `dev` y el ambiente Railway **Dev**; esta entrega no actualiza `main`, producción ni la landing independiente de Vercel.
 
 ## Accesos publicados
 
@@ -21,15 +23,20 @@ Requisitos: Node.js 22.13 o superior.
 En macOS, haz doble clic en **ABRIR BUHO MARC.command**. El lanzador:
 
 1. Cierra una instancia anterior de esta misma aplicación si está activa.
-2. Inicia una instancia nueva.
-3. Abre automáticamente `http://127.0.0.1:3000/app` en el navegador.
+2. Prepara una base PostgreSQL local de demostración y aplica las migraciones. Los datos se conservan en `.buho-local/`.
+3. Inicia una instancia nueva, sin conectarse a producción ni ejecutar revisiones automáticas.
+4. Abre automáticamente `http://127.0.0.1:3000/app` en el navegador.
 
 Nunca cierra una aplicación ajena que esté usando el mismo puerto; en ese caso muestra un aviso.
 
-### Inicio desde Terminal
+También puedes ejecutar `npm run dev:local`: usa el puerto 3000 y una base local en 55433. Cerrar el proceso detiene ambos servicios, pero no borra sus datos. No usa `DATABASE_URL` ni las credenciales de INAPI del ambiente publicado.
+
+### Inicio desde Terminal con una base configurada
 
 ```bash
-npm install
+npm ci
+# Configurar DATABASE_URL en .env.local (ver .env.example)
+npm run db:migrate
 npm run dev
 ```
 
@@ -44,17 +51,17 @@ La aplicación actual requiere PostgreSQL mediante `DATABASE_URL` para cargar la
 
 ## Qué incluye la demo
 
-- Navegación lateral organizada por trabajo: **Resumen Vigilancia**, cartera y vigilancia, Casos, inscripciones, factibilidad, notificaciones, usuarios, clientes, fuente y auditoría.
+- Navegación lateral organizada por trabajo: **Resumen Vigilancia**, cartera y vigilancia, Casos, registros, factibilidad, notificaciones, usuarios, clientes, fuente y auditoría.
 - Dashboard con tareas jurídicas pendientes y su caso asociado, alerta por vigilancias separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
-- Administración de marcas: alta simulada por número de registro INAPI, búsqueda por RUT, tipos de marca y filas completas clickeables para revisar su cartera de vigilancias.
+- Administración de marcas: búsqueda exacta por los atributos disponibles, consulta real por solicitud y consulta mock por atributos detrás de una flag; parámetros encontrados a la izquierda al agregar.
 - Vigilancia con búsqueda por nombre, filtros acumulables por similitud y estado, edición directa de ambos valores, comparación visual lado a lado y desplazamiento horizontal seguro para tablas angostas.
 - Alta manual de vigilancia: se elige una marca ya seguida, se busca un número de inscripción o solicitud y se completan datos ficticios, incluida la fecha de publicación en Diario Oficial.
-- Conversión de una vigilancia en caso y calendario de plazos de casos.
+- Conversión de una vigilancia en caso; calendarios de Casos y Solicitudes, con mes/semana, categorías INAPI/Diario Oficial/tareas y alertas globales.
 - Tablero de casos por etapa, creación manual y arrastre entre Esperando confirmación de cliente, En seguimiento y Concluido.
-- Ficha de caso con acceso superpuesto a la coincidencia de origen, tareas jurídicas persistentes —incluidas tareas escritas por el usuario— y opción confirmada para desvincular la coincidencia sin cerrar el caso.
-- Centro de notificaciones con contexto, contenido de correo copiable y estado de gestión; no presenta avisos de borradores.
-- Revisor de factibilidad previo a la inscripción: acepta texto e imagen, permite acumular clases Niza opcionales, simula un análisis y presenta un resumen de riesgo junto con una tabla de coincidencias visuales, fonéticas y conceptuales.
-- Seguimiento de inscripción con gestiones y activadores diferenciados, plazos concurrentes, historial de actuaciones y 22 ejemplos del procedimiento separados de la cartera. El calendario LPI está acotado a 2026.
+- Ficha de caso con acceso superpuesto a la coincidencia de origen, tareas jurídicas persistentes —incluidas tareas escritas por el usuario, fecha y responsable— y opción confirmada para desvincular la coincidencia sin cerrar el caso.
+- Notificaciones Prioritarias y Todas, sin configuraciones, detalles desplegables y aviso de emisión de título. Correo al cliente con cuadro comparativo copiable; PDF técnico interno.
+- Revisor de factibilidad previo al registro: búsqueda aproximada predeterminada; acepta texto, imagen o descripción, permite acumular clases Niza opcionales, simula un análisis y presenta un resumen de riesgo junto con una tabla de coincidencias visuales, fonéticas y conceptuales.
+- Seguimiento de registro con vistas de lista, tarjetas y calendario; gestiones y activadores diferenciados, plazos concurrentes, historial de actuaciones y 22 ejemplos del procedimiento separados de la cartera. El calendario LPI está acotado a 2026.
 - Directorio de clientes con filas clickeables y edición en ficha lateral; lista y alta de usuarios.
 - Administrador de fuente con expedientes INAPI, historial de consultas y ficha de solo lectura con cobertura, antecedentes y resoluciones completas.
 - API persistente para crear marcas, casos, tareas y usuarios; revisar coincidencias; mover casos; desvincular coincidencias; editar clientes y gestionar notificaciones.
@@ -74,7 +81,7 @@ No hay autenticación real, almacenamiento persistente de archivos, envío de co
 - Consulta de expedientes, origen de datos, sincronización y seguimiento de novedades INAPI; tabla principal resumida y ficha lateral accesible desde cada fila.
 - Tareas de casos con estados No aplica, Pendiente y Completado; las pendientes aparecen en Resumen Vigilancia junto al caso correspondiente.
 
-El alcance aprobado y los pendientes vigentes están en [docs/UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md).
+El alcance y los pendientes vigentes están en [v0.4](docs/V0_4_RELEASE.md). [UX_RELEASE_PLAN.md](docs/UX_RELEASE_PLAN.md) conserva las rondas anteriores como historial.
 
 La lógica procesal contrastada con las Directrices INAPI 2026 y la Ley 19.039 se detalla en [docs/REGISTRATION_PROCESS_REVIEW.md](docs/REGISTRATION_PROCESS_REVIEW.md), incluidos activadores, límites de automatización y escenarios simulados.
 
@@ -86,7 +93,7 @@ La lógica procesal contrastada con las Directrices INAPI 2026 y la Ley 19.039 s
 - Calibrar los porcentajes con evidencia histórica y revisión experta; mantener siempre la distinción entre estimación orientativa y decisión oficial de INAPI.
 - Incorporar estados de error, indisponibilidad de fuente y resultados parciales del motor antes de producción.
 
-### Backlog · Inscripción de marcas
+### Backlog · Registro de marcas
 
 > Criterio de producto: esta sección está pensada para escritorio. La adaptación móvil es secundaria y sólo debe asegurar acceso básico, sin condicionar la densidad ni la distribución del Canvas en computador.
 
@@ -127,6 +134,10 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 - `app/api/demo/route.ts`: lectura y mutaciones de la demo persistente.
 - `db/schema.ts`: esquema PostgreSQL; `drizzle/`: migraciones versionadas.
 - `db/demo.ts`: datos iniciales ficticios y consultas de la demo.
+- `app/app/legal-agenda.tsx`, `case-tasks.tsx`, `notification-center.tsx` y `brand-search.tsx`: flujos compartidos de v0.4.
+- `app/api/tasks/route.ts`: tareas persistentes de solicitudes y eliminación de tareas.
+- `lib/release-notes.ts`: versión y pendientes mostrados en la app.
+- `app/app/v04.css`: estilos de los nuevos flujos.
 - `app/app/buho-app.css`: sistema visual de la aplicación.
 - `app/app/layout.tsx`: metadatos de la ruta privada de demo.
 - `docs/`: decisiones para el backend y la evolución funcional.

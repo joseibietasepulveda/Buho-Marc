@@ -86,3 +86,7 @@ La revisión usa control optimista solo para comentarios y asignaciones de bajo 
 - Cifrado en tránsito y reposo; malware scanning para archivos.
 - Backups con restauración probada y ambientes separados para desarrollo, staging y producción.
 - Auditoría append-only para altas, decisiones, asignaciones, plazos, archivos y comunicaciones.
+
+## v0.4: agenda y notificaciones compartidas
+
+`RegistrationProvider` comparte solicitudes y tareas entre resumen, lista y calendario. `lib/agenda.ts` unifica eventos de casos y solicitudes; `LegalAgenda` conserva las tres categorías y `DeadlineAlerts` muestra urgencias globales. `notification-policy.ts` clasifica hitos relevantes y distingue título emitido de concesión; `source-contract.ts` conserva el cambio auditable. `client-email.ts` produce HTML escapado y texto para copia manual, sin envío. Alcance, flags y API de tareas en [V0_4_RELEASE.md](V0_4_RELEASE.md).

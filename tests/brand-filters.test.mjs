@@ -10,8 +10,8 @@ test("origin, legal state, type, exact class and monitoring combine", () => {
   assert.equal(brandStateLabel(brand), "Registro concedido");
 });
 test("search ignores accents and matches request, register, owner and formatted RUT", () => {
-  for (const query of ["marea", "pacifico", "1552147", "1509249", "76123456-7", "76.123.456-7", " marea   sur "]) assert.equal(matchesBrandFilters(brand, EMPTY_BRAND_FILTERS, query),true,query);
-  assert.equal(matchesBrandFilters(brand, EMPTY_BRAND_FILTERS, "missing"),false);
+  for (const query of ["marea sur", "Comercial Pacifico SpA", "1552147", "1509249", "76123456-7", "76.123.456-7", " marea   sur "]) assert.equal(matchesBrandFilters(brand, EMPTY_BRAND_FILTERS, query),true,query);
+  for (const query of ["marea", "pacifico", "1509", "7612345", "missing"]) assert.equal(matchesBrandFilters(brand, EMPTY_BRAND_FILTERS, query), false, query);
 });
 test("legacy mocks remain filterable and clearing restores the full portfolio", () => {
   const portfolio=[brand,{...brand,name:"Mock",provider:undefined,status:"Sin monitoreo"}];

@@ -83,11 +83,11 @@ done
 
 if [[ ! -d "${APP_DIR}/node_modules" ]]; then
   echo "Preparando dependencias por primera vez..."
-  npm install --no-audit --no-fund || pause_on_error "No se pudieron preparar las dependencias."
+  npm ci --no-audit --no-fund || pause_on_error "No se pudieron preparar las dependencias."
 fi
 
 echo "Iniciando la aplicación..."
-npm run dev -- --hostname 127.0.0.1 --port "$APP_PORT" > "$LOG_FILE" 2>&1 &
+npm run dev:local > "$LOG_FILE" 2>&1 &
 launcher_pid="$!"
 echo "$launcher_pid" > "$PID_FILE"
 

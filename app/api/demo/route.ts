@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { DEMO_ORG_ID, DEMO_USER_ID, ensureDemoSeed, getDemoSnapshot, resetDemoData } from "@/db/demo";
 import { getSql } from "@/db";
+import { taskSchema } from "@/lib/task-validation";
 import { isRealSource } from "@/lib/inapi-provider";
 
 export const runtime = "nodejs";
@@ -9,8 +10,7 @@ export const dynamic = "force-dynamic";
 const BRAND_LIMITS_ENABLED = false;
 
 const brandTypeSchema = z.enum(["Denominativa", "Figurativa", "Mixta", "Otra"]);
-const brandInputSchema = z.object({ name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional(), rut: z.string().min(3).max(30), inapiUrl: z.string().url().max(1500), visual: z.string().min(1).max(160), type: brandTypeSchema.default("Mixta") });
-const taskSchema = z.object({ id: z.string().uuid(), title: z.string().trim().min(1).max(255), status: z.enum(["not-applicable", "pending", "completed"]) });
+const brandInputSchema = z.object({ name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional(), rut: z.string().min(3).max(30), inapiUrl: z.string().url().max(1500), visual: z.string().min(1).max(160), applicationNumber: z.string().regex(/^\d+$/).optional(), logo: z.string().max(1500).optional(), type: brandTypeSchema.default("Mixta") });
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createBrand") }).extend(brandInputSchema.shape),
   z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(250) }),
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       await sql.begin(async (tx) => {
         const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 18) + 1 AS next FROM brands WHERE organization_id = ${DEMO_ORG_ID}`;
         const code = nextCode("BM", counter.next, 3);
-        const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${DEMO_ORG_ID}, ${code}, ${input.name.toUpperCase()}, ${input.name.toUpperCase()}, ${input.owner}, ${input.registration || null}, ${input.country}, ${input.description || null}, 'Procesando', ${tx.json({ rut: input.rut, inapiUrl: input.inapiUrl, visual: input.visual, type: input.type, import: 'inapi-demo' })}, ${DEMO_USER_ID}) RETURNING id`;
+        const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${DEMO_ORG_ID}, ${code}, ${input.name.toUpperCase()}, ${input.name.toUpperCase()}, ${input.owner}, ${input.registration || null}, ${input.country}, ${input.description || null}, 'Procesando', ${tx.json({ rut: input.rut, inapiUrl: input.inapiUrl, visual: input.visual, type: input.type, applicationNumber: input.applicationNumber, logo: input.logo, import: 'inapi-demo' })}, ${DEMO_USER_ID}) RETURNING id`;
         for (const niceClass of classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass})`;
         await tx`INSERT INTO monitoring_jobs (organization_id, brand_id, status, idempotency_key, requested_by) VALUES (${DEMO_ORG_ID}, ${brand.id}, 'awaiting_engine', ${`brand:${brand.id}:initial`}, ${DEMO_USER_ID})`;
         await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, 'brand.created', 'brand', ${brand.id}, ${tx.json({ code, engineStatus: "awaiting_engine" })})`;
@@ -158,7 +158,11 @@ export async function POST(request: Request) {
         if (!item) throw new Error("Caso no encontrado");
         const [existing] = await tx`SELECT case_id, organization_id FROM case_tasks WHERE id = ${input.task.id}`;
         if (existing && (existing.case_id !== item.id || existing.organization_id !== DEMO_ORG_ID)) throw new Error("La tarea no pertenece a este caso");
-        await tx`INSERT INTO case_tasks (id, organization_id, case_id, title, status, completed_at) VALUES (${input.task.id}, ${DEMO_ORG_ID}, ${item.id}, ${input.task.title}, ${input.task.status}, ${input.task.status === "completed" ? new Date() : null}) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, completed_at = CASE WHEN EXCLUDED.status = 'completed' THEN COALESCE(case_tasks.completed_at, EXCLUDED.completed_at) ELSE NULL END, updated_at = now()`;
+        if (input.task.assigneeId) {
+          const [member] = await tx`SELECT user_id FROM organization_members WHERE organization_id = ${DEMO_ORG_ID} AND user_id = ${input.task.assigneeId}`;
+          if (!member) throw new Error("El responsable no pertenece al equipo");
+        }
+        await tx`INSERT INTO case_tasks (id, organization_id, case_id, title, status, due_at, assignee_id, completed_at) VALUES (${input.task.id}, ${DEMO_ORG_ID}, ${item.id}, ${input.task.title}, ${input.task.status}, ${input.task.dueDate ? input.task.dueDate + "T12:00:00Z" : null}, ${input.task.assigneeId ?? null}, ${input.task.status === "completed" ? new Date() : null}) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, due_at = EXCLUDED.due_at, assignee_id = EXCLUDED.assignee_id, completed_at = CASE WHEN EXCLUDED.status = 'completed' THEN COALESCE(case_tasks.completed_at, EXCLUDED.completed_at) ELSE NULL END, updated_at = now()`;
       });
     } else if (input.action === "updateCaseOwner") {
       const [owner] = await sql`SELECT u.id FROM users u JOIN organization_members om ON om.user_id = u.id WHERE om.organization_id = ${DEMO_ORG_ID} AND u.name = ${input.owner} LIMIT 1`;

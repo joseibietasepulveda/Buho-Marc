@@ -92,3 +92,7 @@ Los porcentajes deben conservar la versión del modelo y los insumos utilizados 
 - Archivar una marca pausa trabajos futuros, pero no elimina coincidencias ni casos.
 - Cerrar un caso no elimina plazos ni actividad.
 - La auditoría y los snapshots conservan decisiones aunque cambien datos descriptivos posteriores.
+
+## v0.4: tareas de solicitudes
+
+La migración `0003_huge_blazing_skull.sql` agrega `registration_tasks`, vinculada por organización y solicitud, con fecha civil, responsable del equipo y estado. Las tareas de casos reutilizan `case_tasks.due_at` y `assignee_id`. La fecha interna de una tarea no modifica ningún plazo legal. Las lecturas exponen fechas ISO sin conversión al huso local. Contratos y decisiones en [V0_4_RELEASE.md](V0_4_RELEASE.md).

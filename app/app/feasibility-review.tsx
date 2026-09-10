@@ -136,6 +136,7 @@ const DEMO_MATCHES: FeasibilityMatch[] = [
 const DEMO_CLASSES = [11, 30, 43];
 
 export function FeasibilityReview() {
+  const [description, setDescription] = useState("");
   const [brandName, setBrandName] = useState("Cafeteras Mistral");
   const [selectedClasses, setSelectedClasses] = useState<number[]>(DEMO_CLASSES);
   const [classChoice, setClassChoice] = useState("");
@@ -145,7 +146,7 @@ export function FeasibilityReview() {
   const [selectedMatch, setSelectedMatch] = useState<FeasibilityMatch | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const analysisTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [mode, setMode] = useState("contains");
+  const [mode, setMode] = useState("approximate");
   function invalidate() { if (analysisTimer.current) clearTimeout(analysisTimer.current); setPhase("ready"); setSelectedMatch(null); }
   useEffect(() => () => { if (analysisTimer.current) clearTimeout(analysisTimer.current); }, []);
 
@@ -179,15 +180,16 @@ export function FeasibilityReview() {
 
   function analyze(event: FormEvent) {
     event.preventDefault();
-    if (!brandName.trim()) return;
+    if (!brandName.trim() && !description.trim() && !imageUrl) return;
     setPhase("loading");
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
     analysisTimer.current = setTimeout(() => setPhase("results"), 350);
   }
 
   function restoreDemo() {
-    invalidate(); setMode("contains");
+    invalidate(); setMode("approximate");
     if (imageUrl.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
+    setDescription("");
     setBrandName("Cafeteras Mistral");
     setSelectedClasses(DEMO_CLASSES);
     setImageUrl("/feasibility/cafeteras-mistral.png");
@@ -203,7 +205,7 @@ export function FeasibilityReview() {
         <div className="feasibility-intro">
           <div>
             <span className="buho-overline">ANÁLISIS PREVIO A LA SOLICITUD</span>
-            <h2>Revisa una marca antes de inscribirla</h2>
+            <h2>Revisa una marca antes de registrarla</h2>
             <p>Prepara el nombre, la imagen y las clases Niza que deseas revisar.</p>
           </div>
           <button className="feasibility-reset" onClick={restoreDemo} type="button"><ArrowClockwise size={16} /> Restablecer caso demo</button>
@@ -214,6 +216,7 @@ export function FeasibilityReview() {
           <label className="feasibility-mode">
             <span className="sr-only">Tipo de coincidencia</span>
             <select aria-label="Tipo de coincidencia" value={mode} onChange={event => { setMode(event.target.value); invalidate(); }}>
+              <option value="approximate">Búsqueda aproximada</option>
               <option value="contains">Contiene</option>
               <option value="exact">Coincidencia exacta</option>
               <option value="starts">Comienza con</option>
@@ -229,11 +232,12 @@ export function FeasibilityReview() {
             {imageUrl ? <img alt="Logo cargado para analizar" src={imageUrl} /> : <UploadSimple size={23} />}
             <span>{imageUrl ? "Cambiar logo" : "Subir logo"}</span>
           </button>
-          <button className="feasibility-submit" disabled={!brandName.trim() || phase === "loading"} type="submit">
+          <button className="feasibility-submit" disabled={(!brandName.trim() && !description.trim() && !imageUrl) || phase === "loading"} type="submit">
             {phase === "loading" ? <><span className="feasibility-spinner" /> Preparando ejemplo</> : <><Sparkle size={19} weight="fill" /> Ver comparación de ejemplo</>}
           </button>
         </div>
 
+        <div className="feasibility-description"><label>Descripción del signo o etiqueta <span>Opcional</span><textarea rows={2} value={description} onChange={event => { setDescription(event.target.value); invalidate(); }} placeholder="Ej. Una cafetera con vapor, líneas curvas y una estrella sobre el nombre" /></label><p>{mode === "approximate" ? "Búsqueda aproximada: considera similitud fonética y gráfica. Puedes ingresar un nombre, subir una imagen o describir el signo." : "Ingresa un nombre, una imagen o una descripción. Los criterios se conservarán para la búsqueda."}</p>{imageUrl && <button type="button" onClick={() => { setImageUrl(""); setUploadedName(""); invalidate(); if (fileRef.current) fileRef.current.value = ""; }}>Quitar imagen</button>}</div>
         <div className="feasibility-options">
           <div className="feasibility-class-picker">
             <label htmlFor="nice-class">Clases Niza <span>Opcional · puedes agregar varias</span></label>
@@ -258,7 +262,7 @@ export function FeasibilityReview() {
       {phase === "results" && <div className="feasibility-results" aria-live="polite">
         <section className="feasibility-summary">
           <header>
-            <div><span className="buho-overline">RESUMEN</span><h2>Demostración para “{brandName}”</h2></div>
+            <div><span className="buho-overline">RESUMEN</span><h2>Demostración para “{brandName || description || "Imagen cargada"}”</h2></div>
             <span className="feasibility-evaluated"><Check size={15} weight="bold" /> 4 ejemplos de comparación</span>
           </header>
           <div className="feasibility-example-grid">
@@ -294,7 +298,7 @@ export function FeasibilityReview() {
           </div>
         </section>
       </div>}
-      {selectedMatch && <BrandComparison match={selectedMatch} name={brandName} logo={imageUrl} classes={selectedClasses} onClose={() => setSelectedMatch(null)} />}
+      {selectedMatch && <BrandComparison match={selectedMatch} name={brandName || "Signo propuesto"} logo={imageUrl} classes={selectedClasses} onClose={() => setSelectedMatch(null)} />}
     </section>
   );
 }

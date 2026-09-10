@@ -1,3 +1,4 @@
+import { eventDescriptions, isTitleIssued } from "./notification-policy";
 import { z } from "zod";
 import { STATUS_DEFINITIONS, STATUS_BY_ID, type RegistrationStatusId } from "./registration-data";
 
@@ -130,6 +131,7 @@ export function describeChanges(before: SourceRecord, after: SourceRecord, chang
     const fields = changes.filter(c => !c.ancillary).map(c => c.label.toLowerCase());
     subjects.push(`Se actualizó ${name}: ${fields.join(", ")}`);
   }
+  if (eventDescriptions(changes).some(isTitleIssued)) subjects.unshift(`INAPI emitió el título de marca de ${name}`);
   const title = subjects[0].slice(0, 220);
   const details = changes.map(c => `${c.label}: ${c.field === "status" ? statusLabel(String(c.before)) : displayValue(c.before)} → ${c.field === "status" ? statusLabel(String(c.after)) : displayValue(c.after)}${c.ancillary ? " (antecedente complementario)" : ""}.`).join("\n");
   return { title, urgency: ["form-observation", "substantive-objection", "opposition-answer", "rejected-appeal", "expired", "cancelled"].includes(after.status) || eventChanges.some(c => /oposici|rechaz|observaci|plazo/i.test(displayValue(c.after))) ? "Alta" : "Media", body: `${subjects.join(". ")}.\n\nSolicitud N.º ${after.applicationNumber}${after.registrationNumber ? ` · Registro N.º ${after.registrationNumber}` : ""}.\n\nAntecedentes detectados:\n${details}\n\n${after.provider === "inapi" ? `Fuente: INAPI, consultada a través de dequienes.cl. Expediente: ${after.officialUrl}` : "Fuente de prueba."} Revise la actuación para confirmar su alcance y los plazos aplicables.` };

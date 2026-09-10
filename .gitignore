@@ -48,3 +48,5 @@ yarn-error.log*
 
 # capturas de QA locales
 /reference-captures/
+# Persistent local-only demo database
+/.buho-local/

@@ -17,7 +17,16 @@ Railway mantiene ambientes separados de **Dev** y **production**. Cada uno debe 
 
 La publicación de cambios de la aplicación se dirige primero al ambiente **Dev**, servicio `buho-marc-web`. No debe promoverse a `production` sin una solicitud posterior y explícita.
 
-Último despliegue Dev verificado: `24e72a29-3ece-4701-9859-623aa9f28aad`, commit `24300f9`, completado con estado `SUCCESS` el 8 de septiembre de 2026. Production permanece en la base aprobada `60ea09c`.
+Base verificada antes de v0.4, el 10 de septiembre de 2026: Dev `906f8244-c5b6-4759-832c-ae82d79b1975`, commit `c5a6be2`, estado `SUCCESS`. Production conserva `c5a6be2` mediante el despliegue `02bbc781-9146-4771-8ccb-a0f5d38b6758` (puede aparecer `SLEEPING` por suspensión automática). La entrega [v0.4](V0_4_RELEASE.md) tiene autorización para **Dev únicamente**, sin actualizar `main` ni production.
+
+## Entrega v0.4 a Dev
+
+- Publicar la rama `dev` en GitHub; el servicio `buho-marc-web` del ambiente **Dev** sigue esa rama. Production sigue `main`.
+- Comprobar que el despliegue corresponda al commit enviado y termine en `SUCCESS`, y que `/api/health` responda correctamente. Subir el commit no equivale por sí solo a completar el despliegue.
+- La migración `0003_huge_blazing_skull.sql` agrega `registration_tasks` sin borrar las tareas ni los expedientes existentes. Se aplica mediante el inicio habitual de Railway.
+- No ejecutar `dev:local` en Railway: es exclusivamente para una base simulada en el computador. `.buho-local/` queda fuera de Git y de las cargas de Railway.
+- `NEXT_PUBLIC_MOCK_ATTRIBUTE_SEARCH=false` desactiva al compilar la consulta simulada por atributos. La consulta real continúa limitada a los campos que admite la fuente, y no se incorporan resultados ficticios a una cartera con proveedor real.
+- Verificar v0.4 en `/app`: Solicitudes con lista/tarjetas/calendario, agenda y tareas asignables en Casos y Solicitudes, avisos globales, Prioritarias/Todas sin configuraciones, detalles desplegables y correo comparativo copiable. La búsqueda aproximada y el envío por Resend no están conectados a servicios reales; Resend permanece en los pendientes.
 
 ## Servicios necesarios
 
@@ -64,9 +73,9 @@ Después de desplegar:
 8. Revisar Vigilancia a ancho de escritorio y angosto: las insignias y controles de Similitud y Estado no deben superponerse, los filtros acumulables deben limpiarse con Todas o Todos y la tabla debe ofrecer desplazamiento horizontal cuando sea necesario.
 9. Confirmar el orden lateral actual desde **Resumen Vigilancia** hasta **Acerca de esta versión**, incluidos Clientes y Administrador de fuente.
 10. En **Revisor de factibilidad**, verificar el caso Cafeteras Mistral, la carga local de imagen, las clases Niza acumulativas, la probabilidad mock de oposición de terceros y las cuatro coincidencias explicables.
-11. En **Inscripción de marcas**, verificar las dos macrofases, los 22 ejemplos separados, los plazos normal/próximo/vencido, las gestiones cuyo antecedente activador falta y los estados terminales.
+11. En **Solicitudes de registro**, verificar lista, tarjetas y calendario, las dos macrofases, los 22 ejemplos separados, los plazos normal/próximo/vencido, las gestiones cuyo antecedente activador falta y los estados terminales.
 12. Abrir una tarjeta y comprobar estado primero, datos completos, referencia a INAPI e historial ascendente con flechas. En Administrador de fuente, abrir una fila y comprobar cobertura, actuaciones, resoluciones desplegables y cierre fijo.
-13. Confirmar que las notificaciones incluyan un plazo de inscripción próximo a vencer y otro vencido, ambos identificados como seguimiento interno.
+13. Confirmar que las notificaciones distingan Prioritarias y Todas, los avisos de seguimiento interno y los hitos emitidos por la fuente; que la concesión no se confunda con la emisión del título y que los cambios administrativos secundarios permanezcan en Todas.
 
 ## Antes de producción real
 

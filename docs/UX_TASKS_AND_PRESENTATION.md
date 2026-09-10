@@ -1,5 +1,7 @@
 # Ajustes de presentación y tareas — 7 de septiembre de 2026
 
+> Actualización del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
+
 Implementación inicial en Dev; Administrador de fuente permaneció sin cambios en esta ronda. Su mejora posterior, autorizada el 8 de septiembre, se detalla abajo.
 
 - Se retira Mi día. Resumen Vigilancia muestra las tareas pendientes de los casos, con asunto, marca y abogado responsable, y acceso al caso.

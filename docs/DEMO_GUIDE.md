@@ -1,5 +1,7 @@
 > Estado actualizado: la aplicación combina expedientes importados y ejemplos simulados. Ver [UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md) y [inapi-dev.md](inapi-dev.md) para distinguir funciones disponibles y limitaciones.
 
+> Actualización del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
+
 # Guía de la demo
 
 ## Objetivo

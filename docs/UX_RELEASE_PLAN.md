@@ -1,5 +1,7 @@
 # UX: promoción de la base y siguiente ronda
 
+> Actualización del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
+
 ## Secuencia autorizada
 
 1. Actualizar la documentación y consolidar la base actual de Dev, incluida la integración INAPI y la primera ronda de UX.

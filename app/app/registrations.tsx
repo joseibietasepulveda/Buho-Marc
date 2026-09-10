@@ -15,7 +15,12 @@ import {
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, type ReactNode, useEffect, useMemo, useState } from "react";
+import { type CaseTask, type RegistrationTask, type TaskMember } from "@/lib/case-tasks";
+import { registrationAgenda } from "@/lib/agenda";
+import { significantRegistrationEvent } from "@/lib/registration-milestones";
+import { LegalAgenda } from "./legal-agenda";
+import { CaseTasks, TaskEditor } from "./case-tasks";
 import { RegistrationLogo } from "./registration-logo";
 import { ClientNameLink } from "./client-provider";
 import { activityContent, activityDate, oldestActivityFirst } from "@/lib/registration-activity";
@@ -47,35 +52,54 @@ function AttentionIcon({ attention }: { attention: Attention }) {
   return <Hourglass aria-hidden size={18} weight="bold" />;
 }
 
-export function useRegistrationApplications() {
-  const [applications, setApplications] = useState<RegistrationApplication[]>([]);
-  const [loadState, setLoadState] = useState({ loading: true, error: "" });
+type RegistrationState = { applications: RegistrationApplication[]; tasks: RegistrationTask[]; loading: boolean; error: string };
+const RegistrationContext = createContext<(RegistrationState & { refresh: () => Promise<void> }) | null>(null);
+export function RegistrationProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<RegistrationState>({ applications: [], tasks: [], loading: true, error: "" });
+  const refresh = useCallback(async () => {
+    try {
+      const r = await fetch("/api/registrations", { cache: "no-store" });
+      if (!r.ok) throw new Error();
+      const p = await r.json();
+      if (!Array.isArray(p.applications)) throw new Error();
+      setState({ applications: p.applications, tasks: p.tasks ?? [], loading: false, error: "" });
+    } catch { setState(current => ({ ...current, loading: false, error: "No se pudieron actualizar las solicitudes. Se conservan los últimos datos; reintentaremos automáticamente." })); }
+  }, []);
   useEffect(() => {
-    let active = true;
-    const refresh = async () => {
-      try {
-        const r = await fetch("/api/registrations", { cache: "no-store" });
-        if (!r.ok) throw new Error("No se pudieron actualizar las solicitudes.");
-        const p = await r.json();
-        if (!Array.isArray(p.applications)) throw new Error("Respuesta de solicitudes incompleta.");
-        if (active) { setApplications(p.applications); setLoadState({ loading: false, error: "" }); }
-      } catch {
-        if (active) setLoadState({ loading: false, error: "No se pudieron actualizar las solicitudes. Se conservan los últimos datos disponibles; reintentaremos automáticamente." });
-      }
-    };
+    // State is updated only after the HTTP request settles.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
     const timer = window.setInterval(() => void refresh(), 30000);
     window.addEventListener("buho-source-reviewed", refresh);
-    return () => { active = false; window.clearInterval(timer); window.removeEventListener("buho-source-reviewed", refresh); };
-  }, []);
-  return [applications, setApplications, loadState] as const;
+    return () => { window.clearInterval(timer); window.removeEventListener("buho-source-reviewed", refresh); };
+  }, [refresh]);
+  return <RegistrationContext.Provider value={{ ...state, refresh }}>{children}</RegistrationContext.Provider>;
+}
+export function useRegistrationApplications() {
+  const state = useContext(RegistrationContext);
+  if (!state) throw new Error("RegistrationProvider missing");
+  return [state.applications, state.refresh, { loading: state.loading, error: state.error }] as const;
+}
+export function useRegistrationTasks() {
+  const state = useContext(RegistrationContext);
+  if (!state) throw new Error("RegistrationProvider missing");
+  async function save(applicationId: string, task: CaseTask, remove = false) {
+    const r = await fetch("/api/tasks", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(remove ? { action: "delete", entityType: "application", entityId: applicationId, taskId: task.id } : { action: "save", entityType: "application", entityId: applicationId, task }) });
+    if (!r.ok) return false;
+    await state!.refresh();
+    return true;
+  }
+  return { tasks: state.tasks, save };
 }
 
 export type RegistrationSelection = { id?: string; status?: RegistrationStatusId };
 
-export function TrademarkRegistrationCanvas({ initialSelection = {} }: { initialSelection?: RegistrationSelection }) {
+export function TrademarkRegistrationCanvas({ initialSelection = {}, members = [], currentUserId }: { initialSelection?: RegistrationSelection; members?: TaskMember[]; currentUserId?: string }) {
   const [importedApplications, , loadState] = useRegistrationApplications();
   const [examples, setExamples] = useState(false);
+  const [viewMode, setViewMode] = useState<"cards" | "list" | "calendar">("list");
+  const { tasks, save } = useRegistrationTasks();
+  const [taskEditor, setTaskEditor] = useState<{ task?: CaseTask; applicationId?: string; date?: string } | null>(null);
   const applications = examples ? PROCESS_SCENARIOS : importedApplications;
   const [selectedId, setSelectedId] = useState<string | null>(initialSelection.id ?? null);
   const [query, setQuery] = useState("");
@@ -112,6 +136,7 @@ export function TrademarkRegistrationCanvas({ initialSelection = {} }: { initial
       <button className="trademark-clear-filters" onClick={resetFilters} type="button"><Funnel aria-hidden size={16} /> Limpiar</button>
     </section>
 
+    <div className="registration-view-modes"><div role="group" aria-label="Vista de solicitudes">{([["list", "Lista"], ["cards", "Tarjetas"], ["calendar", "Calendario"]] as const).map(([mode, label]) => <button type="button" aria-pressed={viewMode === mode} key={mode} onClick={() => setViewMode(mode)}>{label}</button>)}</div>{!examples && <button className="buho-secondary" type="button" disabled={!applications.length} onClick={() => setTaskEditor({})}>Agregar tarea +</button>}</div>
     <div className="trademark-legend" aria-label="Niveles de atención">
       <span className="deadline-normal"><ClockCountdown aria-hidden size={16} /> Normal</span>
       <span className="deadline-soon"><Bell aria-hidden size={16} /> Próximo a vencer</span>
@@ -120,13 +145,31 @@ export function TrademarkRegistrationCanvas({ initialSelection = {} }: { initial
     </div>
 
     {!examples && loadState.error && <p role="alert">{loadState.error}</p>}
-    {demoState === "loading" || (!examples && loadState.loading) ? <RegistrationLoading /> : demoState === "empty" ? <RegistrationEmpty onReset={() => setDemoState("canvas")} /> : visible.length === 0 ? <RegistrationEmpty filtered onReset={resetFilters} /> : <section className="trademark-canvas" aria-label="Canvas de inscripción de marcas">
+    {demoState === "loading" || (!examples && loadState.loading) ? <RegistrationLoading /> : demoState === "empty" ? <RegistrationEmpty onReset={() => setDemoState("canvas")} /> : viewMode === "calendar" ? <LegalAgenda key={examples ? "examples" : "portfolio"} title="Agenda de solicitudes" events={registrationAgenda(visible, examples ? [] : tasks, examples ? PROCESS_DEMO_DATE : undefined)} members={members} today={examples ? PROCESS_DEMO_DATE : undefined} onAddTask={examples ? undefined : date => setTaskEditor({ date })} onOpen={event => { if (event.taskId) setTaskEditor({ task: tasks.find(task => task.id === event.taskId), applicationId: event.entityId }); else setSelectedId(event.entityId); }} /> : visible.length === 0 ? <RegistrationEmpty filtered onReset={resetFilters} /> : viewMode === "list" ? <RegistrationList applications={visible} onSelect={setSelectedId} /> : <section className="trademark-canvas" aria-label="Tarjetas de solicitudes de registro">
       <PhaseColumn applications={visible.filter((application) => STATUS_BY_ID[application.statusId].phase === "inapi")} onSelect={setSelectedId} phase="inapi" />
       <div className="trademark-phase-transition" aria-hidden><ArrowRight size={22} weight="bold" /></div>
       <PhaseColumn applications={visible.filter((application) => STATUS_BY_ID[application.statusId].phase === "gazette")} onSelect={setSelectedId} phase="gazette" />
     </section>}
 
-    {selected && <RegistrationDrawer application={selected} onClose={() => setSelectedId(null)} />}
+    {taskEditor && <TaskEditor task={taskEditor.task} members={members} currentUserId={currentUserId} targets={importedApplications.map(application => ({ id: application.id, label: `${application.name} · ${application.applicationNumber}` }))} defaultTarget={taskEditor.applicationId} defaultDate={taskEditor.date} onSave={save} onDelete={(id, task) => save(id, task, true)} onClose={() => setTaskEditor(null)} />}
+    {selected && <RegistrationDrawer application={selected} onClose={() => setSelectedId(null)}>{!examples && <CaseTasks tasks={tasks.filter(task => task.applicationId === selected.id)} onSave={task => save(selected.id, task)} onDelete={task => save(selected.id, task, true)} members={members} currentUserId={currentUserId} label={selected.name} suggestions={false} />}</RegistrationDrawer>}
+  </section>;
+}
+
+
+function RegistrationList({ applications, onSelect }: { applications: RegistrationApplication[]; onSelect: (id: string) => void }) {
+  return <section className="registration-list" aria-label="Lista de solicitudes de registro">
+    <div className="registration-list-labels"><span>Marca y titular</span><span>Estado procesal y último hito</span><span>Próxima gestión</span></div>
+    {applications.map(application => {
+      const milestone = significantRegistrationEvent(application);
+      const today = application.demoScenario ? PROCESS_DEMO_DATE : undefined;
+      const deadlines = registrationDeadlines(application, today);
+      return <button type="button" className="registration-list-row" key={application.id} onClick={() => onSelect(application.id)}>
+        <span className="registration-list-brand"><RegistrationLogo application={application} /><span><strong>{application.name}</strong><small>{application.holder}</small><small>Solicitud {application.applicationNumber} · Clases {application.niceClasses}</small></span></span>
+        <span><strong>{milestone.status}</strong><small>{milestone.date ? formatDate(milestone.date) + " · " : ""}{milestone.title}</small>{application.demoScenario && <small>Ejemplo simulado</small>}</span>
+        <span>{deadlines.map(deadline => <span key={deadline.key} className={`registration-list-deadline deadline-${deadline.attention}`}><strong>{deadline.label}</strong><small>{deadline.dueDate ? `${formatDate(deadline.dueDate)} · ${deadlineLabel(deadline, today)}` : deadlineLabel(deadline, today)}</small></span>)}<b>Abrir solicitud →</b></span>
+      </button>;
+    })}
   </section>;
 }
 
@@ -172,7 +215,7 @@ function ProcedureDeadlinePanel({ deadline: d, today, application, detailed = fa
   return <div className={`trademark-deadline deadline-${d.attention}`}><AttentionIcon attention={d.attention} /><div><span>{d.label}</span><strong>{deadlineLabel(d, today)}</strong>{d.dueDate && <small>Vence el {formatDate(d.dueDate)} · {origin}</small>}{(d.attention === "none" || detailed) && <small>{d.explanation}</small>}{detailed && d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ": fecha no informada"}</small>}</div></div>;
 }
 
-function RegistrationDrawer({ application, onClose }: { application: RegistrationApplication; onClose: () => void }) {
+function RegistrationDrawer({ application, onClose, children }: { application: RegistrationApplication; onClose: () => void; children?: ReactNode }) {
   const status = STATUS_BY_ID[application.statusId];
   const today = application.demoScenario ? PROCESS_DEMO_DATE : undefined;
   return <div className="trademark-drawer-overlay" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }} role="presentation">
@@ -187,6 +230,7 @@ function RegistrationDrawer({ application, onClose }: { application: Registratio
           {application.procedure?.sourceActDate && <p className="procedure-source">Actuación de referencia: {formatDate(application.procedure.sourceActDate)} · {application.procedure.sourceActDescription}</p>}
         </section>
 
+        {children}
         <section className="trademark-detail-identity">
           <RegistrationLogo key={application.logo ?? application.id} application={application} large />
           <div><span>MARCA</span><h3>{application.name}</h3><p>{application.type} · Clases {application.niceClasses}</p></div>
@@ -240,5 +284,5 @@ function RegistrationLoading() {
 }
 
 function RegistrationEmpty({ filtered = false, onReset }: { filtered?: boolean; onReset: () => void }) {
-  return <section className="trademark-empty"><NewspaperClipping aria-hidden size={34} weight="duotone" /><h2>{filtered ? "No encontramos solicitudes" : "Aún no hay solicitudes inscritas"}</h2><p>{filtered ? "Prueba otra marca o limpia los filtros para volver a ver el Canvas." : "Cuando ingreses una solicitud, aparecerá automáticamente en la fase y estado correspondiente."}</p><button onClick={onReset} type="button">{filtered ? "Limpiar filtros" : "Volver al Canvas"}</button></section>;
+  return <section className="trademark-empty"><NewspaperClipping aria-hidden size={34} weight="duotone" /><h2>{filtered ? "No encontramos solicitudes" : "Aún no hay solicitudes presentadas"}</h2><p>{filtered ? "Prueba otra marca o limpia los filtros para volver a ver el Canvas." : "Cuando ingreses una solicitud, aparecerá automáticamente en la fase y estado correspondiente."}</p><button onClick={onReset} type="button">{filtered ? "Limpiar filtros" : "Volver al Canvas"}</button></section>;
 }

@@ -161,6 +161,13 @@ export const cases = pgTable("cases", {
   index("cases_board_idx").on(table.organizationId, table.stage, table.status), index("cases_deadline_idx").on(table.organizationId, table.nextDeadline),
 ]);
 
+export const registrationTasks = pgTable("registration_tasks", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  applicationId: uuid("application_id").notNull().references(() => registrationApplications.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(), status: varchar("status", { length: 30 }).default("pending").notNull(),
+  dueDate: date("due_date"), assigneeId: uuid("assignee_id").references(() => users.id), ...timestamps,
+}, table => [index("registration_tasks_application_idx").on(table.organizationId, table.applicationId)]);
+
 export const caseMembers = pgTable("case_members", {
   caseId: uuid("case_id").notNull().references(() => cases.id, { onDelete: "cascade" }), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
 }, (table) => [primaryKey({ columns: [table.caseId, table.userId] })]);
