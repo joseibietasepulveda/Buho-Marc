@@ -21,6 +21,8 @@ Base verificada antes de v0.4, el 10 de septiembre de 2026: Dev `906f8244-c5b6-4
 
 ## Entrega v0.4 a Dev
 
+Verificado el 10 de septiembre de 2026: commit de aplicación `30fd710`, despliegue `0131c57e-3384-455c-98ad-36048ea4c3f8`, estado **SUCCESS**. Migraciones aplicadas correctamente; `/api/health`, `/api/registrations` (incluidas las tareas) y `/app` responden 200. `main` permanece en `c5a6be2`.
+
 - Publicar la rama `dev` en GitHub; el servicio `buho-marc-web` del ambiente **Dev** sigue esa rama. Production sigue `main`.
 - Comprobar que el despliegue corresponda al commit enviado y termine en `SUCCESS`, y que `/api/health` responda correctamente. Subir el commit no equivale por sí solo a completar el despliegue.
 - La migración `0003_huge_blazing_skull.sql` agrega `registration_tasks` sin borrar las tareas ni los expedientes existentes. Se aplica mediante el inicio habitual de Railway.

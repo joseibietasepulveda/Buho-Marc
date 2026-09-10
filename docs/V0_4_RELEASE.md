@@ -40,6 +40,8 @@ Estas decisiones incorporan la reunión del 8 de septiembre, las precisiones pos
 
 ## Próximas versiones — pendientes concretos
 
+**Mantenimiento de seguridad prioritario, antes de promover a producción:** la auditoría de dependencias del 10 de septiembre (`npm audit --omit=dev`) informa cinco paquetes afectados: uno crítico, tres altos y uno moderado. Next.js 16.2.6 ya estaba presente en la base `c5a6be2`; v0.4 no actualiza esa dependencia. Revisar los avisos, actualizar Next.js y sus dependencias afectadas a versiones corregidas y repetir compilación, pruebas y verificación en Dev. La clasificación de la auditoría no acredita por sí sola explotabilidad en esta aplicación. Este trabajo queda separado de la entrega funcional y no debe resolverse con una actualización forzada sin pruebas.
+
 1. **Resend para el abogado:** correos previos al vencimiento de tareas y plazos; correo específico cuando se emita el título/certificado; incluir fecha, responsable y enlace. Cancelar o reprogramar cuando cambie la fecha, termine una tarea o concluya un caso. Evitar duplicados y registrar entrega, fallos y reintentos.
 2. **TPI/TDPI:** detectar el ingreso de apelaciones al tribunal, no sólo su aparición en tabla. Incorporar aviso de comparecencia/solicitud de alegatos; validar con el abogado la regla, vigencia y cómputo del plazo de cinco días mencionado antes de automatizarlo.
 3. **Motor de búsquedas fonéticas:** detectar términos o segmentos relevantes dentro de marcas largas (no “destacar” como función cosmética). Validar también marcas muy cortas y de dos letras.
