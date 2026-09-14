@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
   ArrowClockwise,
   CaretRight,
-  Check,
   FileImage,
   Info,
   MagnifyingGlass,
@@ -14,11 +13,10 @@ import {
   UploadSimple,
   X,
 } from "@phosphor-icons/react";
-import { ChangeEvent, FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ReviewDialog } from "./review-dialog";
 
 import { NICE_CLASSES } from "@/lib/nice-classes";
-type NiceClass = { number: number; meaning: string };
 type FeasibilityMatch = {
   id: string;
   name: string;
@@ -92,12 +90,10 @@ const DEMO_MATCHES: FeasibilityMatch[] = [
 const DEMO_CLASSES = [11, 30, 43];
 
 export function FeasibilityReview() {
-  const [description, setDescription] = useState("");
   const [brandName, setBrandName] = useState("Cafeteras Mistral");
   const [selectedClasses, setSelectedClasses] = useState<number[]>(DEMO_CLASSES);
   const [classChoice, setClassChoice] = useState("");
   const [imageUrl, setImageUrl] = useState("/feasibility/cafeteras-mistral.png");
-  const [uploadedName, setUploadedName] = useState("cafeteras-mistral.png");
   const [phase, setPhase] = useState<"ready" | "loading" | "results">("ready");
   const [selectedMatch, setSelectedMatch] = useState<FeasibilityMatch | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -109,11 +105,6 @@ export function FeasibilityReview() {
   useEffect(() => () => {
     if (imageUrl.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
   }, [imageUrl]);
-
-  const selectedMeanings = useMemo(
-    () => selectedClasses.map((number) => NICE_CLASSES.find((item) => item.number === number)).filter(Boolean) as NiceClass[],
-    [selectedClasses],
-  );
 
   function addClass(value: string) {
     const number = Number(value);
@@ -130,13 +121,12 @@ export function FeasibilityReview() {
       if (current.startsWith("blob:")) URL.revokeObjectURL(current);
       return URL.createObjectURL(file);
     });
-    setUploadedName(file.name);
     invalidate();
   }
 
   function analyze(event: FormEvent) {
     event.preventDefault();
-    if (!brandName.trim() && !description.trim() && !imageUrl) return;
+    if (!brandName.trim() && !imageUrl) return;
     setPhase("loading");
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
     analysisTimer.current = setTimeout(() => setPhase("results"), 350);
@@ -145,11 +135,9 @@ export function FeasibilityReview() {
   function restoreDemo() {
     invalidate(); setMode("approximate");
     if (imageUrl.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
-    setDescription("");
     setBrandName("Cafeteras Mistral");
     setSelectedClasses(DEMO_CLASSES);
     setImageUrl("/feasibility/cafeteras-mistral.png");
-    setUploadedName("cafeteras-mistral.png");
     setSelectedMatch(null);
     setPhase("ready");
     if (fileRef.current) fileRef.current.value = "";
@@ -186,33 +174,32 @@ export function FeasibilityReview() {
                 <input aria-label="Nombre de la marca" onChange={(event) => { setBrandName(event.target.value); invalidate(); }} placeholder="Introduce el nombre de la marca" value={brandName} />
               </label>
             </div>
-            <button className="feasibility-submit" disabled={(!brandName.trim() && !description.trim() && !imageUrl) || phase === "loading"} type="submit">
-              {phase === "loading" ? <><span className="feasibility-spinner" /> Preparando ejemplo</> : <><Sparkle size={19} weight="fill" /> Ver comparación de ejemplo</>}
+            <div className="feasibility-options">
+              <div className="feasibility-class-picker">
+                <label htmlFor="nice-class">Clases Niza <span>Opcional · puedes agregar varias</span></label>
+                <select id="nice-class" onChange={(event) => addClass(event.target.value)} value={classChoice}>
+                  <option value="">Agregar una clase por número o significado…</option>
+                  {NICE_CLASSES.map((item) => <option key={item.number} value={item.number}>Clase {item.number} — {item.meaning}</option>)}
+                </select>
+              </div>
+              <div aria-label="Clases Niza seleccionadas" className="feasibility-class-chips">
+                {selectedClasses.map((number) => <button aria-label={`Quitar clase ${number}`} key={number} onClick={() => { setSelectedClasses((current) => current.filter((item) => item !== number)); invalidate(); }} title={NICE_CLASSES.find((item) => item.number === number)?.meaning} type="button"><span>{number}</span><X size={12} weight="bold" /></button>)}
+                {!selectedClasses.length && <small>Sin clases seleccionadas</small>}
+              </div>
+            </div>
+            <button className="feasibility-submit" disabled={(!brandName.trim() && !imageUrl) || phase === "loading"} type="submit">
+              {phase === "loading" ? <><span className="feasibility-spinner" /> Preparando ejemplo</> : <><Sparkle size={19} weight="fill" /> Buscar (ejemplo)</>}
             </button>
           </div>
           <input accept="image/*" className="sr-only" onChange={uploadImage} ref={fileRef} type="file" />
-          <button aria-label={imageUrl ? "Cambiar logo de la marca" : "Subir logo de la marca"} className={`feasibility-upload${imageUrl ? " has-image" : ""}`} onClick={() => fileRef.current?.click()} type="button">
-            {imageUrl ? <Image alt="Logo cargado para analizar" src={imageUrl} width={160} height={112} unoptimized /> : <UploadSimple size={32} />}
-            <span>{imageUrl ? "Cambiar logo" : "Subir logo"}</span>
-          </button>
-        </div>
-
-        <div className="feasibility-description"><label>Descripción del signo o etiqueta <span>Opcional</span><textarea rows={2} value={description} onChange={event => { setDescription(event.target.value); invalidate(); }} placeholder="Ej. Una cafetera con vapor, líneas curvas y una estrella sobre el nombre" /></label><p>{mode === "approximate" ? "Búsqueda aproximada: considera similitud fonética y gráfica. Puedes ingresar un nombre, subir una imagen o describir el signo." : "Ingresa un nombre, una imagen o una descripción. Los criterios se conservarán para la búsqueda."}</p>{imageUrl && <button type="button" onClick={() => { setImageUrl(""); setUploadedName(""); invalidate(); if (fileRef.current) fileRef.current.value = ""; }}>Quitar imagen</button>}</div>
-        <div className="feasibility-options">
-          <div className="feasibility-class-picker">
-            <label htmlFor="nice-class">Clases Niza <span>Opcional · puedes agregar varias</span></label>
-            <select id="nice-class" onChange={(event) => addClass(event.target.value)} value={classChoice}>
-              <option value="">Agregar una clase por número o significado…</option>
-              {NICE_CLASSES.map((item) => <option key={item.number} value={item.number}>Clase {item.number} — {item.meaning}</option>)}
-            </select>
+          <div className="feasibility-logo-picker">
+            <button aria-label={imageUrl ? "Cambiar logo de la marca" : "Subir logo de la marca"} className={`feasibility-upload${imageUrl ? " has-image" : ""}`} onClick={() => fileRef.current?.click()} type="button">
+              {imageUrl ? <Image alt="Logo cargado para analizar" src={imageUrl} width={160} height={112} unoptimized /> : <UploadSimple size={32} />}
+              <span>{imageUrl ? "Cambiar logo" : "Subir logo"}</span>
+            </button>
+            {imageUrl && <button className="feasibility-remove-image" type="button" onClick={() => { setImageUrl(""); invalidate(); if (fileRef.current) fileRef.current.value = ""; }}>Quitar imagen</button>}
           </div>
-          <div aria-label="Clases Niza seleccionadas" className="feasibility-class-chips">
-            {selectedClasses.map((number) => <button aria-label={`Quitar clase ${number}`} key={number} onClick={() => { setSelectedClasses((current) => current.filter((item) => item !== number)); invalidate(); }} title={NICE_CLASSES.find((item) => item.number === number)?.meaning} type="button"><span>{number}</span><X size={12} weight="bold" /></button>)}
-            {!selectedClasses.length && <small>Sin clases seleccionadas</small>}
-          </div>
-          <div className="feasibility-file"><FileImage size={19} /><div><span>Imagen para comparar</span><strong>{uploadedName}</strong></div><Check aria-label="Imagen cargada" size={17} weight="bold" /></div>
         </div>
-        {!!selectedMeanings.length && <details className="feasibility-class-detail"><summary>Ver significado de las clases seleccionadas</summary><ul>{selectedMeanings.map((item) => <li key={item.number}><b>{item.number}</b>{item.meaning}</li>)}</ul></details>}
       </form>
 
       {phase === "ready" && <section className="feasibility-ready" aria-live="polite"><ShieldCheck size={30} /><div><strong>Datos listos para la demostración</strong><p>Abre los ejemplos para comparar logos y clases. Si modificas un criterio, vuelve a abrir la comparación.</p></div></section>}
@@ -220,18 +207,6 @@ export function FeasibilityReview() {
       {phase === "loading" && <section aria-live="polite" className="feasibility-loading"><span className="feasibility-spinner is-large" /><div><strong>Preparando los ejemplos…</strong><p>Resultados simulados para explorar la comparación.</p></div></section>}
 
       {phase === "results" && <div className="feasibility-results" aria-live="polite">
-        <section className="feasibility-summary">
-          <header>
-            <div><span className="buho-overline">RESUMEN</span><h2>Demostración para “{brandName || description || "Imagen cargada"}”</h2></div>
-            <span className="feasibility-evaluated"><Check size={15} weight="bold" /> 4 ejemplos de comparación</span>
-          </header>
-          <div className="feasibility-example-grid">
-            <article className="feasibility-example-summary"><ShieldCheck size={26} aria-hidden /><h3>Evaluación jurídica pendiente</h3><strong className="feasibility-mock-probability">35 % <span>Dato mock</span></strong><p>Probabilidad simulada de oposición de terceros. Evaluación jurídica pendiente; el algoritmo se incorporará después. Este valor es fijo para el ejemplo Cafeteras Mistral.</p></article>
-            <article className="feasibility-example-summary feasibility-comparison-summary"><Sparkle size={26} aria-hidden /><h3>Comparación visual, fonética y conceptual</h3><p>Las marcas y las razones corresponden al caso Cafeteras Mistral. Al cambiar tus datos, los ejemplos permanecen fijos.</p></article>
-          </div>
-          <footer><Info size={16} /><span>Ejemplo ilustrativo con datos simulados. No corresponde a una búsqueda oficial, evaluación jurídica ni pronóstico de INAPI.</span></footer>
-        </section>
-
         <section className="feasibility-table-panel">
           <header><div><span className="buho-overline">RESULTADOS SIMULADOS</span><h2>Marcas del ejemplo</h2></div><span>Similitud simulada</span></header>
           <div className="feasibility-table-wrap">

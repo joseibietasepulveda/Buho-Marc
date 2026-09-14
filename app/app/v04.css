@@ -125,7 +125,7 @@
 .notice-details footer button { padding:10px 16px; border:1px solid #d2c2dd; border-radius:6px; background:white; color:#673389; }
 .notice-title-issued { padding:15px; border-left:3px solid #724596; background:#f4ebfb; }
 .notice-empty { padding:45px 30px; text-align:center; background:#faf7fc; border-radius:10px; color:#786781; }
-.global-deadlines { position:sticky; top:-1px; z-index:5; background:white; padding:7px 0 12px; margin:-25px 0 22px; }
+.global-deadlines { background:white; padding:7px 0 12px; margin:-25px 0 22px; }
 .global-deadlines > button { display:flex; align-items:center; gap:12px; width:100%; padding:13px 18px; background:#f7f4fa; border:1px solid #e2d8e9; border-radius:8px; color:#6d5879; cursor:pointer; text-align:left; font-size:15px; }
 .global-deadlines > button.has-deadlines { color:#9b2d3c; background:#fff3f3; border-color:#edc2c7; }
 .global-deadlines > button > span:last-child { margin-left:auto; }
