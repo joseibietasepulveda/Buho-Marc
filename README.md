@@ -16,6 +16,8 @@ La landing principal se publica en Vercel y la ruta anterior de prueba redirige 
 
 ## Ejecutar en local
 
+Los ajustes de septiembre incorporan prioridades por tarea (Alta/Media/Baja), paginación de pendientes, tarjetas con ambas marcas y tareas, enlaces desde clientes a sus marcas y un historial de la marca vigilada. La migración `0004_task_priorities` asigna prioridad Media a las tareas anteriores y renombra únicamente los clientes mock que conservan sus nombres originales. Véase [detalle de los ajustes](docs/V0_5_UX_SEPTIEMBRE.md).
+
 Requisitos: Node.js 22.13 o superior.
 
 ### Inicio con doble clic
@@ -30,6 +32,8 @@ En macOS, haz doble clic en **ABRIR BUHO MARC.command**. El lanzador:
 Nunca cierra una aplicación ajena que esté usando el mismo puerto; en ese caso muestra un aviso.
 
 También puedes ejecutar `npm run dev:local`: usa el puerto 3000 y una base local en 55433. Cerrar el proceso detiene ambos servicios, pero no borra sus datos. No usa `DATABASE_URL` ni las credenciales de INAPI del ambiente publicado.
+
+Para una prueba aislada puedes indicar `BUHO_LOCAL_DATA_DIR` (otra carpeta de datos) y `BUHO_LOCAL_DB_PORT` (otro puerto). Esto no copia ni reemplaza la base local habitual. Es útil si iCloud mantiene archivos de la carpeta de trabajo pendientes de descarga.
 
 ### Inicio desde Terminal con una base configurada
 

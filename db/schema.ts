@@ -1,7 +1,8 @@
 import {
-  boolean, date, index, integer, jsonb, pgTable, primaryKey, real, text,
+  boolean, check, date, index, integer, jsonb, pgTable, primaryKey, real, text,
   timestamp, uniqueIndex, uuid, varchar,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -165,8 +166,8 @@ export const registrationTasks = pgTable("registration_tasks", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   applicationId: uuid("application_id").notNull().references(() => registrationApplications.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 255 }).notNull(), status: varchar("status", { length: 30 }).default("pending").notNull(),
-  dueDate: date("due_date"), assigneeId: uuid("assignee_id").references(() => users.id), ...timestamps,
-}, table => [index("registration_tasks_application_idx").on(table.organizationId, table.applicationId)]);
+  priority: varchar("priority", { length: 10 }).default("Media").notNull(), dueDate: date("due_date"), assigneeId: uuid("assignee_id").references(() => users.id), ...timestamps,
+}, table => [index("registration_tasks_application_idx").on(table.organizationId, table.applicationId), check("registration_tasks_priority_check", sql`${table.priority} IN ('Alta', 'Media', 'Baja')`)]);
 
 export const caseMembers = pgTable("case_members", {
   caseId: uuid("case_id").notNull().references(() => cases.id, { onDelete: "cascade" }), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -176,8 +177,8 @@ export const caseTasks = pgTable("case_tasks", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   caseId: uuid("case_id").notNull().references(() => cases.id, { onDelete: "cascade" }), title: varchar("title", { length: 255 }).notNull(),
   status: varchar("status", { length: 30 }).default("pending").notNull(), assigneeId: uuid("assignee_id").references(() => users.id),
-  dueAt: timestamp("due_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), ...timestamps,
-}, (table) => [index("case_tasks_case_status_idx").on(table.organizationId, table.caseId, table.status)]);
+  priority: varchar("priority", { length: 10 }).default("Media").notNull(), dueAt: timestamp("due_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), ...timestamps,
+}, (table) => [index("case_tasks_case_status_idx").on(table.organizationId, table.caseId, table.status), check("case_tasks_priority_check", sql`${table.priority} IN ('Alta', 'Media', 'Baja')`)]);
 
 export const legalDeadlines = pgTable("legal_deadlines", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),

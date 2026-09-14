@@ -2,7 +2,9 @@ export const APP_VERSION = "0.5";
 export const RELEASE_INCLUDED = [
   "Solicitudes de registro: tarjetas predeterminadas, lista y calendario, con estado procesal, último hito relevante y contexto del plazo.",
   "Accesos directos desde ambos resúmenes a sus calendarios completos. Calendarios de Casos y Solicitudes con mes, semana, próxima semana, tareas por día y lista inferior por categoría.",
-  "Tareas persistentes con fecha, responsable, autoasignación, edición y eliminación. Tres colores por origen y énfasis rojo para vencimientos.",
+  "Tareas persistentes con prioridad alta, media o baja, fecha, responsable y autoasignación. Filtro por prioridad de tareas pendientes y confirmación al eliminar.",
+  "Resumen con tres tareas pendientes por página. Tarjetas de casos con marca propia, marca del tercero y todas las tareas pendientes.",
+  "Clientes con acceso directo a las fichas de sus marcas. Vigilancias con historial de la marca vigilada y explicación antes de la comparación.",
   "Alertas de tareas y plazos visibles desde todos los módulos.",
   "Notificaciones Prioritarias con ficha lateral e historia cronológica del expediente; Todos los avisos conservan sus detalles desplegables y el título de marca tiene aviso específico.",
   "Factibilidad por nombre, imagen o descripción; búsqueda aproximada predeterminada, controles legibles y logo en un espacio propio. Resultados todavía simulados.",

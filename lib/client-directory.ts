@@ -8,21 +8,23 @@ export const clientDataSchema = z.object({
 export type ClientData = z.infer<typeof clientDataSchema>;
 export type Client = ClientData & { id: string; version: number; mock: boolean };
 export type ClientField = keyof ClientData;
-export const CLIENT_FIELDS: { key: ClientField; label: string }[] = [{key:"name",label:"Nombre del estudio"},{key:"rut",label:"RUT"},{key:"contact",label:"Nombre de contacto"},{key:"phone",label:"Teléfono de contacto"},{key:"email",label:"Mail de contacto"}];
+export const CLIENT_FIELDS: { key: ClientField; label: string }[] = [{key:"name",label:"Nombre del cliente"},{key:"rut",label:"RUT"},{key:"contact",label:"Nombre de contacto"},{key:"phone",label:"Teléfono de contacto"},{key:"email",label:"Mail de contacto"}];
 export const clientPatchSchema = z.object({ id: z.string().regex(/^CL-\d+$/), version: z.number().int().positive(), field: z.enum(["name","rut","contact","phone","email"]), value: z.string().max(255) }).strict();
 
 export const demoClients = [
-  { id: "CL-01", name: "Araya & Montes Abogados", rut: "77.810.240-6", contact: "Catalina Araya", phone: "+56 2 2400 0101", email: "catalina.araya@example.com" },
-  { id: "CL-02", name: "Estudio Rivas del Valle", rut: "77.810.241-4", contact: "Tomás Rivas", phone: "+56 2 2400 0102", email: "tomas.rivas@example.com" },
-  { id: "CL-03", name: "Fuentes y Lagos Propiedad Intelectual", rut: "77.810.242-2", contact: "Antonia Lagos", phone: "+56 2 2400 0103", email: "antonia.lagos@example.com" },
-  { id: "CL-04", name: "Estudio Córdova Legal", rut: "77.810.243-0", contact: "Diego Córdova", phone: "+56 2 2400 0104", email: "diego.cordova@example.com" },
-  { id: "CL-05", name: "Valdés & Pizarro Asociados", rut: "77.810.244-9", contact: "Josefina Valdés", phone: "+56 2 2400 0105", email: "josefina.valdes@example.com" },
-  { id: "CL-06", name: "Estudio Andrade Sur", rut: "77.810.245-7", contact: "Nicolás Andrade", phone: "+56 2 2400 0106", email: "nicolas.andrade@example.com" },
+  { id: "CL-01", name: "CASA NUBE", rut: "77.810.240-6", contact: "Catalina Araya", phone: "+56 2 2400 0101", email: "catalina.araya@example.com" },
+  { id: "CL-02", name: "PULSO", rut: "77.810.241-4", contact: "Tomás Rivas", phone: "+56 2 2400 0102", email: "tomas.rivas@example.com" },
+  { id: "CL-03", name: "LINARIA", rut: "77.810.242-2", contact: "Antonia Lagos", phone: "+56 2 2400 0103", email: "antonia.lagos@example.com" },
+  { id: "CL-04", name: "ALTURA", rut: "77.810.243-0", contact: "Diego Córdova", phone: "+56 2 2400 0104", email: "diego.cordova@example.com" },
+  { id: "CL-05", name: "TERRA SUR", rut: "77.810.244-9", contact: "Josefina Valdés", phone: "+56 2 2400 0105", email: "josefina.valdes@example.com" },
+  { id: "CL-06", name: "NOVA FOODS", rut: "77.810.245-7", contact: "Nicolás Andrade", phone: "+56 2 2400 0106", email: "nicolas.andrade@example.com" },
 ];
 
 // Preserve the existing mock relationships by immutable ID, even after renaming a client.
 export function mockClientId(brand: string) {
   const key = brand.trim().toLocaleUpperCase("es");
+  const primary: Record<string, string> = { "CASA NUBE": "CL-01", "PULSO": "CL-02", "LINARIA": "CL-03", "ALTURA": "CL-04", "TERRA SUR": "CL-05", "NOVA FOODS": "CL-06" };
+  if (primary[key]) return primary[key];
   return demoClients[Array.from(key).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % demoClients.length].id;
 }
 

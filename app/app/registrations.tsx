@@ -138,7 +138,7 @@ export function TrademarkRegistrationCanvas({ initialSelection = {}, members = [
       <button className="trademark-clear-filters" onClick={resetFilters} type="button"><Funnel aria-hidden size={16} /> Limpiar</button>
     </section>
 
-    <div className="registration-view-modes"><div role="group" aria-label="Vista de solicitudes">{([["cards", "Tarjetas"], ["list", "Lista"], ["calendar", "Calendario"]] as const).map(([mode, label]) => <button type="button" aria-pressed={viewMode === mode} key={mode} onClick={() => setViewMode(mode)}>{label}</button>)}</div>{!examples && viewMode !== "calendar" && <button className="buho-secondary" type="button" disabled={!applications.length} onClick={() => setTaskEditor({})}>Agregar tarea +</button>}</div>
+    <div className="registration-view-modes"><div role="group" aria-label="Vista de solicitudes">{([["cards", "Tarjetas"], ["calendar", "Calendario"], ["list", "Listas"]] as const).map(([mode, label]) => <button type="button" aria-pressed={viewMode === mode} key={mode} onClick={() => setViewMode(mode)}>{label}</button>)}</div>{!examples && viewMode !== "calendar" && <button className="buho-secondary" type="button" disabled={!applications.length} onClick={() => setTaskEditor({})}>Agregar tarea +</button>}</div>
     <div className="trademark-legend" aria-label="Niveles de atención">
       <span className="deadline-normal"><ClockCountdown aria-hidden size={16} /> Normal</span>
       <span className="deadline-soon"><Bell aria-hidden size={16} /> Próximo a vencer</span>
@@ -252,7 +252,7 @@ function RegistrationDrawer({ application, onClose, children, onEvidenceSaved }:
           <div><dt>Clases o categorías Niza</dt><dd>{application.niceClasses}</dd></div>
           <div><dt>RUT del titular</dt><dd>{application.holderRut}</dd></div>
           <div><dt>Titular</dt><dd>{application.holder}</dd></div>
-          <div><dt>Estudio cliente</dt><dd><ClientNameLink name={application.client} /></dd></div>
+          <div><dt>Cliente</dt><dd><ClientNameLink name={application.client} /></dd></div>
           <div><dt>Publicación efectiva</dt><dd>{application.publishedAt ? formatDate(application.publishedAt) : "No informada en los antecedentes"}</dd></div>
           {(application.registrationNumber || application.registrationDate) && <div><dt>Vencimiento del registro</dt><dd>{application.expirationDate ? formatDate(application.expirationDate) : "No informado"}</dd></div>}
           <div><dt>País del titular</dt><dd>{application.ownerCountry ?? "No informado"}</dd></div>

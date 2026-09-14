@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { caseTasks, TASK_STATUS_LABELS, type CaseTask, type CaseTaskStatus, type TaskMember } from "@/lib/case-tasks";
+import { caseTasks, taskPriority, TASK_STATUS_LABELS, type CaseTask, type CaseTaskStatus, type TaskMember, type TaskPriority } from "@/lib/case-tasks";
 import { displayWorkDate } from "@/lib/work-priorities";
 import { ReviewDialog } from "./review-dialog";
 
@@ -13,6 +13,7 @@ export function TaskEditor({ task, members, currentUserId, targets, defaultTarge
   const [date, setDate] = useState(task?.dueDate ?? defaultDate ?? "");
   const [assignee, setAssignee] = useState(task ? task.assigneeId ?? "" : currentUserId ?? "");
   const [status, setStatus] = useState<CaseTaskStatus>(task?.status ?? "pending");
+  const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? "Media");
   const [targetId, setTargetId] = useState(defaultTarget ?? (targets.length === 1 ? targets[0].id : ""));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +23,7 @@ export function TaskEditor({ task, members, currentUserId, targets, defaultTarge
     if (busy) return;
     setBusy(true); setError("");
     try {
-      const ok = remove && task && onDelete ? await onDelete(targetId, task) : await onSave(targetId, { id: saved ? task.id : crypto.randomUUID(), title: title.trim(), status, dueDate: date || null, assigneeId: assignee || null });
+      const ok = remove && task && onDelete ? await onDelete(targetId, task) : await onSave(targetId, { id: saved ? task.id : crypto.randomUUID(), title: title.trim(), status, priority, dueDate: date || null, assigneeId: assignee || null });
       if (ok) onClose(); else setError("No se pudo guardar. Tus datos siguen aquí para reintentar.");
     } catch { setError("No se pudo guardar. Tus datos siguen aquí para reintentar."); }
     finally { setBusy(false); }
@@ -34,8 +35,9 @@ export function TaskEditor({ task, members, currentUserId, targets, defaultTarge
       <label>¿Qué hay que hacer?<input required maxLength={255} value={title} onChange={event => setTitle(event.target.value)} placeholder="Ej. Tener listo el escrito de oposición" /></label>
       <div className="task-editor-grid"><label>Para cuándo<input type="date" aria-label="Para cuándo" value={date} onInput={event => setDate(event.currentTarget.value)} onChange={event => setDate(event.target.value)} /><small>{date ? "Aparecerá en el calendario de ese día." : "Sin fecha: aparecerá en la lista de tareas."}</small></label><label>Responsable<select aria-label="Responsable de la tarea" value={assignee} onChange={event => setAssignee(event.target.value)}><option value="">Sin asignar</option>{members.map(member => <option key={member.id} value={member.id}>{member.name}{member.id === currentUserId ? " (yo)" : ""}</option>)}</select>{currentUserId && <button type="button" onClick={() => setAssignee(currentUserId)}>Asignármela</button>}</label></div>
       <label>Estado<select value={status} onChange={event => setStatus(event.target.value as CaseTaskStatus)}>{Object.entries(TASK_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label>Prioridad de la tarea<select aria-label="Prioridad de la tarea" value={priority} onChange={event => setPriority(event.target.value as TaskPriority)}>{["Alta", "Media", "Baja"].map(value => <option key={value}>{value}</option>)}</select><small>La defines tú; es independiente de la cercanía del vencimiento.</small></label>
       {error && <p role="alert" className="task-error">{error}</p>}
-      {confirmDelete && <p role="alert">¿Eliminar esta tarea? El plazo legal y el expediente se conservarán. <button type="button" disabled={busy} onClick={() => void perform(true)}>Sí, eliminar tarea</button> <button type="button" onClick={() => setConfirmDelete(false)}>Conservar</button></p>}
+      {confirmDelete && <ReviewDialog title="¿Eliminar esta tarea?" className="task-delete-confirmation" onClose={() => { if (!busy) setConfirmDelete(false); }}><p>Se eliminará «{task?.title}». El caso y su plazo legal se conservarán.</p>{error && <p role="alert">{error}</p>}<footer><button type="button" disabled={busy} onClick={() => setConfirmDelete(false)}>Cancelar</button><button className="is-danger" type="button" disabled={busy} onClick={() => void perform(true)}>{busy ? "Eliminando…" : "Sí, eliminar tarea"}</button></footer></ReviewDialog>}
       <footer>{saved && onDelete && <button type="button" disabled={busy} onClick={() => setConfirmDelete(true)}>Eliminar tarea</button>}<button type="button" disabled={busy} onClick={onClose}>Cancelar</button><button className="buho-primary" type="submit" disabled={busy || !title.trim() || !targetId}>{busy ? "Guardando…" : "Guardar tarea"}</button></footer>
     </form>
   </ReviewDialog>;
@@ -48,7 +50,7 @@ export function CaseTasks({ tasks, onSave, onDelete, members = [], currentUserId
   const [editing, setEditing] = useState<CaseTask | "new" | null>(null);
   const entries = suggestions ? caseTasks(tasks) : tasks ?? [];
   return <section className="buho-case-section case-tasks"><header><div><h3>Tareas del equipo</h3><small>{entries.filter(task => task.status === "pending").length} pendientes</small></div><button type="button" onClick={() => setEditing("new")}>Agregar tarea +</button></header>
-    {entries.map(task => <button type="button" className={`task-row task-${task.status}`} key={task.id} onClick={() => setEditing(task)}><span><strong>{task.title}</strong><small>{displayWorkDate(task.dueDate ?? undefined)} · {members.find(member => member.id === task.assigneeId)?.name ?? "Sin responsable"}</small></span><span>{TASK_STATUS_LABELS[task.status]}</span><b>Editar →</b></button>)}
+    {entries.map(task => <button type="button" className={`task-row task-${task.status}`} key={task.id} onClick={() => setEditing(task)}><span><strong>{task.title}</strong><small>Prioridad {taskPriority(task).toLowerCase()} · {displayWorkDate(task.dueDate ?? undefined)} · {members.find(member => member.id === task.assigneeId)?.name ?? "Sin responsable"}</small></span><span>{TASK_STATUS_LABELS[task.status]}</span><b>Editar →</b></button>)}
     {!entries.length && <p>Agrega una tarea, asígnala y define para cuándo debe estar lista.</p>}
     {editing && <TaskEditor task={editing === "new" ? undefined : editing} members={members} currentUserId={currentUserId} targets={[{ id: "current", label }]} defaultTarget="current" onSave={(_, task) => onSave(task)} onDelete={onDelete ? (_, task) => onDelete(task) : undefined} onClose={() => setEditing(null)} />}
   </section>;

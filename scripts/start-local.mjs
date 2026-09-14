@@ -8,8 +8,9 @@ import path from "node:path";
 import EmbeddedPostgres from "embedded-postgres";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(root, ".buho-local", "postgres");
-const dbPort = 55433;
+const dataDir = process.env.BUHO_LOCAL_DATA_DIR ? path.resolve(process.env.BUHO_LOCAL_DATA_DIR) : path.join(root, ".buho-local", "postgres");
+const dbPort = Number(process.env.BUHO_LOCAL_DB_PORT || 55433);
+if (!Number.isInteger(dbPort) || dbPort < 1024 || dbPort > 65535) throw new Error("BUHO_LOCAL_DB_PORT no es válido");
 const appPort = Number(process.env.BUHO_LOCAL_PORT || 3000);
 if (!Number.isInteger(appPort) || appPort < 1024 || appPort > 65535) throw new Error("BUHO_LOCAL_PORT no es válido");
 const env = { ...process.env, DATABASE_URL: `postgresql://postgres:buho-local-only@127.0.0.1:${dbPort}/buho_local`, SOURCE_PROVIDER: "simulated", MONITORING_SCHEDULER_ENABLED: "false", INAPI_IMPORT_COHORT: "false", PORT: String(appPort) };

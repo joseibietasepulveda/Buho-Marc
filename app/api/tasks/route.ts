@@ -34,7 +34,7 @@ export async function POST(request: Request) {
             const [member] = await tx`SELECT user_id FROM organization_members WHERE organization_id = ${DEMO_ORG_ID} AND user_id = ${task.assigneeId}`;
             if (!member) throw new Error("El responsable no pertenece al equipo");
           }
-          await tx`INSERT INTO registration_tasks (id, organization_id, application_id, title, status, due_date, assignee_id) VALUES (${task.id}, ${DEMO_ORG_ID}, ${application.id}, ${task.title}, ${task.status}, ${task.dueDate ?? null}, ${task.assigneeId ?? null}) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, due_date = EXCLUDED.due_date, assignee_id = EXCLUDED.assignee_id, updated_at = now()`;
+          await tx`INSERT INTO registration_tasks (id, organization_id, application_id, title, status, priority, due_date, assignee_id) VALUES (${task.id}, ${DEMO_ORG_ID}, ${application.id}, ${task.title}, ${task.status}, ${task.priority}, ${task.dueDate ?? null}, ${task.assigneeId ?? null}) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, priority = EXCLUDED.priority, due_date = EXCLUDED.due_date, assignee_id = EXCLUDED.assignee_id, updated_at = now()`;
         }
       }
       await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${DEMO_ORG_ID}, ${DEMO_USER_ID}, ${`task.${input.action}`}, 'task', ${input.action === "delete" ? input.taskId : input.task.id}, ${tx.json({ entityType: input.entityType, entityId: input.entityId })})`;

@@ -1,4 +1,55 @@
 /* v0.5: aligned summary headings and explicit navigation to the full agenda. */
+.buho-app .buho-dashboard-grid > :is(.buho-agenda,.buho-dashboard-matches) > header h2 {
+  font-size:clamp(28px,2.3vw,34px); font-weight:750; line-height:1.12; letter-spacing:-.055em;
+}
+.buho-app .buho-dashboard-grid > :is(.buho-agenda,.buho-dashboard-matches) > header .buho-overline {
+  font-size:14px; line-height:1.35; font-weight:700; letter-spacing:.13em;
+}
+.buho-app .buho-brand-filter-fields { grid-template-columns:minmax(130px,.7fr) minmax(170px,1fr) minmax(150px,.85fr) minmax(340px,2.5fr); }
+.buho-app .brand-portfolio-actions .brand-attribute-select select,
+.buho-app .brand-portfolio-actions .buho-search { height:52px; min-height:52px; max-height:52px; box-sizing:border-box; margin:0; }
+.buho-app .pending-tasks-scroll { overflow-x:auto; }
+.buho-app .pending-tasks table { width:100%; table-layout:fixed; }
+.buho-app .pending-tasks th:first-child { width:44%; }
+.buho-app .pending-tasks th:last-child { width:20%; }
+.buho-app .pending-tasks td { vertical-align:top; overflow-wrap:anywhere; }
+.buho-app .pending-tasks td button { display:block; border:0; padding:0; color:inherit; background:transparent; text-align:left; font:inherit; cursor:pointer; }
+.buho-app .pending-tasks small { display:block; margin-top:6px; color:#786a7e; font-size:14px; }
+.buho-app .pending-tasks-pagination { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:20px; padding:20px 24px; border-top:1px solid #e3dbe8; font-size:16px; }
+.pending-tasks-pagination button { padding:8px 12px; border:1px solid #d7cce0; border-radius:7px; background:white; color:#623581; font:inherit; cursor:pointer; }
+.pending-tasks-pagination button:disabled { opacity:.4; cursor:default; }
+.buho-app .case-brand-role { display:grid; gap:4px; margin:14px 0; }
+.buho-app .case-brand-role small { color:#786a7e; font-size:14px; }
+.buho-app .case-brand-role strong { color:#302038; font-size:19px; }
+.buho-app .case-card-tasks { margin:0 18px; padding:18px 0; border-top:1px solid #e4dbe9; font-size:17px; }
+.buho-app .case-card-tasks button { display:grid; gap:5px; width:100%; padding:12px 0; border:0; border-bottom:1px solid #ece5f0; text-align:left; background:transparent; color:#302038; font:inherit; cursor:pointer; }
+.case-card-tasks small { color:#786a7e; font-size:14px; }
+.case-card-tasks p { color:#786a7e; font-size:15px; }
+.buho-app .buho-case-client { font-size:17px; line-height:1.5; }
+.buho-app .buho-case-client .buho-client-link { font-size:inherit; }
+.client-inline { display:flex; flex-wrap:wrap; gap:5px; align-items:baseline; margin:0 0 20px; font-size:17px; }
+.client-inline .buho-client-link { font:inherit; }
+.client-brand-link { display:flex; justify-content:space-between; gap:14px; width:100%; border:0; background:transparent; color:#643783; text-align:left; font:inherit; cursor:pointer; padding:8px 0; }
+.client-brand-link span { white-space:nowrap; }
+.task-delete-confirmation { max-width:500px; color:#302038; }
+.task-delete-confirmation > p { padding:0 26px; line-height:1.6; }
+.task-delete-confirmation > footer { display:flex; justify-content:flex-end; gap:12px; padding:20px 26px; }
+.review-dialog.task-delete-confirmation footer button { font:inherit; cursor:pointer; padding:10px 16px; background:white; color:#302038; border:1px solid #d8cddd; border-radius:7px; }
+.review-dialog.task-delete-confirmation footer .is-danger { background:#ab3044; border-color:#ab3044; color:white; }
+.match-history header p { margin:7px 0 0; font-size:16px; color:#786a7e; }
+.match-history ol { list-style:none; padding:0 0 0 16px; margin:24px 0; }
+.match-history li { position:relative; padding:0 0 25px 25px; border-left:2px solid #dacbe5; }
+.match-history li::before { content:""; position:absolute; width:10px; height:10px; border-radius:50%; background:#8551aa; left:-6px; top:5px; }
+.match-history time { color:#786a7e; font-size:14px; }
+.match-history summary { padding:8px 0; cursor:pointer; font-size:17px; font-weight:650; }
+.match-history details p { font-size:16px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+.match-history details small { display:block; margin-top:5px; }
+.buho-app .buho-about .buho-roadmap-group { margin-top:32px; padding-top:26px; }
+.buho-app .buho-about .buho-roadmap-group h3 { font-weight:750; margin:0 0 16px; }
+.buho-app .buho-about .buho-roadmap-group ul { margin:0; padding-left:24px; }
+.buho-app .buho-about .buho-roadmap-group li { margin:0 0 14px; }
+@media(max-width:1100px) { .buho-app .buho-brand-filter-fields { grid-template-columns:repeat(2,minmax(0,1fr)); } .buho-app .buho-brand-filter-fields label:last-child { grid-column:1/-1; } }
+@media(max-width:600px) { .buho-app .buho-brand-filter-fields { grid-template-columns:1fr; } .buho-app .pending-tasks table { min-width:600px; } }
 .buho-dashboard-grid > :is(.buho-agenda,.buho-dashboard-matches) > header h2 {
   margin:8px 0 0;
   font-size:clamp(28px,2.3vw,34px);
