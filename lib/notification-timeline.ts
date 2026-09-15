@@ -4,7 +4,7 @@ import type { RegistrationApplication } from "./registration-data";
 export type TimelineNotice = {
   id: string; title: string; brand: string; date: string; body: string;
   matchId?: string;
-  changeDetail?: { changes: FieldChange[]; source?: string; summary: string };
+  changeDetail?: { changes: FieldChange[]; source?: string; summary: string; applicationNumber?: string; caseId?: string };
 };
 export type TimelineBrand = {
   id?: string; name: string; applicationNumber?: string; provider?: string;
@@ -54,13 +54,14 @@ export function priorityNoticeSummary(notice: TimelineNotice): string {
 }
 
 export function buildNotificationTimeline(notice: TimelineNotice, notices: TimelineNotice[], applications: RegistrationApplication[] = [], brands: TimelineBrand[] = []) {
-  const matchedApplications = applications.filter(application => fold(application.name) === fold(notice.brand));
-  const matchedBrands = brands.filter(brand => fold(brand.name) === fold(notice.brand));
+  const exactId = notice.changeDetail?.applicationNumber;
+  const matchedApplications = applications.filter(application => exactId ? application.applicationNumber === exactId : fold(application.name) === fold(notice.brand));
+  const matchedBrands = brands.filter(brand => exactId ? brand.applicationNumber === exactId : fold(brand.name) === fold(notice.brand));
   const applicationIds = new Set([...matchedApplications, ...matchedBrands].map(item => item.applicationNumber).filter(Boolean));
   // A notification currently has a brand name, not a stable application link.
   // Avoid borrowing another file's history when two applications share a name.
   const ambiguous = applicationIds.size > 1 || matchedApplications.length > 1 || matchedBrands.length > 1;
-  const related = notices.filter(item => notice.matchId ? item.matchId === notice.matchId : !item.matchId && fold(item.brand) === fold(notice.brand) && (!ambiguous || item.id === notice.id));
+  const related = notices.filter(item => exactId ? item.changeDetail?.applicationNumber === exactId : notice.matchId ? item.matchId === notice.matchId : !item.matchId && fold(item.brand) === fold(notice.brand) && (!ambiguous || item.id === notice.id));
   const entries: NotificationTimelineEntry[] = [];
   const add = (raw: RawEntry, current: boolean, previous = false) => {
     const id = eventId(raw);

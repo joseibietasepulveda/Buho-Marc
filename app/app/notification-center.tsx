@@ -8,10 +8,10 @@ import { displayValue, statusLabel, type FieldChange } from "@/lib/source-contra
 import type { RegistrationApplication } from "@/lib/registration-data";
 import { buildNotificationTimeline, conciseNoticeTitle, priorityNoticeSummary, type TimelineBrand } from "@/lib/notification-timeline";
 
-type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { changes: FieldChange[]; source?: string; summary: string } };
+type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { applicationNumber?: string; caseId?: string; changes: FieldChange[]; source?: string; summary: string } };
 const emptyApplications: RegistrationApplication[] = [];
 const emptyBrands: TimelineBrand[] = [];
-export function NotificationCenter({ notices, applications = emptyApplications, brands = emptyBrands, onManage, onOpenMatch }: { notices: Notice[]; applications?: RegistrationApplication[]; brands?: TimelineBrand[]; onManage: (id: string) => void; onOpenMatch: (id: string) => void }) {
+export function NotificationCenter({ notices, applications = emptyApplications, brands = emptyBrands, onManage, onOpenMatch, onOpenCase }: { notices: Notice[]; applications?: RegistrationApplication[]; brands?: TimelineBrand[]; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
   const [tab, setTab] = useState<"priority" | "all">("priority");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = notices.find(notice => notice.id === selectedId);
@@ -29,11 +29,11 @@ export function NotificationCenter({ notices, applications = emptyApplications, 
       <summary><i className="notice-unread-dot" aria-hidden /><span><small>{notice.date} · {notice.brand}</small><strong>{display.title}</strong>{display.kind === "deadline" && <small>{display.label}</small>}<small>{notice.status === "Pendiente" ? "Pendiente de revisión" : "Gestionada"}</small></span><b>{isTitleIssued(notice.title) ? "Título disponible" : notice.changeDetail?.changes.some(change => change.field === "publicationDate") || /Diario Oficial/i.test(notice.title) ? "Diario Oficial" : notice.changeDetail ? "INAPI" : "Seguimiento"}</b><span className="notice-chevron" aria-hidden>⌄</span></summary>
       <div className="notice-details">{isTitleIssued(notice.title) && <p className="notice-title-issued">El título de marca figura emitido. Revisa el documento para completar la entrega al cliente.</p>}
         {notice.changeDetail ? <><p>{notice.changeDetail.summary.split("\n\nAntecedentes detectados:")[0]}</p><div className="notice-change-list">{notice.changeDetail.changes.map((change, index) => <details key={`${change.field}-${index}`}><summary>{change.label}<span aria-hidden>⌄</span></summary><dl><div><dt>Antes</dt><dd>{change.field === "status" ? statusLabel(String(change.before)) : displayValue(change.before)}</dd></div><div><dt>Ahora</dt><dd>{change.field === "status" ? statusLabel(String(change.after)) : displayValue(change.after)}</dd></div></dl></details>)}</div></> : <><p className="notice-body">{notice.body}</p>{display.kind === "deadline" && <p>El texto original corresponde a la fecha del aviso. Confirma el vencimiento en el expediente; las referencias como “en 5 días” no son una cuenta regresiva actualizada.</p>}</>}
-        <footer>{notice.matchId && <button type="button" onClick={() => onOpenMatch(notice.matchId!)}>Ver vigilancia →</button>}<button type="button" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
+        <footer>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => onOpenCase(notice.changeDetail!.caseId!)}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => onOpenMatch(notice.matchId!)}>Ver vigilancia →</button>}<button type="button" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
       </div>
     </details>; })}</div>}
     {!visible.length && <div className="notice-empty"><h3>{tab === "priority" ? "No hay novedades prioritarias" : "Todavía no hay notificaciones"}</h3><p>Los nuevos hitos aparecerán aquí cuando se detecten en tus expedientes.</p>{tab === "priority" && notices.length > 0 && <button type="button" onClick={() => setTab("all")}>Ver todas las notificaciones</button>}</div>}
-    {selected && <PriorityNoticeDrawer key={selected.id} notice={selected} notices={notices} applications={applications} brands={brands} onClose={() => setSelectedId(null)} onManage={onManage} onOpenMatch={onOpenMatch} />}
+    {selected && <PriorityNoticeDrawer key={selected.id} notice={selected} notices={notices} applications={applications} brands={brands} onClose={() => setSelectedId(null)} onManage={onManage} onOpenMatch={onOpenMatch} onOpenCase={onOpenCase} />}
   </section>;
 }
 
@@ -62,7 +62,7 @@ function timelineDate(date: string) {
   return date ? new Intl.DateTimeFormat("es-CL", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00Z`)) : "Fecha no informada";
 }
 
-function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, onManage, onOpenMatch }: { notice: Notice; notices: Notice[]; applications: RegistrationApplication[]; brands: TimelineBrand[]; onClose: () => void; onManage: (id: string) => void; onOpenMatch: (id: string) => void }) {
+function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, onManage, onOpenMatch, onOpenCase }: { notice: Notice; notices: Notice[]; applications: RegistrationApplication[]; brands: TimelineBrand[]; onClose: () => void; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const timeline = useMemo(() => buildNotificationTimeline(notice, notices, applications, brands), [notice, notices, applications, brands]);
@@ -89,6 +89,6 @@ function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, 
       {changes.length > 0 && <section className="priority-other-changes"><h3>Otros antecedentes del aviso</h3>{changes.map((change, index) => <details key={`${change.field}-${index}`}><summary>{change.label}<span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ Antes: change.field === "status" ? statusLabel(String(change.before)) : change.before, Ahora: change.field === "status" ? statusLabel(String(change.after)) : change.after }]} /></details>)}</section>}
       <details className="priority-notice-reference"><summary>Referencia de la notificación <span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ "ID del aviso": notice.id, "Título original": notice.title, "Fecha de detección": notice.date, ...(notice.matchId ? { "Vigilancia relacionada": notice.matchId } : {}) }]} /></details>
     </div>
-    <footer>{notice.matchId && <button type="button" onClick={() => { onClose(); onOpenMatch(notice.matchId!); }}>Ver vigilancia →</button>}<button type="button" className="priority-review-action" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
+    <footer>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => { onClose(); onOpenCase(notice.changeDetail!.caseId!); }}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => { onClose(); onOpenMatch(notice.matchId!); }}>Ver vigilancia →</button>}<button type="button" className="priority-review-action" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
   </dialog>, document.body);
 }

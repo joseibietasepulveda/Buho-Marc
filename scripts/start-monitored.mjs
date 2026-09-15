@@ -8,7 +8,7 @@ if (process.env.SOURCE_PROVIDER === "inapi" && process.env.INAPI_IMPORT_COHORT =
 
 // A supervised process runs while the web service is alive, including with no open browsers.
 const enabled = Boolean(process.env.DATABASE_URL) && process.env.MONITORING_SCHEDULER_ENABLED !== "false";
-const env = { ...process.env, MONITORING_SCHEDULER_ENABLED: String(enabled), MONITORING_CRON_SECRET: process.env.MONITORING_CRON_SECRET || randomBytes(32).toString("hex") };
+const env = { ...process.env, SOURCE_API_TOKEN: process.env.SOURCE_API_TOKEN || randomBytes(32).toString("hex"), MONITORING_SCHEDULER_ENABLED: String(enabled), MONITORING_CRON_SECRET: process.env.MONITORING_CRON_SECRET || randomBytes(32).toString("hex") };
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", process.argv.includes("--dev") ? "dev" : "start"], { stdio: "inherit", env });
 let stopping = false, inFlight = false;
 async function tick() {

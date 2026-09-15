@@ -1,4 +1,12 @@
 import test from "node:test";
+
+test("opposition notices use the exact application ID instead of a same-name owned mark", () => {
+  const notice = { id: "op-1", title: "Oposición presentada", brand: "MARCA IGUAL", date: "2026-09-15", body: "", changeDetail: { source: "inapi", summary: "", applicationNumber: "200", caseId: "OP-1", changes: [{ field: "inapi.events", before: [], after: [{ event_id: "op", event_date: "2026-09-14", status_description: "Actuación del expediente contrario" }] }] } };
+  const owned = { id: "own", name: "MARCA IGUAL", applicationNumber: "100", provider: "inapi", sourceHistory: [{ date: "2026-09-01", title: "Concesión de mi marca" }] };
+  const timeline = buildNotificationTimeline(notice, [notice], [], [owned]);
+  assert.equal(timeline.entries.length, 1);
+  assert.equal(timeline.entries[0].title, "Actuación del expediente contrario");
+});
 import assert from "node:assert/strict";
 import { buildNotificationTimeline, conciseNoticeTitle, priorityNoticeSummary } from "../lib/notification-timeline.ts";
 

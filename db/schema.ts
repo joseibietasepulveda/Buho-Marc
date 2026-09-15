@@ -51,9 +51,23 @@ export const organizations = pgTable("organizations", {
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(), externalAuthId: varchar("external_auth_id", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(), name: varchar("name", { length: 180 }).notNull(),
+  email: varchar("email", { length: 255 }), name: varchar("name", { length: 180 }).notNull(),
+  username: varchar("username", { length: 120 }), passwordHash: text("password_hash"),
+  mustChangePassword: boolean("must_change_password").default(false).notNull(),
   initials: varchar("initials", { length: 4 }).notNull(), ...timestamps,
-}, (table) => [uniqueIndex("users_email_uq").on(table.email)]);
+}, (table) => [uniqueIndex("users_email_uq").on(table.email), uniqueIndex("users_username_uq").on(table.username)]);
+
+export const authSessions = pgTable("auth_sessions", {
+  tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+export const authAttempts = pgTable("auth_attempts", {
+  key: varchar("key", { length: 64 }).primaryKey(), count: integer("count").default(0).notNull(),
+  windowStart: timestamp("window_start", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const organizationMembers = pgTable("organization_members", {
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
@@ -150,6 +164,7 @@ export const matchReviews = pgTable("match_reviews", {
 }, (table) => [index("match_reviews_match_idx").on(table.organizationId, table.matchId, table.createdAt)]);
 
 export const cases = pgTable("cases", {
+  proceeding: jsonb("proceeding"),
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   publicCode: varchar("public_code", { length: 30 }).notNull(), sourceMatchId: uuid("source_match_id").references(() => matches.id, { onDelete: "set null" }),
   brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }), clientName: varchar("client_name", { length: 180 }).notNull(),

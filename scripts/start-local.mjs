@@ -1,5 +1,6 @@
 // Dedicated local demo. Never reads or migrates the hosted DATABASE_URL.
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { createServer } from "node:net";
@@ -15,6 +16,7 @@ const appPort = Number(process.env.BUHO_LOCAL_PORT || 3000);
 if (!Number.isInteger(appPort) || appPort < 1024 || appPort > 65535) throw new Error("BUHO_LOCAL_PORT no es válido");
 const env = { ...process.env, DATABASE_URL: `postgresql://postgres:buho-local-only@127.0.0.1:${dbPort}/buho_local`, SOURCE_PROVIDER: "simulated", MONITORING_SCHEDULER_ENABLED: "false", INAPI_IMPORT_COHORT: "false", PORT: String(appPort) };
 delete env.INAPI_API_KEY;
+env.SOURCE_API_TOKEN = randomBytes(32).toString("hex");
 env.APP_PUBLIC_ORIGIN = `http://127.0.0.1:${appPort}`;
 delete env.RAILWAY_PUBLIC_DOMAIN;
 const db = new EmbeddedPostgres({ databaseDir: dataDir, user: "postgres", password: "buho-local-only", port: dbPort, persistent: true, initdbFlags: ["--locale=C", "--encoding=UTF8"], postgresFlags: ["-h", "127.0.0.1"], onLog: () => {}, onError: () => {} });
@@ -47,6 +49,7 @@ try {
   await db.start(); started = true;
   try { await db.createDatabase("buho_local"); } catch (error) { if (error.code !== "42P04") throw error; }
   if (await run("npm", ["run", "db:migrate"]) !== 0) throw new Error("No se pudo preparar la base local");
+  if (await run("npm", ["run", "account:provision"]) !== 0) throw new Error("No se pudo preparar la cuenta piloto");
   console.log(`Buho Marc local: http://127.0.0.1:${appPort}/app — datos de demostración; sin conexión a producción.`);
   process.exitCode = await run(process.execPath, [path.join(root, "node_modules/next/dist/bin/next"), "dev", "--webpack", "--hostname", "127.0.0.1", "--port", String(appPort)]);
 } catch (error) {

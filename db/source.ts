@@ -1,6 +1,7 @@
+import { organizationId, isDemoOrganization } from "../lib/tenant-context";
 import type { TransactionSql } from "postgres";
 import { getSql } from "./index";
-import { DEMO_ORG_ID, ensureDemoSeed, getDemoSnapshot } from "./demo";
+import { ensureDemoSeed, getDemoSnapshot } from "./demo";
 import { INITIAL_APPLICATIONS, STATUS_BY_ID, type RegistrationApplication } from "../lib/registration-data";
 import { chileClock, compareRecords, describeChanges, sourceRecordSchema, type Lookup, type SourceRecord } from "../lib/source-contract";
 import { inapiProcedure, isRealSource, orderedInapiActs, type InapiAct } from "../lib/inapi-provider";
@@ -19,6 +20,7 @@ function fromApplication(a: RegistrationApplication): SourceRecord {
 }
 
 export async function ensureSourceSeed() {
+  if (!isDemoOrganization()) return;
   await ensureDemoSeed();
   if (isRealSource()) return;
   const sql = getSql();
@@ -27,10 +29,10 @@ export async function ensureSourceSeed() {
     await tx`SELECT pg_advisory_xact_lock(741027)`;
     const [count] = await tx`SELECT count(*)::int AS n FROM source_records`;
     const firstSeed = count.n === 0;
-    const appCodes = await tx`SELECT public_code FROM registration_applications WHERE organization_id = ${DEMO_ORG_ID}`;
-    for (const a of INITIAL_APPLICATIONS.filter(a => !appCodes.some(row => row.public_code === a.id))) await tx`INSERT INTO registration_applications (organization_id, public_code, data) VALUES (${DEMO_ORG_ID}, ${a.id}, ${tx.json(a)}) ON CONFLICT DO NOTHING`;
-    const brandRows = await tx`SELECT id, public_code, monitoring_config FROM brands WHERE organization_id = ${DEMO_ORG_ID} AND archived_at IS NULL`;
-    const applicationRows = await tx`SELECT id, public_code, data FROM registration_applications WHERE organization_id = ${DEMO_ORG_ID}`;
+    const appCodes = await tx`SELECT public_code FROM registration_applications WHERE organization_id = ${organizationId()}`;
+    for (const a of INITIAL_APPLICATIONS.filter(a => !appCodes.some(row => row.public_code === a.id))) await tx`INSERT INTO registration_applications (organization_id, public_code, data) VALUES (${organizationId()}, ${a.id}, ${tx.json(a)}) ON CONFLICT DO NOTHING`;
+    const brandRows = await tx`SELECT id, public_code, monitoring_config FROM brands WHERE organization_id = ${organizationId()} AND archived_at IS NULL`;
+    const applicationRows = await tx`SELECT id, public_code, data FROM registration_applications WHERE organization_id = ${organizationId()}`;
     const candidates = [
       ...brandRows.map(row => {
         const b = portfolio.brands.find(b => b.id === row.public_code)!;
@@ -39,7 +41,7 @@ export async function ensureSourceSeed() {
       }),
       ...applicationRows.map(row => ({ id: row.id, code: row.public_code, kind: "application", data: fromApplication(row.data as RegistrationApplication) })),
     ];
-    const existing = await tx`SELECT entity_id, entity_type FROM source_snapshots WHERE organization_id = ${DEMO_ORG_ID}`;
+    const existing = await tx`SELECT entity_id, entity_type FROM source_snapshots WHERE organization_id = ${organizationId()}`;
     for (const c of candidates) {
       if (existing.some(row => row.entity_id === c.id && row.entity_type === c.kind)) continue;
       let [record] = await tx`SELECT id, data FROM source_records WHERE application_number = ${c.data.applicationNumber} OR (${c.data.registrationNumber}::text IS NOT NULL AND registration_number = ${c.data.registrationNumber}) LIMIT 1`;
@@ -53,7 +55,7 @@ export async function ensureSourceSeed() {
         } else [record] = await tx`INSERT INTO source_records (application_number, registration_number, data) VALUES (${c.data.applicationNumber}, ${c.data.registrationNumber}, ${tx.json(c.data)}) RETURNING id, data`;
       }
       // Existing portfolio is the baseline. A first import itself does not send notices.
-      await tx`INSERT INTO source_snapshots (organization_id, entity_id, entity_type, public_code, source_id, data) VALUES (${DEMO_ORG_ID}, ${c.id}, ${c.kind}, ${c.code}, ${record.id}, ${tx.json(c.data)})`;
+      await tx`INSERT INTO source_snapshots (organization_id, entity_id, entity_type, public_code, source_id, data) VALUES (${organizationId()}, ${c.id}, ${c.kind}, ${c.code}, ${record.id}, ${tx.json(c.data)})`;
     }
     const [size] = await tx`SELECT count(*)::int AS n FROM source_records`;
     const filler = [];
@@ -67,7 +69,7 @@ export async function ensureSourceSeed() {
 }
 
 async function generateSix(tx: TransactionSql) {
-  const rows = await tx`SELECT DISTINCT ON (r.id) r.id, r.data, r.version, s.public_code FROM source_records r JOIN source_snapshots s ON s.source_id = r.id LEFT JOIN brands b ON s.entity_type = 'brand' AND b.id = s.entity_id WHERE s.organization_id = ${DEMO_ORG_ID} AND (s.entity_type = 'application' OR (b.archived_at IS NULL AND b.status <> 'Pausada')) ORDER BY r.id`;
+  const rows = await tx`SELECT DISTINCT ON (r.id) r.id, r.data, r.version, s.public_code FROM source_records r JOIN source_snapshots s ON s.source_id = r.id LEFT JOIN brands b ON s.entity_type = 'brand' AND b.id = s.entity_id WHERE s.organization_id = ${organizationId()} AND (s.entity_type = 'application' OR (b.archived_at IS NULL AND b.status <> 'Pausada')) ORDER BY r.id`;
   const preferred = ["IM-014", "IM-012", "IM-007", "BM-018", "BM-017", "BM-016"];
   rows.sort((a, b) => (preferred.indexOf(a.public_code) < 0 ? 99 : preferred.indexOf(a.public_code)) - (preferred.indexOf(b.public_code) < 0 ? 99 : preferred.indexOf(b.public_code)));
   if (rows.length < 6) throw new Error("Se requieren al menos seis expedientes en seguimiento");

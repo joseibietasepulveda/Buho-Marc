@@ -24,7 +24,7 @@ test("the enhanced demo includes RUT import, full calendar and interactive case 
     source("db/demo.ts"),
     source("app/api/demo/route.ts"),
   ]);
-  for (const copy of ["Buenos días, José Ignacio.", "MARCAS EN SEGUIMIENTO", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Mes anterior", "Mes siguiente", "Victor Tirreau", "Suelta aquí para mover", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial", "Subir desde Excel", "Próximas versiones", "Contactar cliente", "Informe técnico · uso interno del abogado"]) {
+  for (const copy of ["MARCAS EN SEGUIMIENTO", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Mes anterior", "Mes siguiente", "Suelta aquí para mover", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial", "Subir desde Excel", "Próximas versiones", "Contactar cliente", "Informe técnico · uso interno del abogado"]) {
     assert.match(page, new RegExp(copy));
   }
   assert.match(page, /bulkCreateBrands/);

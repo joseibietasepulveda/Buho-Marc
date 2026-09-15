@@ -1,5 +1,8 @@
-export const APP_VERSION = "0.5";
+export const APP_VERSION = "0.6";
 export const RELEASE_INCLUDED = [
+  "Acceso con usuario y clave, cambio de clave temporal y espacios independientes por organización.",
+  "Carga de cartera desde Excel o CSV por número de solicitud, con revisión previa, control de duplicados y clasificación desde INAPI.",
+  "Oposiciones presentadas: expediente contrario en Casos, marca de fundamento opcional, historial y nuevas actuaciones con aviso y tarea de revisión.",
   "Solicitudes de registro: tarjetas predeterminadas, lista y calendario, con estado procesal, último hito relevante y contexto del plazo.",
   "Accesos directos desde ambos resúmenes a sus calendarios completos. Calendarios de Casos y Solicitudes con mes, semana, próxima semana, tareas por día y lista inferior por categoría.",
   "Tareas persistentes con prioridad alta, media o baja, fecha, responsable y autoasignación. Filtro por prioridad de tareas pendientes y confirmación al eliminar.",
@@ -20,5 +23,5 @@ export const RELEASE_UPCOMING = [
   { title: "Encontrar cualquier marca para darle seguimiento", items: ["Conectar la búsqueda por nombre, registro, solicitud, titular, RUT y representante con la fuente real; reemplazar el catálogo mock detrás de la flag.", "Búsqueda aproximada por nombre que encuentre errores de escritura, variantes y similitudes fonéticas; ordenar por relevancia y explicar la coincidencia.", "Autocompletar nombres y titulares; combinar campos y clases Niza para acotar resultados.", "Cargar toda la cartera de un titular por RUT con selección múltiple, paginación y control de duplicados por solicitud y registro.", "Buscar por imagen o descripción y conservar filtros e historial de búsquedas para retomar una revisión."] },
   { title: "Patentes", items: ["Vigilancia de patentes dentro del módulo de Vigilancia.", "Seguimiento internacional de patentes PCT por jurisdicción, anualidades y corresponsales."] },
   { title: "Gestión de casos para reemplazar Trello", items: ["Completar comentarios, documentos, checklists y colaboración según los flujos del estudio, sobre las tareas y fechas ya disponibles."] },
-  { title: "Otros desarrollos pendientes", items: ["Conectar los motores visual y semántico y la búsqueda real de factibilidad.", "Generar PDF técnico específico por vigilancia y almacenar archivos con acceso apropiado.", "Carga masiva desde Excel y validación Niza/Madrid.", "Autenticación real, calendario legal plurianual, permisos y operación productiva."] },
+  { title: "Otros desarrollos pendientes", items: ["Conectar los motores visual y semántico y la búsqueda real de factibilidad.", "Generar PDF técnico específico por vigilancia y almacenar archivos con acceso apropiado.", "Validación Niza/Madrid y calendario legal plurianual.", "Invitaciones de equipo, recuperación de claves y operación productiva."] },
 ];

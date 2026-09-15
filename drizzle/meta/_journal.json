@@ -36,6 +36,13 @@
       "when": 1789408800000,
       "tag": "0004_task_priorities",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789482587697,
+      "tag": "0005_left_husk",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,6 @@
-# Buho Marc · v0.5
+# Buho Marc · v0.6
+
+La v0.6 incorpora acceso con usuario y clave, espacios independientes, carga de Excel/CSV por número de solicitud y seguimiento de oposiciones presentadas. Guía de acceso, carga, límites y verificación: [Piloto Daniel Morales](docs/PILOTO_DANIEL.md). Las secciones históricas v0.5 de este documento describen la demo anterior.
 
 Demo funcional y navegable de la plataforma web para administrar marcas, revisar vigilancias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
 
@@ -78,7 +80,7 @@ La cartera combina ejemplos identificados como simulados y expedientes importado
 
 ## Qué no está implementado
 
-No hay autenticación real, almacenamiento persistente de archivos, envío de correo ni motor de cruces. Sí existe consulta de expedientes mediante un proveedor de datos de INAPI; su configuración y límites se describen en [docs/inapi-dev.md](docs/inapi-dev.md). La app no calcula similitudes ni probabilidades jurídicas reales: las coincidencias y porcentajes del Revisor de factibilidad son datos mock para la demostración. Las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
+Hay autenticación de cuentas piloto. Todavía no hay almacenamiento persistente de archivos, envío de correo ni motor de cruces. Sí existe consulta de expedientes mediante un proveedor de datos de INAPI; su configuración y límites se describen en [docs/inapi-dev.md](docs/inapi-dev.md). La app no calcula similitudes ni probabilidades jurídicas reales: las coincidencias y porcentajes del Revisor de factibilidad son datos mock para la demostración. Las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
 
 ### Mejoras de UX entregadas
 

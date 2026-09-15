@@ -1,4 +1,5 @@
 export const runtime = "nodejs";
+import { sessionIdentity, requestToken } from "@/lib/auth";
 // Bound simultaneous source requests and share requests for the same mark.
 const pending = new Map<string, Promise<{ body: ArrayBuffer; type: string } | null>>();
 let active = 0;
@@ -14,6 +15,8 @@ async function loadLogo(id: string) {
   } finally { const next = waiting.shift(); if (next) next(); else active--; }
 }
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const identity = await sessionIdentity(requestToken(_request));
+  if (!identity || identity.mustChangePassword) return new Response(null, { status: 401 });
   const { id } = await params;
   if (!/^\d{1,9}$/.test(id)) return new Response(null, { status: 400 });
   try {
@@ -21,6 +24,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (!request) { request = loadLogo(id).finally(() => pending.delete(id)); pending.set(id, request); }
     const logo = await request;
     if (!logo) return new Response(null, { status: 503, headers: { "cache-control": "no-store", "retry-after": "2" } });
-    return new Response(logo.body, { headers: { "content-type": logo.type, "cache-control": "public, max-age=86400", "x-content-type-options": "nosniff" } });
+    return new Response(logo.body, { headers: { "content-type": logo.type, "cache-control": "private, no-store", "x-content-type-options": "nosniff" } });
   } catch { return new Response(null, { status: 503, headers: { "cache-control": "no-store", "retry-after": "2" } }); }
 }
