@@ -8,6 +8,8 @@ Sesiones de 12 horas, cookies HttpOnly/SameSite y Secure en producción, revocac
 
 El espacio nuevo comienza sin marcas, solicitudes, vigilancias, casos, avisos ni clientes ficticios. La cartera autenticada no se recupera ni guarda en el antiguo almacenamiento del navegador. Los datos de demostración permanecen en su organización original.
 
+El espacio anterior tiene acceso con `Buho_Marc` (el ingreso no distingue mayúsculas en el usuario). `BUHO_INITIAL_PASSWORD` habilita una sola vez las credenciales del administrador existente de `estudio-ibieta-ip`, sin cambiar su identidad, cartera ni asignaciones. La contraseña distingue mayúsculas y debe cambiarse al primer ingreso. La provisión rechaza conflictos de usuario o vínculos a otras organizaciones; nunca reemplaza credenciales existentes. Tras verificar el acceso en Dev, se vacía esta variable de provisión.
+
 ## Excel
 
 Desde Marcas, Solicitudes o Resumen de registros: **Subir desde Excel**. Admite `.xlsx` y `.csv`, hasta 2 MB y 2.000 filas por archivo. La columna es `numero_solicitud`. También se acepta una columna sin encabezado cuando contiene números. Se leen varias hojas y los dos archivos se pueden subir consecutivamente.
