@@ -4,6 +4,7 @@ import type { SourceRecord } from "../lib/source-contract";
 import { updatedApplication } from "./source";
 import type { RegistrationApplication } from "../lib/registration-data";
 import { syncReceivedOpposition } from "./received-oppositions";
+import { isFiledOpposition } from "./opposition-role";
 
 
 export function realBrandConfig(record: SourceRecord) {
@@ -13,6 +14,7 @@ export function realBrandConfig(record: SourceRecord) {
 
 export async function importRealRecord(tx: TransactionSql, record: SourceRecord, kind: "brand" | "application") {
   await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
+  if (await isFiledOpposition(tx, record.applicationNumber)) throw new Error("Este expediente corresponde a una oposición presentada; se sigue en Casos, no como marca propia.");
   const code = `${kind === "brand" ? "BM" : "IM"}-R-${record.applicationNumber}`;
   const [source] = await tx`INSERT INTO source_records (application_number, registration_number, data) VALUES (${record.applicationNumber}, ${record.registrationNumber}, ${tx.json(record)}) ON CONFLICT (application_number) DO UPDATE SET data = EXCLUDED.data, registration_number = EXCLUDED.registration_number, updated_at = now() RETURNING id`;
   let entityId: string;

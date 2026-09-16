@@ -24,7 +24,7 @@ export const POST = withSession(async request => {
       if (existing) return { existing: true, caseId: existing.public_code };
       let basis: { id: string; name: string; kind: string } | undefined;
       if (input.basisCode) {
-        const rows = await tx`SELECT id, name, 'brand' AS kind FROM brands WHERE organization_id = ${organizationId()} AND public_code = ${input.basisCode} AND archived_at IS NULL UNION ALL SELECT id, data->>'name' AS name, 'application' AS kind FROM registration_applications WHERE organization_id = ${organizationId()} AND public_code = ${input.basisCode}`;
+        const rows = await tx`SELECT id, name, 'brand' AS kind FROM brands WHERE organization_id = ${organizationId()} AND public_code = ${input.basisCode} AND archived_at IS NULL UNION ALL SELECT id, data->>'name' AS name, 'application' AS kind FROM registration_applications WHERE organization_id = ${organizationId()} AND public_code = ${input.basisCode} AND COALESCE(data->>'portfolioRole', 'own') <> 'third-party'`;
         basis = rows[0] as typeof basis;
         if (!basis) throw new Error("La marca o solicitud de fundamento no pertenece a este espacio");
       }

@@ -1,6 +1,11 @@
 import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
+if (process.env.RAILWAY_ENVIRONMENT_ID === "9e2891f0-7281-4872-a992-2c48866a782d") {
+  const correction = spawnSync(process.execPath, ["--import", "./tests/ts-loader.mjs", "scripts/correct-daniel-oppositions.ts"], { stdio: "inherit", env: process.env });
+  if (correction.status !== 0) process.exit(correction.status ?? 1);
+}
+
 if (process.env.SOURCE_PROVIDER === "inapi" && process.env.INAPI_IMPORT_COHORT === "true") {
   const imported = spawnSync(process.execPath, ["--import", "./tests/ts-loader.mjs", "scripts/import-inapi.ts"], { stdio: "inherit", env: process.env });
   if (imported.status !== 0) process.exit(imported.status ?? 1);

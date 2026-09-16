@@ -13,6 +13,8 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { hashPassword } from "../lib/password.ts";
 import ExcelJS from "exceljs";
+import { runAs } from "../lib/tenant-context.ts";
+import { correctReceivedToFiled } from "../db/opposition-role.ts";
 
 async function freePort() { const s = createServer(); s.listen(0, "127.0.0.1"); await once(s, "listening"); const port = s.address().port; await new Promise(r => s.close(r)); return port; }
 const directory = await mkdtemp(path.join(tmpdir(), "buho-pilot-test-"));
@@ -69,9 +71,10 @@ try {
   const preview = await http("/api/portfolio/import", { cookie: alice, body: { action: "preview", ids: parsed.body.ids } });
   assert.equal(preview.status, 200, JSON.stringify(preview.body)); assert.equal(preview.body.results.filter(r => r.outcome === "ready").length, 4); assert.equal(preview.body.results.find(r => r.id === "9999999").outcome, "error");
   const ids = ["1234567", "2345678", "3456789", "5678901"];
-  const imported = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ids } }); assert.equal(imported.status, 200, JSON.stringify(imported.body));
+  assert.equal((await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ids } })).status, 400, "must confirm own portfolio before import");
+  const imported = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ownPortfolioConfirmed: true, ids } }); assert.equal(imported.status, 200, JSON.stringify(imported.body));
   assert.ok(imported.body.results.every(r => r.outcome === "imported"));
-  const repeat = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ids } }); assert.ok(repeat.body.results.every(r => r.outcome === "existing"));
+  const repeat = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ownPortfolioConfirmed: true, ids } }); assert.ok(repeat.body.results.every(r => r.outcome === "existing"));
   snapshot = (await http("/api/demo", { cookie: alice })).body.data; assert.equal(snapshot.brands.length, 2); assert.ok(snapshot.brands.every(b => b.status === "Sin monitoreo")); assert.equal(snapshot.matches.length, 0); assert.equal(snapshot.notices.length, 0);
   assert.equal((await http("/api/registrations", { cookie: alice })).body.applications.length, 2);
   assert.equal((await http("/api/demo", { cookie: bob })).body.data.brands.length, 0);
@@ -104,7 +107,7 @@ try {
   fixture.documents[7890123] = document(7890123, "Fin de plazo para presentar oposición");
   fixture.documents[8901234] = document(8901234, "Aceptación a trámite");
   await saveFixture();
-  const receivedImport = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ids: ["6789012", "7890123", "8901234"] } });
+  const receivedImport = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ownPortfolioConfirmed: true, ids: ["6789012", "7890123", "8901234"] } });
   assert.equal(receivedImport.status, 200, JSON.stringify(receivedImport.body));
   snapshot = (await http("/api/demo", { cookie: alice })).body.data;
   const received = snapshot.cases.filter(c => c.proceeding?.role === "respondent");
@@ -154,6 +157,25 @@ try {
   await Promise.all(Array.from({ length: 3 }, () => http("/api/demo", { cookie: alice })));
   assert.equal((await sql`SELECT count(*)::int AS n FROM cases WHERE proceeding->>'role' = 'respondent'`)[0].n, 3);
   console.log("PASS: received oppositions on import, daily sync and backfill; second column, shared alerts, no duplicate targets, isolation and closed/discarded preservation");
+  const correctionSql = postgres(databaseUrl, { max: 1, prepare: false });
+  try {
+    await runAs({ organizationId: identities[0].org, userId: identities[0].user, name: "pilot_alice", organizationName: "pilot_alice", role: "admin", mustChangePassword: false }, () => correctionSql.begin(tx => correctReceivedToFiled(tx, "7890123")));
+  } finally { await correctionSql.end(); }
+  assert.equal((await http("/api/registrations", { cookie: alice })).body.applications.some(a => a.applicationNumber === "7890123"), false);
+  const rolePreview = await http("/api/portfolio/import", { cookie: alice, body: { action: "preview", ids: ["7890123"] } });
+  assert.equal(rolePreview.body.results[0].outcome, "opposition");
+  const roleImport = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ownPortfolioConfirmed: true, ids: ["7890123"] } });
+  assert.equal(roleImport.body.results[0].outcome, "opposition");
+  assert.notEqual((await http("/api/inapi/enroll", { cookie: alice, body: { applicationNumber: "7890123", confirm: true } })).status, 200);
+  fixture.documents[7890123].events.push({ event_id: "filed-next", event_date: "2026-07-02", status_description: "Traslado de oposición", status_code: "005" });
+  await saveFixture();
+  assert.equal((await http("/api/monitoring/sync", { cookie: alice, method: "POST" })).body.notifications, 1);
+  snapshot = (await http("/api/demo", { cookie: alice })).body.data;
+  const correctedCase = snapshot.cases.find(c => c.proceeding?.record.applicationNumber === "7890123");
+  assert.equal(correctedCase.proceeding.role, "opponent");
+  assert.ok(snapshot.notices.some(n => n.changeDetail?.caseId === correctedCase.id && n.title.startsWith("Oposición presentada")));
+  assert.equal((await http("/api/monitoring/sync", { cookie: alice, method: "POST" })).body.notifications, 0);
+  console.log("PASS: corrected role disappears from own portfolio, survives reimport, and follows only the contrary dossier with a single notice");
   assert.equal((await http("/api/auth/logout", { cookie: alice, method: "POST" })).status, 200);
   assert.equal((await http("/api/demo", { cookie: alice })).status, 401);
   console.log("PASS: opposition role/basis validation, automatic source tracking, review tasks, grant promotion, idempotency, failure preservation and logout");

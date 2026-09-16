@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 async function handleGET() {
   try {
     await ensureSourceSeed();
-    const rows = await getSql()`SELECT a.data, r.data AS source_data FROM registration_applications a LEFT JOIN source_snapshots s ON s.entity_id = a.id AND s.entity_type = 'application' AND s.organization_id = a.organization_id LEFT JOIN source_records r ON r.id = s.source_id WHERE a.organization_id = ${organizationId()} ORDER BY a.public_code DESC`;
+    const rows = await getSql()`SELECT a.data, r.data AS source_data FROM registration_applications a LEFT JOIN source_snapshots s ON s.entity_id = a.id AND s.entity_type = 'application' AND s.organization_id = a.organization_id LEFT JOIN source_records r ON r.id = s.source_id WHERE a.organization_id = ${organizationId()} AND COALESCE(a.data->>'portfolioRole', 'own') <> 'third-party' ORDER BY a.public_code DESC`;
     const applications = rows.map(row => {
       const application = row.data as RegistrationApplication;
       const record = row.source_data as SourceRecord | undefined;

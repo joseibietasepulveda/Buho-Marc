@@ -2,10 +2,12 @@ import type { TransactionSql } from "postgres";
 import { actorId, organizationId } from "../lib/tenant-context";
 import { hasReceivedOpposition, type OppositionProceeding } from "../lib/opposition";
 import { stableJson, type SourceRecord } from "../lib/source-contract";
+import { isFiledOpposition } from "./opposition-role";
 
 /** Uses the owned application's source: no second snapshot, poll or notification. */
 export async function syncReceivedOpposition(tx: TransactionSql, record: SourceRecord, allowCreate = true) {
   if (record.provider !== "inapi") return;
+  if (await isFiledOpposition(tx, record.applicationNumber)) return;
   await tx`SELECT pg_advisory_xact_lock(hashtext(${`${organizationId()}:${record.applicationNumber}`}), 741029)`;
   const [existing] = await tx`SELECT id, public_code, proceeding, status, stage FROM cases WHERE organization_id = ${organizationId()} AND proceeding->>'role' = 'respondent' AND proceeding->'record'->>'applicationNumber' = ${record.applicationNumber} FOR UPDATE`;
   if (existing) {
@@ -15,7 +17,7 @@ export async function syncReceivedOpposition(tx: TransactionSql, record: SourceR
     return existing.status === "active" && existing.stage !== "Concluido" ? { id: existing.id as string, code: existing.public_code as string, created: false } : undefined;
   }
   if (!allowCreate || !hasReceivedOpposition(record)) return;
-  const [application] = await tx`SELECT public_code, data FROM registration_applications WHERE organization_id = ${organizationId()} AND data->>'applicationNumber' = ${record.applicationNumber}`;
+  const [application] = await tx`SELECT public_code, data FROM registration_applications WHERE organization_id = ${organizationId()} AND data->>'applicationNumber' = ${record.applicationNumber} AND COALESCE(data->>'portfolioRole', 'own') <> 'third-party'`;
   if (!application) return;
   const proceeding: OppositionProceeding = { role: "respondent", opponent: "No informado por la fuente", applicationCode: application.public_code, basisCode: application.public_code, basisName: record.name, record };
   const code = `OR-${crypto.randomUUID().replaceAll("-", "").slice(0, 12)}`;
@@ -29,7 +31,7 @@ export async function syncReceivedOpposition(tx: TransactionSql, record: SourceR
 export async function reconcileReceivedOppositions(tx: TransactionSql) {
   // Match import/sync ordering before taking case locks for more than one dossier.
   await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
-  const records = await tx`SELECT s.data FROM source_snapshots s JOIN registration_applications a ON a.id = s.entity_id AND a.organization_id = s.organization_id WHERE s.organization_id = ${organizationId()} AND s.entity_type = 'application' AND s.data->>'provider' = 'inapi' AND NOT EXISTS (SELECT 1 FROM cases c WHERE c.organization_id = s.organization_id AND c.proceeding->>'role' = 'respondent' AND c.proceeding->'record'->>'applicationNumber' = s.data->>'applicationNumber') ORDER BY s.data->>'applicationNumber'`;
+  const records = await tx`SELECT s.data FROM source_snapshots s JOIN registration_applications a ON a.id = s.entity_id AND a.organization_id = s.organization_id WHERE s.organization_id = ${organizationId()} AND s.entity_type = 'application' AND COALESCE(a.data->>'portfolioRole', 'own') <> 'third-party' AND s.data->>'provider' = 'inapi' AND NOT EXISTS (SELECT 1 FROM cases c WHERE c.organization_id = s.organization_id AND c.proceeding->>'role' = 'respondent' AND c.proceeding->'record'->>'applicationNumber' = s.data->>'applicationNumber') ORDER BY s.data->>'applicationNumber'`;
   for (const row of records) {
     const record = row.data as SourceRecord;
     if (hasReceivedOpposition(record)) await syncReceivedOpposition(tx, record);

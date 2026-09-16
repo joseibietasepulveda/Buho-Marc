@@ -7,6 +7,7 @@ import { sameOrigin, sourceError } from "@/lib/source-api";
 import { getSql } from "@/db";
 
 import { importRealRecord } from "@/db/inapi-portfolio";
+import { isFiledOpposition } from "@/db/opposition-role";
 import { portfolioKind } from "@/lib/portfolio-import";
 export const runtime = "nodejs";
 async function handlePOST(request: Request) {
@@ -18,6 +19,8 @@ async function handlePOST(request: Request) {
     if (!input.confirm) return NextResponse.json({ record });
     const result = await getSql().begin(async tx => {
       await tx`SELECT pg_advisory_xact_lock(741028)`;
+      await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
+      if (await isFiledOpposition(tx, record.applicationNumber)) throw new Error("Esta solicitud de un tercero ya se sigue como oposición presentada en Casos; no se incorpora como propia.");
       const [existing] = await tx`SELECT id FROM source_snapshots WHERE organization_id = ${organizationId()} AND entity_type IN ('brand', 'application') AND data->>'provider' = 'inapi' AND data->>'applicationNumber' = ${record.applicationNumber}`;
       if (existing) return { existing: true };
       await importRealRecord(tx, record, portfolioKind(record));

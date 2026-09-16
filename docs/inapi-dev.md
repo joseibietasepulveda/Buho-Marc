@@ -30,6 +30,10 @@ Los bloqueos de PostgreSQL evitan revisiones simultáneas. Se permiten hasta tre
 
 ### Oposiciones recibidas en Casos — 16 de septiembre de 2026
 
+**Corrección de roles de Daniel:** SHIBUYA ASIAN DRINKS (1629865), Be Rose (1670802) y AGUA SOLUCIONES (1671640) son oposiciones presentadas por Daniel contra solicitudes de terceros; La Brioche Bakery Café (1638707) y TORO Automóviles (1617903) son recibidas. El rol procede de la confirmación del usuario, no se deduce de la existencia de una actuación. El importador de cartera requiere confirmar que los IDs corresponden a clientes como solicitantes y respeta los expedientes ya clasificados como oposición presentada.
+
+La reparación `scripts/correct-daniel-oppositions.ts` se ejecuta al iniciar **solo en el entorno Dev verificado y en la organización de Daniel**. Corrige los tres casos en una transacción, conserva sus identificadores, etapas, tareas y antecedentes y deja auditoría del antes/después. Mueve la fotografía de seguimiento al caso y conserva las solicitudes originales como antecedentes de terceros, fuera de la cartera propia. No inventa el cliente oponente ni la marca de fundamento. Es idempotente y no modifica las credenciales ni otras cuentas.
+
 Al importar una solicitud propia o revisar sus novedades, una presentación, traslado o contestación de oposición identificada en sus antecedentes crea un caso **Oposición recibida**, directamente en **En seguimiento** (segunda columna). La ventana de oposición o su cierre, por sí solos, no crean un caso. Las solicitudes ya importadas se concilian al cargar el espacio, sin consultar otra vez al servicio ni emitir avisos históricos.
 
 La solicitud permanece en Solicitudes de registro y la ficha del caso permite abrirla. El caso comparte su fuente y sus avisos, sin crear un segundo objetivo de consulta. Las actuaciones actualizan su historial y generan una tarea de revisión sin inventar fechas de notificación ni duplicar plazos legales. Las oposiciones **presentadas por nosotros** siguen consultando el expediente contrario y mantienen su rol separado.
