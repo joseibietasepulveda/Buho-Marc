@@ -1,5 +1,13 @@
 # Seguimiento INAPI en Dev
 
+## Responsabilidad de la integración y coordinación interna
+
+Contexto confirmado por el usuario el 16 de septiembre de 2026: **DeQuiénEs (`dequienes.cl`) forma parte del mismo equipo de Buho Marc**. No debe tratarse como un proveedor externo ajeno al proyecto. La palabra «proveedor» en el código describe su función técnica como servicio de datos, no una separación de equipos.
+
+La plataforma consulta la API de DeQuiénEs, que obtiene los antecedentes de INAPI. Las necesidades de actualización, nuevos campos, actuaciones de oposición, detección de títulos y acceso a documentos pueden coordinarse con su responsable como desarrollo interno del equipo. Ante una capacidad faltante, corresponde identificar el cambio necesario en esa integración y proponer su coordinación, en vez de asumir que es una limitación externa inmodificable.
+
+Esta responsabilidad compartida no implica que una capacidad solicitada ya esté implementada: distinguir la fecha de consulta de Buho Marc de la fecha de extracción desde INAPI, y verificar la actualización de ambos componentes antes de afirmar una demora máxima o disponibilidad de documentos. Los cambios del servicio de datos requieren su propia implementación y verificación; este contexto no autoriza modificaciones automáticas en otros sistemas.
+
 ## Datos y origen
 
 - Inscripción: 100 solicitudes reales seleccionadas en `data/inapi-cohort.json`.
@@ -19,6 +27,16 @@
 Los bloqueos de PostgreSQL evitan revisiones simultáneas. Se permiten hasta tres intentos automáticos por día con cinco minutos entre fallos; el botón Revisar permite reintentar manualmente. Una respuesta incompleta, inválida o fallida no sustituye datos válidos ni genera avisos. Portafolio, fotografías, avisos y corrida exitosa se confirman juntos en una transacción.
 
 ## Interpretación
+
+### Oposiciones recibidas en Casos — 16 de septiembre de 2026
+
+Al importar una solicitud propia o revisar sus novedades, una presentación, traslado o contestación de oposición identificada en sus antecedentes crea un caso **Oposición recibida**, directamente en **En seguimiento** (segunda columna). La ventana de oposición o su cierre, por sí solos, no crean un caso. Las solicitudes ya importadas se concilian al cargar el espacio, sin consultar otra vez al servicio ni emitir avisos históricos.
+
+La solicitud permanece en Solicitudes de registro y la ficha del caso permite abrirla. El caso comparte su fuente y sus avisos, sin crear un segundo objetivo de consulta. Las actuaciones actualizan su historial y generan una tarea de revisión sin inventar fechas de notificación ni duplicar plazos legales. Las oposiciones **presentadas por nosotros** siguen consultando el expediente contrario y mantienen su rol separado.
+
+La identidad del oponente no se infiere del titular de nuestra solicitud: si no está disponible, se muestra «No informado por la fuente». Una actualización no reabre ni recrea casos concluidos o descartados. Los registros importados directamente como marcas no crean litigios nuevos a partir de oposiciones históricas; una solicitud que luego obtiene registro conserva el caso y su seguimiento.
+
+Verificación reproducible en una base desechable: `node --import ./tests/ts-loader.mjs tests/pilot-e2e.mjs` (requiere `npm run build` previo). Incluye importación, novedades, conciliación concurrente, aislamiento entre cuentas, aviso único y preservación de cierres/descarte.
 
 Se comparan todos los antecedentes de negocio devueltos, incluyendo actuaciones, anotaciones, cobertura, titulares y representantes. Metadatos de extracción y orden de claves no son cambios jurídicos. La primera incorporación de fecha de vencimiento o registro se guarda sin aviso aislado. Los avisos agrupan las novedades por expediente usando la denominación de la marca.
 

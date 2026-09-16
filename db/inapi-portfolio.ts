@@ -3,6 +3,7 @@ import type { TransactionSql } from "postgres";
 import type { SourceRecord } from "../lib/source-contract";
 import { updatedApplication } from "./source";
 import type { RegistrationApplication } from "../lib/registration-data";
+import { syncReceivedOpposition } from "./received-oppositions";
 
 
 export function realBrandConfig(record: SourceRecord) {
@@ -11,6 +12,7 @@ export function realBrandConfig(record: SourceRecord) {
 }
 
 export async function importRealRecord(tx: TransactionSql, record: SourceRecord, kind: "brand" | "application") {
+  await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
   const code = `${kind === "brand" ? "BM" : "IM"}-R-${record.applicationNumber}`;
   const [source] = await tx`INSERT INTO source_records (application_number, registration_number, data) VALUES (${record.applicationNumber}, ${record.registrationNumber}, ${tx.json(record)}) ON CONFLICT (application_number) DO UPDATE SET data = EXCLUDED.data, registration_number = EXCLUDED.registration_number, updated_at = now() RETURNING id`;
   let entityId: string;
@@ -24,6 +26,7 @@ export async function importRealRecord(tx: TransactionSql, record: SourceRecord,
     const data = updatedApplication(initial, record, initial.recentEvent);
     const [application] = await tx`INSERT INTO registration_applications (organization_id, public_code, data) VALUES (${organizationId()}, ${code}, ${tx.json(data)}) ON CONFLICT (organization_id, public_code) DO UPDATE SET data = EXCLUDED.data, updated_at = now() RETURNING id`;
     entityId = application.id;
+    await syncReceivedOpposition(tx, record);
   }
   await tx`INSERT INTO source_snapshots (organization_id, entity_id, entity_type, public_code, source_id, data) VALUES (${organizationId()}, ${entityId}, ${kind}, ${code}, ${source.id}, ${tx.json(record)}) ON CONFLICT (organization_id, entity_type, entity_id) DO UPDATE SET source_id = EXCLUDED.source_id, data = EXCLUDED.data, updated_at = now()`;
 }

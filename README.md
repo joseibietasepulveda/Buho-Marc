@@ -80,6 +80,8 @@ La cartera combina ejemplos identificados como simulados y expedientes importado
 
 ## Qué no está implementado
 
+**Integración del mismo equipo:** DeQuiénEs (`dequienes.cl`), el servicio que obtiene los datos de INAPI para Buho Marc, es parte del equipo, según aclaración del usuario del 16 de septiembre de 2026. Sus mejoras se coordinan como desarrollo interno, no como dependencia de un proveedor externo ajeno. Véase [responsabilidad y coordinación de la integración](docs/inapi-dev.md#responsabilidad-de-la-integración-y-coordinación-interna).
+
 Hay autenticación de cuentas piloto. Todavía no hay almacenamiento persistente de archivos, envío de correo ni motor de cruces. Sí existe consulta de expedientes mediante un proveedor de datos de INAPI; su configuración y límites se describen en [docs/inapi-dev.md](docs/inapi-dev.md). La app no calcula similitudes ni probabilidades jurídicas reales: las coincidencias y porcentajes del Revisor de factibilidad son datos mock para la demostración. Las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
 
 ### Mejoras de UX entregadas

@@ -5,6 +5,7 @@ import { isRealSource, reprojectInapiRecord } from "../lib/inapi-provider";
 import type { SourceRecord } from "../lib/source-contract";
 import { migrateDemoV05 } from "./demo-v05";
 import { DEMO_V05_CASE_DATES, DEMO_V05_MATCH_DATES } from "../lib/demo-v05-data";
+import { reconcileReceivedOppositions } from "./received-oppositions";
 
 export const DEMO_ORG_ID = "10000000-0000-4000-8000-000000000001";
 export const DEMO_PLAN_ID = "10000000-0000-4000-8000-000000000010";
@@ -133,6 +134,7 @@ function shortDate(value: string | Date | null, includeYear = false) {
 
 export async function getDemoSnapshot() {
   const sql = getSql();
+  if (isRealSource()) await sql.begin(tx => reconcileReceivedOppositions(tx));
   const brandRows = await sql`SELECT b.id, b.public_code, b.name, b.owner_name, b.registration_number, b.jurisdiction, b.status, b.updated_at, b.monitoring_config, COALESCE(string_agg(DISTINCT lpad(bc.nice_class::text, 2, '0'), ', ' ORDER BY lpad(bc.nice_class::text, 2, '0')), '') AS classes, count(DISTINCT m.id)::int AS matches_count, count(DISTINCT c.id)::int AS cases_count FROM brands b LEFT JOIN brand_classes bc ON bc.brand_id = b.id LEFT JOIN matches m ON m.brand_id = b.id LEFT JOIN cases c ON c.brand_id = b.id WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL GROUP BY b.id ORDER BY b.public_code DESC`;
   const matchRows = await sql`SELECT m.public_code, b.public_code AS brand_code, b.name AS brand_name, b.registration_number AS brand_registration, b.monitoring_config, m.source_record_id, m.found_name, m.applicant, m.application_number, m.total_score, m.level, m.review_status, m.published_at, m.legal_deadline, m.source, m.official_url, m.explanation, COALESCE(u.name, 'Sin asignar') AS owner_name FROM matches m JOIN brands b ON b.id = m.brand_id LEFT JOIN users u ON u.id = m.owner_id WHERE m.organization_id = ${organizationId()} AND (${!isRealSource()} OR b.archived_at IS NULL) ORDER BY m.total_score DESC`;
   const taskRows = await sql`SELECT t.id, t.title, t.status, t.priority, t.due_at, t.assignee_id, c.public_code FROM case_tasks t JOIN cases c ON c.id = t.case_id WHERE t.organization_id = ${organizationId()} AND c.organization_id = ${organizationId()} ORDER BY t.created_at, t.id`;

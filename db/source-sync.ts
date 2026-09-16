@@ -8,6 +8,7 @@ import type { RegistrationApplication } from "../lib/registration-data";
 import { isRealSource, reprojectInapiRecord } from "../lib/inapi-provider";
 import { realBrandConfig, importRealRecord } from "./inapi-portfolio";
 import type { OppositionProceeding } from "../lib/opposition";
+import { syncReceivedOpposition } from "./received-oppositions";
 
 export async function syncSource(trigger: "manual" | "scheduled", provider = fetchSource, now = new Date()) {
   const clock = chileClock(now);
@@ -39,6 +40,7 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
     // The transaction commits portfolio, snapshots, notification and successful run together.
     return await sql.begin(async tx => {
       await tx`SELECT pg_advisory_xact_lock(741028)`;
+      await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
       const [run] = await tx`SELECT status FROM source_sync_runs WHERE id = ${runId} FOR UPDATE`;
       if (run?.status !== "running") throw new Error("La revisión perdió su turno; vuelva a intentar");
       let changed = 0, notices = 0;
@@ -49,6 +51,7 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
         const after = response.records.find(r => r.applicationNumber === before.applicationNumber);
         if (!after) throw new Error(`Respuesta incompleta para la solicitud ${before.applicationNumber}`);
         const changes = compareRecords(before, after);
+        const receivedCase = target.entity_type !== "case" ? await syncReceivedOpposition(tx, after, target.entity_type === "application") : undefined;
         if (after.provider === "inapi") await tx`UPDATE source_records SET data = ${tx.json(after)}, registration_number = ${after.registrationNumber}, updated_at = now(), version = version + ${changes.length ? 1 : 0} WHERE id = ${target.source_id}`;
         if (target.entity_type === "brand") await tx`UPDATE brands SET last_reviewed_at = now() WHERE id = ${target.entity_id}`;
         if (!changes.length) {
@@ -88,8 +91,9 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
         }
         await tx`UPDATE source_snapshots SET data = ${tx.json(after)}, updated_at = now() WHERE id = ${target.id}`;
         if (reportable) {
+          if (receivedCase && !receivedCase.created) await tx`INSERT INTO case_tasks (organization_id, case_id, title, status, priority, assignee_id) VALUES (${organizationId()}, ${receivedCase.id}, ${`Revisar nueva actuación de la solicitud con oposición ${after.applicationNumber} (${clock.day})`}, 'pending', 'Alta', ${actorId()})`;
           const code = `NS-${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`;
-          const [notice] = await tx`INSERT INTO notifications (organization_id, public_code, user_id, entity_type, entity_id, type, title, brand_name, urgency, change_detail) VALUES (${organizationId()}, ${code}, ${actorId()}, ${target.entity_type}, ${target.entity_id}, 'source_change', ${message.title}, ${after.name}, ${message.urgency}, ${tx.json({ runId, changes, applicationNumber: after.applicationNumber, ...(target.entity_type === "case" ? { caseId: target.public_code } : {}), source: after.provider ?? "simulated", summary: message.body })}) RETURNING id`;
+          const [notice] = await tx`INSERT INTO notifications (organization_id, public_code, user_id, entity_type, entity_id, type, title, brand_name, urgency, change_detail) VALUES (${organizationId()}, ${code}, ${actorId()}, ${target.entity_type}, ${target.entity_id}, 'source_change', ${message.title}, ${after.name}, ${message.urgency}, ${tx.json({ runId, changes, applicationNumber: after.applicationNumber, ...(target.entity_type === "case" ? { caseId: target.public_code } : receivedCase ? { caseId: receivedCase.code } : {}), source: after.provider ?? "simulated", summary: message.body })}) RETURNING id`;
           await tx`INSERT INTO email_drafts (organization_id, notification_id, subject, body, generated_by) VALUES (${organizationId()}, ${notice.id}, ${message.title}, ${`Estimado/a cliente:\n\n${message.body}\n\nSaludos cordiales,`}, ${actorId()})`;
           notices++;
         }
