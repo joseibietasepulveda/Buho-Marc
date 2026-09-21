@@ -55,7 +55,7 @@ try {
   assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,31);
   // A lease lost after a worker crash cannot publish stale results.
   await queueWatch(target.id);
-  const [stale] = await sql`UPDATE monitoring_jobs SET status='running', started_at=now()-interval '11 minutes', attempt_count=1, lease_token='11111111-1111-4111-8111-111111111111' WHERE status='queued' RETURNING *`;
+  const [stale] = await sql`UPDATE monitoring_jobs SET status='running', started_at=now()-interval '4 minutes', request=request || '{"since":null}'::jsonb, attempt_count=1, lease_token='11111111-1111-4111-8111-111111111111' WHERE status='queued' RETURNING *`;
   await sql`INSERT INTO monitoring_job_attempts(monitoring_job_id,attempt_no,status) VALUES (${stale.id},1,'running')`;
   assert.equal((await processWatchJob(search)).completed,true);
   assert.equal(await persistWatch(stale,[await search({limit:30})]),false);
@@ -71,5 +71,11 @@ try {
   assert.ok(refreshed.savedResults.some(hit=>hit.applicationId==='200'&&hit.reviewStatus==='En seguimiento'));
   await runAs(identities[1],async()=>{assert.equal((await watchSnapshot()).targets.length,0);await assert.rejects(followWatch(id),/no encontrada/);});
  });
+ // A second portfolio gets a turn before another ready job of the first one.
+ await runAs(identities[1],async()=>{await sql.begin(tx=>importRealRecord(tx,{...source,applicationNumber:'102'},'application'));await queueWatch();});
+ await runAs(identities[0],async()=>{await queueWatch((await watchSnapshot()).targets[0].id);});
+ assert.equal((await processWatchJob(search)).applicationId,102);
+ assert.equal((await processWatchJob(search)).applicationId,100);
+ console.log('PASS: fair scheduling between portfolios and three-minute initial lease recovery.');
  console.log('PASS: migrations, owned pending enrollment, 30 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, pause/resume, tenant isolation and registration transition.');
 }finally{if(sql)await sql.end();await pg.stop();}

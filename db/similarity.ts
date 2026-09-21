@@ -113,10 +113,14 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
   const job = await sql.begin(async tx => {
     // Global, short-lived claim lock: only one remote search at a time, across replicas.
     await tx`SELECT pg_advisory_xact_lock(908101, 1)`;
-    const stale = await tx`UPDATE monitoring_jobs SET status = CASE WHEN attempt_count >= 3 THEN 'failed' ELSE 'retry' END, lease_token = NULL, error_code = 'La revisión se interrumpió; se recuperará automáticamente.', available_at = now() WHERE status = 'running' AND started_at < now() - interval '10 minutes' RETURNING id`;
+    // Initial stock has one search (90s) and one details batch (45s). Give it
+    // three minutes; later reviews need the longer lease for three searches.
+    const stale = await tx`UPDATE monitoring_jobs SET status = CASE WHEN attempt_count >= 3 THEN 'failed' ELSE 'retry' END, lease_token = NULL, error_code = 'La revisión se interrumpió; se recuperará automáticamente.', available_at = now() WHERE status = 'running' AND started_at < now() - CASE WHEN request->>'since' IS NULL THEN interval '3 minutes' ELSE interval '10 minutes' END RETURNING id`;
     for (const item of stale) await tx`UPDATE monitoring_job_attempts SET status = 'interrupted', completed_at = now() WHERE monitoring_job_id = ${item.id} AND status = 'running'`;
     if ((await tx`SELECT id FROM monitoring_jobs WHERE status = 'running' LIMIT 1`).length) return null;
-    const [next] = await tx`SELECT j.* FROM monitoring_jobs j JOIN brands b ON b.id = j.brand_id JOIN organizations o ON o.id = j.organization_id WHERE j.status IN ('queued','retry') AND j.available_at <= now() AND b.status <> 'Pausada' AND b.archived_at IS NULL AND o.status = 'active' ORDER BY j.available_at, j.created_at LIMIT 1 FOR UPDATE OF j SKIP LOCKED`;
+    // Round-robin across organizations, oldest ready work within each portfolio.
+    // A large import must not monopolize the single remote-search slot.
+    const [next] = await tx`SELECT j.* FROM monitoring_jobs j JOIN brands b ON b.id = j.brand_id JOIN organizations o ON o.id = j.organization_id WHERE j.status IN ('queued','retry') AND j.available_at <= now() AND b.status <> 'Pausada' AND b.archived_at IS NULL AND o.status = 'active' ORDER BY (SELECT max(previous.started_at) FROM monitoring_jobs previous WHERE previous.organization_id = j.organization_id) ASC NULLS FIRST, j.available_at, j.created_at LIMIT 1 FOR UPDATE OF j SKIP LOCKED`;
     if (!next) return null;
     const [claimed] = await tx`UPDATE monitoring_jobs SET status = 'running', started_at = now(), lease_token = ${randomUUID()}, attempt_count = attempt_count + 1 WHERE id = ${next.id} RETURNING *`;
     await tx`INSERT INTO monitoring_job_attempts (monitoring_job_id, attempt_no, status) VALUES (${claimed.id}, ${claimed.attempt_count}, 'running')`;
