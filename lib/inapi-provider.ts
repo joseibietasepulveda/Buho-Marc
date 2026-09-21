@@ -146,7 +146,11 @@ export function canonical(value: unknown): unknown {
   return value;
 }
 
-export function normalizeInapi(input: unknown): SourceRecord {
+export function normalizeInapi(input: unknown): SourceRecord { return normalizeDocument(input, false); }
+// Search evidence must retain incomplete historical facts without promoting them
+// to validated portfolio state. Basic field/date validation remains mandatory.
+const evidenceRecordSchema = z.object(sourceRecordSchema.shape);
+function normalizeDocument(input: unknown, evidenceOnly: boolean): SourceRecord {
   const parsed = documentSchema.parse(input);
   const d = { ...parsed, registration_number: parsed.registration_id ?? parsed.registration_number ?? null };
   const projection = inapiProcedure(d.events);
@@ -168,7 +172,7 @@ export function normalizeInapi(input: unknown): SourceRecord {
   if (Object.keys(extraDates).length) extra.dates = extraDates;
   const parties = (p: typeof d.holders) => (p.map(h => h.name).join("; ") || "No informado").slice(0,180);
   const rut = d.holders[0]?.rut ? `${d.holders[0].rut}${d.holders[0].dv ? `-${d.holders[0].dv}` : ""}` : "";
-  return sourceRecordSchema.parse({
+  return (evidenceOnly ? evidenceRecordSchema : sourceRecordSchema).parse({
     provider: "inapi", inapi: canonical(extra), applicationNumber: String(d.application_id), registrationNumber: d.registration_number ? String(d.registration_number) : null,
     name: (d.name?.trim() || "Marca figurativa sin denominación").slice(0,180), status,
     type: ["Denominativa", "Figurativa", "Mixta"].includes(d.trademark.sign_type ?? "") ? d.trademark.sign_type : "Otra",
@@ -191,7 +195,9 @@ export function reprojectInapiRecord(record: SourceRecord): SourceRecord {
   });
 }
 
-export async function fetchInapi(input: Lookup, fetcher: typeof fetch = fetch) {
+export async function fetchInapi(input: Lookup, fetcher: typeof fetch = fetch) { return fetchRecords(input, fetcher, false); }
+export async function fetchInapiEvidence(input: Lookup, fetcher: typeof fetch = fetch) { return fetchRecords(input, fetcher, true); }
+async function fetchRecords(input: Lookup, fetcher: typeof fetch, evidenceOnly: boolean) {
   if (!process.env.INAPI_API_KEY) throw new Error("Falta configurar la conexión con INAPI en el servidor");
   const ids = [...new Set(input.applicationIds)];
   if (!ids.length && input.registrationIds.length) throw new Error("INAPI requiere el número de solicitud asociado al registro");
@@ -209,7 +215,7 @@ export async function fetchInapi(input: Lookup, fetcher: typeof fetch = fetch) {
     if (payload.application_ids_not_found.length) throw new Error(`INAPI no devolvió las solicitudes: ${payload.application_ids_not_found.join(", ")}. Se conservó la cartera.`);
     const found = payload.documents.map(d => String(d.application_id));
     if (new Set(found).size !== batch.length || found.length !== batch.length || found.some(id => !batch.includes(id))) throw new Error("La respuesta de INAPI está incompleta o contiene solicitudes duplicadas/no solicitadas");
-    records.push(...payload.documents.map(normalizeInapi));
+    records.push(...payload.documents.map(document => normalizeDocument(document, evidenceOnly)));
   }
   return { version: 1 as const, records, missing: [], fetchedAt: new Date().toISOString() };
 }

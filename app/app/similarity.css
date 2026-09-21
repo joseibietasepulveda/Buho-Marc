@@ -18,3 +18,5 @@
 .buho-app .watch-table .watch-expanded>td{padding:0;background:#f9f5fc;white-space:normal}.watch-expanded[hidden]{display:none}.watch-expanded .watch-results{border:0;border-radius:0;margin:0;padding:20px 28px;background:#f9f5fc}.watch-results h3{font-size:16px;margin:0 0 12px}
 .watch-view .similarity-actions{align-items:end;flex-wrap:wrap}.watch-view .similarity-actions label{display:grid;gap:5px;font-size:11px}.watch-view .similarity-actions select{font:inherit;font-size:12px;padding:8px;border:1px solid #d7cddd;border-radius:5px;background:white;color:#352344}.watch-view button:focus-visible,.watch-table-scroll:focus-visible{outline:2px solid #844bb1;outline-offset:3px}
 @media(max-width:1000px){.buho-app .watch-table>tbody>.watch-row>th,.buho-app .watch-table>tbody>.watch-row>td{padding:10px}.watch-row-toggle{max-width:220px}.watch-expanded .watch-results{padding:16px}}
+
+.similarity-data-warning{font-size:12px;color:#7a5012;background:#fff5de;padding:10px;border-radius:5px}

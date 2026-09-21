@@ -27,3 +27,10 @@ test('429 is retryable and validation errors are not', async () => {
   await assert.rejects(searchSimilar({}, undefined, async () => new Response('', { status: 422 })), e => e instanceof SimilarityError && !e.retryable);
 });
 test('only allowed image sources reach the interface', () => { assert.equal(safeImage('https://evil.test/pixel'), ''); assert.equal(safeImage('javascript:alert(1)'), ''); assert.equal(safeImage('https://marcas.dequienes.cl/cl/test.jpg'), 'https://marcas.dequienes.cl/cl/test.jpg'); });
+test('search keeps incomplete registration evidence while portfolio import still rejects it', async () => {
+  const incomplete={...document(200),dates:{...dates,registered_at:'2026-02-01'}};
+  assert.throws(()=>normalizeInapi(incomplete),/número de registro/);
+  const result=await searchSimilar({application_id:100,limit:30},undefined,async url=>Response.json(url.endsWith('/search')?{query,results:[hit],candidate_count:1,elapsed_seconds:.1}:{documents:[incomplete],application_ids_not_found:[]}));
+  assert.equal(result.results.length,1);assert.equal(result.results[0].registeredAt,'2026-02-01');assert.equal(result.results[0].registrationId,null);
+  assert.match(result.results[0].dataWarnings[0],/número de registro/);assert.equal(result.warnings.length,1);
+});

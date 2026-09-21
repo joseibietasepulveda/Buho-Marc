@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { fetchInapi } from "./inapi-provider";
-import type { SourceRecord } from "./source-contract";
+import { fetchInapiEvidence } from "./inapi-provider";
+import { sourceRecordSchema, type SourceRecord } from "./source-contract";
 import { safeImage, type SimilarityMark, type SimilarityHit, type SimilarityResult } from "./similarity-contract";
 
 const markSchema = z.object({ application_id: z.number().int().positive().nullable().optional(), registration_id: z.number().int().nullable().optional(), name: z.string().nullable(), sign_type: z.string().nullable().optional(), image_url: z.string().nullable().optional(), dates: z.object({ filed_at: z.string().nullable(), published_at: z.string().nullable(), registered_at: z.string().nullable() }).passthrough(), holders: z.array(z.object({ name: z.string(), rut: z.string().nullable().optional(), dv: z.string().nullable().optional() })), classes: z.array(z.object({ nice_class: z.number().int().min(1).max(45), coverage_text: z.string().nullable().optional() })) }).passthrough();
@@ -15,7 +15,9 @@ function mark(raw: z.infer<typeof markSchema>, record?: SourceRecord): Similarit
 export function withRecord(hit: SimilarityHit, record: SourceRecord): SimilarityHit {
   const status = record.inapi?.status as { code?: string; description?: string } | undefined;
   const events = (record.inapi?.events ?? []) as { event_date?: string; status_description?: string; observation?: string }[];
-  return { ...hit, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) };
+  const validation = sourceRecordSchema.safeParse(record);
+  const dataWarnings = validation.success ? [] : [...new Set(validation.error.issues.map(issue => issue.message))];
+  return { ...hit, dataWarnings, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) };
 }
 export async function searchSimilar(input: Record<string, unknown>, image?: File, fetcher: typeof fetch = fetch): Promise<SimilarityResult> {
   if (!similarityConfigured()) throw new SimilarityError("La búsqueda real aún no está configurada en este ambiente.", 503);
@@ -39,9 +41,9 @@ export async function searchSimilar(input: Record<string, unknown>, image?: File
   const ids = data.results.map(hit => String(hit.application_id));
   if (new Set(ids).size !== ids.length || ids.length > Number(input.limit ?? 30)) throw new SimilarityError("La fuente devolvió resultados duplicados o fuera del límite solicitado.");
   let records: SourceRecord[] = [];
-  try { if (ids.length) records = (await fetchInapi({ applicationIds: ids, registrationIds: [] }, fetcher)).records; }
+  try { if (ids.length) records = (await fetchInapiEvidence({ applicationIds: ids, registrationIds: [] }, fetcher)).records; }
   catch { throw new SimilarityError("Se recibieron similitudes, pero no se pudieron completar sus estados e historiales. Se conservó la revisión anterior.", 502, true); }
   const byId = new Map(records.map(record => [record.applicationNumber, record]));
   const results = data.results.filter(hit => hit.application_id !== input.application_id).map(hit => withRecord({ ...mark(hit, byId.get(String(hit.application_id))), score: hit.score, channels: hit.channels, history: [] }, byId.get(String(hit.application_id))!));
-  return { query: mark(data.query), results, groups: data.groups, warnings: data.warnings, candidateCount: data.candidate_count, elapsedSeconds: data.elapsed_seconds, fetchedAt: new Date().toISOString() };
+  return { query: mark(data.query), results, groups: data.groups, warnings: [...data.warnings, ...(results.some(hit => hit.dataWarnings?.length) ? ["Hay antecedentes incompletos o inconsistentes en algunas solicitudes. Revisa las advertencias de cada resultado."] : [])], candidateCount: data.candidate_count, elapsedSeconds: data.elapsed_seconds, fetchedAt: new Date().toISOString() };
 }

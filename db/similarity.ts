@@ -3,7 +3,7 @@ import type { TransactionSql } from "postgres";
 import { getSql } from "./index";
 import { organizationId, actorId } from "../lib/tenant-context";
 import { realBrandConfig } from "./inapi-portfolio";
-import { fetchInapi } from "../lib/inapi-provider";
+import { fetchInapiEvidence } from "../lib/inapi-provider";
 import { searchSimilar, similarityConfigured, SimilarityError, withRecord } from "../lib/similarity-provider";
 import { WATCH_LIMIT, similarityExplanation, type SimilarityHit, type SimilarityResult } from "../lib/similarity-contract";
 import type { SourceRecord } from "../lib/source-contract";
@@ -52,7 +52,7 @@ export async function queueWatch(brandCode?: string, now = new Date()) {
       if (!brandCode && last && (process.env.MONITORING_SCHEDULER_ENABLED !== "true" || now < new Date(nextSourceReview(last, true)!))) continue;
       if (!brandCode && !last && process.env.MONITORING_SCHEDULER_ENABLED !== "true") continue;
       const request = { application_id: Number(target.monitoring_config.applicationNumber), limit: WATCH_LIMIT, grouped: false, exclude_same_holder: true, include: ["coverage"], since: last ? santiagoDay(new Date(last.getTime() - 2 * 86400000)) : null };
-      const key = brandCode ? `manual:${target.id}:${randomUUID()}` : `v1:${target.id}:${santiagoDay(now)}`;
+      const key = brandCode ? `manual:${target.id}:${randomUUID()}` : `v1-evidence:${target.id}:${santiagoDay(now)}`;
       const rows = await tx`INSERT INTO monitoring_jobs (organization_id, brand_id, status, idempotency_key, requested_by, request) VALUES (${organizationId()}, ${target.id}, 'queued', ${key}, ${actorId()}, ${tx.json(request)}) ON CONFLICT DO NOTHING RETURNING id`;
       queued += rows.length;
     }
@@ -107,7 +107,7 @@ export async function persistWatch(job: { id: string; organization_id: string; b
   });
 }
 
-export async function processWatchJob(searcher = searchSimilar, lookup = fetchInapi) {
+export async function processWatchJob(searcher = searchSimilar, lookup = fetchInapiEvidence) {
   if (!similarityConfigured()) return { skipped: true };
   const sql = getSql();
   const job = await sql.begin(async tx => {
