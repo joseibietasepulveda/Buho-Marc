@@ -1,4 +1,5 @@
 "use client";
+import { stateTone } from "@/lib/watch-policy";
 import Image from "next/image";
 import { useState } from "react";
 import { channelNames, safeImage, similarityExplanation, type SimilarityHit } from "@/lib/similarity-contract";
@@ -20,7 +21,7 @@ export function SimilarityCard({ hit, position, children, queryImage, queryName 
   return <article className="similarity-card">
     <SimilarityImage src={hit.image} name={hit.name} />
     <div className="similarity-card-body"><h4>{position ? `${position}. ` : ""}{hit.name}</h4><p>{hit.holders.map(h => h.name).join("; ") || "Titular no informado"}</p>
-      <div className="similarity-badges"><span>{hit.status}</span><span>Solicitud {hit.applicationId}</span><span>Clases {hit.classes.map(c => c.nice_class).join(", ") || "no informadas"}</span>{hit.reviewStatus && hit.reviewStatus !== "Detectada" && <strong>{hit.reviewStatus}</strong>}</div>
+      <div className="similarity-badges"><span className={`similarity-status is-${stateTone(hit.status)}`}>{hit.status}</span><span>Solicitud {hit.applicationId}</span><span>Clases {hit.classes.map(c => c.nice_class).join(", ") || "no informadas"}</span>{hit.reviewStatus && hit.reviewStatus !== "Detectada" && <strong>{hit.reviewStatus}</strong>}</div>
       <p className="similarity-dates">Ingreso: {displayWorkDate(hit.filedAt ?? "")} · Publicación: {displayWorkDate(hit.publishedAt ?? "")} · Registro: {displayWorkDate(hit.registeredAt ?? "")}</p>
       {!!hit.dataWarnings?.length && <p className="similarity-data-warning">Antecedentes por verificar: {hit.dataWarnings.join(". ")}. Se muestran los datos informados por la fuente.</p>}
       {opposition && <p className="similarity-dates">{opposition}</p>}

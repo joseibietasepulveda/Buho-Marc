@@ -1,3 +1,4 @@
+import { discoveryLevel, discoveryOrder, hiddenDiscoveryState, type WatchSettings } from './watch-policy';
 import type { SimilarityHit } from './similarity-contract';
 export type WatchLevel = 'Alta' | 'Media' | 'Baja';
 export type WatchStatus = 'Pendiente de clasificación' | 'En seguimiento' | 'Convertida en caso' | 'Descartada';
@@ -21,5 +22,18 @@ export function filterWatchTargets(targets: WatchTarget[], query: string, levels
       (!statuses.length || statuses.includes(reviewStatus(hit)))
     );
     return hits.length || (ownNameMatches && !levels.length && !statuses.length) ? [{ target, hits }] : [];
+  });
+}
+
+export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings) {
+  return (['Alta', 'Media'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
+    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
+    return visible.length ? [{ target, hits: visible }] : [];
+  }) }));
+}
+export function followedGroups(targets: WatchTarget[], query: string) {
+  return filterWatchTargets(targets, query, [], ['En seguimiento', 'Convertida en caso']).flatMap(({target,hits}) => {
+    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status)).sort(discoveryOrder);
+    return visible.length ? [{target, hits:visible}] : [];
   });
 }

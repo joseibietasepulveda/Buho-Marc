@@ -1,0 +1,1 @@
+ALTER TABLE "organizations" ADD COLUMN "watch_settings" jsonb DEFAULT '{"high":0.6,"medium":0.3}'::jsonb NOT NULL;

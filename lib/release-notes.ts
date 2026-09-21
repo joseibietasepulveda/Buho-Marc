@@ -1,6 +1,8 @@
 export const APP_VERSION = "1.0";
 export const RELEASE_INCLUDED = [
-  "Vigilancia real de marcas propias y solicitudes: 30 similitudes de todos los estados, cinco visibles y Buscar más de cinco en cinco.",
+  "Mis marcas reúne registros y solicitudes propias; Vigilancia separa Por revisar y En seguimiento. Rangos de alta y media similitud configurables por organización.",
+  "Aviso interno al publicarse en Diario Oficial, comparación de marcas lado a lado y factibilidad con imagen removible y estados coloreados.",
+  "Vigilancia real de marcas propias y solicitudes: 50 similitudes por consulta, con exclusión local de Denegada, Desistida y Abandonada; cinco visibles y Buscar más de cinco en cinco.",
   "Seguimiento individual persistente, logos y coberturas reales, estado INAPI e historial; las nuevas revisiones conservan decisiones y casos.",
   "Revisiones diarias en segundo plano, detección de ingreso y publicación, reintentos y recuperación sin duplicar coincidencias.",
   "Prefactibilidad real por nombre, imagen o ambos, coberturas por clase y agrupación opcional por titular. Sin porcentajes de riesgo inventados.",
@@ -10,7 +12,7 @@ export const RELEASE_INCLUDED = [
   "Solicitudes de registro: tarjetas predeterminadas, lista y calendario, con estado procesal, último hito relevante y contexto del plazo.",
   "Accesos directos desde ambos resúmenes a sus calendarios completos. Calendarios de Casos y Solicitudes con mes, semana, próxima semana, tareas por día y lista inferior por categoría.",
   "Tareas persistentes con prioridad alta, media o baja, fecha, responsable y autoasignación. Filtro por prioridad de tareas pendientes y confirmación al eliminar.",
-  "Resumen con tres tareas pendientes por página. Tarjetas de casos con marca propia, marca del tercero y todas las tareas pendientes.",
+  "Resumen con tareas compactas junto al saludo e iconos en los indicadores. Casos con dos tarjetas por fila en En seguimiento. Tarjetas de casos con marca propia, marca del tercero y todas las tareas pendientes.",
   "Clientes con acceso directo a las fichas de sus marcas. Vigilancias con historial de la marca vigilada y explicación antes de la comparación.",
   "Alertas de tareas y plazos visibles desde todos los módulos.",
   "Notificaciones Prioritarias con ficha lateral e historia cronológica del expediente; Todos los avisos conservan sus detalles desplegables y el título de marca tiene aviso específico.",
@@ -20,8 +22,8 @@ export const RELEASE_INCLUDED = [
   "Seguimiento INAPI, historial de actuaciones y los 22 ejemplos del procedimiento de la versión anterior.",
 ];
 export const RELEASE_UPCOMING = [
-  { title: "Filtro de estados para vigilancia", items: ["Víctor incorporará el filtro por estado a la llamada de búsqueda; todavía no está disponible. En v1.0 se muestran todos los estados.", "Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores."] },
-  { title: "Calidad y cobertura de las búsquedas", items: ["Calibrar la relevancia y los niveles con revisión experta, sin interpretar el puntaje de ordenamiento como probabilidad jurídica.", "Confirmar límites, paginación y datos incorporados tarde. El stock de 30 y las ventanas de novedades son conjuntos acotados, no una garantía de exhaustividad.", "Confirmar con Víctor la disponibilidad diaria, cuotas, rendimiento y alcance semántico. Hay señales visuales y fonéticas reales."] },
+  { title: "Filtro de estados para vigilancia", items: ["Víctor incorporará el filtro por estado a la llamada de búsqueda; todavía no está disponible. La interfaz oculta Denegada, Desistida y Abandonada, pero falta el filtro previo en la API.", "Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores."] },
+  { title: "Calidad y cobertura de las búsquedas", items: ["Calibrar la relevancia y los niveles con revisión experta, sin interpretar el puntaje de ordenamiento como probabilidad jurídica.", "Confirmar límites, paginación y datos incorporados tarde. El stock de 50 y las ventanas de novedades son conjuntos acotados, no una garantía de exhaustividad.", "Confirmar con Víctor la disponibilidad diaria, cuotas, rendimiento y alcance semántico. Hay señales visuales y fonéticas reales."] },
   { title: "Correos al abogado con Resend", items: ["Recordatorios de tareas y plazos antes del vencimiento, con fecha, responsable y enlace al expediente.", "Aviso específico cuando INAPI emita el título o certificado de titularidad.", "Evitar duplicados y cancelar recordatorios cuando cambie el plazo, se complete la tarea o concluya el caso; registrar entrega, errores y reintentos."] },
   { title: "Integración con el Tribunal de Propiedad Industrial (TPI / TDPI)", items: ["Detectar el ingreso de la apelación al tribunal, además de su aparición en tabla.", "Seguir las actuaciones de alegatos y adhesión conforme a su resolución y regla aplicable. No crear una obligación general de hacerse parte ni un plazo automático de cinco días desde el ingreso al TDPI."] },
   { title: "Validación de búsquedas fonéticas", items: ["Detectar términos o segmentos clave dentro de denominaciones extensas, aunque reduzcan la similitud global. Incluir casos de marcas muy cortas y de dos letras en la validación del motor."] },

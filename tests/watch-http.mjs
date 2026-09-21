@@ -37,9 +37,9 @@ try{
   for(const r of raw.runs){fixture.searches[r.id]=r.search.data;for(const d of r.details.data.documents)fixture.documents[d.application_id]=d;}
  }else{
   const dates={filed_at:'2026-01-01',published_at:null,registered_at:null,expires_at:null,last_changed_at:null};
-  for(const id of [100,...Array.from({length:30},(_,i)=>200+i)])fixture.documents[id]={application_id:id,registration_id:null,name:`Marca QA ${id}`,status:{code:'ET',description:'En Trámite'},dates,trademark:{sign_type:'Mixta'},holders:[{name:'Titular QA',country:'CL'}],representatives:[],classes:[{nice_class:35,coverage_text:'Publicidad'}],events:[],annotations:[],source:{}};
+  for(const id of [100,...Array.from({length:50},(_,i)=>200+i)])fixture.documents[id]={application_id:id,registration_id:null,name:`Marca QA ${id}`,status:{code:'ET',description:'En Trámite'},dates,trademark:{sign_type:'Mixta'},holders:[{name:'Titular QA',country:'CL'}],representatives:[],classes:[{nice_class:35,coverage_text:'Publicidad'}],events:[],annotations:[],source:{}};
   const mark=id=>({application_id:id,registration_id:null,name:`Marca QA ${id}`,sign_type:'Mixta',dates,holders:[{name:'Titular QA'}],classes:[{nice_class:35,coverage_text:'Publicidad'}]});
-  fixture.searches[100]={query:mark(100),results:Array.from({length:30},(_,i)=>({...mark(200+i),score:1-i/100,channels:{name:{rank:i+1}}})),candidate_count:50,elapsed_seconds:.1,warnings:[]};
+  fixture.searches[100]={query:mark(100),results:Array.from({length:50},(_,i)=>({...mark(200+i),score:1-i/100,channels:{name:{rank:i+1}}})),candidate_count:50,elapsed_seconds:.1,warnings:[]};
  }
  const identity={organizationId:org.id,userId:user.id,name:'QA',organizationName:'QA',role:'admin',mustChangePassword:false};
  for(const id of Object.keys(fixture.searches))await runAs(identity,()=>sql.begin(tx=>importRealRecord(tx,normalizeInapi(fixture.documents[id]),'application')));
@@ -54,23 +54,32 @@ try{
  assert.equal((await http('/api/watch',{cookie,body:{action:'review'},origin:'https://untrusted.test'})).status,403);
  assert.equal((await http('/api/watch/worker',{body:{}})).status,403);
  for(const id of Object.keys(fixture.searches)){void id;const work=await http('/api/watch/worker',{body:{},authorization:'Bearer isolated-watch-cron'});assert.equal(work.status,200);assert.equal(work.body.completed,true,JSON.stringify(work.body));}
- const snapshot=await http('/api/watch',{cookie});assert.equal(snapshot.body.targets[0].results.length,30);const match=snapshot.body.targets[0].results[0].matchId;
+ const snapshot=await http('/api/watch',{cookie});assert.equal(snapshot.body.targets[0].results.length,50);const match=snapshot.body.targets[0].results[0].matchId;
  assert.equal((await http(`/api/watch/${match}`)).status,401);
  const detail=await http(`/api/watch/${match}`,{cookie});assert.equal(detail.status,200);assert.ok(detail.body.evidence.hit);
  assert.equal((await http('/api/watch/nonexistent',{cookie})).status,404);
- const beforeFollow=await http('/api/demo',{cookie});assert.equal(beforeFollow.body.data.watchSummary.detected,30*Object.keys(fixture.searches).length);
+ const beforeFollow=await http('/api/demo',{cookie});if(process.env.WATCH_REPLAY_REAL!=='true')assert.equal(beforeFollow.body.data.watchSummary.detected,50*Object.keys(fixture.searches).length);
+ assert.equal((await http('/api/watch',{cookie,body:{action:'settings',settings:{high:.85,medium:.35}}})).status,200);
+ assert.equal((await http('/api/watch',{cookie,body:{action:'settings',settings:{high:.2,medium:.6}}})).status,400);
  if(process.env.WATCH_QA_KEEP!=='true'){
   assert.equal((await http('/api/watch',{cookie,body:{action:'follow',id:match}})).status,200);
-  const demo=await http('/api/demo',{cookie});assert.ok(demo.body.data.matches.some(m=>m.id===match&&m.evidence));assert.equal(demo.body.data.brands.length,0);
+  const demo=await http('/api/demo',{cookie});assert.ok(demo.body.data.matches.some(m=>m.id===match&&m.evidence));assert.equal(demo.body.data.brands.length,Object.keys(fixture.searches).length);
   for(let i=0;i<2;i++)assert.equal((await http('/api/demo',{cookie,body:{action:'reviewMatch',id:match,status:'Convertida en caso'}})).status,200);
   assert.equal((await sql`SELECT count(*)::int AS n FROM cases WHERE source_match_id IS NOT NULL`)[0].n,1);
  }
- const feasibility=await http('/api/similarity',{cookie,body:{name:'Marca de prueba',limit:30,coverage:[],grouped:false}});assert.equal(feasibility.status,200,JSON.stringify(feasibility.body));assert.equal(feasibility.body.results.length,30);
+ const feasibility=await http('/api/similarity',{cookie,body:{name:'Marca de prueba',limit:50,coverage:[],grouped:false}});assert.equal(feasibility.status,200,JSON.stringify(feasibility.body));assert.equal(feasibility.body.results.length,50);
  assert.equal((await http('/api/similarity',{cookie,body:{name:'',coverage:[]}})).status,400);
- async function upload(file){const form=new FormData();form.set('query',JSON.stringify({name:'Imagen propuesta',limit:30}));form.set('image',file);return fetch(base+'/api/similarity',{method:'POST',headers:{origin:base,cookie},body:form});}
+ async function upload(file){const form=new FormData();form.set('query',JSON.stringify({name:'Imagen propuesta',limit:50}));form.set('image',file);return fetch(base+'/api/similarity',{method:'POST',headers:{origin:base,cookie},body:form});}
  assert.equal((await upload(new File(['<svg/>'],'bad.svg',{type:'image/svg+xml'}))).status,415);
  assert.equal((await upload(new File(['not a PNG'],'bad.png',{type:'image/png'}))).status,422);
  const imageResponse=await upload(new File([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXioAAAAASUVORK5CYII=','base64')],'pixel.png',{type:'image/png'}));assert.equal(imageResponse.status,200,await imageResponse.text());
- console.log(`PASS: HTTP authentication, CSRF, worker authorization, queued review, 30 results, saved evidence, follow, case idempotency and real proposal route. ${base}/app`);
- if(process.env.WATCH_QA_KEEP==='true'){console.log('QA_BROWSER_READY');await stopped;}
+ console.log(`PASS: HTTP authentication, CSRF, worker authorization, queued review, 50 results, saved evidence, follow, case idempotency and real proposal route. ${base}/app`);
+ if(process.env.WATCH_QA_KEEP==='true'){
+   const [brand]=await sql`SELECT id FROM brands WHERE organization_id=${org.id} LIMIT 1`;
+   for(let i=0;i<5;i++){
+    const [item]=await sql`INSERT INTO cases(organization_id,public_code,title,brand_id,client_name,stage,priority,created_by) VALUES (${org.id},${'QA-'+i},${'Revisión visual '+(i+1)},${brand.id},'Cliente QA',${i===0?'Esperando confirmación de cliente':i===4?'Concluido':'En seguimiento'},'Media',${user.id}) RETURNING id`;
+    if(i<4)await sql`INSERT INTO case_tasks(organization_id,case_id,title,status,priority,assignee_id) VALUES (${org.id},${item.id},'Revisar antecedentes','pending',${i===0?'Alta':'Media'},${user.id})`;
+   }
+   console.log('QA_BROWSER_READY');await stopped;
+ }
 }catch(e){console.error(output);throw e;}finally{server?.kill('SIGTERM');if(sql)await sql.end();await pg.stop();}

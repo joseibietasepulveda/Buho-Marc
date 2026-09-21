@@ -50,6 +50,13 @@
       "when": 1789992000000,
       "tag": "0006_real_surveillance",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790019492444,
+      "tag": "0007_watch_preferences",
+      "breakpoints": true
     }
   ]
 }

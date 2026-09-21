@@ -4,9 +4,11 @@ Vigilancia y prefactibilidad conectadas a la búsqueda real de INAPI / DeQuiénE
 
 ## Vigilancia real
 
-Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **30 similitudes sin filtrar estados**. Cada marca ocupa una fila en la tabla de Vigilancia, debajo de los filtros. Su desplegable muestra cinco solicitudes; **Buscar más** añade cinco del lote ya obtenido en cada clic. Cada resultado muestra nombre, imagen disponible, titular, clases, estado y fechas; **Pasar a seguimiento** conserva una ficha única con sus decisiones y permite convertirla en caso.
+Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **50 similitudes**. La respuesta se conserva completa y la interfaz oculta los estados exactos Denegada, Desistida y Abandonada, colocando Registrada al final de cada grupo. «Mis marcas» reúne marcas registradas y solicitudes propias. «Vigilancia» tiene dos pestañas: «Por revisar» y «En seguimiento». Los hallazgos se organizan en alta y media similitud, con límites configurables por organización (0,60 y 0,30 por defecto), y aparecen subordinados a su marca propia; una marca puede aparecer en ambos grupos. Se muestran primero cinco solicitudes por grupo y marca; **Buscar más** añade cinco del lote ya obtenido en cada clic. Cada resultado muestra nombre, imagen disponible, titular, clases, estado y fechas; **Pasar a seguimiento** conserva una ficha única con sus decisiones y permite convertirla en caso.
 
-La revisión diaria combina stock con búsquedas separadas de ingresos y publicaciones. Las novedades se agregan sin duplicar solicitudes; el lote posterior puede superar 30 por incluir ventanas adicionales. La publicación posterior conserva la revisión anterior. Hay cola persistente, reintentos, pausa/reanudación e indicadores separados de la sincronización de expedientes.
+«Avísame si se publica en el Diario Oficial» guarda el seguimiento y genera un aviso interno cuando la fuente informa la publicación. El sistema sigue consultando esos expedientes aunque salgan de los primeros resultados.
+
+La revisión diaria combina stock con búsquedas separadas de ingresos y publicaciones. Las novedades se agregan sin duplicar solicitudes; el lote posterior puede superar 50 por incluir ventanas adicionales. La publicación posterior conserva la revisión anterior. Hay cola persistente, reintentos, pausa/reanudación e indicadores separados de la sincronización de expedientes.
 
 ## Prefactibilidad
 
@@ -68,7 +70,7 @@ La aplicación actual requiere PostgreSQL mediante `DATABASE_URL` para cargar la
 - Administración de marcas: búsqueda **«contiene»** en la cartera por los atributos disponibles, sin distinguir mayúsculas, acentos ni formato del RUT. El alta conserva la consulta exacta: real por solicitud y mock por atributos detrás de una flag, con parámetros encontrados a la izquierda.
 - Estado de actualización basado en revisiones completas registradas: última revisión exitosa y próxima ejecución diaria a las **12:30 p. m., hora de Santiago de Chile**. Si la programación está desactivada o falla una consulta, se informa sin inventar una fecha de actualización.
 - Vigilancia con búsqueda por nombre, filtros acumulables por similitud y estado, edición directa de ambos valores, comparación visual lado a lado y desplazamiento horizontal seguro para tablas angostas.
-- Vigilancia real desde los expedientes propios, con resultados desplegables, estados de INAPI y selección individual para seguimiento. El alta ficticia queda limitada a la demo.
+- Vigilancia real desde los expedientes propios, con resultados agrupados por marca, estados de INAPI y selección individual para seguimiento. El alta ficticia queda limitada a la demo.
 - Conversión de una vigilancia en caso; acceso directo desde cada resumen al calendario completo de Casos o Solicitudes, con mes/semana, categorías INAPI/Diario Oficial/tareas y alertas globales. Los fixtures de v0.5 amplían la agenda con cinco casos y tareas adicionales y vencimientos activos desde el 30 de septiembre de 2026, sin desplazar fechas reales.
 - Tablero de casos por etapa, creación manual y arrastre entre Esperando confirmación de cliente, En seguimiento y Concluido.
 - Ficha de caso con acceso superpuesto a la coincidencia de origen, tareas jurídicas persistentes —incluidas tareas escritas por el usuario, fecha y responsable— y opción confirmada para desvincular la coincidencia sin cerrar el caso.
@@ -90,7 +92,7 @@ La cartera combina ejemplos identificados como simulados y expedientes importado
 
 Hay autenticación de cuentas piloto, consulta y sincronización INAPI, vigilancia real y prefactibilidad real. Todavía faltan almacenamiento duradero de archivos/estudios, envío de correos e informe PDF técnico específico. El PDF demo no se ofrece en coincidencias reales.
 
-El filtro de estados aún no existe en la llamada de Víctor y no se aplica localmente en v1.0. **Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.**
+El filtro de estados aún no existe en la llamada de Víctor. La interfaz aplica por ahora la exclusión local de Denegada, Desistida y Abandonada; esto no clasifica jurídicamente el expediente como terminado. **Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.**
 
 ### Mejoras de UX entregadas
 
@@ -171,3 +173,7 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 ## Sistema visual
 
 La app reutiliza los valores de la landing: tinta `#100d18`, fondo claro `#f3efe8`, violeta `#a855f7`, tipografías Geist y Geist Mono, radios pequeños y bordes translúcidos. En escritorio la superficie se presenta con la densidad equivalente a una visualización al 90 %, sin que el visitante deba cambiar el zoom de su navegador. El nombre Buho Marc es identificador visual, no un hipervínculo dentro de la app.
+
+### Ajustes de experiencia de v1.0
+
+Resumen con tareas compactas junto al saludo e iconos de color en los KPIs; dos tarjetas por fila en la columna En seguimiento de Casos, con adaptación móvil. La ficha de vigilancia vuelve a comparar ambas marcas lado a lado con datos reales. Factibilidad conserva el formulario amplio con clases, logo lateral, botón para quitar la imagen y estados coloreados (Registrada verde; Denegada, Abandonada y Desistida rojo).

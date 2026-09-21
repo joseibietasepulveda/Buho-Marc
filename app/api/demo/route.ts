@@ -132,7 +132,7 @@ async function handlePOST(request: Request) {
       await sql.begin(async (tx) => {
         const [match] = await tx`SELECT m.*, b.name AS brand_name, b.owner_name FROM matches m JOIN brands b ON b.id = m.brand_id WHERE m.organization_id = ${organizationId()} AND m.public_code = ${input.id} LIMIT 1 FOR UPDATE OF m`;
         if (!match) throw new Error("Coincidencia no encontrada");
-        await tx`UPDATE matches SET review_status = ${input.status}, updated_at = now() WHERE id = ${match.id}`;
+        await tx`UPDATE matches SET review_status = ${input.status}, evidence = CASE WHEN ${input.status} = 'Descartada' THEN evidence - 'watchPublication' ELSE evidence END, updated_at = now() WHERE id = ${match.id}`;
         await tx`INSERT INTO match_reviews (organization_id, match_id, reviewer_id, decision, comparison_snapshot) VALUES (${organizationId()}, ${match.id}, ${actorId()}, ${input.status}, ${tx.json({ evidence: match.evidence, score: match.total_score, foundName: match.found_name, reviewedAt: new Date().toISOString() })})`;
         if (input.status === "Convertida en caso") {
           await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 908102)`;
