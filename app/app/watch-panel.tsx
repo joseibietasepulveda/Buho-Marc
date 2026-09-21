@@ -4,7 +4,6 @@ import { WATCH_PAGE_SIZE } from "@/lib/similarity-contract";
 import { discoveryGroups, followedGroups, type WatchTarget, type WatchHit } from "@/lib/watch-list";
 import { DEFAULT_WATCH_SETTINGS, canWatchPublication, watchSettingsSchema, type WatchSettings } from "@/lib/watch-policy";
 import { SimilarityCard, SimilarityImage } from "./similarity-results";
-import { sourceReviewDate } from "@/lib/source-schedule";
 import "./similarity.css";
 
 type Snapshot = { configured: boolean; automaticEnabled: boolean; settings: WatchSettings; targets: WatchTarget[] };
@@ -65,7 +64,6 @@ export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Pr
     {data?.configured && <>
       <p className="watch-progress">{reviewed} de {targets.length} marcas consultadas{pending ? ` · ${pending} revisiones en curso o en espera` : ''}. Hasta 50 resultados por consulta de stock.</p>
       {tab === 'discover' ? groups.map(group => <section key={group.level} className={`watch-band watch-band-${group.level.toLowerCase()}`}><header><h2>{group.level} similitud</h2><span>{group.level === 'Alta' ? `Desde ${settings.high.toFixed(2)}` : `Desde ${settings.medium.toFixed(2)} hasta menos de ${settings.high.toFixed(2)}`}</span></header>{group.rows.length ? group.rows.map(row => <FindingGroup key={`${row.target.id}:${JSON.stringify(settings)}:${query}`} {...row} {...groupProps} />) : <p className="watch-empty">No hay hallazgos en este rango con los filtros actuales.</p>}</section>) : <section className="watch-band"><header><h2>Coincidencias en seguimiento</h2><span>Tu selección se conserva al cambiar los límites.</span></header>{followed.length ? followed.map(row => <FindingGroup key={`${row.target.id}:${query}`} {...row} {...groupProps} following />) : <p className="watch-empty">Aún no hay coincidencias visibles en seguimiento. Elige una desde Por revisar.</p>}</section>}
-      <details className="watch-operations"><summary>Estado de las consultas · {targets.length} marcas</summary><p>{data.automaticEnabled ? 'La cartera se revisa automáticamente cada día.' : 'Las revisiones automáticas están desactivadas en este ambiente.'}</p><button disabled={!!busy} onClick={() => void action({action:'review'})}>Preparar revisiones pendientes</button>{targets.map(t => <div key={t.id}><span><strong>{t.name}</strong><small>{t.paused ? 'Pausada' : t.status === 'running' ? 'Consultando…' : t.status === 'queued' ? 'En espera' : t.status === 'retry' ? 'Reintento pendiente' : t.status === 'failed' ? 'No se completó' : t.reviewedAt ? `Revisada ${sourceReviewDate(t.reviewedAt,new Date())}` : 'Primera revisión pendiente'}{t.error ? ` · ${t.error}` : ''}</small></span><button disabled={!!busy || t.paused || ['queued','retry','running'].includes(t.status)} onClick={() => void action({action:'review',id:t.id})}>Revisar ahora</button><button disabled={!!busy} onClick={() => void action({action:'pause',id:t.id,paused:!t.paused})}>{t.paused ? 'Reanudar' : 'Pausar'}</button></div>)}</details>
     </>}
   </section>;
 }

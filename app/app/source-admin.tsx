@@ -78,8 +78,7 @@ export function EnrollInapi({ onClose, onSaved }: { onClose: () => void; onSaved
   return <dialog ref={dialog} className="source-editor" onCancel={onClose} aria-label="Agregar expediente INAPI"><form onSubmit={e => { e.preventDefault(); void submit(false); }}><header><h2>Agregar expediente INAPI</h2><button type="button" onClick={onClose}>Cerrar</button></header><label>Número de solicitud<input inputMode="numeric" pattern="[0-9]{1,9}" required value={id} onChange={e => { setId(e.target.value); setRecord(null); setMessage(""); }} placeholder="Ej. 1663533" /></label><p>Utilice el número de solicitud, incluso si la marca ya tiene registro.</p><button className="buho-primary" disabled={busy} type="submit">{busy ? "Consultando…" : "Buscar en INAPI"}</button>{record && <section><h3>{record.name}</h3><p>{record.owner}</p><p>{statusLabel(record.status)} · Solicitud {record.applicationNumber} · Registro {record.registrationNumber ?? "No asignado"}</p><p>Clases: {record.classes.join(", ") || "No informadas"}</p><button className="buho-primary" type="button" disabled={busy} onClick={() => void submit(true)}>Incorporar a seguimiento</button></section>}{message && <p role="status">{message}</p>}</form></dialog>;
 }
 
-export function ReviewSource({ onReviewed, real = false }: { onReviewed: () => Promise<void>; real?: boolean }) {
-  const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState(false);
+export function ReviewSource() {
   const [status, setStatus] = useState<SourceReviewStatus | null>(null);
   const [statusError, setStatusError] = useState("");
   const request = useRef<AbortController | null>(null);
@@ -104,19 +103,7 @@ export function ReviewSource({ onReviewed, real = false }: { onReviewed: () => P
     document.addEventListener("visibilitychange", refresh);
     return () => { clearTimeout(initial); clearInterval(timer); request.current?.abort(); window.removeEventListener("buho-source-reviewed", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [loadStatus]);
-  async function review() {
-    setBusy(true); setMessage(""); setError(false);
-    try { const r = await fetch("/api/monitoring/sync", { method: "POST" }); const p = await r.json(); if (!r.ok) throw new Error(p.message); await onReviewed(); window.dispatchEvent(new Event("buho-source-reviewed")); setMessage(p.skipped ? p.reason : `${p.received} expedientes revisados · ${p.changed} actualizados · ${p.notifications} notificaciones nuevas`); } catch (e) { setMessage(e instanceof Error ? e.message : "No se pudo revisar la fuente"); setError(true); } finally { setBusy(false); await loadStatus(); }
-  }
   const checkedAt = status ? new Date(status.checkedAt) : null;
-  return <div className="source-review source-review-schedule"><div className="source-review-copy">
-    <b>{status ? status.lastSuccess?.completed_at && checkedAt ? `Actualizado por última vez ${sourceReviewDate(status.lastSuccess.completed_at, checkedAt)}` : "Aún no hay una revisión completa exitosa" : statusError ? "Actualización por confirmar" : "Consultando última actualización…"}</b>
-    {status && checkedAt && <span>{status.automaticEnabled && status.nextScheduledAt ? `Próxima actualización programada: ${sourceReviewDate(status.nextScheduledAt, checkedAt)}` : "Actualización automática desactivada. Puedes actualizar con Revisar."}</span>}
-    <small>{status?.automaticEnabled ? "Todos los días a las 12:30 p. m. · " : ""}Hora de Santiago de Chile · {real ? "INAPI · datos reales" : "Fuente simulada"}</small>
-    {status?.lastSuccess && <small>{status.lastSuccess.received} expedientes incluidos en la última revisión completa de la cartera. La fecha de consulta no reemplaza la fecha de actuación o notificación.</small>}
-    {status?.latest?.status === "failed" && <p className="source-review-warning" role="status">La revisión más reciente no se completó. {status.lastSuccess ? "Se conserva la información de la última revisión exitosa." : "Todavía no hay una revisión completa exitosa registrada."} Puedes reintentar con Revisar.</p>}
-    {status?.latest?.status === "running" && <p role="status">Revisión en curso. La última actualización cambiará cuando termine correctamente.</p>}
-    {statusError && <p className="source-error" role="status">{statusError} {status && "Los datos de actualización mostrados corresponden a la última consulta disponible."}<button type="button" className="source-review-retry" onClick={() => void loadStatus()}>Volver a consultar</button></p>}
-    {message && <p className={error ? "source-error" : ""} role={error ? "alert" : "status"}>{message}</p>}
-  </div><a href="#sourceAdmin">Administrar fuente ↗</a><button className="buho-primary" disabled={busy || status?.latest?.status === "running"} onClick={() => void review()}>{busy || status?.latest?.status === "running" ? "Revisando…" : "Revisar"}</button></div>;
+  const updated = status?.lastSuccess?.completed_at;
+  return <p className="portfolio-update-line" role="status">{statusError ? "No se pudo confirmar la última actualización" : !status ? "Consultando última actualización…" : updated && checkedAt ? `Actualizado por última vez ${sourceReviewDate(updated, checkedAt)}` : "Primera actualización completa pendiente"}{status && ` - ${status.automaticEnabled ? "Se actualiza todos los días a las 12:30 p. m. (hora de Chile)" : "Actualización automática desactivada"}`}</p>;
 }

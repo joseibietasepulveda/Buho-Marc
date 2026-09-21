@@ -1,3 +1,4 @@
+import { auditAction, auditEntity } from "../lib/legal-language";
 import { organizationId, actorId, isDemoOrganization, currentIdentity } from "../lib/tenant-context";
 import { expandedDemoBrands, demoBrandDetails } from "../lib/demo-brand-catalogue";
 import { getSql } from "./index";
@@ -145,16 +146,34 @@ export async function getDemoSnapshot() {
     ? await sql`SELECT s.entity_id, r.data FROM source_snapshots s JOIN source_records r ON r.id = s.source_id WHERE s.organization_id = ${organizationId()} AND s.entity_type = 'brand' AND r.data->>'provider' = 'inapi'`
     : [];
   const projectedSources = new Map(savedSources.map(row => [row.entity_id, reprojectInapiRecord(row.data as SourceRecord)]));
-  const auditRows = await sql`SELECT a.id, a.action, a.entity_type, a.entity_id, a.after_data, a.occurred_at, u.name FROM audit_events a LEFT JOIN users u ON u.id = a.actor_user_id WHERE a.organization_id = ${organizationId()} ORDER BY a.occurred_at DESC LIMIT 200`;
+  const auditRows = await sql`SELECT a.id, a.action, a.entity_type, a.entity_id, a.after_data, a.occurred_at, u.name, COALESCE(b.name, m.found_name, c.title, cc.data->>'name', ra.data->>'name', ct.title, rt.title) AS entity_name
+    FROM audit_events a LEFT JOIN users u ON u.id = a.actor_user_id
+    LEFT JOIN brands b ON a.entity_type = 'brand' AND b.id = a.entity_id AND b.organization_id = a.organization_id
+    LEFT JOIN matches m ON a.entity_type = 'match' AND m.id = a.entity_id AND m.organization_id = a.organization_id
+    LEFT JOIN cases c ON a.entity_type = 'case' AND c.id = a.entity_id AND c.organization_id = a.organization_id
+    LEFT JOIN client_contacts cc ON a.entity_type = 'client' AND cc.id = a.entity_id AND cc.organization_id = a.organization_id
+    LEFT JOIN registration_applications ra ON a.entity_type = 'application' AND ra.id = a.entity_id AND ra.organization_id = a.organization_id
+    LEFT JOIN case_tasks ct ON a.entity_type = 'task' AND ct.id = a.entity_id AND ct.organization_id = a.organization_id
+    LEFT JOIN registration_tasks rt ON a.entity_type = 'task' AND rt.id = a.entity_id AND rt.organization_id = a.organization_id WHERE a.organization_id = ${organizationId()} ORDER BY a.occurred_at DESC LIMIT 200`;
 
   const visibleFindingRows = await sql`SELECT b.id, count(*)::int AS count FROM matches m JOIN brands b ON b.id = m.brand_id JOIN LATERAL (SELECT result FROM monitoring_jobs j WHERE j.brand_id = b.id AND j.status = 'success' ORDER BY completed_at DESC LIMIT 1) j ON true WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND m.review_status IN ('Detectada','Pendiente de clasificación') AND j.result->'resultIds' ? m.public_code AND lower(trim(m.evidence->'hit'->>'status')) NOT IN ('denegada','desistida','abandonada') AND (m.evidence->'hit'->>'score')::numeric >= COALESCE((SELECT (watch_settings->>'medium')::numeric FROM organizations WHERE id = b.organization_id), 0.3) GROUP BY b.id`;
   const visibleFindingCounts = new Map(visibleFindingRows.map(row => [row.id, row.count]));
   const [watchSummary] = await sql`SELECT
     (SELECT count(*)::int FROM brands b WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.status <> 'Pausada' AND b.monitoring_config->>'monitoringEnabled' = 'true') AS targets,
     (SELECT count(*)::int FROM matches m JOIN brands b ON b.id = m.brand_id JOIN LATERAL (SELECT result FROM monitoring_jobs j WHERE j.brand_id = b.id AND j.status = 'success' ORDER BY completed_at DESC LIMIT 1) j ON true WHERE m.organization_id = ${organizationId()} AND b.archived_at IS NULL AND m.review_status IN ('Detectada','Pendiente de clasificación') AND j.result->'resultIds' ? m.public_code AND lower(trim(m.evidence->'hit'->>'status')) NOT IN ('denegada','desistida','abandonada') AND (m.evidence->'hit'->>'score')::numeric >= COALESCE((SELECT (watch_settings->>'medium')::numeric FROM organizations WHERE id = b.organization_id), 0.3)) AS detected`;
+  const watchPreview = await sql`SELECT m.public_code AS id, b.name AS brand, m.evidence->'hit'->>'name' AS found,
+    m.evidence->'hit'->>'image' AS image, m.application_number AS application,
+    CASE WHEN (m.evidence->'hit'->>'score')::numeric >= COALESCE((o.watch_settings->>'high')::numeric, 0.6) THEN 'Alta' ELSE 'Media' END AS level
+    FROM matches m JOIN brands b ON b.id = m.brand_id JOIN organizations o ON o.id = b.organization_id
+    JOIN LATERAL (SELECT result FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) j ON true
+    WHERE m.organization_id = ${organizationId()} AND b.archived_at IS NULL AND m.review_status IN ('Detectada','Pendiente de clasificación')
+    AND j.result->'resultIds' ? m.public_code AND lower(trim(m.evidence->'hit'->>'status')) NOT IN ('denegada','desistida','abandonada')
+    AND (m.evidence->'hit'->>'score')::numeric >= COALESCE((o.watch_settings->>'medium')::numeric, 0.3)
+    ORDER BY m.created_at DESC, m.total_score DESC, m.public_code LIMIT 3`;
+  const [watchReview] = await sql`SELECT max(j.completed_at) AS updated_at FROM monitoring_jobs j JOIN brands b ON b.id = j.brand_id WHERE j.organization_id = ${organizationId()} AND b.archived_at IS NULL AND j.status = 'success'`;
   return {
-    watchSummary,
-    audit: auditRows.map(row => ({ id: row.id, date: shortDate(row.occurred_at, true), actor: row.name ?? "Sistema", action: row.action, detail: row.after_data?.applicationNumber ? `Solicitud ${row.after_data.applicationNumber}` : row.entity_type })),
+    watchSummary: { ...watchSummary, preview: watchPreview, updatedAt: watchReview?.updated_at ?? null, automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true" },
+    audit: auditRows.map(row => ({ id: row.id, date: shortDate(row.occurred_at, true), actor: row.name ?? "Sistema", action: auditAction(row.action, row.after_data), detail: [row.entity_name || auditEntity(row.entity_type), row.after_data?.applicationNumber ? `Solicitud ${row.after_data.applicationNumber}` : "", row.after_data?.stage || "", row.action === "watch.settings_changed" ? `Alta desde ${row.after_data?.high}; media desde ${row.after_data?.medium}` : "", row.after_data?.clientName ? `Cliente: ${row.after_data.clientName}` : ""].filter(Boolean).join(" · ") })),
     organizationName: currentIdentity()?.organizationName ?? "Estudio Ibieta IP",
     demo: isDemoOrganization(),
     currentUserId: actorId(),
@@ -177,7 +196,7 @@ export async function getDemoSnapshot() {
       const explicitRut = String(row.explanation ?? "").match(/RUT:\s*([^·]+)/)?.[1]?.trim();
       return { id: row.public_code, brandId: row.brand_code, brand: row.brand_name, brandType: config.type, found: row.found_name, foundType, applicant: row.applicant, application: row.application_number, score: Number(row.total_score), level: row.level, status: row.review_status, date: shortDate(row.published_at, true), deadline: row.legal_deadline ? shortDate(row.legal_deadline, true) : undefined, source: row.source, owner: displayPersonName(row.owner_name), rut: config.rut ?? `77.100.${String(row.brand_code).replace(/\D/g, "").padStart(3, "0")}-1`, applicantRut: explicitRut ?? `77.${applicationDigits}-${Number(applicationDigits) % 10}`, officialUrl: "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", brandRegistration: row.brand_registration ?? undefined, officialRegistration: row.source_record_id ? `DO-${row.source_record_id}` : undefined };
     }),
-    cases: caseRows.map((row) => ({ history: auditRows.filter(event => event.entity_type === "case" && event.entity_id === row.internal_id).reverse().map(event => `${shortDate(event.occurred_at, true)} · ${event.action}`), proceeding: row.proceeding, tasks: taskRows.filter(task => task.public_code === row.public_code).map(task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, dueDate: task.due_at ? new Date(task.due_at).toISOString().slice(0, 10) : null, assigneeId: task.assignee_id })), id: row.public_code, title: row.title, brand: row.proceeding?.basisName ?? row.brand_name, client: row.client_name, stage: row.stage === "Evaluación" ? "Preparación" : row.stage, priority: row.priority, deadline: shortDate(row.next_deadline, true), deadlineDescription: String(row.description ?? "").match(/Plazo:\s*(.+)/)?.[1], owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
+    cases: caseRows.map((row) => ({ history: auditRows.filter(event => event.entity_type === "case" && event.entity_id === row.internal_id).reverse().map(event => `${shortDate(event.occurred_at, true)} · ${auditAction(event.action, event.after_data)}`), proceeding: row.proceeding, tasks: taskRows.filter(task => task.public_code === row.public_code).map(task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, dueDate: task.due_at ? new Date(task.due_at).toISOString().slice(0, 10) : null, assigneeId: task.assignee_id })), id: row.public_code, title: row.title, brand: row.proceeding?.basisName ?? row.brand_name, client: row.client_name, stage: row.stage === "Evaluación" ? "Preparación" : row.stage, priority: row.priority, deadline: shortDate(row.next_deadline, true), deadlineDescription: String(row.description ?? "").match(/Plazo:\s*(.+)/)?.[1], owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
     users: userRows.map((row) => ({ id: row.id, name: displayPersonName(row.name), email: row.name === "Rosario Vial" ? "jose.ignacio@ibieta.cl" : row.email ?? "", createdAt: shortDate(row.created_at, true), initials: row.name === "Rosario Vial" ? "JI" : row.initials })),
     notices: noticeRows.map((row) => ({ matchId: row.match_code ?? undefined, id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body, changeDetail: row.change_detail ?? undefined })),
   };

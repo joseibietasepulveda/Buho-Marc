@@ -1,5 +1,6 @@
 import { eventDescriptions, isTitleIssued } from "./notification-policy";
 import { z } from "zod";
+import { legalFieldLabel } from "./legal-language";
 import { STATUS_DEFINITIONS, STATUS_BY_ID, type RegistrationStatusId } from "./registration-data";
 
 export const sourceStatuses = STATUS_DEFINITIONS.map(s => s.id);
@@ -67,7 +68,7 @@ export function compareRecords(before: SourceRecord, after: SourceRecord): Field
       previous = a.filter(v => !b.some(w => stableJson(v) === stableJson(w)));
       current = b.filter(v => !a.some(w => stableJson(v) === stableJson(w)));
     }
-    changes.push({ field: `inapi.${key}`, label: labels[key] ?? key, before: previous, after: current, ancillary: false });
+    changes.push({ field: `inapi.${key}`, label: labels[key] ?? legalFieldLabel(key), before: previous, after: current, ancillary: false });
   }
   return changes;
 }
@@ -77,7 +78,7 @@ export function displayValue(value: unknown): string {
   if (typeof value === "object") {
     const event = value as Record<string, unknown>;
     if (event.status_description) return [event.event_date, event.status_description, event.observation, event.due_date ? `Vencimiento informado: ${event.due_date}` : ""].filter(Boolean).join(" · ");
-    return Object.entries(event).map(([k,v]) => `${k}: ${displayValue(v)}`).join(" · ");
+    return Object.entries(event).map(([k,v]) => `${legalFieldLabel(k)}: ${displayValue(v)}`).join(" · ");
   }
   return String(value);
 }
