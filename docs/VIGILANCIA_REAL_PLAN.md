@@ -4,9 +4,9 @@
 >
 > Los apartados siguientes conservan la conversación y el diseño previo. Las restricciones anteriores a solicitudes de terceros en proceso, el tamaño exploratorio de 50 y el estado «implementación no iniciada» son antecedentes; quedan reemplazados por la decisión y el estado de entrega de v1.0.
 
-Fecha: 21 de septiembre de 2026. Estado: plan actualizado con las decisiones de la conversación y la prueba de cuatro marcas. La integración en el producto no está implementada; existe únicamente un visor exploratorio local. Las decisiones de producto confirmadas se distinguen de las recomendaciones técnicas.
+Fecha: 21 de septiembre de 2026. Estado: diseño implementado en v1.0 según la actualización anterior. Este texto conserva las decisiones de la conversación y la prueba exploratoria de cuatro marcas. Las decisiones de producto confirmadas se distinguen de las recomendaciones técnicas.
 
-Leer junto con [el resumen de traspaso](VIGILANCIA_REAL_HANDOFF.md) y [los resultados medidos](../output/vigilancia-prueba-daniel/RESULTADOS.md). Este documento sustituye la versión inicial del plan, especialmente su ventana propuesta de 90 días y la presentación de vigilancia por grupos.
+Leer junto con [el resumen de traspaso](VIGILANCIA_REAL_HANDOFF.md) y [los resultados medidos](VIGILANCIA_BENCHMARK.md). Este documento sustituye la versión inicial del plan, especialmente su ventana propuesta de 90 días y la presentación de vigilancia por grupos.
 
 ## Base comprobada
 
@@ -15,7 +15,7 @@ Se actualizaron las referencias remotas antes de revisar el producto. `main` y `
 - `6f10ca7`: oposiciones recibidas vinculadas al expediente propio.
 - `6170e3f`: corrección de roles de Daniel y protección de la cartera frente a expedientes de terceros.
 
-No se fusionaron ramas ni se publicó nada. Hay cambios locales anteriores a esta planificación que deben conservarse. El usuario pidió comprobar el estado de las ramas, no promoverlas automáticamente.
+En la fase de planificación solo se comprobaron las ramas. Después, el usuario autorizó expresamente actualizar main e implementar en Dev: main avanzó a `6170e3f` antes de desarrollar v1.0. Los cambios locales ajenos se conservaron.
 
 Fuentes consultadas: conversaciones «Identificar mejoras de la plataforma», «Actualizar UX del revisor» y «Comparar funciones con Buho Marc»; código vigente de cartera, vigilancia, casos, fuente y prefactibilidad; documentación publicada en https://dequienes.cl/inapi/docs, leída en navegador el 21/09/2026. Después se ejecutaron cuatro búsquedas autenticadas de 50 resultados y cuatro consultas batch de estados, descritas en el informe de resultados. No se probó cada modalidad del contrato. El estado de las ramas corresponde a la revisión inicial y debe comprobarse nuevamente antes de desarrollar.
 

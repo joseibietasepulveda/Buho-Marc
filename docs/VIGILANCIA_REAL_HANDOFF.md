@@ -4,7 +4,7 @@
 >
 > Los apartados siguientes conservan la conversación y el diseño previo. Las restricciones anteriores a solicitudes de terceros en proceso, el tamaño exploratorio de 50 y el estado «implementación no iniciada» son antecedentes; quedan reemplazados por la decisión y el estado de entrega de v1.0.
 
-Actualizado el 21 de septiembre de 2026. Leer junto con [VIGILANCIA_REAL_PLAN.md](VIGILANCIA_REAL_PLAN.md) y [RESULTADOS.md](../output/vigilancia-prueba-daniel/RESULTADOS.md).
+Actualizado el 21 de septiembre de 2026. Leer junto con [VIGILANCIA_REAL_PLAN.md](VIGILANCIA_REAL_PLAN.md) y [RESULTADOS.md](VIGILANCIA_BENCHMARK.md).
 
 Este resumen recoge la conversación, sus correcciones y la prueba exploratoria. Las decisiones de producto confirmadas prevalecen sobre propuestas anteriores. Las recomendaciones técnicas de este documento orientan la implementación; no convierten cada detalle en una decisión expresamente aprobada por el usuario.
 
@@ -12,7 +12,7 @@ Este resumen recoge la conversación, sus correcciones y la prueba exploratoria.
 
 La prioridad es reemplazar la vigilancia simulada por vigilancia real usando los endpoints de DeQuiénEs. Es una función central del producto: importa la calidad, la claridad de la revisión y conservar la evidencia y las decisiones del abogado. La búsqueda de prefactibilidad también debe usar resultados reales, pero viene después del núcleo de vigilancia.
 
-El usuario pidió conversar, diseñar y probar antes de implementar. Se preparó un plan, se revisó el código y se ejecutaron búsquedas reales para cuatro solicitudes de Daniel. Se construyó una interfaz local sencilla para revisar sus 50 resultados por marca. No se ha integrado todavía el motor al producto, automatizado la vigilancia ni modificado la cartera mediante estas pruebas. No hubo merge, despliegue ni envío de mensajes a Víctor.
+El usuario pidió conversar, diseñar y probar antes de implementar. Se preparó un plan, se revisó el código y se ejecutaron búsquedas reales para cuatro solicitudes de Daniel. Se construyó una interfaz local sencilla para revisar sus 50 resultados por marca. En esa fase exploratoria no se integró el motor ni se modificó la cartera. Después el usuario autorizó la implementación v1.0 en Dev, descrita en el documento de entrega. No se enviaron mensajes a Víctor.
 
 No ampliar esta entrega a otras capacidades nuevas: dominios, patentes, TPI, onboarding completo o envío automático de correos. DeQuiénEs/Víctor es parte del mismo equipo y se pueden coordinar mejoras de contrato.
 
@@ -23,7 +23,7 @@ Al inicio se actualizaron las referencias remotas. `main` y `origin/main` coinci
 - `6f10ca7`: oposiciones recibidas vinculadas al expediente propio.
 - `6170e3f`: corrección de roles de Daniel y protección de la cartera frente a expedientes de terceros.
 
-Esto es una observación de la revisión inicial, no una garantía sobre el estado futuro. Comprobar nuevamente antes de desarrollar. El usuario pidió verificar, no fusionar automáticamente. Hay modificaciones y archivos locales ajenos a este trabajo que deben conservarse.
+Después de esa revisión inicial, el usuario autorizó actualizar main y desarrollar en Dev. Main avanzó a `6170e3f`; los cambios nuevos de v1.0 se publican únicamente en Dev. Las modificaciones y archivos locales ajenos se conservaron.
 
 ## 3. Qué marcas se vigilan y qué se busca
 

@@ -35,7 +35,9 @@ Configuración: `DATABASE_URL`, `SOURCE_PROVIDER=inapi`, `INAPI_API_KEY`, `MONIT
 - Regresiones de INAPI, procedimiento, oposición y horarios.
 - API real: stock de La Brioche con 30 resultados; propuesta por nombre con cobertura y agrupación; propuesta por imagen. El multipart requiere `options` (JSON) e `image`.
 
-Verificación visual local: cuatro marcas reales de la muestra de Daniel reproducidas en una base aislada; ampliación 5 → 10 → 30, seguimiento y ficha real comprobados. El resultado del despliegue se registra al terminar la entrega. El experimento anterior con 50 resultados y sus tiempos sigue en `output/vigilancia-prueba-daniel/RESULTADOS.md`; no representa un benchmark local del motor.
+Verificación visual local: cuatro marcas reales de la muestra de Daniel reproducidas en una base aislada; ampliación 5 → 10 → 30, seguimiento y ficha real comprobados. Railway Dev desplegó el código `9bdba28` con estado **SUCCESS** (despliegue `1b56b0f4-973b-4748-893d-539a474df9f5`). La migración se aplicó correctamente; `/api/health` responde 200, versión 1.0, base conectada, fuente DeQuiénEs y programación activa. `/api/watch` devuelve 401 sin sesión. La revisión visual autenticada se realizó en la base local aislada; no se alteraron las claves de las cuentas de Dev. El experimento anterior con 50 resultados y sus tiempos está resumido en [VIGILANCIA_BENCHMARK.md](VIGILANCIA_BENCHMARK.md); no representa un benchmark local del motor.
+
+Las dos primeras revisiones automáticas verificadas en Dev terminaron con 30 resultados de stock y una búsqueda por trabajo: 18.510 ms y 15.227 ms. Son tiempos completos del trabajador (preparación, búsqueda remota, antecedentes y persistencia), no tiempos exclusivos de CPU ni del motor. La cartera inicial se procesa en cola.
 
 ## Próximas versiones
 
@@ -46,6 +48,7 @@ Verificación visual local: cuatro marcas reales de la muestra de Daniel reprodu
 - [ ] Confirmar hora de disponibilidad diaria, cuotas, concurrencia y comparación de rendimiento 5/30/50 con Víctor.
 - [ ] Informe PDF específico, almacenamiento de archivos y estudios de prefactibilidad, con políticas de acceso/retención.
 - [ ] Búsqueda e importación ampliada por titular/representante, RUT con DV validado y selección paginada. No ampliar el onboarding en esta entrega.
+- [ ] Migrar la configuración de Railway al formato vigente, según el aviso de obsolescencia emitido por su CLI durante esta entrega.
 - [ ] Correos con Resend, TPI, patentes, colaboración avanzada y calendario plurianual: se mantienen fuera de esta entrega.
 
 Ya no son pendientes generales: conectar la búsqueda real, mostrar señales visuales/fonéticas, retirar resultados simulados de prefactibilidad, obtener estados por lote, guardar seguimiento, ampliar resultados de cinco en cinco y recuperar trabajos de vigilancia. Esto no da por terminadas la calibración ni la exhaustividad de la búsqueda.
