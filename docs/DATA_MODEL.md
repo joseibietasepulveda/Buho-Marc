@@ -1,4 +1,13 @@
-# Modelo de datos inicial
+# Modelo de datos · v1.0
+
+## Cambios implementados en 1.0
+
+La migración `0006_real_surveillance.sql` incorpora `matches.evidence` y admite publicación todavía desconocida. `monitoring_jobs` guarda solicitud, respuesta, intentos, disponibilidad y token de ejecución; un índice parcial impide dos trabajos activos por marca y organización. `similarity_search_locks` serializa prefactibilidad por organización.
+
+Las coincidencias se identifican por organización, marca propia, fuente y solicitud externa. Revisiones y casos conservan su identidad cuando llega una publicación. El stock detectado (`Detectada`) se distingue de la decisión de seguimiento. Una solicitud propia puede tener una identidad interna de vigilancia (`watchOnly`) sin aparecer todavía en la cartera de marcas registradas.
+
+Las secciones siguientes conservan convenciones de diseño iniciales; para columnas, tipos y restricciones efectivamente implementados prevalecen `db/schema.ts` y las migraciones.
+
 
 ## Convenciones
 

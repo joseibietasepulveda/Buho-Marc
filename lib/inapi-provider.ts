@@ -5,7 +5,7 @@ import type { RegistrationApplication, RegistrationStatusId } from "./registrati
 const party = z.object({ name: z.string(), rut: z.string().nullable().optional(), dv: z.string().nullable().optional(), country: z.string().nullable().optional() }).passthrough();
 const event = z.object({ event_id: z.string().nullable().optional(), event_date: z.string().nullable(), due_date: z.string().nullable().optional(), status_code: z.string().nullable(), status_description: z.string().nullable(), observation: z.string().nullable().optional() }).passthrough();
 const documentSchema = z.object({
-  application_id: z.number().int().positive(), registration_number: z.number().int().nullable(), name: z.string().nullable(),
+  application_id: z.number().int().positive(), registration_number: z.number().int().nullable().optional(), registration_id: z.number().int().nullable().optional(), name: z.string().nullable(),
   status: z.object({ code: z.string().nullable(), description: z.string().nullable() }).passthrough(),
   dates: z.object({ filed_at: z.string().nullable(), published_at: z.string().nullable(), registered_at: z.string().nullable(), expires_at: z.string().nullable(), last_changed_at: z.string().nullable() }).passthrough(),
   trademark: z.object({ sign_type: z.string().nullable() }).passthrough(),
@@ -147,7 +147,8 @@ export function canonical(value: unknown): unknown {
 }
 
 export function normalizeInapi(input: unknown): SourceRecord {
-  const d = documentSchema.parse(input);
+  const parsed = documentSchema.parse(input);
+  const d = { ...parsed, registration_number: parsed.registration_id ?? parsed.registration_number ?? null };
   const projection = inapiProcedure(d.events);
   let status = projection.status;
   let statusDate = day(projection.sourceAct?.event_date);

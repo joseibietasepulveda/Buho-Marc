@@ -1,3 +1,9 @@
+# Integración INAPI · actualización v1.0
+
+Vigilancia y prefactibilidad ya usan `/trademarks/search`, más `/trademarks/batch` para estados e historial. El adaptador admite `registration_id` y el nombre anterior `registration_number`. Las imágenes propuestas usan `options` e `image` en multipart. Se solicitan 30 similitudes por consulta de vigilancia, sin filtrar estados. Víctor implementará el filtro por estado en una versión posterior; falta acordar su catálogo, considerando recursos e instancias tras un rechazo. [Entrega y límites](V1_0_RELEASE.md).
+
+## Historial de la integración de expedientes
+
 # Seguimiento INAPI en Dev
 
 ## Responsabilidad de la integración y coordinación interna

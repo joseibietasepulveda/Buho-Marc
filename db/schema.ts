@@ -120,12 +120,15 @@ export const brandFiles = pgTable("brand_files", {
 }, (table) => [primaryKey({ columns: [table.brandId, table.fileId] })]);
 
 export const monitoringJobs = pgTable("monitoring_jobs", {
+  request: jsonb("request").default({}).notNull(), result: jsonb("result"), attemptCount: integer("attempt_count").default(0).notNull(), availableAt: timestamp("available_at", { withTimezone: true }).defaultNow().notNull(), leaseToken: uuid("lease_token"),
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   brandId: uuid("brand_id").notNull().references(() => brands.id, { onDelete: "cascade" }), status: varchar("status", { length: 40 }).default("awaiting_engine").notNull(),
   idempotencyKey: varchar("idempotency_key", { length: 180 }).notNull(), engineVersion: varchar("engine_version", { length: 80 }),
   requestedBy: uuid("requested_by").references(() => users.id), startedAt: timestamp("started_at", { withTimezone: true }),
   completedAt: timestamp("completed_at", { withTimezone: true }), lastCursor: varchar("last_cursor", { length: 255 }), errorCode: varchar("error_code", { length: 100 }), ...timestamps,
 }, (table) => [
+  uniqueIndex("monitoring_one_active_brand").on(table.organizationId, table.brandId).where(sql`${table.status} IN ('queued', 'running', 'retry')`),
+  index("monitoring_ready_idx").on(table.status, table.availableAt),
   uniqueIndex("monitoring_jobs_idempotency_uq").on(table.organizationId, table.idempotencyKey),
   index("monitoring_jobs_status_idx").on(table.organizationId, table.status, table.createdAt),
 ]);
@@ -140,7 +143,8 @@ export const matches = pgTable("matches", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   publicCode: varchar("public_code", { length: 30 }).notNull(), brandId: uuid("brand_id").notNull().references(() => brands.id, { onDelete: "cascade" }),
   monitoringJobId: uuid("monitoring_job_id").references(() => monitoringJobs.id, { onDelete: "set null" }), source: varchar("source", { length: 100 }).notNull(),
-  sourceRecordId: varchar("source_record_id", { length: 180 }).notNull(), officialUrl: text("official_url"), publishedAt: date("published_at").notNull(),
+  sourceRecordId: varchar("source_record_id", { length: 180 }).notNull(), officialUrl: text("official_url"), publishedAt: date("published_at"),
+  evidence: jsonb("evidence").default({}).notNull(),
   foundName: varchar("found_name", { length: 180 }).notNull(), applicant: varchar("applicant", { length: 180 }).notNull(),
   applicationNumber: varchar("application_number", { length: 120 }).notNull(), level: varchar("level", { length: 20 }).notNull(),
   totalScore: integer("total_score").notNull(), explanation: text("explanation").notNull(), reviewStatus: varchar("review_status", { length: 50 }).default("Pendiente").notNull(),
@@ -239,3 +243,7 @@ export const savedViews = pgTable("saved_views", {
   name: varchar("name", { length: 120 }).notNull(), filters: jsonb("filters").default({}).notNull(), sort: jsonb("sort").default({}).notNull(),
   isDefault: boolean("is_default").default(false).notNull(), ...timestamps,
 }, (table) => [index("saved_views_user_module_idx").on(table.organizationId, table.userId, table.module)]);
+
+export const similaritySearchLocks = pgTable("similarity_search_locks", {
+  organizationId: uuid("organization_id").primaryKey().references(() => organizations.id, { onDelete: "cascade" }), token: uuid("token").notNull(), expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});

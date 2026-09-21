@@ -1,5 +1,11 @@
 # Despliegue y operación en Railway
 
+## Operación vigente · v1.0
+
+Entrega únicamente a **Dev** desde la rama `dev`; incluye la migración `0006_real_surveillance`. El supervisor procesa una cola PostgreSQL de vigilancia mediante `/api/watch/worker`, además de sincronizar expedientes. Requiere `SOURCE_PROVIDER=inapi`, la credencial y scheduler activado para revisiones automáticas. `/api/health` informa `version: "1.0"` y `engine: "dequienes"` cuando la conexión está configurada; esto no acredita que cada revisión haya terminado. Consultar la pantalla de Vigilancia y [V1_0_RELEASE.md](V1_0_RELEASE.md).
+
+Main se actualizó con la base previa `6170e3f` por instrucción del usuario. La nueva v1.0 permanece en dev. Las comprobaciones de demo de las secciones históricas siguientes no describen los resultados reales de esta versión.
+
 ## Rutas publicadas
 
 | Ruta | URL | Propósito |
@@ -38,7 +44,7 @@ El proyecto de Railway debe contener:
 2. Un servicio PostgreSQL administrado.
 3. Una referencia `DATABASE_URL` del PostgreSQL disponible en el servicio web.
 
-No se requiere Redis ni un worker para esta demo. Cuando se implemente el motor de cruces, conviene añadir una cola y un worker separados; no deben ejecutarse dentro del proceso web.
+La v1.0 no requiere Redis: usa PostgreSQL para la cola durable y el supervisor del servicio para ejecutar trabajos acotados. Separar un worker dedicado si las mediciones de carga y tamaño de cartera lo justifican.
 
 ## Inicio y migraciones
 

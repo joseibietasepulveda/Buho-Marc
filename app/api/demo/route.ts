@@ -130,11 +130,12 @@ async function handlePOST(request: Request) {
       });
     } else if (input.action === "reviewMatch") {
       await sql.begin(async (tx) => {
-        const [match] = await tx`SELECT m.*, b.name AS brand_name, b.owner_name FROM matches m JOIN brands b ON b.id = m.brand_id WHERE m.organization_id = ${organizationId()} AND m.public_code = ${input.id} LIMIT 1`;
+        const [match] = await tx`SELECT m.*, b.name AS brand_name, b.owner_name FROM matches m JOIN brands b ON b.id = m.brand_id WHERE m.organization_id = ${organizationId()} AND m.public_code = ${input.id} LIMIT 1 FOR UPDATE OF m`;
         if (!match) throw new Error("Coincidencia no encontrada");
         await tx`UPDATE matches SET review_status = ${input.status}, updated_at = now() WHERE id = ${match.id}`;
-        await tx`INSERT INTO match_reviews (organization_id, match_id, reviewer_id, decision, comparison_snapshot) VALUES (${organizationId()}, ${match.id}, ${actorId()}, ${input.status}, ${tx.json({ score: match.total_score, foundName: match.found_name, reviewedAt: new Date().toISOString() })})`;
+        await tx`INSERT INTO match_reviews (organization_id, match_id, reviewer_id, decision, comparison_snapshot) VALUES (${organizationId()}, ${match.id}, ${actorId()}, ${input.status}, ${tx.json({ evidence: match.evidence, score: match.total_score, foundName: match.found_name, reviewedAt: new Date().toISOString() })})`;
         if (input.status === "Convertida en caso") {
+          await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 908102)`;
           const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 1042) + 1 AS next FROM cases WHERE organization_id = ${organizationId()}`;
           const priority = match.level === "Alta" ? "Alta" : "Media";
           const [created] = await tx`INSERT INTO cases (organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${organizationId()}, ${nextCode("BM", counter.next, 4)}, ${match.id}, ${match.brand_id}, ${match.owner_name}, ${`Revisión ${match.found_name}`}, 'Esperando confirmación de cliente', ${priority}, ${match.legal_deadline}, ${match.owner_id ?? actorId()}, ${actorId()}) ON CONFLICT (organization_id, source_match_id) DO UPDATE SET updated_at = now() RETURNING id`;
@@ -143,7 +144,7 @@ async function handlePOST(request: Request) {
       });
     } else if (input.action === "updateMatchLevel") {
       const score = input.level === "Alta" ? 90 : input.level === "Media" ? 70 : 45;
-      const [match] = await sql`UPDATE matches SET level = ${input.level}, total_score = ${score}, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
+      const [match] = await sql`UPDATE matches SET level = ${input.level}, total_score = CASE WHEN source = 'DeQuiénEs' THEN total_score ELSE ${score} END, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
       if (!match) throw new Error("Coincidencia no encontrada");
     } else if (input.action === "toggleBrandMonitoring") {
       const status = input.enabled ? "Activa" : "Pausada";
@@ -151,7 +152,7 @@ async function handlePOST(request: Request) {
         const [usage] = await sql`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${organizationId()} AND archived_at IS NULL AND status <> 'Pausada'`;
         if (Number(usage.count) >= 25) throw new Error("No quedan cupos activos en el plan Estudio");
       }
-      const [brand] = await sql`UPDATE brands SET status = ${status}, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
+      const [brand] = await sql`UPDATE brands SET status = ${status}, monitoring_config = monitoring_config || ${sql.json({ monitoringEnabled: input.enabled })}, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
       if (!brand) throw new Error("Marca no encontrada");
       await sql`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${organizationId()}, ${actorId()}, 'brand.monitoring_changed', 'brand', ${brand.id}, ${sql.json({ enabled: input.enabled, status })})`;
     } else if (input.action === "moveCase") {

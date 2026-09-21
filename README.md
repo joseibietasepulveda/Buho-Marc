@@ -1,20 +1,26 @@
-# Buho Marc · v0.6
+# Buho Marc · v1.0
 
-La v0.6 incorpora acceso con usuario y clave, espacios independientes, carga de Excel/CSV por número de solicitud y seguimiento de oposiciones presentadas. Guía de acceso, carga, límites y verificación: [Piloto Daniel Morales](docs/PILOTO_DANIEL.md). Las secciones históricas v0.5 de este documento describen la demo anterior.
+Vigilancia y prefactibilidad conectadas a la búsqueda real de INAPI / DeQuiénEs. Esta entrega se implementa y valida en **Railway Dev**. El estado de publicación y las pruebas se documentan en [la entrega v1.0](docs/V1_0_RELEASE.md).
 
-Demo funcional y navegable de la plataforma web para administrar marcas, revisar vigilancias precargadas y gestionar casos legales. La landing comercial publicada vive en `/` y la aplicación en `/app`.
+## Vigilancia real
 
-La entrega v0.5 está **publicada y verificada en Dev** desde el 10 de septiembre de 2026: mejora la búsqueda de cartera, los calendarios y la lectura de notificaciones, e incorpora antecedentes verificables para los plazos. De las 64 gestiones inicialmente sin fecha, 19 tienen plazo calculado desde una notificación acreditada y 45 requieren constancia de notificación de fondo. Alcance, evidencia y pendientes: [v0.5](docs/V0_5_RELEASE.md); la entrega anterior se conserva en [v0.4](docs/V0_4_RELEASE.md). Esta entrega no actualiza `main`, producción ni la landing independiente de Vercel.
+Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **30 similitudes sin filtrar estados**. El desplegable muestra cinco solicitudes; **Buscar más** añade cinco del lote ya obtenido en cada clic. Cada resultado muestra nombre, imagen disponible, titular, clases, estado y fechas; **Pasar a seguimiento** conserva una ficha única con sus decisiones y permite convertirla en caso.
 
-## Accesos publicados
+La revisión diaria combina stock con búsquedas separadas de ingresos y publicaciones. Las novedades se agregan sin duplicar solicitudes; el lote posterior puede superar 30 por incluir ventanas adicionales. La publicación posterior conserva la revisión anterior. Hay cola persistente, reintentos, pausa/reanudación e indicadores separados de la sincronización de expedientes.
 
-| Superficie | URL | Uso |
-| --- | --- | --- |
-| Landing comercial | [buho-marc.vercel.app](https://buho-marc.vercel.app/) | Presentación pública del servicio, sistema, dashboard de muestra y pricing. |
-| Web app | [buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
-| URL anterior de prueba | [buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Redirige a la landing principal para mantener los enlaces existentes. |
+## Prefactibilidad
 
-La landing principal se publica en Vercel y la ruta anterior de prueba redirige a la raíz. Los enlaces de pricing dentro de la web app dirigen a `https://buho-marc.vercel.app/#pricing`.
+Nombre, imagen o ambos; clases y coberturas opcionales; hasta 50 solicitudes, con agrupación opcional. Los resultados y estados son reales. El puntaje ordena semejanzas y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.
+
+## Ambiente y documentos
+
+- [Aplicación Dev](https://buho-marc-web-dev.up.railway.app/app).
+- [Entrega, verificación y próximas versiones](docs/V1_0_RELEASE.md).
+- [Plan actualizado](docs/VIGILANCIA_REAL_PLAN.md) y [resumen de decisiones](docs/VIGILANCIA_REAL_HANDOFF.md).
+- [Acceso e importación de cartera](docs/PILOTO_DANIEL.md).
+- [Landing comercial independiente](https://buho-marc.vercel.app/).
+
+Main se actualizó con los cambios que ya estaban en dev (`6170e3f`) antes de comenzar esta entrega. La nueva v1.0 permanece en dev; no se promueve a producción. Los documentos v0.4/v0.5/v0.6 son antecedentes históricos.
 
 ## Ejecutar en local
 
@@ -55,19 +61,19 @@ npm run start
 
 La aplicación actual requiere PostgreSQL mediante `DATABASE_URL` para cargar la cartera y las solicitudes. Una vista con respuestas simuladas sirve para verificar la interfaz, pero no valida persistencia ni sincronización.
 
-## Qué incluye la demo
+## Funciones conservadas del producto y antecedentes de la demo
 
 - Navegación lateral organizada por trabajo: **Resumen Vigilancia**, cartera y vigilancia, Casos, registros, factibilidad, notificaciones, usuarios, clientes, fuente y auditoría.
 - Dashboard con tareas jurídicas pendientes y su caso asociado, alerta por vigilancias separadas por nivel, KPI de casos con vencimiento en menos de 14 días, bandeja priorizada y agenda legal.
 - Administración de marcas: búsqueda **«contiene»** en la cartera por los atributos disponibles, sin distinguir mayúsculas, acentos ni formato del RUT. El alta conserva la consulta exacta: real por solicitud y mock por atributos detrás de una flag, con parámetros encontrados a la izquierda.
 - Estado de actualización basado en revisiones completas registradas: última revisión exitosa y próxima ejecución diaria a las **12:30 p. m., hora de Santiago de Chile**. Si la programación está desactivada o falla una consulta, se informa sin inventar una fecha de actualización.
 - Vigilancia con búsqueda por nombre, filtros acumulables por similitud y estado, edición directa de ambos valores, comparación visual lado a lado y desplazamiento horizontal seguro para tablas angostas.
-- Alta manual de vigilancia: se elige una marca ya seguida, se busca un número de inscripción o solicitud y se completan datos ficticios, incluida la fecha de publicación en Diario Oficial.
+- Vigilancia real desde los expedientes propios, con resultados desplegables, estados de INAPI y selección individual para seguimiento. El alta ficticia queda limitada a la demo.
 - Conversión de una vigilancia en caso; acceso directo desde cada resumen al calendario completo de Casos o Solicitudes, con mes/semana, categorías INAPI/Diario Oficial/tareas y alertas globales. Los fixtures de v0.5 amplían la agenda con cinco casos y tareas adicionales y vencimientos activos desde el 30 de septiembre de 2026, sin desplazar fechas reales.
 - Tablero de casos por etapa, creación manual y arrastre entre Esperando confirmación de cliente, En seguimiento y Concluido.
 - Ficha de caso con acceso superpuesto a la coincidencia de origen, tareas jurídicas persistentes —incluidas tareas escritas por el usuario, fecha y responsable— y opción confirmada para desvincular la coincidencia sin cerrar el caso.
 - Notificaciones Prioritarias y Todas, sin configuraciones. Prioritarias abre una ficha lateral con el aviso y la historia cronológica disponible; cada hito despliega sus detalles e identificadores. Todas conserva su presentación desplegable y existe aviso de emisión de título. Correo al cliente con cuadro comparativo copiable; PDF técnico interno.
-- Revisor de factibilidad previo al registro: búsqueda aproximada predeterminada; acepta texto, imagen o descripción, permite acumular clases Niza opcionales, simula un análisis y presenta un resumen de riesgo junto con una tabla de coincidencias visuales, fonéticas y conceptuales.
+- Prefactibilidad real por nombre, imagen o ambos, clases/coberturas opcionales y resultados visuales, con agrupación opcional. No presenta porcentajes de probabilidad jurídica.
 - Seguimiento de registro con tarjetas predeterminadas y vistas de lista y calendario; gestiones y activadores diferenciados, plazos concurrentes, historial de actuaciones y 22 ejemplos del procedimiento separados de la cartera. El calendario nacional LPI/LBPA está versionado para **2026–2027**, no es un calendario procesal universal y no estima años sin cobertura.
 - Antecedentes manuales auditados de notificación, ejecutoria y otros hechos habilitantes, asociados a la actuación exacta. Un manifiesto público verifica 19 aceptaciones a trámite del Estado Diario del 4 de septiembre de 2026; no convierte las 45 observaciones de fondo en notificaciones electrónicas acreditadas. Los controles administrativos de INAPI y los hitos informativos se distinguen de los plazos fatales del abogado.
 - Directorio de clientes con filas clickeables y edición en ficha lateral; lista y alta de usuarios.
@@ -82,7 +88,9 @@ La cartera combina ejemplos identificados como simulados y expedientes importado
 
 **Integración del mismo equipo:** DeQuiénEs (`dequienes.cl`), el servicio que obtiene los datos de INAPI para Buho Marc, es parte del equipo, según aclaración del usuario del 16 de septiembre de 2026. Sus mejoras se coordinan como desarrollo interno, no como dependencia de un proveedor externo ajeno. Véase [responsabilidad y coordinación de la integración](docs/inapi-dev.md#responsabilidad-de-la-integración-y-coordinación-interna).
 
-Hay autenticación de cuentas piloto. Todavía no hay almacenamiento persistente de archivos, envío de correo ni motor de cruces. Sí existe consulta de expedientes mediante un proveedor de datos de INAPI; su configuración y límites se describen en [docs/inapi-dev.md](docs/inapi-dev.md). La app no calcula similitudes ni probabilidades jurídicas reales: las coincidencias y porcentajes del Revisor de factibilidad son datos mock para la demostración. Las marcas nuevas crean un trabajo `awaiting_engine`, listo para que un servicio externo lo consuma en el futuro.
+Hay autenticación de cuentas piloto, consulta y sincronización INAPI, vigilancia real y prefactibilidad real. Todavía faltan almacenamiento duradero de archivos/estudios, envío de correos e informe PDF técnico específico. El PDF demo no se ofrece en coincidencias reales.
+
+El filtro de estados aún no existe en la llamada de Víctor y no se aplica localmente en v1.0. **Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.**
 
 ### Mejoras de UX entregadas
 
@@ -97,13 +105,9 @@ La lógica procesal contrastada con las Directrices INAPI 2026 y la Ley 19.039 s
 
 La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](docs/PROCESO_Y_PLAZOS_MARCAS_CHILE.md), y la cobertura y límites de los feriados en [Calendario legal Chile 2026–2027](docs/CALENDARIO_LEGAL_CHILE_2026_2027.md). Registrar un antecedente del equipo no modifica el expediente original de INAPI ni sustituye la revisión del documento oficial.
 
-### Backlog · Revisor de factibilidad
+### Pendientes de próximas versiones
 
-- Reemplazar los resultados, porcentajes y razones mock por un motor que combine búsqueda denominativa, fonética, visual y coincidencia de clases Niza.
-- Conectar la búsqueda con datos oficiales o una fuente de marcas versionada, conservando fecha y procedencia de cada resultado.
-- Guardar análisis, imágenes y clases seleccionadas por organización, con controles de acceso y retención.
-- Calibrar los porcentajes con evidencia histórica y revisión experta; mantener siempre la distinción entre estimación orientativa y decisión oficial de INAPI.
-- Incorporar estados de error, indisponibilidad de fuente y resultados parciales del motor antes de producción.
+La lista vigente está en [v1.0](docs/V1_0_RELEASE.md#próximas-versiones) y en «Acerca de esta versión» dentro de la app. Incluye filtro y catálogo de estados, calibración de semejanza, cargas tardías/paginación, operación a escala, PDF, archivos y estudios guardados. La conexión real visual/fonética y la búsqueda de prefactibilidad ya no se mantienen como tareas pendientes.
 
 ### Backlog · Registro de marcas
 
@@ -144,7 +148,7 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 - `app/page.tsx`: ruta principal de la landing comercial.
 - `app/Landing/page.tsx` y `app/landing-de-prueba-js/page.tsx`: rutas anteriores que redirigen a la landing principal.
 - `app/app/page.tsx`: interfaz y modo de respaldo local.
-- `app/app/feasibility-review.tsx`: flujo interactivo y datos mock del Revisor de factibilidad.
+- `app/app/feasibility-review.tsx`: búsqueda real de prefactibilidad por nombre/imagen y coberturas.
 - `app/app/source-admin.tsx` y `app/app/source-inspector.tsx`: administración de la fuente y ficha legible del expediente.
 - `lib/registration-procedure.ts` y `lib/registration-scenarios.ts`: reglas compartidas del seguimiento y casos ficticios del proceso.
 - `lib/legal-calendar.ts`: calendario nacional LPI/LBPA versionado para 2026–2027.

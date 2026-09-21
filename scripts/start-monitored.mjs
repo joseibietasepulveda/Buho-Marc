@@ -15,7 +15,22 @@ if (process.env.SOURCE_PROVIDER === "inapi" && process.env.INAPI_IMPORT_COHORT =
 const enabled = Boolean(process.env.DATABASE_URL) && process.env.MONITORING_SCHEDULER_ENABLED !== "false";
 const env = { ...process.env, SOURCE_API_TOKEN: process.env.SOURCE_API_TOKEN || randomBytes(32).toString("hex"), MONITORING_SCHEDULER_ENABLED: String(enabled), MONITORING_CRON_SECRET: process.env.MONITORING_CRON_SECRET || randomBytes(32).toString("hex") };
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", process.argv.includes("--dev") ? "dev" : "start"], { stdio: "inherit", env });
-let stopping = false, inFlight = false;
+let stopping = false, inFlight = false, watchInFlight = false;
+async function watchTick() {
+  if (!env.DATABASE_URL || env.SOURCE_PROVIDER !== "inapi" || watchInFlight || stopping) return;
+  watchInFlight = true;
+  const started = Date.now();
+  try {
+    const response = await fetch(`http://127.0.0.1:${env.PORT || 3000}/api/watch/worker`, { method: "POST", headers: { authorization: `Bearer ${env.MONITORING_CRON_SECRET}` }, signal: AbortSignal.timeout(570000) });
+    if (!response.ok) console.error(`[vigilancia] HTTP ${response.status}`);
+    else {
+      const result = await response.json();
+      if (result.completed) console.info(`[vigilancia] Revisión completada; stock=${result.stockCount}; búsquedas=${result.searchCount}; duración=${Date.now() - started}ms`);
+      if (result.failed || result.enqueueErrors) console.error(`[vigilancia] Revisión incompleta; reintento=${Boolean(result.retry)}; errores de preparación=${result.enqueueErrors || 0}`);
+    }
+  } catch { console.error("[vigilancia] No se pudo contactar al trabajador; la cola persistente permite recuperar la revisión."); }
+  finally { watchInFlight = false; }
+}
 async function tick() {
   if (!enabled || inFlight || stopping) return;
   inFlight = true;
@@ -25,7 +40,7 @@ async function tick() {
   } catch { /* Startup/restart: retry next tick. Database errors are persisted by the endpoint. */ }
   finally { inFlight = false; }
 }
-const timer = setInterval(() => void tick(), 30000);
-const startup = setTimeout(() => void tick(), 10000);
+const timer = setInterval(() => { void tick(); void watchTick(); }, 30000);
+const startup = setTimeout(() => { void tick(); void watchTick(); }, 10000);
 for (const signal of ["SIGTERM", "SIGINT"]) process.on(signal, () => { stopping = true; clearInterval(timer); clearTimeout(startup); child.kill(signal); });
 child.on("exit", (code, signal) => { clearInterval(timer); clearTimeout(startup); process.exit(code ?? (signal ? 1 : 0)); });

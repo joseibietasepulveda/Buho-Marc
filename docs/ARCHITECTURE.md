@@ -1,8 +1,8 @@
-# Arquitectura propuesta
+# Arquitectura · v1.0
 
 ## Alcance
 
-La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislamiento lógico por organización para la demo. El motor que encuentra y puntúa coincidencias se mantiene como una caja negra externa; Buho Marc solo prepara su entrada, reserva su cola de trabajos y documenta la salida esperada.
+La aplicación implementa un BFF en Next.js, PostgreSQL, sesiones y aislamiento por organización. En v1.0, Dev consulta el motor externo INAPI / DeQuiénEs, guarda resultados y revisiones y ejecuta vigilancia mediante una cola persistente supervisada. El contrato vigente está en `lib/similarity-contract.ts` y `lib/similarity-provider.ts`; el despliegue y sus límites se documentan en `V1_0_RELEASE.md`.
 
 ## Estado implementado
 
@@ -13,16 +13,17 @@ La base actual ya implementa un BFF en Next.js, PostgreSQL, migraciones y aislam
 - Clientes editables y tareas de casos persistentes con estados `not-applicable`, `pending` y `completed`.
 - Proveedor INAPI, registros de fuente, snapshots por expediente, revisiones programadas/manuales e historial de consultas. El Administrador de fuente es de solo lectura cuando el proveedor es INAPI.
 - Seguimiento de registros con gestiones y hechos activadores diferenciados, plazos concurrentes y 22 escenarios ficticios separados de la cartera. Reglas de LPI/RLPI en un módulo compartido y calendario nacional LPI/LBPA limitado a 2026–2027.
-- Revisor de factibilidad frontend con texto, vista previa de imagen, clases Niza acumulativas, resumen probabilístico y cuatro coincidencias mock explicables.
+- Prefactibilidad real por nombre, imagen y coberturas, con estados e historiales y agrupación opcional. Sin probabilidades jurídicas derivadas del ranking.
+- Vigilancia real: 30 resultados de stock, cinco visibles y ampliación de cinco; búsquedas separadas de ingresos y publicaciones, persistencia de decisiones, reintentos y recuperación por token de ejecución.
 - Tablero de casos con `dnd-kit` para mover una tarjeta completa entre tres etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.
 - Configuración de despliegue y health check para Railway.
 
-Siguen pendientes identidad real, permisos efectivos, archivos, correo, recordatorios asíncronos y el motor externo.
+Sesiones, aislamiento entre organizaciones y conexión con el motor externo ya están implementados. Quedan pendientes permisos granulares adicionales, archivos permanentes, correo externo y los puntos de la siguiente versión indicados en `V1_0_RELEASE.md`.
 
 El Canvas de registros combina solicitudes persistidas en PostgreSQL con antecedentes del proveedor y una vista separada de 22 escenarios ficticios. La proyección actual se guarda como JSONB y no debe confundirse con un historial jurídico normalizado: una versión de producto deberá almacenar cada transición como evento fechado e inmutable, junto con su fuente y antecedente activador. El respaldo de interfaz usa `localStorage`; los flujos persistentes siguen necesitando PostgreSQL.
 
-El Revisor de factibilidad también es una simulación frontend. La imagen se mantiene sólo durante la sesión del navegador y no se sube al servidor. Los porcentajes, similitudes y explicaciones están curados para el caso “Cafeteras Mistral”; una implementación real deberá producirlos mediante servicios independientes de búsqueda denominativa/fonética, comparación visual, cruce de clases Niza y calibración de riesgo.
+El Revisor de factibilidad envía la propuesta a `/api/similarity`, que valida el archivo y consulta la API externa desde el servidor. La imagen viaja como multipart (`options` e `image`) y no se guarda como estudio permanente. El servidor completa estados e historiales por lote. El puntaje de fusión ordena resultados; calibrar relevancia y acordar filtros por estado siguen pendientes.
 
 ## Capas recomendadas
 

@@ -75,7 +75,7 @@ try {
   const imported = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ownPortfolioConfirmed: true, ids } }); assert.equal(imported.status, 200, JSON.stringify(imported.body));
   assert.ok(imported.body.results.every(r => r.outcome === "imported"));
   const repeat = await http("/api/portfolio/import", { cookie: alice, body: { action: "import", ownPortfolioConfirmed: true, ids } }); assert.ok(repeat.body.results.every(r => r.outcome === "existing"));
-  snapshot = (await http("/api/demo", { cookie: alice })).body.data; assert.equal(snapshot.brands.length, 2); assert.ok(snapshot.brands.every(b => b.status === "Sin monitoreo")); assert.equal(snapshot.matches.length, 0); assert.equal(snapshot.notices.length, 0);
+  snapshot = (await http("/api/demo", { cookie: alice })).body.data; assert.equal(snapshot.brands.length, 2); assert.ok(snapshot.brands.every(b => b.status === "En monitoreo")); assert.equal(snapshot.matches.length, 0); assert.equal(snapshot.notices.length, 0);
   assert.equal((await http("/api/registrations", { cookie: alice })).body.applications.length, 2);
   assert.equal((await http("/api/demo", { cookie: bob })).body.data.brands.length, 0);
   assert.equal((await http("/api/source/admin", { cookie: bob })).body.records.length, 0);

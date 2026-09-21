@@ -1,3 +1,13 @@
+# Contrato vigente del motor · v1.0
+
+Se consume `POST https://dequienes.cl/inapi/trademarks/search` de forma síncrona desde el servidor, mediante trabajos persistentes propios. Stock: `application_id`, `limit: 30`, `grouped: false`, `exclude_same_holder: true`, `include: ["coverage"]`, sin filtro de estados. Novedades: llamadas separadas con `filed_after` y `published_after`. Estados e historial: `/trademarks/batch`. Prefactibilidad por imagen usa multipart con los campos `options` (JSON) e `image`.
+
+Los puntajes se conservan en evidencia sin convertirlos en probabilidades; la clasificación manual se guarda aparte. Las decisiones y casos se preservan al actualizar resultados. Detalle operativo y pendientes: [v1.0](V1_0_RELEASE.md).
+
+## Propuesta histórica reemplazada
+
+El contrato de eventos/callback y las escalas que aparecen debajo pertenecen a una propuesta anterior. No implementarlos como requisito del endpoint actual.
+
 # Integración con el motor de cruces
 
 ## Límite de responsabilidad

@@ -1,6 +1,8 @@
 # Hoja de ruta de implementación
 
-> Actualización del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
+**Versión vigente: 1.0, ambiente Dev.** Alcance, verificación y pendientes actuales: [V1_0_RELEASE.md](V1_0_RELEASE.md). Las fases históricas siguientes no vuelven a abrir funcionalidades ya entregadas.
+
+> Historial del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
 
 ## Base entregada en esta demo
 
@@ -13,10 +15,12 @@
 - [x] Seguimiento de inscripción para escritorio con gestiones y activadores diferenciados, concurrencia de oposición/fondo, estados basados en actuaciones y 22 ejemplos simulados separados de la cartera.
 - [x] Revisor de factibilidad de escritorio con texto, imagen local, clases Niza acumulativas, resumen de riesgo y cuatro resultados mock explicables.
 - [x] Despliegue preparado para Railway con modo local de respaldo.
-- [ ] Autenticación, archivos, email real, permisos, recordatorios y operación productiva.
+- [x] Autenticación de cuentas piloto y aislamiento por organización.
+- [ ] Archivos, email real, permisos avanzados, recordatorios y operación productiva.
 - [x] Proveedor de expedientes INAPI, seguimiento, historial de consultas y novedades.
 - [x] Comparación ampliable de logos e historial de actuaciones sin estados inexistentes.
-- [ ] Motor de similitud real, todavía pendiente.
+- [x] Integración real de semejanza para vigilancia y prefactibilidad, con estados, evidencia y seguimiento.
+- [ ] Filtro API por estado y catálogo exacto de estados: pendientes de la siguiente versión; un rechazo puede tener recursos o instancias posteriores.
 
 ## Fase 0 — decisiones y diseño técnico
 
@@ -72,7 +76,7 @@ Criterio de salida: pruebas críticas aprobadas, restauración ensayada y monito
 
 - Una organización nunca puede leer o modificar datos de otra.
 - Crear una marca dos veces con la misma clave no duplica trabajos.
-- Repetir un callback no duplica coincidencias.
+- Repetir una consulta o reintentar un trabajo no duplica coincidencias.
 - Convertir la misma coincidencia dos veces produce un solo caso.
 - Un cambio de plazo cancela y recrea recordatorios correctamente.
 - Cada modificación relevante aparece en auditoría con actor y fecha; no se exige al usuario documentar fundamentos de decisiones.

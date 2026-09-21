@@ -1,4 +1,4 @@
-import { organizationId, actorId, isDemoOrganization } from "../lib/tenant-context";
+import { organizationId, actorId } from "../lib/tenant-context";
 import type { TransactionSql } from "postgres";
 import type { SourceRecord } from "../lib/source-contract";
 import { updatedApplication } from "./source";
@@ -19,7 +19,7 @@ export async function importRealRecord(tx: TransactionSql, record: SourceRecord,
   const [source] = await tx`INSERT INTO source_records (application_number, registration_number, data) VALUES (${record.applicationNumber}, ${record.registrationNumber}, ${tx.json(record)}) ON CONFLICT (application_number) DO UPDATE SET data = EXCLUDED.data, registration_number = EXCLUDED.registration_number, updated_at = now() RETURNING id`;
   let entityId: string;
   if (kind === "brand") {
-    const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, registration_date, jurisdiction, status, monitoring_config, created_by, last_reviewed_at) VALUES (${organizationId()}, ${code}, ${record.name}, ${record.name}, ${record.owner}, ${record.registrationNumber}, ${record.registrationDate}, 'Chile', ${isDemoOrganization() ? 'Activa' : 'Pausada'}, ${tx.json(realBrandConfig(record))}, ${actorId()}, now()) ON CONFLICT (organization_id, public_code) DO UPDATE SET name = EXCLUDED.name, word_mark = EXCLUDED.word_mark, owner_name = EXCLUDED.owner_name, registration_number = EXCLUDED.registration_number, registration_date = EXCLUDED.registration_date, monitoring_config = EXCLUDED.monitoring_config, updated_at = now() RETURNING id`;
+    const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, registration_date, jurisdiction, status, monitoring_config, created_by, last_reviewed_at) VALUES (${organizationId()}, ${code}, ${record.name}, ${record.name}, ${record.owner}, ${record.registrationNumber}, ${record.registrationDate}, 'Chile', 'Activa', ${tx.json({ ...realBrandConfig(record), watchOnly: false })}, ${actorId()}, now()) ON CONFLICT (organization_id, public_code) DO UPDATE SET name = EXCLUDED.name, word_mark = EXCLUDED.word_mark, owner_name = EXCLUDED.owner_name, registration_number = EXCLUDED.registration_number, registration_date = EXCLUDED.registration_date, monitoring_config = brands.monitoring_config || EXCLUDED.monitoring_config, updated_at = now() RETURNING id`;
     entityId = brand.id;
     await tx`DELETE FROM brand_classes WHERE brand_id = ${entityId}`;
     for (const n of record.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${entityId}, ${n})`;

@@ -1,5 +1,9 @@
-export const APP_VERSION = "0.6";
+export const APP_VERSION = "1.0";
 export const RELEASE_INCLUDED = [
+  "Vigilancia real de marcas propias y solicitudes: 30 similitudes de todos los estados, cinco visibles y Buscar más de cinco en cinco.",
+  "Seguimiento individual persistente, logos y coberturas reales, estado INAPI e historial; las nuevas revisiones conservan decisiones y casos.",
+  "Revisiones diarias en segundo plano, detección de ingreso y publicación, reintentos y recuperación sin duplicar coincidencias.",
+  "Prefactibilidad real por nombre, imagen o ambos, coberturas por clase y agrupación opcional por titular. Sin porcentajes de riesgo inventados.",
   "Acceso con usuario y clave, cambio de clave temporal y espacios independientes por organización.",
   "Carga de cartera desde Excel o CSV por número de solicitud, con revisión previa, control de duplicados y clasificación desde INAPI.",
   "Oposiciones presentadas: expediente contrario en Casos, marca de fundamento opcional, historial y nuevas actuaciones con aviso y tarea de revisión.",
@@ -10,18 +14,19 @@ export const RELEASE_INCLUDED = [
   "Clientes con acceso directo a las fichas de sus marcas. Vigilancias con historial de la marca vigilada y explicación antes de la comparación.",
   "Alertas de tareas y plazos visibles desde todos los módulos.",
   "Notificaciones Prioritarias con ficha lateral e historia cronológica del expediente; Todos los avisos conservan sus detalles desplegables y el título de marca tiene aviso específico.",
-  "Factibilidad por nombre, imagen o descripción; búsqueda aproximada predeterminada, controles legibles y logo en un espacio propio. Resultados todavía simulados.",
   "Cartera con búsqueda «contiene» por los campos disponibles, sin importar mayúsculas, acentos ni formato del RUT. El alta conserva su búsqueda exacta y parámetros a la izquierda.",
   "Plazos vinculados a su actuación y notificación acreditada: la fecha de una resolución no se sustituye automáticamente por una fecha de notificación ni de firmeza.",
-  "Correo al cliente con cuadro comparativo copiable y firma de la sesión. PDF técnico reservado al abogado.",
+  "Correo al cliente con cuadro comparativo copiable y firma de la sesión. El PDF de demostración se oculta en coincidencias reales.",
   "Seguimiento INAPI, historial de actuaciones y los 22 ejemplos del procedimiento de la versión anterior.",
 ];
 export const RELEASE_UPCOMING = [
+  { title: "Filtro de estados para vigilancia", items: ["Víctor incorporará el filtro por estado a la llamada de búsqueda; todavía no está disponible. En v1.0 se muestran todos los estados.", "Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores."] },
+  { title: "Calidad y cobertura de las búsquedas", items: ["Calibrar la relevancia y los niveles con revisión experta, sin interpretar el puntaje de ordenamiento como probabilidad jurídica.", "Confirmar límites, paginación y datos incorporados tarde. El stock de 30 y las ventanas de novedades son conjuntos acotados, no una garantía de exhaustividad.", "Confirmar con Víctor la disponibilidad diaria, cuotas, rendimiento y alcance semántico. Hay señales visuales y fonéticas reales."] },
   { title: "Correos al abogado con Resend", items: ["Recordatorios de tareas y plazos antes del vencimiento, con fecha, responsable y enlace al expediente.", "Aviso específico cuando INAPI emita el título o certificado de titularidad.", "Evitar duplicados y cancelar recordatorios cuando cambie el plazo, se complete la tarea o concluya el caso; registrar entrega, errores y reintentos."] },
   { title: "Integración con el Tribunal de Propiedad Industrial (TPI / TDPI)", items: ["Detectar el ingreso de la apelación al tribunal, además de su aparición en tabla.", "Seguir las actuaciones de alegatos y adhesión conforme a su resolución y regla aplicable. No crear una obligación general de hacerse parte ni un plazo automático de cinco días desde el ingreso al TDPI."] },
-  { title: "Motor de búsquedas fonéticas", items: ["Detectar términos o segmentos clave dentro de denominaciones extensas, aunque reduzcan la similitud global. Incluir casos de marcas muy cortas y de dos letras en la validación del motor."] },
+  { title: "Validación de búsquedas fonéticas", items: ["Detectar términos o segmentos clave dentro de denominaciones extensas, aunque reduzcan la similitud global. Incluir casos de marcas muy cortas y de dos letras en la validación del motor."] },
   { title: "Encontrar cualquier marca para darle seguimiento", items: ["Conectar la búsqueda por nombre, registro, solicitud, titular, RUT y representante con la fuente real; reemplazar el catálogo mock detrás de la flag.", "Búsqueda aproximada por nombre que encuentre errores de escritura, variantes y similitudes fonéticas; ordenar por relevancia y explicar la coincidencia.", "Autocompletar nombres y titulares; combinar campos y clases Niza para acotar resultados.", "Cargar toda la cartera de un titular por RUT con selección múltiple, paginación y control de duplicados por solicitud y registro.", "Buscar por imagen o descripción y conservar filtros e historial de búsquedas para retomar una revisión."] },
   { title: "Patentes", items: ["Vigilancia de patentes dentro del módulo de Vigilancia.", "Seguimiento internacional de patentes PCT por jurisdicción, anualidades y corresponsales."] },
   { title: "Gestión de casos para reemplazar Trello", items: ["Completar comentarios, documentos, checklists y colaboración según los flujos del estudio, sobre las tareas y fechas ya disponibles."] },
-  { title: "Otros desarrollos pendientes", items: ["Conectar los motores visual y semántico y la búsqueda real de factibilidad.", "Generar PDF técnico específico por vigilancia y almacenar archivos con acceso apropiado.", "Validación Niza/Madrid y calendario legal plurianual.", "Invitaciones de equipo, recuperación de claves y operación productiva."] },
+  { title: "Otros desarrollos pendientes", items: ["Guardar estudios de prefactibilidad e imágenes por organización, con acceso y retención definidos.", "Generar PDF técnico específico por vigilancia y almacenar archivos con acceso apropiado.", "Validación Niza/Madrid y calendario legal plurianual.", "Invitaciones de equipo, recuperación de claves y operación productiva."] },
 ];
