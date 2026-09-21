@@ -87,8 +87,12 @@ try {
   // Existing daily idempotency key already exists in this synthetic scenario: simulate the prior release key.
   await sql`UPDATE monitoring_jobs SET idempotency_key = 'old:' || idempotency_key WHERE organization_id=${identities[0].organizationId}`;
   assert.equal(await queueWatch(),1);assert.equal(await queueWatch(),0);
+  const [tracked]=await sql`UPDATE matches SET evidence = jsonb_set(evidence,'{hit,publishedAt}','null'::jsonb) WHERE organization_id=${identities[0].organizationId} AND source_record_id='201' RETURNING public_code,id`;
+  await followWatch(tracked.public_code);publication='2026-09-22';
   let upgradeRequest;await processWatchJob(async request=>{upgradeRequest=request;return search(request);});
   assert.equal(upgradeRequest.limit,50);assert.equal(upgradeRequest.filed_after,undefined);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE entity_id=${tracked.id} AND type='similarity_publication' AND title LIKE '%Tercero%'`)[0].n,2);
+  assert.equal((await watchSnapshot()).targets[0].results.find(hit=>hit.applicationId==='201').reviewStatus,'En seguimiento');
 });
  console.log('PASS: fair scheduling between portfolios and three-minute initial lease recovery.');
  console.log('PASS: migrations, owned pending enrollment, 50 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, pause/resume, tenant isolation and registration transition.');

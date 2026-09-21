@@ -95,7 +95,7 @@ export async function persistWatch(job: { id: string; organization_id: string; b
         ON CONFLICT (organization_id, brand_id, source, source_record_id) DO UPDATE SET published_at = EXCLUDED.published_at, found_name = EXCLUDED.found_name, applicant = EXCLUDED.applicant, explanation = EXCLUDED.explanation, evidence = EXCLUDED.evidence, monitoring_job_id = EXCLUDED.monitoring_job_id, updated_at = now() RETURNING id, public_code`;
       if (responses.some(r => r.results.some(h => h.applicationId === hit.applicationId))) resultIds.push(saved.public_code);
       if (lease.request.since && !old && !hiddenDiscoveryState(hit.status)) await milestone(tx, job.organization_id, brand.name, { id: saved.id, public_code: saved.public_code }, hit, "filing", hit.filedAt ?? responses[0].fetchedAt.slice(0, 10));
-      if ((lease.request.since || old?.evidence?.watchPublication) && hit.publishedAt && (!old || !old.evidence?.hit?.publishedAt) && (!hiddenDiscoveryState(hit.status) || old?.evidence?.watchPublication)) await milestone(tx, job.organization_id, brand.name, { id: saved.id, public_code: saved.public_code }, hit, "publication", hit.publishedAt);
+      if ((lease.request.since || ["En seguimiento", "Convertida en caso"].includes(old?.review_status)) && hit.publishedAt && (!old || !old.evidence?.hit?.publishedAt) && (!hiddenDiscoveryState(hit.status) || old?.evidence?.watchPublication)) await milestone(tx, job.organization_id, brand.name, { id: saved.id, public_code: saved.public_code }, hit, "publication", hit.publishedAt);
     }
     if (!lease.request.since && resultIds.length) {
       const title = `Se encontraron ${resultIds.length} coincidencias para ${brand.name}`.slice(0, 220);
