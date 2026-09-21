@@ -10,6 +10,8 @@ Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada
 
 La revisión diaria combina stock con búsquedas separadas de ingresos y publicaciones. Las novedades se agregan sin duplicar solicitudes; el lote posterior puede superar 50 por incluir ventanas adicionales. La publicación posterior conserva la revisión anterior. Hay cola persistente, reintentos, pausa/reanudación e indicadores separados de la sincronización de expedientes.
 
+Ante un HTTP 403 de la fuente, la vigilancia espera 20 segundos y reintenta hasta 10 veces después del intento inicial. La espera y el contador persisten entre reinicios; durante la espera no inicia otra búsqueda de vigilancia. Si se agotan los reintentos, conserva el último resultado exitoso e informa el fallo.
+
 ## Prefactibilidad
 
 Nombre, imagen o ambos; clases y coberturas opcionales; hasta 50 solicitudes, con agrupación opcional. Los resultados y estados son reales. El puntaje ordena semejanzas y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.

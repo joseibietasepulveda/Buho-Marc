@@ -2,6 +2,11 @@ import { z } from "zod";
 import { sourceRecordSchema, type SourceRecord, type Lookup } from "./source-contract";
 import type { RegistrationApplication, RegistrationStatusId } from "./registration-data";
 
+export class InapiHttpError extends Error {
+  upstreamStatus: number;
+  constructor(message: string, upstreamStatus: number) { super(message); this.upstreamStatus = upstreamStatus; }
+}
+
 const party = z.object({ name: z.string(), rut: z.string().nullable().optional(), dv: z.string().nullable().optional(), country: z.string().nullable().optional() }).passthrough();
 const event = z.object({ event_id: z.string().nullable().optional(), event_date: z.string().nullable(), due_date: z.string().nullable().optional(), status_code: z.string().nullable(), status_description: z.string().nullable(), observation: z.string().nullable().optional() }).passthrough();
 const documentSchema = z.object({
@@ -209,7 +214,7 @@ async function fetchRecords(input: Lookup, fetcher: typeof fetch, evidenceOnly: 
     if (!r.ok) {
       const reference = r.headers.get("cf-ray");
       const protection = r.headers.get("cf-mitigated") === "challenge" ? " El proveedor exige una validación de acceso desde este servidor." : "";
-      throw new Error(`La consulta a INAPI respondió HTTP ${r.status}.${protection} Se conservó la última información recibida.${reference ? ` Referencia del proveedor: ${reference}.` : ""}`);
+      throw new InapiHttpError(`La consulta a INAPI respondió HTTP ${r.status}.${protection} Se conservó la última información recibida.${reference ? ` Referencia del proveedor: ${reference}.` : ""}`, r.status);
     }
     const payload = z.object({ documents: z.array(documentSchema), application_ids_not_found: z.array(z.number()) }).parse(await r.json());
     if (payload.application_ids_not_found.length) throw new Error(`INAPI no devolvió las solicitudes: ${payload.application_ids_not_found.join(", ")}. Se conservó la cartera.`);

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createServer } from 'node:net';
 import { once } from 'node:events';
+import { execFileSync } from 'node:child_process';
 import EmbeddedPostgres from 'embedded-postgres';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
@@ -82,6 +83,31 @@ try {
  await runAs(identities[0],async()=>{await queueWatch((await watchSnapshot()).targets[0].id);});
  assert.equal((await processWatchJob(search)).applicationId,102);
  assert.equal((await processWatchJob(search)).applicationId,100);
+ // A 403 sleeps across worker calls/replicas, preserves results, and has exactly
+ // ten retries after the initial call. Other queued portfolios must also wait.
+ await runAs(identities[0], async()=>{await queueWatch((await watchSnapshot()).targets[0].id);});
+ const forbidden=async()=>{throw new SimilarityError('La fuente no autorizó esta consulta.',502,false,403);};
+ let denied=await processWatchJob(forbidden);
+ assert.equal(denied.applicationId,100);assert.equal(denied.retry,true);assert.equal(denied.retryDelayMs,20000);
+ await runAs(identities[1], async()=>{await queueWatch((await watchSnapshot()).targets[0].id);});
+ let cooldown=await processWatchJob(async()=>{throw new Error('must not call API during cooldown');});
+ assert.equal(cooldown.skipped,true);assert.ok(cooldown.retryDelayMs>19000 && cooldown.retryDelayMs<=20000);
+ await runAs(identities[0],async()=>assert.equal((await watchSnapshot()).targets[0].results.length,50));
+ for(let attempt=2;attempt<=11;attempt++){
+   await sql`UPDATE monitoring_jobs SET available_at=now()-interval '1 second' WHERE status='retry'`;
+   denied=await processWatchJob(forbidden);
+   assert.equal(denied.applicationId,100);assert.equal(denied.attempt,attempt);
+   assert.equal(denied.retry,attempt<11);
+ }
+ assert.equal((await sql`SELECT count(*)::int AS n FROM monitoring_jobs WHERE status='retry'`)[0].n,0);
+ assert.equal((await processWatchJob(search)).applicationId,102);
+ assert.equal((await processWatchJob(search)).skipped,true);
+ // Recovery after a temporary 403 saves the new review and does not keep retrying.
+ await runAs(identities[0],async()=>{await queueWatch((await watchSnapshot()).targets[0].id);});
+ await processWatchJob(forbidden);
+ await sql`UPDATE monitoring_jobs SET available_at=now()-interval '1 second' WHERE status='retry'`;
+ assert.equal((await processWatchJob(search)).completed,true);
+ assert.equal((await processWatchJob(search)).skipped,true);
  await runAs(identities[0], async()=>{
   await sql`UPDATE monitoring_jobs SET request = jsonb_set(request,'{limit}','30'::jsonb) WHERE brand_id IN (SELECT id FROM brands WHERE organization_id=${identities[0].organizationId}) AND status='success'`;
   // Existing daily idempotency key already exists in this synthetic scenario: simulate the prior release key.
@@ -94,6 +120,25 @@ try {
   assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE entity_id=${tracked.id} AND type='similarity_publication' AND title LIKE '%Tercero%'`)[0].n,2);
   assert.equal((await watchSnapshot()).targets[0].results.find(hit=>hit.applicationId==='201').reviewStatus,'En seguimiento');
 });
+ // One-time recovery only fills missing stock, keeps failed attempts and is safe
+ // to run on each Dev restart without resetting exhausted retry budgets.
+ await runAs(identities[0],async()=>{await queueWatch((await watchSnapshot()).targets[0].id);});
+ await processWatchJob(forbidden);
+ await sql`UPDATE monitoring_jobs SET status='failed' WHERE status='retry'`;
+ // The historical release stored the message without an upstream HTTP code.
+ await sql`UPDATE monitoring_job_attempts SET error_payload=error_payload-'upstreamStatus' WHERE monitoring_job_id IN (SELECT id FROM monitoring_jobs WHERE status='failed' AND attempt_count=1)`;
+ await sql`UPDATE monitoring_jobs SET request=jsonb_set(request,'{limit}','30'::jsonb) WHERE organization_id=${identities[0].organizationId} AND status='success'`;
+ const recoveryEnv={...process.env, RAILWAY_ENVIRONMENT_ID:'9e2891f0-7281-4872-a992-2c48866a782d'};
+ const recovery=(apply=false)=>execFileSync(process.execPath,['--import','./tests/ts-loader.mjs','scripts/recover-watch-403.ts',...(apply?['--apply']:[])],{env:recoveryEnv,encoding:'utf8'});
+ assert.match(recovery(),/"eligible":1,"queued":0,"dryRun":true/);
+ assert.match(recovery(true),/"eligible":1,"queued":1/);
+ assert.match(recovery(true),/"eligible":0,"queued":0/);
+ await processWatchJob(forbidden);
+ await sql`UPDATE monitoring_jobs SET status='failed' WHERE status='retry'`;
+ assert.match(recovery(true),/"eligible":0,"queued":0/);
+ assert.ok((await sql`SELECT count(*)::int AS n FROM monitoring_job_attempts WHERE error_payload->>'upstreamStatus'='403'`)[0].n>=11);
+ console.log('PASS: idempotent recovery only queues missing stock and never resets the retry budget.');
  console.log('PASS: fair scheduling between portfolios and three-minute initial lease recovery.');
+ console.log('PASS: durable 20-second 403 cooldown, exactly 10 retries, no concurrent bypass, preserved results and successful recovery.');
  console.log('PASS: migrations, owned pending enrollment, 50 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, pause/resume, tenant isolation and registration transition.');
 }finally{if(sql)await sql.end();await pg.stop();}

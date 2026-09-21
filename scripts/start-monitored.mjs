@@ -4,6 +4,8 @@ import { randomBytes } from "node:crypto";
 if (process.env.RAILWAY_ENVIRONMENT_ID === "9e2891f0-7281-4872-a992-2c48866a782d") {
   const correction = spawnSync(process.execPath, ["--import", "./tests/ts-loader.mjs", "scripts/correct-daniel-oppositions.ts"], { stdio: "inherit", env: process.env });
   if (correction.status !== 0) process.exit(correction.status ?? 1);
+  const recovery = spawnSync(process.execPath, ["--import", "./tests/ts-loader.mjs", "scripts/recover-watch-403.ts", "--apply"], { stdio: "inherit", env: process.env });
+  if (recovery.status !== 0) process.exit(recovery.status ?? 1);
 }
 
 if (process.env.SOURCE_PROVIDER === "inapi" && process.env.INAPI_IMPORT_COHORT === "true") {
@@ -33,7 +35,8 @@ async function watchTick() {
         // Drain the initial portfolio serially without an idle 30-second slot per mark.
         setTimeout(() => { void watchTick(); }, 500).unref();
       }
-      if (result.failed || result.enqueueErrors) console.error(`[vigilancia] Revisión incompleta; solicitud=${result.applicationId}; motivo=${result.message || "Preparación incompleta"}; reintento=${Boolean(result.retry)}; errores de preparación=${result.enqueueErrors || 0}`);
+      if (result.retryDelayMs > 0) setTimeout(() => { void watchTick(); }, result.retryDelayMs).unref();
+      if (result.failed || result.enqueueErrors) console.error(`[vigilancia] Revisión incompleta; solicitud=${result.applicationId}; motivo=${result.message || "Preparación incompleta"}; HTTP=${result.upstreamStatus ?? 'desconocido'}; intento=${result.attempt ?? '-'}; reintento=${Boolean(result.retry)}; espera=${result.retryDelayMs ?? 0}ms; errores de preparación=${result.enqueueErrors || 0}`);
     }
   } catch { console.error("[vigilancia] No se pudo contactar al trabajador; la cola persistente permite recuperar la revisión."); }
   finally { watchInFlight = false; }

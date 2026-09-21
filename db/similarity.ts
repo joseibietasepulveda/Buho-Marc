@@ -3,7 +3,7 @@ import type { TransactionSql } from "postgres";
 import { getSql } from "./index";
 import { organizationId, actorId } from "../lib/tenant-context";
 import { realBrandConfig } from "./inapi-portfolio";
-import { fetchInapiEvidence } from "../lib/inapi-provider";
+import { fetchInapiEvidence, InapiHttpError } from "../lib/inapi-provider";
 import { searchSimilar, similarityConfigured, SimilarityError, withRecord } from "../lib/similarity-provider";
 import { DEFAULT_WATCH_SETTINGS, canWatchPublication, hiddenDiscoveryState, watchSettingsSchema, type WatchSettings } from "../lib/watch-policy";
 import { WATCH_LIMIT, similarityExplanation, type SimilarityHit, type SimilarityResult } from "../lib/similarity-contract";
@@ -120,15 +120,27 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
     const stale = await tx`UPDATE monitoring_jobs SET status = CASE WHEN attempt_count >= 3 THEN 'failed' ELSE 'retry' END, lease_token = NULL, error_code = 'La revisión se interrumpió; se recuperará automáticamente.', available_at = now() WHERE status = 'running' AND started_at < now() - CASE WHEN request->>'since' IS NULL THEN interval '3 minutes' ELSE interval '10 minutes' END RETURNING id`;
     for (const item of stale) await tx`UPDATE monitoring_job_attempts SET status = 'interrupted', completed_at = now() WHERE monitoring_job_id = ${item.id} AND status = 'running'`;
     if ((await tx`SELECT id FROM monitoring_jobs WHERE status = 'running' LIMIT 1`).length) return null;
+    // A durable sleep shared by replicas: don't send another watch search during
+    // the 403 cooldown, and resume the rejected job before taking new work.
+    const [cooldown] = await tx`SELECT j.id, j.available_at FROM monitoring_jobs j
+      JOIN monitoring_job_attempts a ON a.monitoring_job_id = j.id AND a.attempt_no = j.attempt_count
+      JOIN brands b ON b.id = j.brand_id JOIN organizations o ON o.id = j.organization_id
+      WHERE j.status = 'retry' AND a.error_payload->>'upstreamStatus' = '403'
+      AND b.status <> 'Pausada' AND b.archived_at IS NULL AND o.status = 'active'
+      ORDER BY j.available_at LIMIT 1`;
+    if (cooldown && new Date(cooldown.available_at).getTime() > Date.now()) {
+      return { cooldownMs: Math.ceil(new Date(cooldown.available_at).getTime() - Date.now()) };
+    }
     // Round-robin across organizations, oldest ready work within each portfolio.
     // A large import must not monopolize the single remote-search slot.
-    const [next] = await tx`SELECT j.* FROM monitoring_jobs j JOIN brands b ON b.id = j.brand_id JOIN organizations o ON o.id = j.organization_id WHERE j.status IN ('queued','retry') AND j.available_at <= now() AND b.status <> 'Pausada' AND b.archived_at IS NULL AND o.status = 'active' ORDER BY (SELECT max(previous.started_at) FROM monitoring_jobs previous WHERE previous.organization_id = j.organization_id) ASC NULLS FIRST, j.available_at, j.created_at LIMIT 1 FOR UPDATE OF j SKIP LOCKED`;
+    const [next] = await tx`SELECT j.* FROM monitoring_jobs j JOIN brands b ON b.id = j.brand_id JOIN organizations o ON o.id = j.organization_id WHERE j.status IN ('queued','retry') AND j.available_at <= now() AND b.status <> 'Pausada' AND b.archived_at IS NULL AND o.status = 'active' ORDER BY (j.id = ${cooldown?.id ?? null}::uuid) DESC NULLS LAST, (SELECT max(previous.started_at) FROM monitoring_jobs previous WHERE previous.organization_id = j.organization_id) ASC NULLS FIRST, j.available_at, j.created_at LIMIT 1 FOR UPDATE OF j SKIP LOCKED`;
     if (!next) return null;
     const [claimed] = await tx`UPDATE monitoring_jobs SET status = 'running', started_at = now(), lease_token = ${randomUUID()}, attempt_count = attempt_count + 1 WHERE id = ${next.id} RETURNING *`;
     await tx`INSERT INTO monitoring_job_attempts (monitoring_job_id, attempt_no, status) VALUES (${claimed.id}, ${claimed.attempt_count}, 'running')`;
     return claimed;
   });
   if (!job) return { skipped: true };
+  if ('cooldownMs' in job) return { skipped: true, retryDelayMs: job.cooldownMs };
   try {
     const { since, ...request } = job.request;
     const responses = [await searcher(request)];
@@ -153,13 +165,19 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
     const completed = await persistWatch(job as Parameters<typeof persistWatch>[0], responses, refreshed);
     return { completed, id: job.id, applicationId: job.request.application_id, organizationId: job.organization_id, stockCount: responses[0].results.length, searchCount: responses.length };
   } catch (error) {
-    const retry = (error instanceof SimilarityError ? error.retryable : true) && job.attempt_count < 3;
+    const upstreamStatus = error instanceof SimilarityError || error instanceof InapiHttpError ? error.upstreamStatus : undefined;
+    const forbidden = upstreamStatus === 403;
+    const [counts] = await sql`SELECT count(*) FILTER (WHERE error_payload->>'upstreamStatus' = '403')::int AS forbidden,
+      count(*) FILTER (WHERE status IN ('failed','interrupted') AND (error_payload->>'upstreamStatus' IS DISTINCT FROM '403'))::int AS other
+      FROM monitoring_job_attempts WHERE monitoring_job_id = ${job.id}`;
+    const retry = forbidden ? counts.forbidden < 10 : (error instanceof SimilarityError ? error.retryable : true) && counts.other < 2;
+    const delaySeconds = forbidden ? 20 : (counts.other + 1) * 120;
     const message = error instanceof SimilarityError ? error.message : "No se pudo completar la revisión. Se conservan los resultados anteriores.";
     await sql.begin(async tx => {
-      const saved = await tx`UPDATE monitoring_jobs SET status = ${retry ? 'retry' : 'failed'}, error_code = ${message.slice(0,100)}, available_at = now() + ${job.attempt_count * 120} * interval '1 second', completed_at = now(), lease_token = NULL WHERE id = ${job.id} AND lease_token = ${job.lease_token} RETURNING id`;
-      if (saved.length) await tx`UPDATE monitoring_job_attempts SET status = 'failed', completed_at = now(), error_payload = ${tx.json({ message })} WHERE monitoring_job_id = ${job.id} AND attempt_no = ${job.attempt_count}`;
+      const saved = await tx`UPDATE monitoring_jobs SET status = ${retry ? 'retry' : 'failed'}, error_code = ${message.slice(0,100)}, available_at = now() + ${delaySeconds} * interval '1 second', completed_at = now(), lease_token = NULL WHERE id = ${job.id} AND lease_token = ${job.lease_token} RETURNING id`;
+      if (saved.length) await tx`UPDATE monitoring_job_attempts SET status = 'failed', completed_at = now(), error_payload = ${tx.json({ message, upstreamStatus: upstreamStatus ?? null })} WHERE monitoring_job_id = ${job.id} AND attempt_no = ${job.attempt_count}`;
     });
-    return { failed: true, retry, applicationId: job.request.application_id, organizationId: job.organization_id, message };
+    return { failed: true, retry, retryDelayMs: retry ? delaySeconds * 1000 : undefined, upstreamStatus, attempt: job.attempt_count, forbiddenRetries: forbidden ? Math.min(counts.forbidden + 1, 10) : undefined, applicationId: job.request.application_id, organizationId: job.organization_id, message };
   }
 }
 

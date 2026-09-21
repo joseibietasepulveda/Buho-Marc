@@ -26,6 +26,13 @@ test('429 is retryable and validation errors are not', async () => {
   await assert.rejects(searchSimilar({}, undefined, async () => new Response('', { status: 429 })), e => e instanceof SimilarityError && e.retryable);
   await assert.rejects(searchSimilar({}, undefined, async () => new Response('', { status: 422 })), e => e instanceof SimilarityError && !e.retryable);
 });
+test('upstream 403 survives search and batch errors for the durable watch retry policy', async () => {
+  await assert.rejects(searchSimilar({}, undefined, async () => new Response('', { status: 403 })), e => e instanceof SimilarityError && e.upstreamStatus === 403 && e.status === 502);
+  await assert.rejects(searchSimilar({limit:50}, undefined, async url => url.endsWith('/search')
+    ? Response.json({query,results:[hit],candidate_count:1,elapsed_seconds:1})
+    : new Response('', { status:403 })), e => e instanceof SimilarityError && e.upstreamStatus === 403);
+  await assert.rejects(searchSimilar({}, undefined, async () => new Response('', { status:401 })), e => e.upstreamStatus === 401 && !e.retryable);
+});
 test('only allowed image sources reach the interface', () => { assert.equal(safeImage('https://evil.test/pixel'), ''); assert.equal(safeImage('javascript:alert(1)'), ''); assert.equal(safeImage('https://marcas.dequienes.cl/cl/test.jpg'), 'https://marcas.dequienes.cl/cl/test.jpg'); });
 test('search keeps incomplete registration evidence while portfolio import still rejects it', async () => {
   const incomplete={...document(200),dates:{...dates,registered_at:'2026-02-01'}};
