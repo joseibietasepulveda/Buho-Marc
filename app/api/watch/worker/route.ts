@@ -15,5 +15,15 @@ export async function POST(request: Request) {
     try { await runAs({ organizationId: org.id, organizationName: org.name, userId: org.user_id, name: org.user_name, role: org.role, mustChangePassword: false }, () => queueWatch()); }
     catch { enqueueErrors++; }
   }
-  return NextResponse.json({ ...await processWatchJob(), enqueueErrors });
+  const outcome = await processWatchJob();
+  const progress = await getSql()`SELECT o.slug AS organization, count(*)::int AS total,
+    count(*) FILTER (WHERE s.id IS NOT NULL)::int AS reviewed,
+    count(*) FILTER (WHERE j.status IN ('queued','running','retry'))::int AS pending,
+    count(*) FILTER (WHERE j.status = 'failed')::int AS failed
+    FROM brands b JOIN organizations o ON o.id = b.organization_id
+    LEFT JOIN LATERAL (SELECT id FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' AND result IS NOT NULL LIMIT 1) s ON true
+    LEFT JOIN LATERAL (SELECT status FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
+    WHERE b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled'
+    GROUP BY o.slug ORDER BY o.slug`;
+  return NextResponse.json({ ...outcome, enqueueErrors, progress });
 }

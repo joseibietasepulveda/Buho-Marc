@@ -145,7 +145,7 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
       }
     }
     const completed = await persistWatch(job as Parameters<typeof persistWatch>[0], responses, refreshed);
-    return { completed, id: job.id, stockCount: responses[0].results.length, searchCount: responses.length };
+    return { completed, id: job.id, applicationId: job.request.application_id, organizationId: job.organization_id, stockCount: responses[0].results.length, searchCount: responses.length };
   } catch (error) {
     const retry = (error instanceof SimilarityError ? error.retryable : true) && job.attempt_count < 3;
     const message = error instanceof SimilarityError ? error.message : "No se pudo completar la revisión. Se conservan los resultados anteriores.";
@@ -153,21 +153,34 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
       const saved = await tx`UPDATE monitoring_jobs SET status = ${retry ? 'retry' : 'failed'}, error_code = ${message.slice(0,100)}, available_at = now() + ${job.attempt_count * 120} * interval '1 second', completed_at = now(), lease_token = NULL WHERE id = ${job.id} AND lease_token = ${job.lease_token} RETURNING id`;
       if (saved.length) await tx`UPDATE monitoring_job_attempts SET status = 'failed', completed_at = now(), error_payload = ${tx.json({ message })} WHERE monitoring_job_id = ${job.id} AND attempt_no = ${job.attempt_count}`;
     });
-    return { failed: true, retry };
+    return { failed: true, retry, applicationId: job.request.application_id, organizationId: job.organization_id, message };
   }
 }
 
 export async function watchSnapshot() {
   const sql = getSql();
-  const targets = await sql`SELECT b.public_code, b.name, b.status, b.monitoring_config,
+  const targets = await sql`SELECT b.id, b.public_code, b.name, b.status, b.monitoring_config,
     j.status AS job_status, j.error_code, j.created_at AS requested_at, j.started_at,
     s.completed_at, s.result FROM brands b
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) s ON true
     WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled' ORDER BY b.name`;
-  const matches = await sql`SELECT public_code, brand_id, evidence, review_status, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
+  const matches = await sql`SELECT public_code, brand_id, evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
   const map = new Map(matches.map(row => [row.public_code, row]));
-  return { configured: similarityConfigured(), automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true", targets: targets.map(t => ({ id: t.public_code, name: t.name, applicationId: t.monitoring_config.applicationNumber, image: t.result?.responses?.[0]?.query?.image || t.monitoring_config.logo || "", ownStatus: t.monitoring_config.sourceStatus || t.monitoring_config.registrationState, paused: t.status === 'Pausada', status: t.job_status ?? 'pending', error: t.error_code, reviewedAt: t.completed_at, nextReviewAt: t.completed_at && t.status !== 'Pausada' ? nextSourceReview(new Date(t.completed_at), process.env.MONITORING_SCHEDULER_ENABLED === 'true') : null, warnings: t.result?.responses?.flatMap((r: SimilarityResult) => r.warnings) ?? [], results: (t.result?.resultIds ?? []).map((id: string) => map.get(id)).filter(Boolean).map((m: { public_code: string; evidence: { hit: SimilarityHit }; review_status: string; created_at: string }) => ({ ...m.evidence.hit, history: [], matchId: m.public_code, reviewStatus: m.review_status, detectedAt: m.created_at })) })) };
+  const present = (m: typeof matches[number]) => ({ ...m.evidence.hit as SimilarityHit, history: [], matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at });
+  return {
+    configured: similarityConfigured(), automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true",
+    targets: targets.map(t => ({
+      id: t.public_code, name: t.name, applicationId: t.monitoring_config.applicationNumber,
+      image: t.result?.responses?.[0]?.query?.image || t.monitoring_config.logo || "",
+      ownStatus: t.monitoring_config.sourceStatus || t.monitoring_config.registrationState,
+      paused: t.status === 'Pausada', status: t.job_status ?? 'pending', error: t.error_code, reviewedAt: t.completed_at,
+      nextReviewAt: t.completed_at && t.status !== 'Pausada' ? nextSourceReview(new Date(t.completed_at), process.env.MONITORING_SCHEDULER_ENABLED === 'true') : null,
+      warnings: t.result?.responses?.flatMap((r: SimilarityResult) => r.warnings) ?? [],
+      results: (t.result?.resultIds ?? []).flatMap((id: string) => { const m = map.get(id); return m ? [present(m)] : []; }),
+      savedResults: matches.filter(m => m.brand_id === t.id && m.review_status !== 'Detectada').map(present),
+    })),
+  };
 }
 
 export async function setWatchPaused(id: string, paused: boolean) {

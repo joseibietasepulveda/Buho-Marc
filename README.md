@@ -4,7 +4,7 @@ Vigilancia y prefactibilidad conectadas a la búsqueda real de INAPI / DeQuiénE
 
 ## Vigilancia real
 
-Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **30 similitudes sin filtrar estados**. El desplegable muestra cinco solicitudes; **Buscar más** añade cinco del lote ya obtenido en cada clic. Cada resultado muestra nombre, imagen disponible, titular, clases, estado y fechas; **Pasar a seguimiento** conserva una ficha única con sus decisiones y permite convertirla en caso.
+Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **30 similitudes sin filtrar estados**. Cada marca ocupa una fila en la tabla de Vigilancia, debajo de los filtros. Su desplegable muestra cinco solicitudes; **Buscar más** añade cinco del lote ya obtenido en cada clic. Cada resultado muestra nombre, imagen disponible, titular, clases, estado y fechas; **Pasar a seguimiento** conserva una ficha única con sus decisiones y permite convertirla en caso.
 
 La revisión diaria combina stock con búsquedas separadas de ingresos y publicaciones. Las novedades se agregan sin duplicar solicitudes; el lote posterior puede superar 30 por incluir ventanas adicionales. La publicación posterior conserva la revisión anterior. Hay cola persistente, reintentos, pausa/reanudación e indicadores separados de la sincronización de expedientes.
 

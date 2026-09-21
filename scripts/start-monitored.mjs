@@ -16,6 +16,7 @@ const enabled = Boolean(process.env.DATABASE_URL) && process.env.MONITORING_SCHE
 const env = { ...process.env, SOURCE_API_TOKEN: process.env.SOURCE_API_TOKEN || randomBytes(32).toString("hex"), MONITORING_SCHEDULER_ENABLED: String(enabled), MONITORING_CRON_SECRET: process.env.MONITORING_CRON_SECRET || randomBytes(32).toString("hex") };
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", process.argv.includes("--dev") ? "dev" : "start"], { stdio: "inherit", env });
 let stopping = false, inFlight = false, watchInFlight = false;
+let lastWatchProgress = "";
 async function watchTick() {
   if (!env.DATABASE_URL || env.SOURCE_PROVIDER !== "inapi" || watchInFlight || stopping) return;
   watchInFlight = true;
@@ -25,8 +26,14 @@ async function watchTick() {
     if (!response.ok) console.error(`[vigilancia] HTTP ${response.status}`);
     else {
       const result = await response.json();
-      if (result.completed) console.info(`[vigilancia] Revisión completada; stock=${result.stockCount}; búsquedas=${result.searchCount}; duración=${Date.now() - started}ms`);
-      if (result.failed || result.enqueueErrors) console.error(`[vigilancia] Revisión incompleta; reintento=${Boolean(result.retry)}; errores de preparación=${result.enqueueErrors || 0}`);
+      const progress = JSON.stringify(result.progress ?? []);
+      if (progress !== lastWatchProgress) { console.info(`[vigilancia] Progreso por cartera: ${progress}`); lastWatchProgress = progress; }
+      if (result.completed) {
+        console.info(`[vigilancia] Revisión completada; solicitud=${result.applicationId}; organización=${result.organizationId}; stock=${result.stockCount}; búsquedas=${result.searchCount}; duración=${Date.now() - started}ms`);
+        // Drain the initial portfolio serially without an idle 30-second slot per mark.
+        setTimeout(() => { void watchTick(); }, 500).unref();
+      }
+      if (result.failed || result.enqueueErrors) console.error(`[vigilancia] Revisión incompleta; solicitud=${result.applicationId}; motivo=${result.message || "Preparación incompleta"}; reintento=${Boolean(result.retry)}; errores de preparación=${result.enqueueErrors || 0}`);
     }
   } catch { console.error("[vigilancia] No se pudo contactar al trabajador; la cola persistente permite recuperar la revisión."); }
   finally { watchInFlight = false; }

@@ -63,6 +63,12 @@ try {
   // Promotion retains the same watch target, matches and review.
   await sql.begin(tx=>importRealRecord(tx,{...source,status:'registered',registrationNumber:'777',registrationDate:'2026-09-21'},'brand'));
   assert.equal((await watchSnapshot()).targets.length,1);
+  // A followed hit outside the next stock is still available in its owned row.
+  await queueWatch(target.id);
+  await processWatchJob(async input=>{const result=await search(input);return {...result,results:result.results.map(hit=>({...hit,applicationId:String(Number(hit.applicationId)+1)}))};},async()=>({records:[{...source,applicationNumber:'200',publicationDate:publication}],missing:[],version:1,fetchedAt:new Date().toISOString()}));
+  const refreshed=(await watchSnapshot()).targets[0];
+  assert.equal(refreshed.results.length,30);assert.ok(!refreshed.results.some(hit=>hit.applicationId==='200'));
+  assert.ok(refreshed.savedResults.some(hit=>hit.applicationId==='200'&&hit.reviewStatus==='En seguimiento'));
   await runAs(identities[1],async()=>{assert.equal((await watchSnapshot()).targets.length,0);await assert.rejects(followWatch(id),/no encontrada/);});
  });
  console.log('PASS: migrations, owned pending enrollment, 30 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, pause/resume, tenant isolation and registration transition.');
