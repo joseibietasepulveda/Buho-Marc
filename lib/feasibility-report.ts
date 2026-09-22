@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
+import { selectReportHits } from "./report-selection";
 import type { SimilarityResult } from './similarity-contract';
 import { FEASIBILITY_STATUS_LABELS, filterFeasibility, uncertainState, type FeasibilityStatus } from './feasibility-policy';
 import { reportRecommendation, type ReportRecommendation } from './feasibility-recommendation';
@@ -9,7 +10,7 @@ export type FeasibilityReportInput = {
   proposal: { name: string; coverage: { nice_class: number; text: string }[]; grouped: boolean };
   image?: Uint8Array; imageType?: 'png' | 'jpeg'; studioLogo?: Uint8Array;
   client?: string; author?: string; recommendation?: ReportRecommendation;
-  explanation?: string; includeAppendix?: boolean;
+  explanation?: string; includeAppendix?: boolean; selectedIds?: string[]; resultImages?: Record<string,Uint8Array>;
 };
 const date = (value: string) => new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'long' }).format(new Date(value.length === 10 ? `${value}T12:00:00Z` : value));
 const excerpt = (value: string, limit = 230, sentenceCase = false) => {
@@ -22,7 +23,8 @@ const excerpt = (value: string, limit = 230, sentenceCase = false) => {
 export async function createFeasibilityReport(input: FeasibilityReportInput): Promise<Uint8Array> {
   const { proposal, status } = input;
   const result = { ...input.result, results: input.result.results.map(applyVerifiedDecision) };
-  const hits = filterFeasibility(result.results, status);
+  const allHits = filterFeasibility(result.results, status);
+  const hits = selectReportHits(allHits,input.selectedIds);
   const recommendation = reportRecommendation(result, input.recommendation, input.explanation);
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Informe de prefactibilidad - ${proposal.name || 'Marca sin nombre'}`);
@@ -69,10 +71,6 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   if (input.author?.trim()) text(`Preparado por: ${input.author.trim()}`,10,false,muted,295);
   y = Math.min(y - 14, 650); rule();
 
-  // Recommendation is the first substantive section, not a final-page caveat.
-  text('RECOMENDACIÓN',9,true,gold);
-  text(recommendation.title,20,true);
-  text(recommendation.explanation,11);
   heading('La marca que revisamos');
   if (input.image) {
     const image = input.imageType === 'jpeg' ? await pdf.embedJpg(input.image) : await pdf.embedPng(input.image);
@@ -88,19 +86,11 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   } else {
     text(proposal.coverage.map(c=>`${c.text.trim() || 'Productos o servicios por definir.'} (Clase ${c.nice_class})`).join(' ') || 'Los productos o servicios todavía no están definidos.');
   }
-  heading('Cómo seguimos');
-  const steps = input.recommendation === 'proceed'
-    ? ['Confirmar el nombre y la imagen definitivos.', 'Acordar los productos o servicios y los datos de quien solicitará el registro.', 'Preparar y presentar la solicitud.']
-    : input.recommendation === 'adjust'
-      ? ['Definir una alternativa de nombre o diseño.', 'Comparar la nueva propuesta con las marcas existentes.', 'Acordar la versión final antes de presentar la solicitud.']
-      : ['Comparar las marcas destacadas con la propuesta.', 'Confirmar los datos que estén incompletos o desactualizados.', 'Decidir si presentamos esta marca o trabajamos una alternativa.'];
-  steps.forEach((step,i)=>text(`${i+1}. ${step}`,10));
-
-  newPage(); text('Qué encontramos',22,true);
-  text(`La búsqueda devolvió ${result.results.length} resultados. Este informe considera ${hits.length} con el filtro «${FEASIBILITY_STATUS_LABELS[status]}».`,10.5,false,muted);
-  if (hits.length) text(`Estos son los primeros ${Math.min(4,hits.length)} resultados de la búsqueda con ese filtro.`,10,false,muted);
+  heading('Marcas que conviene comparar');
+  text(`La búsqueda devolvió ${result.results.length} resultados con los criterios elegidos. En este informe destacamos ${hits.length}.`,10,false,muted);
+  if (hits.length) text(input.selectedIds?.length ? "Marcas seleccionadas por quien preparó el informe." : "Seleccionadas por su mayor índice de similitud.",9,false,muted);
   else text('No hay resultados con este filtro. Esto no indica que la marca esté disponible: conviene revisar también los demás estados.',11);
-  for (const [index,hit] of hits.slice(0,4).entries()) {
+  for (const [index,hit] of hits.entries()) {
     const shared = hit.classes.filter(c=>proposal.coverage.some(p=>p.nice_class === c.nice_class));
     const coverage = (shared.length ? shared : hit.classes).map(c=>c.coverage_text || `Productos o servicios de la clase ${c.nice_class}`).join('; ');
     const nameText = `${index+1}. ${hit.name.length > 120 ? hit.name.slice(0,117)+'…' : hit.name}`;
@@ -108,30 +98,43 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
     const details = [
       `${state} · Solicitud ${hit.applicationId}${hit.registrationId ? ` · Registro ${hit.registrationId}` : ''}`,
       `Titular: ${excerpt(hit.holders.map(h=>h.name).join('; ') || 'No informado',140)}`,
-      `Productos o servicios: ${excerpt(coverage || 'No informados',200,true)}`,
+      `Clases ${hit.classes.map(c=>c.nice_class).join(", ") || "no informadas"} · ${excerpt(coverage || "Productos o servicios no informados",155,true)}`,
     ];
     if (hit.officialDecision) details.push(`Decisión firme desde el ${date(hit.officialDecision.firmAt)}. Respaldo oficial en los antecedentes adjuntos.`);
     else if (uncertainState(hit.status) || hit.dataWarnings?.length) details.push('Hay datos de esta solicitud que debemos confirmar.');
-    const height = 30+lines(nameText,bold,13,491).length*19.5+details.reduce((sum,s)=>sum+lines(s,regular,9.5,491).length*14.25+6,0);
-    ensure(height); rule(); text(nameText,13,true);
-    details.forEach((detail,i)=>text(detail,9.5,false,i===0 ? ink : muted,491,3));
+    const height = Math.max(112,30+lines(nameText,bold,12,380).length*18+details.reduce((sum,s)=>sum+lines(s,regular,9,380).length*13.5+3,0));
+    ensure(height); rule();
+    const top=y;
+    const bytes=input.resultImages?.[hit.applicationId];
+    let embedded;
+    if(bytes) try {embedded=await pdf.embedPng(bytes);}catch {/* The source can supply an unreadable image; label it explicitly. */}
+    page.drawRectangle({x:441,y:top-83,width:102,height:83,color:rgb(.98,.98,.975),borderColor:line,borderWidth:.5});
+    if(embedded){const size=embedded.scaleToFit(92,73);page.drawImage(embedded,{x:446+(92-size.width)/2,y:top-78+(73-size.height)/2,...size});}
+    else page.drawText('Sin imagen',{x:459,y:top-46,size:9,font:regular,color:muted});
+    text(nameText,12,true,ink,375,4);
+    details.forEach((detail,i)=>text(detail,9,false,i===0 ? ink : muted,375,3));
+    y=Math.min(y,top-92);
   }
+
   heading('Sobre esta revisión');
-  text(`Fuente: datos de INAPI entregados por DeQuiénEs, consultados el ${date(result.fetchedAt)}. Es una búsqueda de hasta 50 resultados, no de toda la base de marcas.`,9,false,muted);
+  text(`Fuente: datos de INAPI entregados por DeQuiénEs, consultados el ${date(result.fetchedAt)}. Se recuperaron hasta ${result.searchScope?.limit ?? 50} candidatos de la fuente, no toda la base de marcas.`,9,false,muted);
   if (result.warnings.length || hits.some(h=>h.dataWarnings?.length)) text('La fuente contiene algunos datos incompletos o inconsistentes. Los puntos relevantes deben confirmarse antes de presentar.',9,false,muted);
-  text('INAPI decide sobre el registro. La búsqueda completa y las descripciones sin resumir están adjuntas a este PDF como respaldo.',9,false,muted);
+  text('INAPI decide sobre el registro. Los antecedentes de las marcas incluidas están adjuntos a este PDF como respaldo.',9,false,muted);
   if (replacedGlyph) text('Algunos caracteres se muestran como ?. El respaldo adjunto conserva su escritura original.',9,false,muted);
   if (input.includeAppendix) {
     newPage(); text('Anexo · Resultados completos',20,true);
     text(`Filtro: ${FEASIBILITY_STATUS_LABELS[status]}`,10,false,muted);
-    for (const hit of hits) {
+    for (const hit of allHits) {
       ensure(74); rule(); text(`${hit.name} · Solicitud ${hit.applicationId}`,11,true);
       text(`${uncertainState(hit.status) ? 'Estado por confirmar' : hit.status}${hit.registrationId ? ` · Registro ${hit.registrationId}` : ''}`,10,false,muted);
       text(`Titular: ${hit.holders.map(h=>h.name).join('; ') || 'No informado'}`,10);
       for (const c of hit.classes) text(`Clase ${c.nice_class}: ${c.coverage_text || 'Productos o servicios no informados.'}`,9);
     }
   }
-  await pdf.attach(new TextEncoder().encode(JSON.stringify({version:2,proposal,filter:status,recommendation,result},null,2)), 'antecedentes-consulta.json', {mimeType:'application/json',description:'Búsqueda completa, fuentes y alcance del informe'});
+  ensure(150); rule(); text('RECOMENDACIÓN FINAL',9,true,gold);
+  text(recommendation.title,20,true);
+  text(recommendation.explanation,11);
+  await pdf.attach(new TextEncoder().encode(JSON.stringify({version:3,proposal,filter:status,selectedIds:hits.map(hit=>hit.applicationId),recommendation,result:{...result,results:input.includeAppendix ? allHits : hits,groups:[]}},null,2)), 'antecedentes-consulta.json', {mimeType:'application/json',description:'Antecedentes de las marcas incluidas, fuentes y alcance del informe'});
   const pages = pdf.getPages();
   pages.forEach((p,i)=>{
     p.drawLine({start:{x:52,y:48},end:{x:543,y:48},color:line,thickness:.5});

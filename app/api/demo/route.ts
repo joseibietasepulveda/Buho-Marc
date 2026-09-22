@@ -19,7 +19,7 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createCase"), title: z.string().min(2).max(220), brand: z.string().min(2).max(180), client: z.string().min(2).max(180), priority: z.enum(["Alta", "Media", "Baja"]), deadline: z.string().min(2).max(40), deadlineDescription: z.string().min(2).max(500), owner: z.string().min(2).max(180), description: z.string().max(5000).optional() }),
   z.object({ action: z.literal("createManualMatch"), brandId: z.string().min(1).max(30), found: z.string().min(2).max(180), foundType: brandTypeSchema, applicant: z.string().min(2).max(180), applicantRut: z.string().min(3).max(30), application: z.string().min(2).max(100), level: z.enum(["Alta", "Media", "Baja"]), source: z.string().min(2).max(100), publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
   z.object({ action: z.literal("createUser"), name: z.string().min(2).max(180), email: z.string().email().max(255) }),
-  z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente de clasificación", "En seguimiento", "Descartada", "Convertida en caso"]) }),
+  z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente de clasificación", "En seguimiento", "Descartada", "Convertida en caso"]), compact: z.boolean().optional() }),
   z.object({ action: z.literal("updateMatchLevel"), id: z.string().min(1), level: z.enum(["Alta", "Media", "Baja"]) }),
   z.object({ action: z.literal("toggleBrandMonitoring"), id: z.string().min(1), enabled: z.boolean() }),
   z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Esperando confirmación de cliente", "En seguimiento", "Concluido"]) }),
@@ -136,7 +136,7 @@ async function handlePOST(request: Request) {
         await tx`INSERT INTO match_reviews (organization_id, match_id, reviewer_id, decision, comparison_snapshot) VALUES (${organizationId()}, ${match.id}, ${actorId()}, ${input.status}, ${tx.json({ evidence: match.evidence, score: match.total_score, foundName: match.found_name, reviewedAt: new Date().toISOString() })})`;
         if (input.status === "Convertida en caso") {
           await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 908102)`;
-          const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 1042) + 1 AS next FROM cases WHERE organization_id = ${organizationId()}`;
+          const [counter] = await tx`SELECT COALESCE(MAX(substring(public_code from 4)::bigint), 1042) + 1 AS next FROM cases WHERE organization_id = ${organizationId()} AND public_code ~ '^BM-[0-9]+$'`;
           const priority = match.level === "Alta" ? "Alta" : "Media";
           const [created] = await tx`INSERT INTO cases (organization_id, public_code, source_match_id, brand_id, client_name, title, stage, priority, next_deadline, owner_id, created_by) VALUES (${organizationId()}, ${nextCode("BM", counter.next, 4)}, ${match.id}, ${match.brand_id}, ${match.owner_name}, ${`Revisión ${match.found_name}`}, 'Esperando confirmación de cliente', ${priority}, ${match.legal_deadline}, ${match.owner_id ?? actorId()}, ${actorId()}) ON CONFLICT (organization_id, source_match_id) DO UPDATE SET updated_at = now() RETURNING id`;
           await tx`UPDATE matches SET case_id = ${created.id} WHERE id = ${match.id}`;
@@ -202,6 +202,10 @@ async function handlePOST(request: Request) {
       }
     }
 
+    if (input.action === "reviewMatch" && input.compact) {
+      const [row] = await sql`SELECT c.public_code AS case_id FROM matches m LEFT JOIN cases c ON c.id = m.case_id AND c.organization_id = m.organization_id WHERE m.organization_id = ${organizationId()} AND m.public_code = ${input.id}`;
+      return NextResponse.json({ saved:true, caseId:row?.case_id ?? null });
+    }
     return NextResponse.json({ mode: "database", data: await getDemoSnapshot() });
   } catch (error) {
     if (error instanceof z.ZodError) return NextResponse.json({ message: "Los datos enviados no son válidos", issues: error.issues }, { status: 400 });

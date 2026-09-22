@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { applyVerifiedDecision } from './verified-decisions';
+import { feasibilityStatus } from './feasibility-policy';
 import { fetchInapiEvidence, InapiHttpError } from "./inapi-provider";
 import { sourceRecordSchema, type SourceRecord } from "./source-contract";
 import { safeImage, type SimilarityMark, type SimilarityHit, type SimilarityResult } from "./similarity-contract";
@@ -18,15 +19,16 @@ export function withRecord(hit: SimilarityHit, record: SourceRecord): Similarity
   const events = (record.inapi?.events ?? []) as { event_date?: string; status_description?: string; observation?: string }[];
   const validation = sourceRecordSchema.safeParse(record);
   const dataWarnings = validation.success ? [] : [...new Set(validation.error.issues.map(issue => issue.message))];
-  return applyVerifiedDecision({ ...hit, officialDecision: undefined, dataWarnings, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) });
+  return applyVerifiedDecision({ ...hit, officialDecision: undefined, sourceStatus: status?.description || "Estado no disponible", dataWarnings, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) });
 }
 export async function searchSimilar(input: Record<string, unknown>, image?: File, fetcher: typeof fetch = fetch): Promise<SimilarityResult> {
   if (!similarityConfigured()) throw new SimilarityError("La búsqueda real aún no está configurada en este ambiente.", 503);
-  let body: BodyInit = JSON.stringify(input);
+  const { states, minSimilarity, ...remoteInput } = input;
+  let body: BodyInit = JSON.stringify(remoteInput);
   const headers: Record<string, string> = { "x-api-key": process.env.INAPI_API_KEY! };
   if (image) {
     const form = new FormData();
-    form.set("options", JSON.stringify(input));
+    form.set("options", JSON.stringify(remoteInput));
     form.set("image", image); body = form;
   } else headers["content-type"] = "application/json";
   let response: Response;
@@ -39,12 +41,16 @@ export async function searchSimilar(input: Record<string, unknown>, image?: File
   const parsed = responseSchema.safeParse(await response.json());
   if (!parsed.success) throw new SimilarityError("La fuente devolvió una respuesta de búsqueda incompleta.");
   const data = parsed.data;
-  const ids = data.results.map(hit => String(hit.application_id));
-  if (new Set(ids).size !== ids.length || ids.length > Number(input.limit ?? 30)) throw new SimilarityError("La fuente devolvió resultados duplicados o fuera del límite solicitado.");
+  const allIds = data.results.map(hit => String(hit.application_id));
+  if (new Set(allIds).size !== allIds.length || allIds.length > Number(input.limit ?? 30)) throw new SimilarityError("La fuente devolvió resultados duplicados o fuera del límite solicitado.");
+  const candidates = data.results.filter(hit => hit.application_id !== input.application_id && hit.score >= Number(minSimilarity ?? 0));
+  const ids = candidates.map(hit => String(hit.application_id));
   let records: SourceRecord[] = [];
   try { if (ids.length) records = (await fetchInapiEvidence({ applicationIds: ids, registrationIds: [] }, fetcher)).records; }
   catch (error) { throw new SimilarityError("Se recibieron similitudes, pero no se pudieron completar sus estados e historiales. Se conservó la revisión anterior.", 502, true, error instanceof InapiHttpError ? error.upstreamStatus : undefined); }
   const byId = new Map(records.map(record => [record.applicationNumber, record]));
-  const results = data.results.filter(hit => hit.application_id !== input.application_id).map(hit => withRecord({ ...mark(hit, byId.get(String(hit.application_id))), score: hit.score, channels: hit.channels, history: [] }, byId.get(String(hit.application_id))!));
-  return { query: mark(data.query), results, groups: data.groups, warnings: [...data.warnings, ...(results.some(hit => hit.dataWarnings?.length) ? ["Hay antecedentes incompletos o inconsistentes en algunas solicitudes. Revisa las advertencias de cada resultado."] : [])], candidateCount: data.candidate_count, elapsedSeconds: data.elapsed_seconds, fetchedAt: new Date().toISOString() };
+  const results = candidates.map(hit => withRecord({ ...mark(hit, byId.get(String(hit.application_id))), score: hit.score, channels: hit.channels, history: [] }, byId.get(String(hit.application_id))!)).filter(hit => !Array.isArray(states) || states.includes(feasibilityStatus(hit)));
+  const resultIds = new Set(results.map(hit=>Number(hit.applicationId)));
+  const groups = data.groups.flatMap(group => { const member_ids = group.member_ids.filter(id=>resultIds.has(id)); return member_ids.length ? [{...group,member_ids,representative_id:member_ids.includes(group.representative_id)?group.representative_id:member_ids[0]}] : []; });
+  return { query: mark(data.query), results, groups, searchScope: { retrieved:data.results.length, limit:Number(input.limit ?? 30), states:Array.isArray(states) ? states as string[] : undefined, minSimilarity:Number(minSimilarity ?? 0) }, warnings: [...data.warnings, ...(results.some(hit => hit.dataWarnings?.length) ? ["Hay antecedentes incompletos o inconsistentes en algunas solicitudes. Revisa las advertencias de cada resultado."] : [])], candidateCount: data.candidate_count, elapsedSeconds: data.elapsed_seconds, fetchedAt: new Date().toISOString() };
 }

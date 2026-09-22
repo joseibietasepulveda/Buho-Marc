@@ -21,6 +21,7 @@ import { registrationAgenda } from "@/lib/agenda";
 import { significantRegistrationEvent } from "@/lib/registration-milestones";
 import { LegalAgenda } from "./legal-agenda";
 import { CaseTasks, TaskEditor } from "./case-tasks";
+import { OppositionFollowing, type FollowedOppositionCase } from "./opposition-following";
 import { RegistrationLogo } from "./registration-logo";
 import { ClientNameLink } from "./client-provider";
 import { activityContent, activityDate, oldestActivityFirst } from "@/lib/registration-activity";
@@ -94,12 +95,12 @@ export function useRegistrationTasks() {
   return { tasks: state.tasks, save };
 }
 
-export type RegistrationSelection = { id?: string; status?: RegistrationStatusId; view?: "cards" | "list" | "calendar" };
+export type RegistrationSelection = { id?: string; status?: RegistrationStatusId; view?: "cards" | "list" | "calendar" | "oppositions" };
 
-export function TrademarkRegistrationCanvas({ allowExamples = false, initialSelection = {}, members = [], currentUserId }: { allowExamples?: boolean; initialSelection?: RegistrationSelection; members?: TaskMember[]; currentUserId?: string }) {
+export function TrademarkRegistrationCanvas({ allowExamples = false, initialSelection = {}, members = [], currentUserId, oppositionCases = [], onOpenOpposition = () => {}, onAddOpposition }: { oppositionCases?: FollowedOppositionCase[]; onOpenOpposition?: (id:string)=>void; onAddOpposition?:()=>void; allowExamples?: boolean; initialSelection?: RegistrationSelection; members?: TaskMember[]; currentUserId?: string }) {
   const [importedApplications, refresh, loadState] = useRegistrationApplications();
   const [examples, setExamples] = useState(false);
-  const [viewMode, setViewMode] = useState<"cards" | "list" | "calendar">(initialSelection.view ?? "cards");
+  const [viewMode, setViewMode] = useState<"cards" | "list" | "calendar" | "oppositions">(initialSelection.view ?? "cards");
   const { tasks, save } = useRegistrationTasks();
   const [taskEditor, setTaskEditor] = useState<{ task?: CaseTask; applicationId?: string; date?: string } | null>(null);
   const applications = examples ? PROCESS_SCENARIOS : importedApplications;
@@ -129,25 +130,25 @@ export function TrademarkRegistrationCanvas({ allowExamples = false, initialSele
   return <section className="trademark-registration-view">
     <section className="procedure-view-switch" aria-label="Origen de las solicitudes"><div><h2>{examples ? "Ejemplos del procedimiento" : "Solicitudes en seguimiento"}</h2><p>{examples ? `Casos ficticios · fecha de referencia ${formatDate(PROCESS_DEMO_DATE)}. No forman parte de la cartera ni generan avisos.` : "Cada plazo corresponde a una gestión y a la actuación que lo activa."}</p></div>{allowExamples && <button type="button" onClick={() => { setExamples(value => !value); setSelectedId(null); setDemoState("canvas"); resetFilters(); }}>{examples ? "Volver a mis solicitudes" : "Explorar ejemplos del proceso"}</button>}</section>
     {examples && <section className="procedure-route" aria-label="Etapas del procedimiento"><span>Presentación y examen de forma</span><span>Requerimiento y publicación</span><span>Oposición y examen de fondo</span><span>Resolución y recursos</span><span>Ejecutoria, pago y registro</span><p>La oposición y la observación de fondo pueden coexistir. La prueba, la apelación y los desenlaces dependen de las actuaciones del expediente.</p></section>}
-    <section className="trademark-toolbar" aria-label="Buscar y filtrar solicitudes">
+    {viewMode !== "oppositions" && <section className="trademark-toolbar" aria-label="Buscar y filtrar solicitudes">
       <label className="trademark-search"><MagnifyingGlass aria-hidden size={18} /><span>Buscar</span><input aria-label="Buscar solicitudes" onChange={(event) => setQuery(event.target.value)} placeholder="Marca, solicitud, titular o cliente" type="search" value={query} /></label>
       <label><span>Fase</span><select aria-label="Filtrar por fase" onChange={(event) => setPhase(event.target.value as "all" | RegistrationPhase)} value={phase}><option value="all">Todas</option><option value="inapi">INAPI: Ingreso y publicación</option><option value="gazette">Diario Oficial: Oposición, fondo y resolución</option></select></label>
       <label><span>Estado</span><select aria-label="Filtrar por estado" onChange={(event) => setStatus(event.target.value as "all" | RegistrationStatusId)} value={status}><option value="all">Todos</option>{STATUS_DEFINITIONS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
       <label><span>Atención</span><select aria-label="Filtrar por atención" onChange={(event) => setAttention(event.target.value as typeof attention)} value={attention}><option value="all">Todas las gestiones</option><option value="soon">Próximo a vencer</option><option value="overdue">Vencido</option><option value="pending">Antecedente pendiente</option><option value="none">Esperando actuación</option><option value="terminal">Procedimiento terminado</option></select></label>
       {allowExamples && !applications.some(a => a.provider === "inapi") && <label className="trademark-demo-control"><span>Vista demo</span><select aria-label="Cambiar estado de demostración" onChange={(event) => setDemoState(event.target.value as typeof demoState)} value={demoState}><option value="canvas">Canvas</option><option value="loading">Cargando</option><option value="empty">Sin solicitudes</option></select></label>}
       <button className="trademark-clear-filters" onClick={resetFilters} type="button"><Funnel aria-hidden size={16} /> Limpiar</button>
-    </section>
+    </section>}
 
-    <div className="registration-view-modes"><div role="group" aria-label="Vista de solicitudes">{([["cards", "Tarjetas"], ["calendar", "Calendario"], ["list", "Listas"]] as const).map(([mode, label]) => <button type="button" aria-pressed={viewMode === mode} key={mode} onClick={() => setViewMode(mode)}>{label}</button>)}</div>{!examples && viewMode !== "calendar" && <button className="buho-secondary" type="button" disabled={!applications.length} onClick={() => setTaskEditor({})}>Agregar tarea +</button>}</div>
-    <div className="trademark-legend" aria-label="Niveles de atención">
+    <div className="registration-view-modes"><div role="group" aria-label="Vista de solicitudes">{([["cards", "Tarjetas"], ["calendar", "Calendario"], ["list", "Listas"], ["oppositions", "Marcas seguidas por oposición"]] as const).map(([mode, label]) => <button type="button" aria-pressed={viewMode === mode} key={mode} onClick={() => setViewMode(mode)}>{label}</button>)}</div>{!examples && viewMode !== "calendar" && viewMode !== "oppositions" && <button className="buho-secondary" type="button" disabled={!applications.length} onClick={() => setTaskEditor({})}>Agregar tarea +</button>}</div>
+    {viewMode !== "oppositions" && <div className="trademark-legend" aria-label="Niveles de atención">
       <span className="deadline-normal"><ClockCountdown aria-hidden size={16} /> Normal</span>
       <span className="deadline-soon"><Bell aria-hidden size={16} /> Próximo a vencer</span>
       <span className="deadline-overdue"><WarningCircle aria-hidden size={16} /> Vencido · revisar</span>
       <small>Vencimientos de la fuente o calculados desde un antecedente identificado. El transcurso del plazo no modifica el estado del expediente.</small>
-    </div>
+    </div>}
 
     {!examples && loadState.error && <p role="alert">{loadState.error}</p>}
-    {demoState === "loading" || (!examples && loadState.loading) ? <RegistrationLoading /> : demoState === "empty" ? <RegistrationEmpty onReset={() => setDemoState("canvas")} /> : viewMode === "calendar" ? <LegalAgenda key={examples ? "examples" : "portfolio"} title="Agenda de solicitudes" events={registrationAgenda(visible, examples ? [] : tasks, examples ? PROCESS_DEMO_DATE : undefined)} members={members} today={examples ? PROCESS_DEMO_DATE : undefined} onAddTask={examples ? undefined : date => setTaskEditor({ date })} onOpen={event => { if (event.taskId) setTaskEditor({ task: tasks.find(task => task.id === event.taskId), applicationId: event.entityId }); else setSelectedId(event.entityId); }} /> : visible.length === 0 ? <RegistrationEmpty filtered onReset={resetFilters} /> : viewMode === "list" ? <RegistrationList applications={visible} onSelect={setSelectedId} /> : <section className="trademark-canvas" aria-label="Tarjetas de solicitudes de registro">
+    {viewMode === "oppositions" ? <OppositionFollowing cases={oppositionCases} onOpenCase={onOpenOpposition} onAdd={onAddOpposition}/> : demoState === "loading" || (!examples && loadState.loading) ? <RegistrationLoading /> : demoState === "empty" ? <RegistrationEmpty onReset={() => setDemoState("canvas")} /> : viewMode === "calendar" ? <LegalAgenda key={examples ? "examples" : "portfolio"} title="Agenda de solicitudes" events={registrationAgenda(visible, examples ? [] : tasks, examples ? PROCESS_DEMO_DATE : undefined)} members={members} today={examples ? PROCESS_DEMO_DATE : undefined} onAddTask={examples ? undefined : date => setTaskEditor({ date })} onOpen={event => { if (event.taskId) setTaskEditor({ task: tasks.find(task => task.id === event.taskId), applicationId: event.entityId }); else setSelectedId(event.entityId); }} /> : visible.length === 0 ? <RegistrationEmpty filtered onReset={resetFilters} /> : viewMode === "list" ? <RegistrationList applications={visible} onSelect={setSelectedId} /> : <section className="trademark-canvas" aria-label="Tarjetas de solicitudes de registro">
       <PhaseColumn applications={visible.filter((application) => STATUS_BY_ID[application.statusId].phase === "inapi")} onSelect={setSelectedId} phase="inapi" />
       <div className="trademark-phase-transition" aria-hidden><ArrowRight size={22} weight="bold" /></div>
       <PhaseColumn applications={visible.filter((application) => STATUS_BY_ID[application.statusId].phase === "gazette")} onSelect={setSelectedId} phase="gazette" />

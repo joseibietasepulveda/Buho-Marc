@@ -1,4 +1,5 @@
 import type { SimilarityHit } from './similarity-contract';
+import { resolveSimilarityState } from './similarity-state';
 
 // Verified against INAPI's official daily records, not inferred from provider code P.
 // Keep source observations intact; amend this registry only with newer official evidence.
@@ -14,7 +15,7 @@ export const VERIFIED_DECISIONS = {
 export const verifiedTerminalApplications = Object.keys(VERIFIED_DECISIONS);
 export function applyVerifiedDecision<T extends SimilarityHit>(hit: T): T {
   const decision = VERIFIED_DECISIONS[hit.applicationId as keyof typeof VERIFIED_DECISIONS];
-  if (!decision) return hit;
+  if (!decision) return resolveSimilarityState(hit);
   return { ...hit, status: decision.status, officialDecision: { ...decision, sources: [...decision.sources], sourceStatus: hit.officialDecision?.sourceStatus ?? hit.status },
     history: [...hit.history, ...decision.sources.filter(source => !hit.history.some(event => event.date === source.date && event.title === source.title)).map(source => ({ date: source.date, title: source.title, detail: `Antecedente oficial verificado en Estado Diario INAPI, página ${source.page}.` }))],
   };

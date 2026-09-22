@@ -201,6 +201,7 @@ export async function watchSnapshot() {
       id: t.public_code, name: t.name, applicationId: t.monitoring_config.applicationNumber,
       image: t.result?.responses?.[0]?.query?.image || t.monitoring_config.logo || "",
       ownStatus: t.monitoring_config.sourceStatus || t.monitoring_config.registrationState,
+      classes: t.result?.responses?.[0]?.query?.classes?.map((c: { nice_class:number })=>c.nice_class) ?? [], type: t.monitoring_config.type,
       paused: t.status === 'Pausada', status: t.job_status ?? 'pending', error: t.error_code, reviewedAt: t.completed_at,
       nextReviewAt: t.completed_at && t.status !== 'Pausada' ? nextSourceReview(new Date(t.completed_at), process.env.MONITORING_SCHEDULER_ENABLED === 'true') : null,
       warnings: t.result?.responses?.flatMap((r: SimilarityResult) => r.warnings) ?? [],

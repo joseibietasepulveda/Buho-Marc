@@ -45,7 +45,7 @@ try {
   await followWatch(id,true);await followWatch(id,true);
   assert.equal((await watchSnapshot()).targets[0].results[0].watchPublication,true);
   await saveWatchSettings({high:.8,medium:.4});assert.deepEqual((await watchSnapshot()).settings,{high:.8,medium:.4});
-  await runAs(identities[1],async()=>assert.deepEqual((await watchSnapshot()).settings,{high:.6,medium:.3}));
+  await runAs(identities[1],async()=>assert.deepEqual((await watchSnapshot()).settings,{high:.65,medium:.45}));
   await assert.rejects(saveWatchSettings({high:.2,medium:.4}));
   assert.equal((await sql`SELECT count(*)::int AS n FROM match_reviews`)[0].n,1);
   await queueWatch(target.id);publication='2026-09-21';await processWatchJob(search);

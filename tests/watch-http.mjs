@@ -71,9 +71,12 @@ try{
  if(process.env.WATCH_QA_KEEP!=='true'){
   assert.equal((await http('/api/watch',{cookie,body:{action:'follow',id:match}})).status,200);
   const demo=await http('/api/demo',{cookie});assert.ok(demo.body.data.matches.some(m=>m.id===match&&m.evidence));assert.equal(demo.body.data.brands.length,Object.keys(fixture.searches).length);
-  for(let i=0;i<2;i++)assert.equal((await http('/api/demo',{cookie,body:{action:'reviewMatch',id:match,status:'Convertida en caso'}})).status,200);
+  await sql`INSERT INTO cases (organization_id,public_code,title,stage,priority,status,client_name) VALUES (${org.id},'OP-123456789012345','Oposición con código no correlativo','En seguimiento','Media','active','Cliente QA')`;
+  for(let i=0;i<2;i++){const converted=await http('/api/demo',{cookie,body:{action:'reviewMatch',id:match,status:'Convertida en caso',compact:true}});assert.equal(converted.status,200);assert.equal(converted.body.saved,true);assert.match(converted.body.caseId,/^BM-/);assert.equal(converted.body.data,undefined);}
   assert.equal((await sql`SELECT count(*)::int AS n FROM cases WHERE source_match_id IS NOT NULL`)[0].n,1);
  }
+ assert.equal((await fetch(base+'/api/similarity/image?url='+encodeURIComponent('https://untrusted.test/logo.png'),{headers:{cookie}})).status,400);
+ assert.equal((await fetch(base+'/api/similarity/image?url='+encodeURIComponent('https://marcas.dequienes.cl:444/logo.png'),{headers:{cookie}})).status,400);
  const feasibility=await http('/api/similarity',{cookie,body:{name:'Marca de prueba',limit:50,coverage:[],grouped:false}});assert.equal(feasibility.status,200,JSON.stringify(feasibility.body));assert.equal(feasibility.body.results.length,50);
  assert.equal((await http('/api/similarity',{cookie,body:{name:'',coverage:[]}})).status,400);
  async function upload(file){const form=new FormData();form.set('query',JSON.stringify({name:'Imagen propuesta',limit:50}));form.set('image',file);return fetch(base+'/api/similarity',{method:'POST',headers:{origin:base,cookie},body:form});}
@@ -90,7 +93,7 @@ try{
     const app=i===3?'1367215':row.application_number;
     await sql`UPDATE matches SET application_number=${app},evidence=${sql.json({...row.evidence,hit:{...row.evidence.hit,status:state,applicationId:app}})} WHERE id=${row.id}`;
   }
-  assert.equal((await http('/api/demo',{cookie})).body.data.watchSummary.detected,countBefore-cached.length);
+  assert.equal((await http('/api/demo',{cookie})).body.data.watchSummary.detected,countBefore-cached.length+1);
   for(const row of cached) await sql`UPDATE matches SET application_number=${row.application_number},evidence=${sql.json(row.evidence)} WHERE id=${row.id}`;
   const clientData={name:'Cliente de prueba',rut:'',contact:'',phone:'',email:''};
   const brandId=beforeFollow.body.data.brands[0].id;

@@ -3,7 +3,7 @@ import type { SimilarityHit } from './similarity-contract';
 export type WatchLevel = 'Alta' | 'Media' | 'Baja';
 export type WatchStatus = 'Pendiente de clasificación' | 'En seguimiento' | 'Convertida en caso' | 'Descartada';
 export type WatchHit = SimilarityHit & { level?: WatchLevel | 'Sin clasificar' };
-export type WatchTarget = { id: string; name: string; applicationId: string; image: string; ownStatus: string; paused: boolean; status: string; error?: string; reviewedAt: string | null; nextReviewAt: string | null; warnings: string[]; results: WatchHit[]; savedResults?: WatchHit[] };
+export type WatchTarget = { id: string; name: string; applicationId: string; image: string; ownStatus: string; classes?: number[]; type?: string; paused: boolean; status: string; error?: string; reviewedAt: string | null; nextReviewAt: string | null; warnings: string[]; results: WatchHit[]; savedResults?: WatchHit[] };
 export const watchStatuses: WatchStatus[] = ['Pendiente de clasificación', 'En seguimiento', 'Convertida en caso', 'Descartada'];
 export const reviewStatus = (hit: WatchHit): WatchStatus => !hit.reviewStatus || hit.reviewStatus === 'Detectada' ? 'Pendiente de clasificación' : hit.reviewStatus as WatchStatus;
 const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
@@ -39,11 +39,11 @@ export function discoveryGroups(targets: WatchTarget[], query: string, settings:
   return (['Alta', 'Media'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
     const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
     return visible.length ? [{ target, hits: visible }] : [];
-  }) }));
+  }).sort((a,b) => (b.hits[0]?.score ?? 0) - (a.hits[0]?.score ?? 0) || a.target.name.localeCompare(b.target.name,'es')) }));
 }
 export function followedGroups(targets: WatchTarget[], query: string, publication = DEFAULT_PUBLICATION_FILTER) {
   return filterWatchTargets(targets, query, [], ['En seguimiento', 'Convertida en caso']).flatMap(({target,hits}) => {
-    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication)).sort(discoveryOrder);
+    const visible = hits.filter(hit => matchesPublication(hit, publication)).sort(discoveryOrder);
     return visible.length ? [{target, hits:visible}] : [];
   });
 }
