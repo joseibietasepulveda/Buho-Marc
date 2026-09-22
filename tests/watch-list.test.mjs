@@ -19,12 +19,12 @@ test('pending and empty reviewed brands stay visible without falsely matching a 
  assert.equal(filterWatchTargets([pending],'',[],['En seguimiento']).length,0);
 });
 
-test('discovery applies exact state exclusions, exclusive score bands and registered-last order', async()=>{
+test('discovery applies exact state exclusions and exclusive score bands without registered marks', async()=>{
  const {discoveryGroups,followedGroups}=await import('../lib/watch-list.ts');
  const hits=[hit('1',{score:.9,status:'Registrada'}),hit('2',{score:.7,status:'En Trámite'}),hit('3',{score:.5,status:'Publicada'}),hit('4',{score:1,status:'Denegada'}),hit('5',{score:1,status:'Desistida'}),hit('6',{score:1,status:'Abandonada'}),hit('7',{score:.6,status:'Recurso contra denegación'}),hit('8',{score:.2,status:'En Trámite',reviewStatus:'En seguimiento'})];
  const t={...target,results:hits,savedResults:[]};
  const groups=discoveryGroups([t],'',{high:.6,medium:.3});
- assert.deepEqual(groups[0].rows[0].hits.map(h=>h.applicationId),['2','7','1']);
+ assert.deepEqual(groups[0].rows[0].hits.map(h=>h.applicationId),['2','7']);
  assert.deepEqual(groups[1].rows[0].hits.map(h=>h.applicationId),['3']);
  assert.equal(groups[0].rows[0].target.id,groups[1].rows[0].target.id);
  assert.deepEqual(followedGroups([t],'')[0].hits.map(h=>h.applicationId),['8']);

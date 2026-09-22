@@ -1,3 +1,4 @@
+import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { createHash, randomUUID } from "node:crypto";
 import type { TransactionSql } from "postgres";
 import { getSql } from "./index";
@@ -100,7 +101,7 @@ export async function persistWatch(job: { id: string; organization_id: string; b
     if (!lease.request.since && resultIds.length) {
       const title = `Se encontraron ${resultIds.length} coincidencias para ${brand.name}`.slice(0, 220);
       const [notice] = await tx`INSERT INTO notifications (organization_id, public_code, entity_type, entity_id, type, title, brand_name, urgency) VALUES (${job.organization_id}, ${code('NW-', `${brand.id}:initial`)}, 'brand', ${brand.id}, 'similarity_summary', ${title}, ${brand.name}, 'Media') ON CONFLICT (organization_id, public_code) DO NOTHING RETURNING id`;
-      if (notice) await tx`INSERT INTO email_drafts (organization_id, notification_id, subject, body) VALUES (${job.organization_id}, ${notice.id}, ${title}, ${'Abre Vigilancia → Por revisar para evaluar las coincidencias y elegir cuáles seguir. Se ocultan Denegada, Desistida y Abandonada; las registradas aparecen al final de cada grupo. La semejanza no representa una probabilidad de conflicto.'})`;
+      if (notice) await tx`INSERT INTO email_drafts (organization_id, notification_id, subject, body) VALUES (${job.organization_id}, ${notice.id}, ${title}, ${'Abre Vigilancia → Por revisar para evaluar las coincidencias y elegir cuáles seguir. La vigilancia aplica los filtros de estado configurados para la cartera. La semejanza no representa una probabilidad de conflicto.'})`;
     }
     await tx`UPDATE monitoring_jobs SET status = 'success', completed_at = now(), result = ${tx.json(json({ responses, resultIds }))}, error_code = NULL, lease_token = NULL WHERE id = ${job.id}`;
     await tx`UPDATE monitoring_job_attempts SET status = 'success', completed_at = now() WHERE monitoring_job_id = ${job.id} AND attempt_no = ${job.attempt_count}`;
@@ -192,7 +193,7 @@ export async function watchSnapshot() {
     WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled' ORDER BY b.name`;
   const matches = await sql`SELECT public_code, brand_id, evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
   const map = new Map(matches.map(row => [row.public_code, row]));
-  const present = (m: typeof matches[number]) => ({ ...m.evidence.hit as SimilarityHit, history: [], watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at });
+  const present = (m: typeof matches[number]) => ({ ...applyVerifiedDecision(m.evidence.hit as SimilarityHit), history: [], watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at });
   return {
     settings: watchSettingsSchema.safeParse(org?.watch_settings).data ?? DEFAULT_WATCH_SETTINGS,
     configured: similarityConfigured(), automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true",

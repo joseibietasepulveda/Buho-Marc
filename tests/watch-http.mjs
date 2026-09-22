@@ -82,6 +82,16 @@ try{
  const imageResponse=await upload(new File([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXioAAAAASUVORK5CYII=','base64')],'pixel.png',{type:'image/png'}));assert.equal(imageResponse.status,200,await imageResponse.text());
  console.log(`PASS: HTTP authentication, CSRF, worker authorization, queued review, 50 results, saved evidence, follow, case idempotency and real proposal route. ${base}/app`);
  if(process.env.WATCH_QA_KEEP!=='true'){
+  // Existing cached results and their dashboard counters obey the same display flags.
+  const cached=await sql`SELECT id,evidence,application_number FROM matches WHERE organization_id=${org.id} AND review_status IN ('Detectada','Pendiente de clasificación') ORDER BY id LIMIT 4`;
+  const countBefore=(await http('/api/demo',{cookie})).body.data.watchSummary.detected;
+  for(const [i,row] of cached.entries()) {
+    const state=['Registrada','Caducado','Vencida','*VER INSTANCIA'][i];
+    const app=i===3?'1367215':row.application_number;
+    await sql`UPDATE matches SET application_number=${app},evidence=${sql.json({...row.evidence,hit:{...row.evidence.hit,status:state,applicationId:app}})} WHERE id=${row.id}`;
+  }
+  assert.equal((await http('/api/demo',{cookie})).body.data.watchSummary.detected,countBefore-cached.length);
+  for(const row of cached) await sql`UPDATE matches SET application_number=${row.application_number},evidence=${sql.json(row.evidence)} WHERE id=${row.id}`;
   const clientData={name:'Cliente de prueba',rut:'',contact:'',phone:'',email:''};
   const brandId=beforeFollow.body.data.brands[0].id;
   assert.equal((await http('/api/clients',{body:{data:clientData}})).status,401);

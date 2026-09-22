@@ -5,13 +5,13 @@ import { useRegistrationApplications } from "./registrations";
 
 export function MatchHistory({ application, name, source, date, storedHistory }: {
   application: string; name: string; source: string; date: string;
-  storedHistory?: { date: string; title: string }[];
+  storedHistory?: { date: string; title: string; detail?: string }[];
 }) {
   const [applications] = useRegistrationApplications();
   // A demo number can belong to an unrelated real trademark: require both identifiers.
   const record = applications.find(item => item.applicationNumber === application && item.name.trim().toLocaleUpperCase("es") === name.trim().toLocaleUpperCase("es"));
   const history = record?.history.map(event => ({ date: event.date, title: event.status || "Actuación", detail: event.detail, id: event.eventId, code: event.code }))
-    ?? storedHistory?.map(event => ({ ...event, detail: undefined, id: undefined, code: undefined }))
+    ?? storedHistory?.map(event => ({ ...event, detail: event.detail, id: undefined, code: undefined }))
     ?? [{ date: parseWorkDate(date) ?? "", title: source === "Diario Oficial" ? "Publicación de marca en Diario Oficial" : "Solicitud detectada en INAPI", detail: "Hito de demostración asociado a esta vigilancia.", id: undefined, code: undefined }];
   const real = record?.provider === "inapi" || Boolean(storedHistory);
   return <section className="buho-case-section buho-history match-history"><header><div><h3>Historial Marca Vigilada</h3><p>{name} · Solicitud {application}</p></div><span>{real ? "INAPI" : "Demostración"}</span></header>

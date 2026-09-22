@@ -25,15 +25,25 @@ export function filterWatchTargets(targets: WatchTarget[], query: string, levels
   });
 }
 
-export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings) {
+export type PublicationFilter = { source: 'all' | 'inapi' | 'official'; from: string; to: string };
+export const DEFAULT_PUBLICATION_FILTER: PublicationFilter = { source: 'all', from: '', to: '' };
+export function matchesPublication(hit: Pick<SimilarityHit, 'publishedAt'>, filter = DEFAULT_PUBLICATION_FILTER) {
+  const day = hit.publishedAt?.slice(0, 10);
+  if (filter.from && filter.to && filter.from > filter.to) return false;
+  const source = filter.from || filter.to ? 'official' : filter.source;
+  if (source === 'inapi') return !day;
+  if (source === 'official' && !day) return false;
+  return (!filter.from || !!day && day >= filter.from) && (!filter.to || !!day && day <= filter.to);
+}
+export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings, publication = DEFAULT_PUBLICATION_FILTER) {
   return (['Alta', 'Media'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
-    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
+    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
     return visible.length ? [{ target, hits: visible }] : [];
   }) }));
 }
-export function followedGroups(targets: WatchTarget[], query: string) {
+export function followedGroups(targets: WatchTarget[], query: string, publication = DEFAULT_PUBLICATION_FILTER) {
   return filterWatchTargets(targets, query, [], ['En seguimiento', 'Convertida en caso']).flatMap(({target,hits}) => {
-    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status)).sort(discoveryOrder);
+    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication)).sort(discoveryOrder);
     return visible.length ? [{target, hits:visible}] : [];
   });
 }

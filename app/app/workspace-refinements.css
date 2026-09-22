@@ -1,4 +1,22 @@
 .buho-topbar.buho-summary-topbar{grid-template-columns:minmax(0,1fr) minmax(390px,520px);gap:32px}
+.registrations-dashboard .registration-summary-context{order:4;background:#faf8fb;border:1px solid #e7deec;border-radius:12px;padding:18px 24px}
+.registrations-dashboard{display:flex;flex-direction:column;gap:24px}
+.registrations-dashboard>.buho-work-note{order:5;font-size:13px}
+.registration-summary-context summary{cursor:pointer;color:#70468b;font-weight:600}
+.watch-publication-filters,.feasibility-result-toolbar{display:flex;gap:16px;align-items:end;flex-wrap:wrap;padding:18px 20px;background:#faf7fc;border:1px solid #e8deee;border-radius:12px;margin:18px 0}
+.watch-publication-filters label,.feasibility-result-toolbar label{display:grid;gap:8px;font-size:13px;font-weight:600;min-width:0}
+.watch-publication-filters label:first-child{flex:1;min-width:220px}
+.watch-publication-filters input,.watch-publication-filters select,.feasibility-result-toolbar select{font:inherit;border:1px solid #dcd0e4;border-radius:7px;padding:10px 12px;background:white;color:#35253f;min-height:42px;max-width:100%}
+.watch-publication-filters button,.feasibility-result-toolbar button{min-height:42px;border:1px solid #dcd0e4;border-radius:7px;padding:10px 15px;cursor:pointer;background:white;color:#70468b;font:inherit;font-size:13px}
+.feasibility-result-toolbar .buho-primary{background:#35213f;color:white;margin-left:auto}
+.similarity-card .similarity-publication-date{font-size:13px;font-weight:500;color:#70468b;background:#f6f0fb;border-radius:6px;padding:9px 12px;display:inline-block;margin:12px 0 4px}
+.similarity-official-decision{padding:14px;background:#f7f3f9;border-left:3px solid #78528f;margin:12px 0;font-size:13px;line-height:1.5}
+.similarity-official-decision a{display:block;color:#70468b;margin-top:6px}
+.feasibility-report-options{margin:14px 0 24px;padding:16px 20px;border:1px solid #e8deee;border-radius:10px;font-size:13px;color:#776a81}
+.feasibility-report-options summary{color:#70468b;font-weight:600;cursor:pointer}
+.feasibility-report-options label{display:inline-grid;gap:8px;margin:16px 18px 8px 0;max-width:100%}
+.feasibility-report-options input{font:inherit;padding:10px;border:1px solid #dcd0e4;border-radius:7px;color:#35253f;max-width:100%}
+@media(max-width:650px){.watch-publication-filters{padding:14px}.watch-publication-filters label{flex:1;min-width:130px}.watch-publication-filters button,.feasibility-result-toolbar .buho-primary{width:100%;margin:0}.feasibility-result-toolbar label{width:100%}}
 .pending-tasks-compact{font-size:14px;padding:18px 20px}
 .pending-tasks-compact .pending-task-compact{padding:14px 0}
 .pending-task-compact strong{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.45}

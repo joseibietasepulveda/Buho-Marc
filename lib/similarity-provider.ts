@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { applyVerifiedDecision } from './verified-decisions';
 import { fetchInapiEvidence, InapiHttpError } from "./inapi-provider";
 import { sourceRecordSchema, type SourceRecord } from "./source-contract";
 import { safeImage, type SimilarityMark, type SimilarityHit, type SimilarityResult } from "./similarity-contract";
@@ -17,7 +18,7 @@ export function withRecord(hit: SimilarityHit, record: SourceRecord): Similarity
   const events = (record.inapi?.events ?? []) as { event_date?: string; status_description?: string; observation?: string }[];
   const validation = sourceRecordSchema.safeParse(record);
   const dataWarnings = validation.success ? [] : [...new Set(validation.error.issues.map(issue => issue.message))];
-  return { ...hit, dataWarnings, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) };
+  return applyVerifiedDecision({ ...hit, officialDecision: undefined, dataWarnings, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) });
 }
 export async function searchSimilar(input: Record<string, unknown>, image?: File, fetcher: typeof fetch = fetch): Promise<SimilarityResult> {
   if (!similarityConfigured()) throw new SimilarityError("La búsqueda real aún no está configurada en este ambiente.", 503);
