@@ -6,6 +6,7 @@ import { feasibilityStatus, filterFeasibility } from '../lib/feasibility-policy.
 import { hiddenDiscoveryState, terminalState, canWatchPublication } from '../lib/watch-policy.ts';
 import { matchesPublication, discoveryGroups, followedGroups } from '../lib/watch-list.ts';
 import { applyVerifiedDecision } from '../lib/verified-decisions.ts';
+import { reportRecommendation } from '../lib/feasibility-recommendation.ts';
 const hit=(extra={})=>({ applicationId:'123',name:'Marca',status:'En Trámite',statusCode:'P',registrationId:null,type:'Mixta',image:'',holders:[],classes:[],filedAt:null,publishedAt:null,registeredAt:null,score:.75,channels:{name:{rank:1}},history:[],...extra });
 test('watch feature flags hide final/registered states while allowing each visibility flag to change',()=>{
  for(const state of ['Registrada','Caducada','Vencida','Denegada','Rechazada definitivamente']) assert.equal(hiddenDiscoveryState(state),true,state);
@@ -50,6 +51,19 @@ test('PDF generation supports empty filters, long text, Unicode, PNG image and a
  for(const status of ['all','registered']){
   const bytes=await createFeasibilityReport({proposal,result,status,image:new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXioAAAAASUVORK5CYII=','base64')),imageType:'png'});
   const doc=await PDFDocument.load(bytes);
-  assert.ok(doc.getPageCount()>=4);assert.ok(bytes.length>1000);
+  assert.equal(doc.getPageCount(),2);assert.ok(bytes.length>1000);
  }
+});
+test('recommendations never infer clearance from an empty search and allow an explicit author choice',()=>{
+ assert.equal(reportRecommendation({results:[]}).title,'Revisar las coincidencias antes de presentar');
+ assert.match(reportRecommendation({results:[]}).explanation,/completar la revisión/);
+ assert.equal(reportRecommendation({results:[hit()]}).title,reportRecommendation({results:[]}).title);
+ assert.equal(reportRecommendation({results:[hit()]},'proceed','  Motivo del abogado.  ').explanation,'Motivo del abogado.');
+ assert.equal(reportRecommendation({results:[hit()]},'proceed').title,'Proseguir con la solicitud');
+});
+test('report supports logo, optional full appendix and multipage author explanations',async()=>{
+ const result={query:hit(),results:[hit({classes:[{nice_class:30,coverage_text:'Caramelos '.repeat(500)}]})],groups:[],warnings:[],candidateCount:1,elapsedSeconds:1,fetchedAt:'2026-09-22T12:00:00Z'};
+ const {readFile}=await import('node:fs/promises');
+ const bytes=await createFeasibilityReport({proposal:{name:'Marca',coverage:[],grouped:false},result,status:'all',studioLogo:await readFile('public/reports/studio-logo.png'),includeAppendix:true,explanation:'Texto de prueba. '.repeat(160)});
+ assert.ok((await PDFDocument.load(bytes)).getPageCount()>3);
 });

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MagnifyingGlass, Sparkle, UploadSimple, X } from "@phosphor-icons/react";
 import { NICE_CLASSES } from "@/lib/nice-classes";
 import { FEASIBILITY_STATUS_LABELS, filterFeasibility, type FeasibilityStatus } from "@/lib/feasibility-policy";
+import { REPORT_RECOMMENDATIONS, reportRecommendation, type ReportRecommendation } from "@/lib/feasibility-recommendation";
 import type { SimilarityResult } from "@/lib/similarity-contract";
 import { SimilarityCard } from "./similarity-results";
 import "./similarity.css";
@@ -13,13 +14,14 @@ export function FeasibilityReview() {
   const [grouped, setGrouped] = useState(false), [result, setResult] = useState<SimilarityResult | null>(null), [error, setError] = useState(""), [busy, setBusy] = useState(false), [visible, setVisible] = useState(10);
   const [statusFilter, setStatusFilter] = useState<FeasibilityStatus>("all"), [reportBusy, setReportBusy] = useState(false), [reportError, setReportError] = useState("");
   const [client, setClient] = useState(""), [author, setAuthor] = useState("");
+  const [recommendation, setRecommendation] = useState<ReportRecommendation>("review"), [explanation, setExplanation] = useState(""), [includeAppendix, setIncludeAppendix] = useState(false);
   const [preview, setPreview] = useState("");
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   function chooseFile(value: File | null) { setFile(value); setPreview(value ? URL.createObjectURL(value) : ""); }
   const fileInput = useRef<HTMLInputElement>(null);
   const request = useRef<AbortController | null>(null), generation = useRef(0);
   useEffect(() => () => request.current?.abort(), []);
-  function invalidate() { generation.current++; request.current?.abort(); setBusy(false); setResult(null); setError(""); setVisible(10); setReportError(""); }
+  function invalidate() { generation.current++; request.current?.abort(); setBusy(false); setResult(null); setError(""); setVisible(10); setReportError(""); setRecommendation("review"); setExplanation(""); }
   async function search(event: FormEvent) {
     event.preventDefault(); invalidate(); const ownGeneration = generation.current; const controller = new AbortController(); request.current = controller; setBusy(true);
     try {
@@ -37,6 +39,12 @@ export function FeasibilityReview() {
     setReportBusy(true); setReportError("");
     try {
       const { createFeasibilityReport } = await import("@/lib/feasibility-report");
+      let studioLogo: Uint8Array;
+      try {
+        const logoResponse = await fetch("/reports/studio-logo.png", { signal: AbortSignal.timeout(10000) });
+        if (!logoResponse.ok) throw new Error("Logo no disponible");
+        studioLogo = new Uint8Array(await logoResponse.arrayBuffer());
+      } catch { throw new Error("No pudimos cargar el logo del estudio. Intenta descargar el informe nuevamente."); }
       let image: Uint8Array | undefined;
       if (file) {
         const bitmap = await createImageBitmap(file);
@@ -49,7 +57,7 @@ export function FeasibilityReview() {
           image = new Uint8Array(await blob.arrayBuffer());
         } finally { bitmap.close(); }
       }
-      const bytes = await createFeasibilityReport({ result, status: statusFilter, proposal: { name, coverage: Object.entries(coverage).map(([n,text])=>({nice_class:Number(n),text})), grouped }, image, imageType:"png", client, author });
+      const bytes = await createFeasibilityReport({ result, status: statusFilter, proposal: { name, coverage: Object.entries(coverage).map(([n,text])=>({nice_class:Number(n),text})), grouped }, image, imageType:"png", studioLogo, client, author, recommendation, explanation, includeAppendix });
       if (generation.current !== reportGeneration) return;
       const url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:"application/pdf"}));
       const link=document.createElement("a"); link.href=url; link.download=`prefactibilidad-${(name || "marca-figurativa").replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ-]/g,"-").slice(0,80)}.pdf`; link.click(); setTimeout(()=>URL.revokeObjectURL(url),60000);
@@ -81,7 +89,17 @@ export function FeasibilityReview() {
     {busy && <p role="status">Consultando marcas y sus estados. La búsqueda puede tardar unos segundos.</p>}{error && <p role="alert" className="similarity-error">{error}</p>}
     {result && <section className="similarity-search-results"><h3>{result.query.name === "Marca figurativa sin denominación" ? "Resultados de la imagen propuesta" : `Resultados para ${result.query.name}`}</h3><p>{result.results.length} solicitudes obtenidas · INAPI / DeQuiénEs · {new Date(result.fetchedAt).toLocaleString("es-CL")}</p><p>El orden refleja semejanza, no probabilidad de registro ni de conflicto.</p>
       <div className="feasibility-result-toolbar"><label>Estado de las coincidencias<select value={statusFilter} onChange={e=>{setStatusFilter(e.target.value as FeasibilityStatus);setVisible(10);}}>{Object.entries(FEASIBILITY_STATUS_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><span>{filteredHits.length} de {result.results.length} resultados</span><button type="button" className="buho-primary" disabled={reportBusy} onClick={()=>void downloadReport()}>{reportBusy ? "Preparando informe…" : "Descargar informe PDF"}</button></div>
-      <details className="feasibility-report-options"><summary>Personalizar informe para el cliente</summary><label>Nombre del cliente (opcional)<input value={client} maxLength={160} onChange={e=>setClient(e.target.value)} placeholder="Persona o empresa"/></label><label>Preparado por (opcional)<input value={author} maxLength={160} onChange={e=>setAuthor(e.target.value)} placeholder="Abogado o estudio"/></label><p>El PDF incluye el filtro elegido, la imagen propuesta y los antecedentes de esta búsqueda. No requiere una nueva consulta ni utiliza IA generativa.</p></details>
+      <section className="feasibility-report-options" aria-label="Recomendación del informe">
+        <label className="feasibility-recommendation">Recomendación para el cliente<select value={recommendation} disabled={reportBusy} onChange={e=>{setRecommendation(e.target.value as ReportRecommendation);setExplanation("");}}>{Object.entries(REPORT_RECOMMENDATIONS).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <p>El informe comienza con esta recomendación. Puedes ajustarla según tu revisión de los antecedentes.</p>
+        <details><summary>Personalizar informe para el cliente</summary>
+          <label>Nombre del cliente (opcional)<input value={client} maxLength={160} disabled={reportBusy} onChange={e=>setClient(e.target.value)} placeholder="Persona o empresa"/></label>
+          <label>Preparado por (opcional)<input value={author} maxLength={160} disabled={reportBusy} onChange={e=>setAuthor(e.target.value)} placeholder="Abogado o estudio"/></label>
+          <label className="feasibility-report-explanation">Motivo de la recomendación<textarea value={explanation} maxLength={1600} rows={3} disabled={reportBusy} onChange={e=>setExplanation(e.target.value)} placeholder={reportRecommendation(result,recommendation).explanation}/><span>Si lo dejas vacío, usaremos la explicación sugerida arriba.</span></label>
+          <label className="feasibility-report-appendix"><input type="checkbox" checked={includeAppendix} disabled={reportBusy} onChange={e=>setIncludeAppendix(e.target.checked)}/>Agregar un anexo con todos los resultados del filtro</label>
+          <p>Formato breve, logo del estudio y lenguaje simple. Los datos completos se conservan como respaldo adjunto. No se realiza una nueva búsqueda ni se utiliza IA generativa.</p>
+        </details>
+      </section>
       {reportError && <p role="alert" className="similarity-error">{reportError} Puedes reintentar la descarga; los resultados no se han perdido.</p>}
       {!!result.results.length && !filteredHits.length && <p>No hay coincidencias con este estado entre los resultados recuperados. Prueba con todos los estados.</p>}
       {!result.results.length && <p>No se encontraron coincidencias en esta búsqueda.</p>}

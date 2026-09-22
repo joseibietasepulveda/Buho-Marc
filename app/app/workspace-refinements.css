@@ -15,7 +15,12 @@
 .feasibility-report-options{margin:14px 0 24px;padding:16px 20px;border:1px solid #e8deee;border-radius:10px;font-size:13px;color:#776a81}
 .feasibility-report-options summary{color:#70468b;font-weight:600;cursor:pointer}
 .feasibility-report-options label{display:inline-grid;gap:8px;margin:16px 18px 8px 0;max-width:100%}
-.feasibility-report-options input{font:inherit;padding:10px;border:1px solid #dcd0e4;border-radius:7px;color:#35253f;max-width:100%}
+.feasibility-report-options input,.feasibility-report-options select,.feasibility-report-options textarea{font:inherit;padding:10px;border:1px solid #dcd0e4;border-radius:7px;color:#35253f;max-width:100%;background:#fff}
+.feasibility-report-options .feasibility-recommendation{display:grid;max-width:560px;font-weight:600;margin-top:0}
+.feasibility-report-options .feasibility-report-explanation{display:grid;width:100%;max-width:740px}
+.feasibility-report-explanation textarea{width:100%;resize:vertical;box-sizing:border-box;line-height:1.5}
+.feasibility-report-options .feasibility-report-appendix{display:flex;align-items:center;gap:10px}
+.feasibility-report-options p{line-height:1.5}
 @media(max-width:650px){.watch-publication-filters{padding:14px}.watch-publication-filters label{flex:1;min-width:130px}.watch-publication-filters button,.feasibility-result-toolbar .buho-primary{width:100%;margin:0}.feasibility-result-toolbar label{width:100%}}
 .pending-tasks-compact{font-size:14px;padding:18px 20px}
 .pending-tasks-compact .pending-task-compact{padding:14px 0}
