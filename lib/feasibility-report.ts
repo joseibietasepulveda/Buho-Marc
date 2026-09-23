@@ -25,7 +25,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const result = { ...input.result, results: input.result.results.map(applyVerifiedDecision) };
   const allHits = filterFeasibility(result.results, status);
   const hits = selectReportHits(allHits,input.selectedIds);
-  const recommendation = reportRecommendation(result, input.recommendation, input.explanation);
+  const recommendation = reportRecommendation(result, input.recommendation, input.explanation, proposal.coverage.map(item => item.nice_class));
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Informe de prefactibilidad - ${proposal.name || 'Marca sin nombre'}`);
   pdf.setAuthor(input.author?.trim() || 'Estudio Jurídico'); pdf.setLanguage('es-CL');
@@ -88,7 +88,10 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   }
   heading('Marcas que conviene comparar');
   text(`La búsqueda devolvió ${result.results.length} resultados con los criterios elegidos. En este informe destacamos ${hits.length}.`,10,false,muted);
-  if (hits.length) text(input.selectedIds?.length ? "Marcas seleccionadas por quien preparó el informe." : "Seleccionadas por su mayor índice de similitud.",9,false,muted);
+  const { evidence } = recommendation;
+  text(`Entre las marcas registradas o en trámite: ${evidence.high} con similitud alta (65% a 100%) y ${evidence.medium} con similitud media (45% a 64%).${evidence.topScore == null ? '' : ` Índice mayor: ${Math.round(evidence.topScore * 100)}%.`}`,10,false,ink);
+  text('El índice expresa semejanza entre marcas; no es una probabilidad de rechazo.',9,false,muted);
+  if (hits.length) text(input.selectedIds?.length ? "Las marcas detalladas fueron seleccionadas para este informe. La recomendación considera toda la búsqueda." : "Seleccionadas por su mayor índice de similitud.",9,false,muted);
   else text('No hay resultados con este filtro. Esto no indica que la marca esté disponible: conviene revisar también los demás estados.',11);
   for (const [index,hit] of hits.entries()) {
     const shared = hit.classes.filter(c=>proposal.coverage.some(p=>p.nice_class === c.nice_class));
@@ -96,6 +99,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
     const nameText = `${index+1}. ${hit.name.length > 120 ? hit.name.slice(0,117)+'…' : hit.name}`;
     const state = uncertainState(hit.status) ? 'Estado por confirmar' : hit.status;
     const details = [
+      `Índice de similitud: ${Math.round(hit.score * 100)}%`,
       `${state} · Solicitud ${hit.applicationId}${hit.registrationId ? ` · Registro ${hit.registrationId}` : ''}`,
       `Titular: ${excerpt(hit.holders.map(h=>h.name).join('; ') || 'No informado',140)}`,
       `Clases ${hit.classes.map(c=>c.nice_class).join(", ") || "no informadas"} · ${excerpt(coverage || "Productos o servicios no informados",155,true)}`,

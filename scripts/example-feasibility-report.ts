@@ -3,6 +3,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { searchSimilar } from '../lib/similarity-provider';
 import { createFeasibilityReport } from '../lib/feasibility-report';
+import { createFeasibilityDocx } from '../lib/feasibility-docx';
 import sharp from 'sharp';
 import type {SimilarityResult} from "../lib/similarity-contract";
 import {feasibilityStatus} from "../lib/feasibility-policy";
@@ -28,6 +29,10 @@ await Promise.all(selectReportHits(result.results).map(async hit=>{
     if(response.ok) resultImages[hit.applicationId]=await sharp(Buffer.from(await response.arrayBuffer()),{limitInputPixels:20000000}).resize({width:600,height:450,fit:'inside',withoutEnlargement:true}).png().toBuffer();
   } catch {console.log('Imagen no disponible: '+hit.name);}
 }));
-const bytes = await createFeasibilityReport({ result, resultImages, proposal, status: 'all', image, imageType: 'png', studioLogo, author: 'Estudio Jurídico', recommendation: 'review', explanation: 'La búsqueda muestra marcas SKITTLES informadas como registradas para caramelos y confitería, los mismos productos de esta propuesta. Antes de avanzar, conviene confirmar su situación actual y revisar si corresponde mantener el nombre o buscar una alternativa.' });
+const reportInput = { result, resultImages, proposal, status: 'all' as const, image, imageType: 'png' as const, studioLogo, author: 'Estudio Jurídico' };
+const bytes = await createFeasibilityReport(reportInput);
 await writeFile('output/pdf/prefactibilidad-skittles-sour.pdf', bytes);
-console.log(JSON.stringify({ results: result.results.length, fetchedAt: result.fetchedAt, output: 'output/pdf/prefactibilidad-skittles-sour.pdf' }));
+await mkdir('output/docx', { recursive: true });
+const docx = await createFeasibilityDocx(reportInput);
+await writeFile('output/docx/prefactibilidad-skittles-sour.docx', new Uint8Array(await docx.arrayBuffer()));
+console.log(JSON.stringify({ results: result.results.length, fetchedAt: result.fetchedAt, pdf: 'output/pdf/prefactibilidad-skittles-sour.pdf', word: 'output/docx/prefactibilidad-skittles-sour.docx' }));

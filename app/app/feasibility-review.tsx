@@ -16,14 +16,14 @@ export function FeasibilityReview() {
   const [grouped, setGrouped] = useState(false), [result, setResult] = useState<SimilarityResult | null>(null), [error, setError] = useState(""), [busy, setBusy] = useState(false), [page, setPage] = useState(1), [pageSize,setPageSize] = useState(10);
   const [states,setStates] = useState<string[]>(["registered","pending"]), [minimum,setMinimum] = useState(0), [selected,setSelected] = useState<string[]>([]), [reportBusy, setReportBusy] = useState(false), [reportError, setReportError] = useState("");
   const [client, setClient] = useState(""), [author, setAuthor] = useState("");
-  const [recommendation, setRecommendation] = useState<ReportRecommendation>("review"), [explanation, setExplanation] = useState(""), [includeAppendix, setIncludeAppendix] = useState(false);
+  const [recommendation, setRecommendation] = useState<ReportRecommendation | "auto">("auto"), [explanation, setExplanation] = useState(""), [includeAppendix, setIncludeAppendix] = useState(false);
   const [preview, setPreview] = useState("");
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   function chooseFile(value: File | null) { setFile(value); setPreview(value ? URL.createObjectURL(value) : ""); }
   const fileInput = useRef<HTMLInputElement>(null);
   const request = useRef<AbortController | null>(null), generation = useRef(0);
   useEffect(() => () => request.current?.abort(), []);
-  function invalidate() { generation.current++; request.current?.abort(); setBusy(false); setResult(null); setError(""); setPage(1); setSelected([]); setReportError(""); setRecommendation("review"); setExplanation(""); }
+  function invalidate() { generation.current++; request.current?.abort(); setBusy(false); setResult(null); setError(""); setPage(1); setSelected([]); setReportError(""); setRecommendation("auto"); setExplanation(""); }
   async function search(event: FormEvent) {
     event.preventDefault(); invalidate(); const ownGeneration = generation.current; const controller = new AbortController(); request.current = controller; setBusy(true);
     try {
@@ -35,12 +35,12 @@ export function FeasibilityReview() {
     } catch (e) { if (!controller.signal.aborted && generation.current === ownGeneration) setError(e instanceof Error ? e.message : "No se pudo completar la búsqueda."); }
     finally { if (generation.current === ownGeneration) setBusy(false); }
   }
-  async function downloadReport() {
+  async function downloadReport(format: "pdf" | "docx") {
     if (!result) return;
     const reportGeneration = generation.current;
     setReportBusy(true); setReportError("");
     try {
-      const { createFeasibilityReport } = await import("@/lib/feasibility-report");
+      const makeReport = format === "pdf" ? (await import("@/lib/feasibility-report")).createFeasibilityReport : (await import("@/lib/feasibility-docx")).createFeasibilityDocx;
       let studioLogo: Uint8Array;
       try {
         const logoResponse = await fetch("/reports/studio-logo.png", { signal: AbortSignal.timeout(10000) });
@@ -61,10 +61,11 @@ export function FeasibilityReview() {
       }
       const chosen=selectReportHits(result.results,selected);
       const {images,missing}=await reportImages(chosen);
-      const bytes = await createFeasibilityReport({ result, selectedIds:selected, resultImages:images, status: "all", proposal: { name, coverage: Object.entries(coverage).map(([n,text])=>({nice_class:Number(n),text})), grouped }, image, imageType:"png", studioLogo, client, author, recommendation, explanation, includeAppendix });
+      const report = await makeReport({ result, selectedIds:selected, resultImages:images, status: "all", proposal: { name, coverage: Object.entries(coverage).map(([n,text])=>({nice_class:Number(n),text})), grouped }, image, imageType:"png", studioLogo, client, author, recommendation: recommendation === "auto" ? undefined : recommendation, explanation, includeAppendix });
       if (generation.current !== reportGeneration) return;
-      const url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:"application/pdf"}));
-      const link=document.createElement("a"); link.href=url; link.download=`prefactibilidad-${(name || "marca-figurativa").replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ-]/g,"-").slice(0,80)}.pdf`; link.click(); if(missing.length) setReportError(`El informe se descargó, pero no pudimos cargar ${missing.length} imágenes. Sus marcas aparecen identificadas sin imagen. Puedes reintentar la descarga.`); setTimeout(()=>URL.revokeObjectURL(url),60000);
+      const blob = report instanceof Blob ? report : new Blob([new Uint8Array(report)],{type:"application/pdf"});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement("a"); link.href=url; link.download=`prefactibilidad-${(name || "marca-figurativa").replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ-]/g,"-").slice(0,80)}.${format}`; link.click(); if(missing.length) setReportError(`El informe se descargó, pero no pudimos cargar ${missing.length} imágenes. Sus marcas aparecen identificadas sin imagen. Puedes reintentar la descarga.`); setTimeout(()=>URL.revokeObjectURL(url),60000);
     } catch (e) { if (generation.current === reportGeneration) setReportError(e instanceof Error ? e.message : "No pudimos generar el informe. Tus resultados se conservan; intenta descargarlo nuevamente."); }
     finally { setReportBusy(false); }
   }
@@ -96,15 +97,15 @@ export function FeasibilityReview() {
     </form></section>
     {busy && <p role="status">Consultando marcas y sus estados. La búsqueda puede tardar unos segundos.</p>}{error && <p role="alert" className="similarity-error">{error}</p>}
     {result && <section className="similarity-search-results"><h3>{result.query.name === "Marca figurativa sin denominación" ? "Resultados de la imagen propuesta" : `Resultados para ${result.query.name}`}</h3><p>{result.results.length} solicitudes obtenidas · INAPI / DeQuiénEs · {new Date(result.fetchedAt).toLocaleString("es-CL")}</p><p>El orden refleja semejanza, no probabilidad de registro ni de conflicto.</p>
-      <div className="feasibility-result-toolbar"><span>{selected.length ? `${selected.length} ${selected.length === 1 ? "marca seleccionada" : "marcas seleccionadas"} para el informe` : "Sin selección: se incluirán hasta 5 marcas con mayor índice."}</span>{!!selected.length && <button type="button" onClick={()=>setSelected([])}>Limpiar selección</button>}<button type="button" className="buho-primary" disabled={reportBusy} onClick={()=>void downloadReport()}>{reportBusy ? "Preparando informe e imágenes…" : "Descargar informe PDF"}</button></div>
+      <div className="feasibility-result-toolbar"><span>{selected.length ? `${selected.length} ${selected.length === 1 ? "marca seleccionada" : "marcas seleccionadas"} para el informe` : "Sin selección: se incluirán hasta 5 marcas con mayor índice."}</span>{!!selected.length && <button type="button" onClick={()=>setSelected([])}>Limpiar selección</button>}<button type="button" className="buho-primary" disabled={reportBusy} onClick={()=>void downloadReport("pdf")}>{reportBusy ? "Preparando informe e imágenes…" : "Descargar PDF"}</button><button type="button" disabled={reportBusy} onClick={()=>void downloadReport("docx")}>Descargar Word editable</button></div>
       <p className="watch-help">Haz clic en las tarjetas que quieras incluir: quedarán en celeste. Puedes ampliar cada imagen sin cambiar la selección.</p>
       <section className="feasibility-report-options" aria-label="Recomendación del informe">
-        <label className="feasibility-recommendation">Recomendación para el cliente<select value={recommendation} disabled={reportBusy} onChange={e=>{setRecommendation(e.target.value as ReportRecommendation);setExplanation("");}}>{Object.entries(REPORT_RECOMMENDATIONS).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
-        <p>El informe termina con esta recomendación. Puedes ajustarla según tu revisión de los antecedentes.</p>
+        <label className="feasibility-recommendation">Recomendación para el cliente<select value={recommendation} disabled={reportBusy} onChange={e=>{setRecommendation(e.target.value as ReportRecommendation | "auto");setExplanation("");}}><option value="auto">Sugerida según los resultados</option>{Object.entries(REPORT_RECOMMENDATIONS).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <p><strong>Sugerencia: {reportRecommendation(result, undefined, "", Object.keys(coverage).map(Number)).title}.</strong> Considera toda la búsqueda, aunque selecciones algunas marcas para mostrar en detalle. Puedes cambiarla tras revisar los antecedentes.</p>
         <details><summary>Personalizar informe para el cliente</summary>
           <label>Nombre del cliente (opcional)<input value={client} maxLength={160} disabled={reportBusy} onChange={e=>setClient(e.target.value)} placeholder="Persona o empresa"/></label>
           <label>Preparado por (opcional)<input value={author} maxLength={160} disabled={reportBusy} onChange={e=>setAuthor(e.target.value)} placeholder="Abogado o estudio"/></label>
-          <label className="feasibility-report-explanation">Motivo de la recomendación<textarea value={explanation} maxLength={1600} rows={3} disabled={reportBusy} onChange={e=>setExplanation(e.target.value)} placeholder={reportRecommendation(result,recommendation).explanation}/><span>Si lo dejas vacío, usaremos la explicación sugerida arriba.</span></label>
+          <label className="feasibility-report-explanation">Motivo de la recomendación<textarea value={explanation} maxLength={1600} rows={3} disabled={reportBusy} onChange={e=>setExplanation(e.target.value)} placeholder={reportRecommendation(result,recommendation === "auto" ? undefined : recommendation,"",Object.keys(coverage).map(Number)).explanation}/><span>Si lo dejas vacío, usaremos la explicación sugerida.</span></label>
           <label className="feasibility-report-appendix"><input type="checkbox" checked={includeAppendix} disabled={reportBusy} onChange={e=>setIncludeAppendix(e.target.checked)}/>Agregar un anexo con todos los resultados del filtro</label>
           <p>Formato breve, logo del estudio y lenguaje simple. Los antecedentes de las marcas incluidas se conservan como respaldo adjunto. No se realiza una nueva búsqueda ni se utiliza IA generativa.</p>
         </details>

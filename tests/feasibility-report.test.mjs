@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PDFDocument } from 'pdf-lib';
 import { createFeasibilityReport } from '../lib/feasibility-report.ts';
+import { createFeasibilityDocx } from '../lib/feasibility-docx.ts';
 import { feasibilityStatus, filterFeasibility } from '../lib/feasibility-policy.ts';
 import { hiddenDiscoveryState, terminalState, canWatchPublication } from '../lib/watch-policy.ts';
 import { matchesPublication, discoveryGroups, followedGroups } from '../lib/watch-list.ts';
@@ -55,12 +56,28 @@ test('PDF generation supports empty filters, long text, Unicode, PNG image and a
   assert.ok(doc.getPageCount() >= 1 && doc.getPageCount() <= 4);assert.ok(bytes.length>1000);
  }
 });
-test('recommendations never infer clearance from an empty search and allow an explicit author choice',()=>{
+test('recommendation responds to high and low similarity, active state and overlapping class',()=>{
  assert.equal(reportRecommendation({results:[]}).title,'Revisar las coincidencias antes de presentar');
  assert.match(reportRecommendation({results:[]}).explanation,/completar la revisión/);
- assert.equal(reportRecommendation({results:[hit()]}).title,reportRecommendation({results:[]}).title);
+ const high={results:[hit({score:.74,classes:[{nice_class:30}]}),hit({applicationId:'124',score:.81,classes:[{nice_class:30}],status:'Registrada'})]};
+ assert.equal(reportRecommendation(high,undefined,'',[30]).suggested,'adjust');
+ assert.match(reportRecommendation(high,undefined,'',[30]).explanation,/74%|81%/);
+ assert.equal(reportRecommendation({results:[hit({score:.74})]}).suggested,'review');
+ assert.equal(reportRecommendation({results:[hit({score:.44})]}).suggested,'proceed');
+ assert.equal(reportRecommendation({results:[hit({score:.74,status:'Caducada'})]}).suggested,'proceed');
+ assert.equal(reportRecommendation(high,undefined,'',[25]).suggested,'proceed');
+ assert.equal(reportRecommendation({results:[hit({score:.8,status:'*VER INSTANCIA'})]}).suggested,'review');
  assert.equal(reportRecommendation({results:[hit()]},'proceed','  Motivo del abogado.  ').explanation,'Motivo del abogado.');
  assert.equal(reportRecommendation({results:[hit()]},'proceed').title,'Proseguir con la solicitud');
+});
+test('editable Word report uses the same recommendation and embeds supplied images',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const tiny=new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXioAAAAASUVORK5CYII=','base64'));
+ const result={query:hit(),results:[hit({score:.87,applicationId:'123',status:'Registrada',classes:[{nice_class:30}]}),hit({score:.83,applicationId:'124',status:'Registrada',classes:[{nice_class:30}]})],groups:[],warnings:[],candidateCount:2,elapsedSeconds:1,fetchedAt:'2026-09-22T12:00:00Z'};
+ const blob=await createFeasibilityDocx({proposal:{name:'Marca propuesta',coverage:[{nice_class:30,text:'Confites'}],grouped:false},result,status:'all',studioLogo:await readFile('public/reports/studio-logo.png'),image:tiny,resultImages:{'123':tiny,'124':tiny}});
+ assert.equal(blob.type,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+ assert.ok(blob.size>1000);
+ assert.equal(new Uint8Array(await blob.arrayBuffer())[0],0x50);
 });
 test('report supports logo, optional full appendix and multipage author explanations',async()=>{
  const result={query:hit(),results:[hit({classes:[{nice_class:30,coverage_text:'Caramelos '.repeat(500)}]})],groups:[],warnings:[],candidateCount:1,elapsedSeconds:1,fetchedAt:'2026-09-22T12:00:00Z'};
