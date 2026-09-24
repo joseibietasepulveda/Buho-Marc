@@ -1,5 +1,7 @@
 import { conditionalSnapshot } from "@/lib/conditional-snapshot";
 import { watchPage } from "@/lib/watch-page";
+import { demoWatchOrderActive } from "@/lib/demo-watch-order";
+import { organizationId } from "@/lib/tenant-context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { withSession } from "@/lib/auth";
@@ -7,7 +9,10 @@ import { sourceError } from "@/lib/source-api";
 import { watchSnapshot, queueWatch, setWatchPaused, followWatch, saveWatchSettings } from "@/db/similarity";
 import { watchSettingsSchema } from "@/lib/watch-policy";
 export const runtime = "nodejs";
-export const GET = withSession(request => conditionalSnapshot(request, "watch", async () => NextResponse.json(watchPage(await watchSnapshot(true), new URL(request.url).searchParams))));
+export const GET = withSession(request => {
+  const demoOrder = demoWatchOrderActive(organizationId(), process.env.RAILWAY_ENVIRONMENT_ID);
+  return conditionalSnapshot(request, "watch", async () => NextResponse.json(watchPage(await watchSnapshot(true), new URL(request.url).searchParams, demoOrder)), demoOrder ? "demo-order-2026-09-24" : "normal-order");
+});
 const action = z.discriminatedUnion("action", [z.object({ action: z.literal("review"), id: z.string().min(1).max(30).optional() }), z.object({ action: z.literal("pause"), id: z.string().min(1).max(30), paused: z.boolean() }), z.object({ action: z.literal("follow"), id: z.string().min(1).max(30), publicationOnly: z.boolean().optional() }), z.object({ action: z.literal("settings"), settings: watchSettingsSchema })]);
 export const POST = withSession(async request => {
   try {
