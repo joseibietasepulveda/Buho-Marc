@@ -1,5 +1,6 @@
 export const APP_VERSION = "1.0";
 export const RELEASE_INCLUDED = [
+  "Actualizaciones de pantalla solo cuando cambian los datos, vigilancia paginada y consultas suspendidas en pestañas ocultas. Daniel conserva la revisión diaria y Búho se actualiza a pedido.",
   "Mis marcas reúne registros y solicitudes propias; Vigilancia separa Por revisar y En seguimiento. Rangos de alta y media similitud configurables por organización.",
   "Aviso interno al publicarse en Diario Oficial, comparación de marcas lado a lado y factibilidad con imagen removible y estados coloreados.",
   "Vigilancia real de marcas propias y solicitudes: 50 similitudes por consulta, con exclusión local de Denegada, Desistida y Abandonada; cinco visibles y Buscar más de cinco en cinco.",
@@ -22,6 +23,7 @@ export const RELEASE_INCLUDED = [
   "Seguimiento INAPI, historial de actuaciones y los 22 ejemplos del procedimiento de la versión anterior.",
 ];
 export const RELEASE_UPCOMING = [
+  { title: "Servidor dedicado para ampliar la vigilancia", items: ["Instalar el sistema en un servidor dedicado para revisar más solicitudes y controlar el costo de operación.", "Medir capacidad, memoria, tiempos, respaldos y recuperación; coordinar con DeQuiénEs las cuotas y concurrencia antes de aumentar el volumen de búsquedas."] },
   { title: "Filtro de estados para vigilancia", items: ["Víctor incorporará el filtro por estado a la llamada de búsqueda; todavía no está disponible. La interfaz oculta Denegada, Desistida y Abandonada, pero falta el filtro previo en la API.", "Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores."] },
   { title: "Calidad y cobertura de las búsquedas", items: ["Calibrar la relevancia y los niveles con revisión experta, sin interpretar el puntaje de ordenamiento como probabilidad jurídica.", "Confirmar límites, paginación y datos incorporados tarde. El stock de 50 y las ventanas de novedades son conjuntos acotados, no una garantía de exhaustividad.", "Confirmar con Víctor la disponibilidad diaria, cuotas, rendimiento y alcance semántico. Hay señales visuales y fonéticas reales."] },
   { title: "Correos al abogado con Resend", items: ["Recordatorios de tareas y plazos antes del vencimiento, con fecha, responsable y enlace al expediente.", "Aviso específico cuando INAPI emita el título o certificado de titularidad.", "Evitar duplicados y cancelar recordatorios cuando cambie el plazo, se complete la tarea o concluya el caso; registrar entrega, errores y reintentos."] },

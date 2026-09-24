@@ -1,3 +1,4 @@
+import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { hiddenDiscoveryState, DEFAULT_WATCH_SETTINGS, discoveryLevel } from "../lib/watch-policy";
 import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { auditAction, auditEntity } from "../lib/legal-language";
@@ -175,7 +176,7 @@ export async function getDemoSnapshot() {
   const watchPreview = eligibleFindings.slice(0,3).map(row=>({id:row.id,brand:row.brand,found:row.hit.name,image:row.hit.image,application:row.hit.applicationId,level:row.level}));
   const [watchReview] = await sql`SELECT max(j.completed_at) AS updated_at FROM monitoring_jobs j JOIN brands b ON b.id = j.brand_id WHERE j.organization_id = ${organizationId()} AND b.archived_at IS NULL AND j.status = 'success'`;
   return {
-    watchSummary: { ...watchSummary, preview: watchPreview, updatedAt: watchReview?.updated_at ?? null, automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true" },
+    watchSummary: { ...watchSummary, preview: watchPreview, updatedAt: watchReview?.updated_at ?? null, automaticEnabled: await automaticMonitoringEnabled() },
     audit: auditRows.map(row => ({ id: row.id, date: shortDate(row.occurred_at, true), actor: row.name ?? "Sistema", action: auditAction(row.action, row.after_data), detail: [row.entity_name || auditEntity(row.entity_type), row.after_data?.applicationNumber ? `Solicitud ${row.after_data.applicationNumber}` : "", row.after_data?.stage || "", row.action === "watch.settings_changed" ? `Alta desde ${row.after_data?.high}; media desde ${row.after_data?.medium}` : "", row.after_data?.clientName ? `Cliente: ${row.after_data.clientName}` : ""].filter(Boolean).join(" · ") })),
     organizationName: currentIdentity()?.organizationName ?? "Estudio Ibieta IP",
     demo: isDemoOrganization(),

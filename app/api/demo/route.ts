@@ -1,3 +1,4 @@
+import { conditionalSnapshot } from "@/lib/conditional-snapshot";
 import { withSession } from "@/lib/auth";
 import { organizationId, actorId, isDemoOrganization, currentIdentity } from "@/lib/tenant-context";
 import { NextResponse } from "next/server";
@@ -214,5 +215,5 @@ async function handlePOST(request: Request) {
   }
 }
 
-export const GET = withSession(handleGET);
+export const GET = withSession(request => conditionalSnapshot(request, "portfolio", handleGET));
 export const POST = withSession(handlePOST);

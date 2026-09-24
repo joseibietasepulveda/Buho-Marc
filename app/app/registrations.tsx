@@ -1,4 +1,5 @@
 "use client";
+import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
 
 import {
   ArrowRight,
@@ -15,7 +16,7 @@ import {
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
-import { createContext, useCallback, useContext, type ReactNode, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { type CaseTask, type RegistrationTask, type TaskMember } from "@/lib/case-tasks";
 import { registrationAgenda } from "@/lib/agenda";
 import { significantRegistrationEvent } from "@/lib/registration-milestones";
@@ -59,23 +60,16 @@ type RegistrationState = { applications: RegistrationApplication[]; tasks: Regis
 const RegistrationContext = createContext<(RegistrationState & { refresh: () => Promise<void> }) | null>(null);
 export function RegistrationProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RegistrationState>({ applications: [], tasks: [], loading: true, error: "" });
+  const reader = useRef(snapshotReader<{applications: RegistrationApplication[]; tasks: RegistrationTask[]}>());
   const refresh = useCallback(async () => {
     try {
-      const r = await fetch("/api/registrations", { cache: "no-store" });
-      if (!r.ok) throw new Error();
-      const p = await r.json();
+      const p = await reader.current("/api/registrations");
+      if (!p) return;
       if (!Array.isArray(p.applications)) throw new Error();
       setState({ applications: p.applications, tasks: p.tasks ?? [], loading: false, error: "" });
     } catch { setState(current => ({ ...current, loading: false, error: "No se pudieron actualizar las solicitudes. Se conservan los últimos datos; reintentaremos automáticamente." })); }
   }, []);
-  useEffect(() => {
-    // State is updated only after the HTTP request settles.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refresh();
-    const timer = window.setInterval(() => void refresh(), 30000);
-    window.addEventListener("buho-source-reviewed", refresh);
-    return () => { window.clearInterval(timer); window.removeEventListener("buho-source-reviewed", refresh); };
-  }, [refresh]);
+  useEffect(() => pollWhileVisible(refresh, 30000), [refresh]);
   return <RegistrationContext.Provider value={{ ...state, refresh }}>{children}</RegistrationContext.Provider>;
 }
 export function useRegistrationApplications() {

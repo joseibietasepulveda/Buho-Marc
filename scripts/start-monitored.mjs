@@ -8,6 +8,11 @@ if (process.env.RAILWAY_ENVIRONMENT_ID === "9e2891f0-7281-4872-a992-2c48866a782d
   if (recovery.status !== 0) process.exit(recovery.status ?? 1);
 }
 
+if (process.env.DATABASE_URL) {
+  const policy = spawnSync(process.execPath, ["--import", "./tests/ts-loader.mjs", "scripts/monitoring-policy-status.ts"], { stdio: "inherit", env: process.env });
+  if (policy.status !== 0) process.exit(policy.status ?? 1);
+}
+
 if (process.env.SOURCE_PROVIDER === "inapi" && process.env.INAPI_IMPORT_COHORT === "true") {
   const imported = spawnSync(process.execPath, ["--import", "./tests/ts-loader.mjs", "scripts/import-inapi.ts"], { stdio: "inherit", env: process.env });
   if (imported.status !== 0) process.exit(imported.status ?? 1);

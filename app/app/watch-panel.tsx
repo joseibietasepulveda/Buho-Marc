@@ -1,14 +1,16 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { WATCH_PAGE_SIZE } from "@/lib/similarity-contract";
-import { discoveryGroups, followedGroups, DEFAULT_PUBLICATION_FILTER, type PublicationFilter, type WatchTarget, type WatchHit } from "@/lib/watch-list";
+import { DEFAULT_PUBLICATION_FILTER, type PublicationFilter, type WatchTarget, type WatchHit } from "@/lib/watch-list";
 import { DEFAULT_WATCH_SETTINGS, canWatchPublication, watchSettingsSchema, type WatchSettings } from "@/lib/watch-policy";
 import { SimilarityCard, SimilarityImage, OppositionWindow } from "./similarity-results";
 import { SimilarityRange } from "./similarity-range";
 import { displayWorkDate } from "@/lib/work-priorities";
 import "./similarity.css";
+import type { WatchPage } from "@/lib/watch-page";
+import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
 
-type Snapshot = { configured: boolean; automaticEnabled: boolean; settings: WatchSettings; targets: WatchTarget[] };
+type Snapshot = WatchPage;
 type Props = { onOpen: (id: string) => void; onRefresh: () => Promise<void>; onCases: () => void; initialQuery?: string };
 export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Props) {
   const [data, setData] = useState<Snapshot | null>(null), [error, setError] = useState(""), [busy, setBusy] = useState("");
@@ -16,29 +18,42 @@ export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Pr
   const [settings, setSettings] = useState<WatchSettings>(DEFAULT_WATCH_SETTINGS), [notice, setNotice] = useState("");
   const [levels,setLevels] = useState(["Alta","Media"]); const [followState,setFollowState] = useState("all");
   const acting = useRef(false);
+  const [manualTarget, setManualTarget] = useState("");
   const [publication, setPublication] = useState<PublicationFilter>(DEFAULT_PUBLICATION_FILTER);
   function publicationDate(field: "from" | "to", value: string) { setPublication(current => ({ ...current, [field]: value, source: value ? "official" : current.source })); }
-  const initialized = useRef(false), requestVersion = useRef(0);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [groupLimit, setGroupLimit] = useState(10), [limits, setLimits] = useState<Record<string, number>>({});
+  const reader = useRef(snapshotReader<Snapshot>()), requestVersion = useRef(0);
+  const url = useMemo(() => {
+    const params = new URLSearchParams({q: query, publication: publication.source, from: publication.from, to: publication.to, groups: String(groupLimit), followState});
+    if (settingsLoaded) { params.set("high", String(settings.high)); params.set("medium", String(settings.medium)); }
+    for (const [key, value] of Object.entries(limits)) params.set(`limit:${key}`, String(value));
+    return `/api/watch?${params}`;
+  }, [query, publication, groupLimit, followState, settings, settingsLoaded, limits]);
   const load = useCallback(async () => {
     const version = ++requestVersion.current;
-    const response = await fetch("/api/watch", { cache: "no-store" }); const payload = await response.json();
-    if (!response.ok) throw new Error(payload.message || "No se pudo cargar la vigilancia.");
-    if (version === requestVersion.current) { setData(payload); setError(""); if (!initialized.current) { setSettings(payload.settings); initialized.current = true; } }
-  }, []);
+    const payload = await reader.current(url);
+    if (version === requestVersion.current) {
+      setError("");
+      if (payload) { setData(payload); if (!settingsLoaded) { setSettings(payload.settings); setSettingsLoaded(true); } }
+    }
+  }, [url, settingsLoaded]);
   useEffect(() => {
     let mounted = true;
-    const refresh = () => { if (mounted) void load().catch(e => { if (mounted) setError(e.message); }); };
-    refresh(); const timer = setInterval(refresh, 10000); window.addEventListener("buho-source-reviewed", refresh);
-    return () => { mounted = false; clearInterval(timer); window.removeEventListener("buho-source-reviewed", refresh); };
+    const versionRef = requestVersion;
+    const stop = pollWhileVisible(async () => { try { await load(); } catch (e) { if (mounted) setError(e instanceof Error ? e.message : "No se pudo actualizar la vigilancia."); } }, 30000);
+    return () => { mounted = false; versionRef.current++; stop(); };
   }, [load]);
+  const more = (band: string, id: string, loaded: number) => setLimits(current => ({...current, [`${band}:${id}`]: loaded + WATCH_PAGE_SIZE}));
   async function action(input: Record<string, unknown>) {
     if (acting.current) return; acting.current = true;
     setBusy(String(input.id ?? "all")); setError(""); setNotice(""); requestVersion.current++;
     try {
       const response = await fetch("/api/watch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input) }); const payload = await response.json();
       if (!response.ok) throw new Error(payload.message || "No se pudo guardar el cambio.");
-      requestVersion.current++; setData(payload);
-      if (input.action === "follow") { setNotice(input.publicationOnly ? "En seguimiento. Te avisaremos en Notificaciones cuando la fuente informe su publicación." : "Coincidencia añadida a En seguimiento."); void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); }
+      await load();
+      if (input.action === "review") setNotice("Revisión solicitada. Los resultados se actualizarán cuando termine.");
+      if (input.action === "follow") { setNotice(input.publicationOnly ? (data?.automaticEnabled ? "En seguimiento. Te avisaremos en Notificaciones cuando la fuente informe su publicación." : "En seguimiento. Comprobaremos su publicación cuando solicites una revisión.") : "Coincidencia añadida a En seguimiento."); void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); }
       if (input.action === "settings") { setNotice("Límites guardados para esta cartera."); void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); }
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo completar la acción."); }
     finally { acting.current = false; setBusy(""); }
@@ -49,16 +64,14 @@ export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Pr
     try {
       const response = await fetch("/api/demo", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "reviewMatch", id, status, compact: true }) });
       const payload = await response.json(); if (!response.ok) throw new Error(payload.message || "No se pudo guardar la revisión.");
-      setData(current=>current ? {...current,targets:current.targets.map(target=>({...target,results:target.results.map(hit=>hit.matchId === id ? {...hit,reviewStatus:status} : hit),savedResults:target.savedResults?.map(hit=>hit.matchId === id ? {...hit,reviewStatus:status} : hit)}))} : current);
       void load().catch(()=>setError("El cambio se guardó; no pudimos actualizar la lista. Reintentaremos automáticamente.")); void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); setNotice(status === "Convertida en caso" ? "Caso creado y vinculado a esta coincidencia." : "Revisión guardada.");
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo guardar la revisión."); }
     finally { acting.current = false; setBusy(""); }
   }
-  const targets = data?.targets ?? [], valid = watchSettingsSchema.safeParse(settings).success;
-  const groups = discoveryGroups(targets, query, valid ? settings : data?.settings ?? DEFAULT_WATCH_SETTINGS, publication), followed = followedGroups(targets, query, publication);
-  const count = groups.reduce((n,g) => n + g.rows.reduce((m,r) => m+r.hits.length,0),0), followedCount = followed.reduce((n,r) => n+r.hits.length,0);
-  const reviewed = targets.filter(t => t.reviewedAt).length;
-  const pending = targets.filter(t => ["queued", "running", "retry"].includes(t.status) && !t.paused).length;
+  const valid = watchSettingsSchema.safeParse(settings).success;
+  const groups = data?.groups ?? [], followed = data?.followed ?? [];
+  const count = data?.count ?? 0, followedCount = data?.followedCount ?? 0;
+  const reviewed = data?.reviewed ?? 0, pending = data?.pending ?? 0;
   const groupProps = {busy, action, review, onOpen, onCases};
   return <section className="watch-view">
     {!data && !error && <div className="watch-loading" role="status"><span className="loading-spinner" aria-hidden/>Cargando vigilancia…</div>}
@@ -74,22 +87,22 @@ export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Pr
     {error && <p role="alert" className="similarity-error">{error}</p>}{notice && <p role="status" className="watch-feedback">{notice}</p>}
     {data && !data.configured && <p>La conexión de búsqueda real no está configurada en este ambiente.</p>}
     {data?.configured && <>
-      <p className="watch-progress">{reviewed} de {targets.length} marcas consultadas{pending ? ` · ${pending} revisiones en curso o en espera` : ''}. Hasta 50 resultados por consulta de stock.</p>
-      {tab === 'discover' ? groups.filter(group=>levels.includes(group.level)).map(group => <section key={group.level} className={`watch-band watch-band-${group.level.toLowerCase()}`}><header><h2>{group.level} similitud</h2><span>{group.level === 'Alta' ? `${Math.round(settings.high*100)}%–100%` : `${Math.round(settings.medium*100)}%–menos de ${Math.round(settings.high*100)}%`}</span></header>{group.rows.length ? group.rows.map(row => <FindingGroup key={`${row.target.id}:${JSON.stringify(settings)} :${query}:${JSON.stringify(publication)}`} {...row} {...groupProps} />) : <p className="watch-empty">No hay hallazgos en este rango con los filtros actuales.</p>}</section>) : <FollowedTable rows={followed.map(row=>({...row,hits:row.hits.filter(hit=>followState === "all" || hit.reviewStatus === followState)})).filter(row=>row.hits.length)} {...groupProps}/>}
+      <div className="watch-toolbar"><p>{data.automaticEnabled ? "Revisión automática diaria · 12:30, hora de Chile" : "Revisión a pedido · abrir esta pantalla no inicia una búsqueda"}<br/>Última actualización de resultados: {data.reviewedAt ? new Date(data.reviewedAt).toLocaleString("es-CL", {timeZone:"America/Santiago"}) : "Sin revisiones completas"}</p><button type="button" disabled={!!busy || !!pending} onClick={() => void action({action:"review"})}>Revisar toda la cartera</button><label>Revisar una marca<select value={manualTarget} onChange={e=>setManualTarget(e.target.value)}><option value="">Selecciona una marca</option>{data.reviewTargets.filter(t=>!t.paused).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label><button type="button" disabled={!!busy || !manualTarget} onClick={()=>void action({action:"review",id:manualTarget})}>Revisar seleccionada</button></div>
+      <p className="watch-progress">{reviewed} de {data.total} marcas consultadas{pending ? ` · ${pending} revisiones en curso o en espera` : ''}. Hasta 50 resultados por consulta de stock.</p>
+      {tab === 'discover' ? groups.filter(group=>levels.includes(group.level)).map(group => <section key={group.level} className={`watch-band watch-band-${group.level.toLowerCase()}`}><header><h2>{group.level} similitud</h2><span>{group.level === 'Alta' ? `${Math.round(settings.high*100)}%–100%` : `${Math.round(settings.medium*100)}%–menos de ${Math.round(settings.high*100)}%`}</span></header>{group.rows.length ? group.rows.map(row => <FindingGroup key={`${row.target.id}:${JSON.stringify(settings)} :${query}:${JSON.stringify(publication)}`} {...row} {...groupProps} onMore={() => more(group.level, row.target.id, row.hits.length)} />) : <p className="watch-empty">No hay hallazgos en este rango con los filtros actuales.</p>}{group.totalGroups > group.rows.length && <button type="button" onClick={() => setGroupLimit(n => n + 10)}>Ver más marcas · {group.totalGroups - group.rows.length} restantes</button>}</section>) : <><FollowedTable rows={followed} {...groupProps}/>{followed.filter(row=>row.total>row.hits.length).map(row=><button type="button" key={row.target.id} onClick={()=>more("follow",row.target.id,row.hits.length)}>Más seguimientos de {row.target.name} · {row.total-row.hits.length} restantes</button>)}{data.followedTotalGroups>followed.length && <button type="button" onClick={()=>setGroupLimit(n=>n+10)}>Ver más marcas en seguimiento</button>}</>}
       {tab === 'discover' && !levels.length && <p className="watch-empty">Selecciona Alta o Media similitud para ver los hallazgos.</p>}
     </>}
   </section>;
 }
-function FindingGroup({target,hits,busy,following,action,review,onOpen,onCases}:{target:WatchTarget;hits:WatchHit[];busy:string;following?:boolean;action:(input:Record<string,unknown>)=>Promise<void>;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:()=>void}) {
-  const [visible,setVisible] = useState(WATCH_PAGE_SIZE);
-  return <section className="watch-family"><header><SimilarityImage src={target.image} name={target.name}/><div><h3>{target.name}</h3><p>Tu marca · Solicitud {target.applicationId} · {target.ownStatus}</p></div><span>{hits.length} {hits.length === 1 ? 'coincidencia' : 'coincidencias'}</span></header><div className="watch-children">{hits.slice(0,visible).map(hit => <SimilarityCard key={hit.applicationId} hit={hit}>
+function FindingGroup({target,hits,total,onMore,busy,following,action,review,onOpen,onCases}:{target:WatchTarget;hits:WatchHit[];total:number;onMore:()=>void;busy:string;following?:boolean;action:(input:Record<string,unknown>)=>Promise<void>;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:()=>void}) {
+  return <section className="watch-family"><header><SimilarityImage src={target.image} name={target.name}/><div><h3>{target.name}</h3><p>Tu marca · Solicitud {target.applicationId} · {target.ownStatus}</p></div><button type="button" disabled={!!busy || ["queued","running","retry"].includes(target.status)} onClick={()=>void action({action:"review",id:target.id})}>Revisar esta marca</button><span>{total} {total === 1 ? 'coincidencia' : 'coincidencias'}</span></header><div className="watch-children">{hits.map(hit => <SimilarityCard key={hit.applicationId} hit={hit} onDetails={() => onOpen(hit.matchId!)}>
     {hit.watchPublication && <span className="watch-publication">{hit.publishedAt ? 'Publicación informada' : 'Esperando publicación en el Diario Oficial'}</span>}
     <button type="button" onClick={() => onOpen(hit.matchId!)}>Comparar marcas y ver historial</button>
     {!following && <button type="button" disabled={!!busy} onClick={() => void action({action:'follow',id:hit.matchId})}>Pasar a seguimiento</button>}
     {canWatchPublication(hit) && !hit.watchPublication && hit.reviewStatus !== 'Convertida en caso' && <button type="button" disabled={!!busy} onClick={() => void action({action:'follow',id:hit.matchId,publicationOnly:true})}>Avísame si se publica en el Diario Oficial</button>}
     {hit.reviewStatus === 'Convertida en caso' ? <button type="button" onClick={onCases}>Ver casos</button> : <button type="button" className="buho-primary" disabled={!!busy} onClick={() => void review(hit.matchId!,'Convertida en caso')}>{busy === hit.matchId ? "Guardando…" : "Convertir en caso"}</button>}
     {hit.reviewStatus !== 'Convertida en caso' && <button type="button" disabled={!!busy} onClick={() => void review(hit.matchId!,'Descartada')}>Descartar</button>}
-  </SimilarityCard>)}{visible < hits.length && <button className="similarity-more" type="button" onClick={() => setVisible(n => n + WATCH_PAGE_SIZE)}>Buscar más · {Math.min(WATCH_PAGE_SIZE,hits.length-visible)} más</button>}</div></section>;
+  </SimilarityCard>)}{hits.length < total && <button className="similarity-more" type="button" onClick={onMore}>Buscar más · {Math.min(WATCH_PAGE_SIZE,total-hits.length)} más</button>}</div></section>;
 }
 
 function FollowedTable({rows,busy,review,onOpen,onCases}:{rows:{target:WatchTarget;hits:WatchHit[]}[];busy:string;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:()=>void}) {

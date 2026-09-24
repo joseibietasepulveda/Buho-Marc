@@ -16,7 +16,8 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "test:watch": "node --import ./tests/ts-loader.mjs --test tests/similarity.test.mjs tests/watch-list.test.mjs && node --import ./tests/ts-loader.mjs tests/watch-integration.mjs"
+    "test:watch": "node --import ./tests/ts-loader.mjs --test tests/similarity.test.mjs tests/watch-list.test.mjs && node --import ./tests/ts-loader.mjs tests/watch-integration.mjs",
+    "test:cost-control": "node --import ./tests/ts-loader.mjs --test tests/snapshot-client.test.mjs tests/watch-page.test.mjs && node --import ./tests/ts-loader.mjs tests/watch-integration.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

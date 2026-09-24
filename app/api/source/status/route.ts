@@ -1,3 +1,4 @@
+import { automaticMonitoringEnabled } from "@/db/monitoring-policy";
 import { withSession } from "@/lib/auth";
 import { organizationId } from "@/lib/tenant-context";
 import { NextResponse } from "next/server";
@@ -28,7 +29,7 @@ async function handleGET() {
         ORDER BY completed_at DESC LIMIT 1`,
     ]);
     const now = new Date();
-    const automaticEnabled = process.env.MONITORING_SCHEDULER_ENABLED === "true";
+    const automaticEnabled = await automaticMonitoringEnabled();
     return NextResponse.json({ checkedAt: now.toISOString(), automaticEnabled, latest: latest[0] ?? null, lastSuccess: lastSuccess[0] ?? null, nextScheduledAt: nextSourceReview(now, automaticEnabled) }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return sourceError(error); }
 }

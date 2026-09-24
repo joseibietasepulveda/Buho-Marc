@@ -1,3 +1,4 @@
+import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { createHash, randomUUID } from "node:crypto";
 import type { TransactionSql } from "postgres";
@@ -35,13 +36,14 @@ export async function enrollWatchTargets() {
         if (brand) for (const niceClass of record.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
       } else {
         const enabled = existing.monitoring_config.monitoringEnabled !== false;
-        await tx`UPDATE brands SET name = ${record.name}, owner_name = ${record.owner}, monitoring_config = monitoring_config || ${tx.json({ ...realBrandConfig(record), monitoringEnabled: enabled })}, status = ${enabled ? "Activa" : "Pausada"} WHERE id = ${existing.id}`;
+        await tx`UPDATE brands SET name = ${record.name}, owner_name = ${record.owner}, monitoring_config = monitoring_config || ${tx.json({ ...realBrandConfig(record), monitoringEnabled: enabled })}, status = ${enabled ? "Activa" : "Pausada"} WHERE id = ${existing.id} AND (name IS DISTINCT FROM ${record.name} OR owner_name IS DISTINCT FROM ${record.owner} OR monitoring_config IS DISTINCT FROM monitoring_config || ${tx.json({ ...realBrandConfig(record), monitoringEnabled: enabled })} OR status IS DISTINCT FROM ${enabled ? "Activa" : "Pausada"})`;
       }
     }
   });
 }
 
-export async function queueWatch(brandCode?: string, now = new Date()) {
+export async function queueWatch(brandCode?: string, now = new Date(), manual = Boolean(brandCode)) {
+  if (!manual && !await automaticMonitoringEnabled()) return 0;
   await enrollWatchTargets();
   const sql = getSql();
   return sql.begin(async tx => {
@@ -52,10 +54,10 @@ export async function queueWatch(brandCode?: string, now = new Date()) {
     for (const target of targets) {
       const last = target.last_success ? new Date(target.last_success) : null;
       const upgrade = Boolean(last && Number(target.last_limit) < WATCH_LIMIT);
-      if (!brandCode && !upgrade && last && (process.env.MONITORING_SCHEDULER_ENABLED !== "true" || now < new Date(nextSourceReview(last, true)!))) continue;
-      if (!brandCode && (!last || upgrade) && process.env.MONITORING_SCHEDULER_ENABLED !== "true") continue;
+      if (!manual && !upgrade && last && (process.env.MONITORING_SCHEDULER_ENABLED !== "true" || now < new Date(nextSourceReview(last, true)!))) continue;
+      if (!manual && (!last || upgrade) && process.env.MONITORING_SCHEDULER_ENABLED !== "true") continue;
       const request = { application_id: Number(target.monitoring_config.applicationNumber), limit: WATCH_LIMIT, grouped: false, exclude_same_holder: true, include: ["coverage"], since: last && !upgrade ? santiagoDay(new Date(last.getTime() - 2 * 86400000)) : null };
-      const key = brandCode ? `manual:${target.id}:${randomUUID()}` : `v1-stock50:${target.id}:${santiagoDay(now)}`;
+      const key = manual ? `manual:${target.id}:${randomUUID()}` : `v1-stock50:${target.id}:${santiagoDay(now)}`;
       const rows = await tx`INSERT INTO monitoring_jobs (organization_id, brand_id, status, idempotency_key, requested_by, request) VALUES (${organizationId()}, ${target.id}, 'queued', ${key}, ${actorId()}, ${tx.json(request)}) ON CONFLICT DO NOTHING RETURNING id`;
       queued += rows.length;
     }
@@ -182,30 +184,37 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
   }
 }
 
-export async function watchSnapshot() {
+export async function watchSnapshot(compact = false) {
+  const automaticEnabled = await automaticMonitoringEnabled();
   const sql = getSql();
   const [org] = await sql`SELECT watch_settings FROM organizations WHERE id = ${organizationId()}`;
   const targets = await sql`SELECT b.id, b.public_code, b.name, b.status, b.monitoring_config,
     j.status AS job_status, j.error_code, j.created_at AS requested_at, j.started_at,
-    s.completed_at, s.result FROM brands b
+    s.completed_at, s.result->'resultIds' AS result_ids, s.result->'responses'->0->'query'->>'image' AS query_image,
+    (SELECT jsonb_agg(jsonb_build_object('nice_class', c->'nice_class')) FROM jsonb_array_elements(s.result->'responses'->0->'query'->'classes') c) AS query_classes,
+    jsonb_path_query_array(s.result, '$.responses[*].warnings[*]') AS warnings FROM brands b
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) s ON true
     WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled' ORDER BY b.name`;
-  const matches = await sql`SELECT public_code, brand_id, evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
+  const matches = await sql`SELECT public_code, brand_id,
+    CASE WHEN ${compact} THEN jsonb_build_object('watchPublication', evidence->'watchPublication', 'hit',
+      ((evidence->'hit') - 'classes') || jsonb_build_object('classes',
+        (SELECT COALESCE(jsonb_agg(jsonb_build_object('nice_class', c->'nice_class')), '[]'::jsonb) FROM jsonb_array_elements(evidence->'hit'->'classes') c)))
+    ELSE evidence END AS evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
   const map = new Map(matches.map(row => [row.public_code, row]));
   const present = (m: typeof matches[number]) => ({ ...applyVerifiedDecision(m.evidence.hit as SimilarityHit), history: [], watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at });
   return {
     settings: watchSettingsSchema.safeParse(org?.watch_settings).data ?? DEFAULT_WATCH_SETTINGS,
-    configured: similarityConfigured(), automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true",
+    configured: similarityConfigured(), automaticEnabled,
     targets: targets.map(t => ({
       id: t.public_code, name: t.name, applicationId: t.monitoring_config.applicationNumber,
-      image: t.result?.responses?.[0]?.query?.image || t.monitoring_config.logo || "",
+      image: t.query_image || t.monitoring_config.logo || "",
       ownStatus: t.monitoring_config.sourceStatus || t.monitoring_config.registrationState,
-      classes: t.result?.responses?.[0]?.query?.classes?.map((c: { nice_class:number })=>c.nice_class) ?? [], type: t.monitoring_config.type,
+      classes: t.query_classes?.map((c: { nice_class:number })=>c.nice_class) ?? [], type: t.monitoring_config.type,
       paused: t.status === 'Pausada', status: t.job_status ?? 'pending', error: t.error_code, reviewedAt: t.completed_at,
-      nextReviewAt: t.completed_at && t.status !== 'Pausada' ? nextSourceReview(new Date(t.completed_at), process.env.MONITORING_SCHEDULER_ENABLED === 'true') : null,
-      warnings: t.result?.responses?.flatMap((r: SimilarityResult) => r.warnings) ?? [],
-      results: (t.result?.resultIds ?? []).flatMap((id: string) => { const m = map.get(id); return m ? [present(m)] : []; }),
+      nextReviewAt: t.completed_at && t.status !== 'Pausada' ? nextSourceReview(new Date(t.completed_at), automaticEnabled) : null,
+      warnings: t.warnings ?? [],
+      results: (t.result_ids ?? []).flatMap((id: string) => { const m = map.get(id); return m ? [present(m)] : []; }),
       savedResults: matches.filter(m => m.brand_id === t.id && m.review_status !== 'Detectada').map(present),
     })),
   };

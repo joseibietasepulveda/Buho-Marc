@@ -70,3 +70,9 @@ Ya no son pendientes generales: conectar la búsqueda real, mostrar señales vis
 - Migración `0007_watch_preferences`: preferencias de organización. El aviso de publicación se conserva en la evidencia existente, sin duplicar la coincidencia.
 
 Validación: pruebas de rangos y sus límites, exclusión exacta de estados, orden de registradas, persistencia e independencia entre organizaciones, aviso de publicación sin duplicados, actualización de stock 30 → 50 y conservación del seguimiento. Revisión visual con muestra real reproducida en una base local aislada; despliegue reservado a Dev.
+
+## Control de consumo · 24 de septiembre de 2026
+
+Daniel conserva las revisiones diarias; Búho pasa a pedido. La interfaz evita descargas completas repetidas, pagina Vigilancia y pausa las consultas en pestañas ocultas. Véase [control de consumo y validación](COST_CONTROL.md).
+
+Pendiente: poner el sistema en un servidor dedicado para revisar más solicitudes, con capacidad y cuotas de la fuente verificadas.

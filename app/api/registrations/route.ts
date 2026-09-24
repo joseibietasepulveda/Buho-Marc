@@ -1,3 +1,4 @@
+import { conditionalSnapshot } from "@/lib/conditional-snapshot";
 import { withSession } from "@/lib/auth";
 import { organizationId } from "@/lib/tenant-context";
 import { NextResponse } from "next/server";
@@ -24,4 +25,4 @@ async function handleGET() {
   } catch (error) { return sourceError(error); }
 }
 
-export const GET = withSession(handleGET);
+export const GET = withSession(request => conditionalSnapshot(request, "registrations", handleGET));

@@ -111,6 +111,10 @@ La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](doc
 
 ### Pendientes de próximas versiones
 
+- Poner el sistema en un servidor dedicado para poder revisar más solicitudes; medir capacidad, costo, respaldos y límites de DeQuiénEs.
+- [Control de consumo y programación por cartera](docs/COST_CONTROL.md): Daniel automático, Búho a pedido.
+
+
 La lista vigente está en [v1.0](docs/V1_0_RELEASE.md#próximas-versiones) y en «Acerca de esta versión» dentro de la app. Incluye filtro y catálogo de estados, calibración de semejanza, cargas tardías/paginación, operación a escala, PDF, archivos y estudios guardados. La conexión real visual/fonética y la búsqueda de prefactibilidad ya no se mantienen como tareas pendientes.
 
 ### Backlog · Registro de marcas

@@ -1,4 +1,5 @@
 "use client";
+import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
 import "./source-admin.css";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { displayValue, fieldLabels, sourceStatuses, statusLabel, type FieldChange, type SourceRecord } from "@/lib/source-contract";
@@ -21,10 +22,11 @@ export function SourceAdmin() {
   const [query, setQuery] = useState(""); const [filter, setFilter] = useState("all"); const [page, setPage] = useState(0);
   const [inspecting, setInspecting] = useState<SourceRow | null>(null);
   const [editing, setEditing] = useState<{ row: SourceRow; field: keyof SourceRecord } | null>(null);
+  const reader = useRef(snapshotReader<AdminData>());
   const load = useCallback(async () => {
-    try { const r = await fetch("/api/source/admin", { cache: "no-store" }); const p = await r.json(); if (!r.ok) throw new Error(p.message); setData(p); setError(""); } catch (e) { setError(e instanceof Error ? e.message : "No se pudo cargar la fuente"); }
+    try { const p = await reader.current("/api/source/admin"); if (p) setData(p); setError(""); } catch (e) { setError(e instanceof Error ? e.message : "No se pudo cargar la fuente"); }
   }, []);
-  useEffect(() => { const initial = setTimeout(() => void load(), 0); const timer = setInterval(() => void load(), 30000); return () => { clearTimeout(initial); clearInterval(timer); }; }, [load]);
+  useEffect(() => pollWhileVisible(load, 30000), [load]);
   async function advance() {
     setBusy(true); setMessage(""); setError("");
     try { const r = await fetch("/api/source/admin", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "advance" }) }); const p = await r.json(); if (!r.ok) throw new Error(p.message); setMessage(`${p.changes.length} expedientes actualizados en la fuente. Use Revisar en Marcas registradas para detectar las novedades.`); await load(); } catch (e) { setError(e instanceof Error ? e.message : "No se pudo actualizar"); } finally { setBusy(false); }
@@ -35,7 +37,7 @@ export function SourceAdmin() {
   const fields = (data?.provider === "inapi" ? ["name", "status", "applicationNumber", "registrationNumber", "owner", "classes"] : ["name", "status", "applicationNumber", "registrationNumber", "owner", "type", "classes", "publicationDate", "expirationDate", "filingDate", "registrationDate", "statusDate", "ownerRut", "ownerCountry", "representativeName", "representativeCountry", "logo", "officialUrl"]) as (keyof SourceRecord)[];
   const currentPage = Math.min(page, Math.max(0, Math.ceil(records.length / 25) - 1));
   return <section className="source-admin">
-    <div className="source-summary"><div><strong>{data?.records.length ?? "—"}</strong><span>expedientes en la fuente</span></div><div><strong>{data?.records.filter(r => r.tracked).length ?? "—"}</strong><span>en la cartera</span></div><div><strong>{data?.records.filter(r => r.pending).length ?? "—"}</strong><span>con diferencias</span></div><p><b>{!data ? "Cargando fuente…" : data.provider === "inapi" ? "INAPI · datos reales" : "Fuente simulada"}</b><span>{data?.schedule ?? "Revisión diaria a las 12:30 de Chile"}</span><small>{data?.automaticEnabled ? "Programación automática habilitada" : "Programación automática inactiva en esta instancia"}</small></p></div>
+    <div className="source-summary"><div><strong>{data?.records.length ?? "—"}</strong><span>expedientes en la fuente</span></div><div><strong>{data?.records.filter(r => r.tracked).length ?? "—"}</strong><span>en la cartera</span></div><div><strong>{data?.records.filter(r => r.pending).length ?? "—"}</strong><span>con diferencias</span></div><p><b>{!data ? "Cargando fuente…" : data.provider === "inapi" ? "INAPI · datos reales" : "Fuente simulada"}</b><span>{data?.automaticEnabled ? data.schedule : "Revisión a pedido"}</span><small>{data?.automaticEnabled ? "Programación automática habilitada" : "Esta cartera se actualiza a pedido"}</small></p></div>
     {data && <section className="source-freshness" aria-label="Actualización de los expedientes"><div><strong>Última consulta completada</strong><span>{lastCompleted?.completed_at ? when(lastCompleted.completed_at) : "Sin consulta completada en el historial disponible"}</span>{lastCompleted && <small>{lastCompleted.received} de {lastCompleted.requested} expedientes incluidos en esa consulta</small>}</div><div><strong>Procedencia</strong><span>{data.provider === "inapi" ? "Antecedentes de INAPI consultados mediante el proveedor integrado" : "Fuente de demostración · antecedentes simulados"}</span><small>La fecha de consulta no reemplaza la fecha de una actuación ni de su notificación.</small></div>{latestRun?.status === "failed" && <p role="status">La consulta más reciente no se completó. Se conserva la información de la última consulta exitosa. Revisa el detalle en «Historial de consultas».</p>}{latestRun?.status === "running" && <p role="status">Consulta en curso. Los antecedentes se actualizarán al completarse.</p>}</section>}
     <div className="source-tabs" aria-label="Vistas de administración de la fuente"><button type="button" aria-pressed={tab === "records"} onClick={() => setTab("records")}>Expedientes de la fuente</button><button type="button" aria-pressed={tab === "runs"} onClick={() => setTab("runs")}>Historial de consultas</button></div>
     {error && <p className="source-error" role="alert">{error} <button onClick={() => void load()}>Reintentar</button></p>}{message && <p className="source-feedback" role="status">{message}</p>}
@@ -105,5 +107,5 @@ export function ReviewSource() {
   }, [loadStatus]);
   const checkedAt = status ? new Date(status.checkedAt) : null;
   const updated = status?.lastSuccess?.completed_at;
-  return <p className="portfolio-update-line" role="status">{statusError ? "No se pudo confirmar la última actualización" : !status ? "Consultando última actualización…" : updated && checkedAt ? `Actualizado por última vez ${sourceReviewDate(updated, checkedAt)}` : "Primera actualización completa pendiente"}{status && ` - ${status.automaticEnabled ? "Se actualiza todos los días a las 12:30 p. m. (hora de Chile)" : "Actualización automática desactivada"}`}</p>;
+  return <p className="portfolio-update-line" role="status">{statusError ? "No se pudo confirmar la última actualización" : !status ? "Consultando última actualización…" : updated && checkedAt ? `Actualizado por última vez ${sourceReviewDate(updated, checkedAt)}` : "Primera actualización completa pendiente"}{status && ` - ${status.automaticEnabled ? "Se actualiza todos los días a las 12:30 p. m. (hora de Chile)" : "Actualización a pedido"}`}</p>;
 }

@@ -1,3 +1,4 @@
+import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { organizationId, actorId } from "../lib/tenant-context";
 import { getSql } from "./index";
 
@@ -11,6 +12,7 @@ import type { OppositionProceeding } from "../lib/opposition";
 import { syncReceivedOpposition } from "./received-oppositions";
 
 export async function syncSource(trigger: "manual" | "scheduled", provider = fetchSource, now = new Date()) {
+  if (trigger === "scheduled" && !await automaticMonitoringEnabled()) return { skipped: true, reason: "Esta cartera se revisa a pedido" };
   const clock = chileClock(now);
   if (trigger === "scheduled" && !clock.due) return { skipped: true, reason: "La revisión está programada a las 12:30 de Chile" };
   await ensureSourceSeed();

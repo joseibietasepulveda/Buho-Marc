@@ -13,6 +13,10 @@ import { getSql } from '../db/index.ts';
 import { runAs } from '../lib/tenant-context.ts';
 import { importRealRecord } from '../db/inapi-portfolio.ts';
 import { queueWatch, processWatchJob, followWatch, saveWatchSettings, watchSnapshot, setWatchPaused, persistWatch } from '../db/similarity.ts';
+import { conditionalSnapshot } from '../lib/conditional-snapshot.ts';
+import { automaticMonitoringEnabled } from '../db/monitoring-policy.ts';
+import { syncSource } from '../db/source-sync.ts';
+import { watchPage } from '../lib/watch-page.ts';
 import { SimilarityError } from '../lib/similarity-provider.ts';
 const listener = createServer(); listener.listen(0,'127.0.0.1'); await once(listener,'listening'); const port=listener.address().port; await new Promise(r=>listener.close(r));
 const directory = await mkdtemp(path.join(tmpdir(),'buho-watch-test-'));
@@ -140,5 +144,59 @@ try {
  console.log('PASS: idempotent recovery only queues missing stock and never resets the retry budget.');
  console.log('PASS: fair scheduling between portfolios and three-minute initial lease recovery.');
  console.log('PASS: durable 20-second 403 cooldown, exactly 10 retries, no concurrent bypass, preserved results and successful recovery.');
+ // Cost controls must preserve manual work and isolate cache validators.
+ await sql`UPDATE monitoring_jobs SET status='cancelled' WHERE status IN ('queued','retry','running')`;
+ await sql`UPDATE organizations SET automatic_monitoring=false WHERE id=${identities[0].organizationId}`;
+ await runAs(identities[0],async()=>{
+  assert.equal(await automaticMonitoringEnabled(),false);
+  assert.equal(await queueWatch(undefined,new Date('2030-01-01')),0);
+  assert.equal((await syncSource('scheduled',async()=>{throw new Error('must not call provider');})).skipped,true);
+  assert.equal(await queueWatch(undefined,new Date(),true),1);
+  assert.equal(await queueWatch(undefined,new Date(),true),0); // no duplicate active job
+  assert.equal((await processWatchJob(search)).completed,true);
+  // Interpret procedural history before removing it from the list payload.
+  await sql`UPDATE matches SET evidence=jsonb_set(evidence,'{hit,history}', '[{"date":"2026-09-24","title":"Interposición de recurso de apelación","detail":""}]'::jsonb) WHERE organization_id=${identities[0].organizationId} AND source='DeQuiénEs'`;
+  const full=await watchSnapshot();
+  const compact=await watchSnapshot(true);
+  assert.equal(full.targets[0].results[0].status,'En trámite · apelación');
+  assert.deepEqual(compact.targets[0].results.map(h=>h.status),full.targets[0].results.map(h=>h.status));
+  assert.ok(compact.targets[0].results.every(h=>h.history.length===0));
+  assert.equal(compact.automaticEnabled,false);
+  assert.equal(compact.targets[0].nextReviewAt,null);
+  assert.ok(compact.targets[0].results.every(hit=>hit.classes.every(c=>!('coverage_text' in c))));
+  const page=watchPage(compact,new URLSearchParams());
+  assert.ok(page.groups.every(group=>group.rows.every(row=>row.hits.length<=5)));
+  let renders=0;
+  const render=async()=>{renders++;return Response.json({ok:true});};
+  const first=await conditionalSnapshot(new Request('http://localhost/api/watch'),'watch',render);
+  const tag=first.headers.get('etag');
+  const request=new Request('http://localhost/api/watch',{headers:{'if-none-match':tag}});
+  assert.equal((await conditionalSnapshot(request,'watch',render)).status,304);
+  assert.equal(renders,1);
+  await queueWatch(); // disabled scheduler must not invalidate the snapshot
+  assert.equal((await conditionalSnapshot(request,'watch',render)).status,304);
+  await runAs(identities[1],async()=>assert.equal((await conditionalSnapshot(request,'watch',render)).status,200));
+  await sql`UPDATE organizations SET watch_settings='{"high":0.75,"medium":0.35}'::jsonb WHERE id=${identities[1].organizationId}`;
+  assert.equal((await conditionalSnapshot(request,'watch',render)).status,304); // other tenant unchanged
+  await sql`UPDATE matches SET review_status='Descartada' WHERE organization_id=${identities[0].organizationId}`;
+  assert.equal((await conditionalSnapshot(request,'watch',render)).status,200);
+  assert.equal((await conditionalSnapshot(new Request('http://localhost/api/watch?q=other',{headers:{'if-none-match':tag}}),'watch',render)).status,200);
+ });
+ await runAs(identities[1],async()=>{
+  assert.equal(await automaticMonitoringEnabled(),true);
+  assert.equal(await queueWatch(undefined,new Date('2030-01-01')),1);
+  assert.equal((await processWatchJob(search)).completed,true);
+ });
+ console.log('PASS: manual portfolios never schedule or call the source automatically; manual full reviews work; automatic portfolios remain active; pagination, conditional reads, mutation invalidation and tenant isolation.');
+ const [adminOrg]=await sql`INSERT INTO organizations(name,slug) VALUES ('Source admin','estudio-ibieta-ip') RETURNING id`;
+ const adminIdentity={...identities[0],organizationId:adminOrg.id};
+ await runAs(adminIdentity,async()=>{
+  const render=async()=>Response.json({ok:true});
+  const first=await conditionalSnapshot(new Request('http://localhost/api/source/admin'),'source',render);
+  const request=new Request('http://localhost/api/source/admin',{headers:{'if-none-match':first.headers.get('etag')}});
+  await sql`UPDATE source_records SET version=version+1 WHERE application_number='102'`;
+  assert.equal((await conditionalSnapshot(request,'source',render)).status,200);
+  assert.equal((await sql`SELECT revision::int AS n FROM snapshot_revisions WHERE organization_id=${adminOrg.id} AND scope='watch'`)[0].n,1);
+ });
  console.log('PASS: migrations, owned pending enrollment, 50 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, pause/resume, tenant isolation and registration transition.');
 }finally{if(sql)await sql.end();await pg.stop();}

@@ -1,3 +1,5 @@
+import { conditionalSnapshot } from "@/lib/conditional-snapshot";
+import { automaticMonitoringEnabled } from "@/db/monitoring-policy";
 import { withSession } from "@/lib/auth";
 import { organizationId, isDemoOrganization } from "@/lib/tenant-context";
 import { NextResponse } from "next/server";
@@ -20,7 +22,7 @@ async function handleGET() {
     // redundant historical payload to every browser poll.
     for (const run of runs) if (run.error?.startsWith("Corrida invalidada durante verificación:")) run.detail = [];
     const displayedRecords = records.filter(r => !isRealSource() || r.data.provider === "inapi").map(row => ({ ...row, data: reprojectInapiRecord(row.data) }));
-    return NextResponse.json({ records: displayedRecords, runs, provider: isRealSource() ? "inapi" : "simulated", schedule: "Todos los días a las 12:30 · America/Santiago", automaticEnabled: process.env.MONITORING_SCHEDULER_ENABLED === "true" });
+    return NextResponse.json({ records: displayedRecords, runs, provider: isRealSource() ? "inapi" : "simulated", schedule: "Todos los días a las 12:30 · America/Santiago", automaticEnabled: await automaticMonitoringEnabled() });
   } catch (error) { return sourceError(error); }
 }
 const action = z.discriminatedUnion("action", [z.object({ action: z.literal("advance") }), z.object({ action: z.literal("edit"), id: z.string().uuid(), version: z.number().int().positive(), data: sourceRecordSchema })]);
@@ -36,5 +38,5 @@ async function handlePOST(request: Request) {
   } catch (error) { return sourceError(error); }
 }
 
-export const GET = withSession(handleGET);
+export const GET = withSession(request => conditionalSnapshot(request, "source", handleGET));
 export const POST = withSession(handlePOST);

@@ -13,7 +13,7 @@ try {
     const candidates = await tx`SELECT b.id AS brand_id, b.organization_id, j.id AS failed_job, j.request, j.requested_by
       FROM brands b JOIN organizations o ON o.id = b.organization_id
       JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
-      WHERE b.archived_at IS NULL AND b.status <> 'Pausada' AND o.status = 'active'
+      WHERE b.archived_at IS NULL AND b.status <> 'Pausada' AND o.status = 'active' AND o.automatic_monitoring
       AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config->>'monitoringEnabled' = 'true'
       AND j.status = 'failed' AND j.error_code = 'La fuente no autorizó esta consulta.'
       AND NOT EXISTS (SELECT 1 FROM monitoring_job_attempts a WHERE a.monitoring_job_id = j.id AND a.error_payload ? 'upstreamStatus')

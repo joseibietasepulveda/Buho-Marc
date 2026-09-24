@@ -1,5 +1,5 @@
 import {
-  boolean, check, date, index, integer, jsonb, pgTable, primaryKey, real, text,
+  bigint, boolean, check, date, index, integer, jsonb, pgTable, primaryKey, real, text,
   timestamp, uniqueIndex, uuid, varchar,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -46,6 +46,7 @@ export const sourceSyncRuns = pgTable("source_sync_runs", {
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(), name: varchar("name", { length: 180 }).notNull(),
+  automaticMonitoring: boolean("automatic_monitoring").default(true).notNull(),
   slug: varchar("slug", { length: 120 }).notNull(), watchSettings: jsonb("watch_settings").default({ high: 0.65, medium: 0.45 }).notNull(), status: varchar("status", { length: 30 }).default("active").notNull(), ...timestamps,
 }, (table) => [uniqueIndex("organizations_slug_uq").on(table.slug)]);
 
@@ -247,3 +248,9 @@ export const savedViews = pgTable("saved_views", {
 export const similaritySearchLocks = pgTable("similarity_search_locks", {
   organizationId: uuid("organization_id").primaryKey().references(() => organizations.id, { onDelete: "cascade" }), token: uuid("token").notNull(), expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 });
+
+export const snapshotRevisions = pgTable("snapshot_revisions", {
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  scope: varchar("scope", { length: 30 }).notNull(),
+  revision: bigint("revision", { mode: "bigint" }).default(BigInt(0)).notNull(),
+}, table => [primaryKey({ columns: [table.organizationId, table.scope] })]);
