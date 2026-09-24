@@ -2,9 +2,15 @@
 
 Vigilancia y prefactibilidad conectadas a la búsqueda real de INAPI / DeQuiénEs. Esta entrega se implementa y valida en **Railway Dev**. El estado de publicación y las pruebas se documentan en [la entrega v1.0](docs/V1_0_RELEASE.md).
 
+Las decisiones vigentes, incluidas las revisiones manuales desde el chat y los informes PDF/Word, están consolidadas en [Decisiones UX del 24 de septiembre de 2026](docs/DECISIONES_UX_2026-09-24.md). Ese documento prevalece sobre las descripciones históricas de versiones anteriores.
+
 ## Vigilancia real
 
-Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **50 similitudes**. La respuesta se conserva completa y la interfaz oculta los estados exactos Denegada, Desistida y Abandonada, colocando Registrada al final de cada grupo. «Mis marcas» reúne marcas registradas y solicitudes propias. «Vigilancia» tiene dos pestañas: «Por revisar» y «En seguimiento». Los hallazgos se organizan en alta y media similitud, con límites configurables por organización (0,60 y 0,30 por defecto), y aparecen subordinados a su marca propia; una marca puede aparecer en ambos grupos. Se muestran primero cinco solicitudes por grupo y marca; **Buscar más** añade cinco del lote ya obtenido en cada clic. Cada resultado muestra nombre, imagen disponible, titular, clases, estado y fechas; **Pasar a seguimiento** conserva una ficha única con sus decisiones y permite convertirla en caso.
+Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **50 similitudes**. La respuesta se conserva completa; Por revisar admite estados confirmados en trámite o concedidos/registrados y excluye estados terminales o ambiguos mediante la política compartida con los contadores. «Mis marcas» reúne marcas registradas y solicitudes propias, con columnas iniciales RUT, Parte Figurativa y Marca; el logo tiene su propia celda y usa «Sin logo» cuando falta.
+
+«Vigilancia» tiene dos pestañas: «Por revisar» y «En seguimiento». Por revisar organiza los hallazgos en alta y media similitud, con umbrales iniciales de **65% y 45%**, ajustables de 5 en 5 y persistentes por organización. Ordena de mayor a menor índice y muestra inicialmente cinco coincidencias por marca/categoría; **Buscar más** añade cinco del lote guardado. En seguimiento usa una tabla sin niveles de similitud y conserva las decisiones incluso si cambia el estado del expediente. Cada resultado permite comparar marcas, consultar historial, seguir o convertir en caso.
+
+Los botones de revisión manual se retiraron de Vigilancia: las actualizaciones a pedido se solicitan desde el chat con el asistente. Daniel conserva su revisión automática diaria; Búho permanece a pedido. Abrir la pantalla no inicia una búsqueda. Véase [control de consumo](docs/COST_CONTROL.md).
 
 «Avísame si se publica en el Diario Oficial» guarda el seguimiento y genera un aviso interno cuando la fuente informa la publicación. El sistema sigue consultando esos expedientes aunque salgan de los primeros resultados.
 
@@ -14,11 +20,14 @@ Ante un HTTP 403 de la fuente, la vigilancia espera 20 segundos y reintenta hast
 
 ## Prefactibilidad
 
-Nombre, imagen o ambos; clases y coberturas opcionales; hasta 50 solicitudes, con agrupación opcional. Los resultados y estados son reales. El puntaje ordena semejanzas y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.
+Nombre, imagen o ambos; clases y coberturas opcionales; estados y porcentaje mínimo elegidos antes de Buscar. Se recuperan hasta 100 candidatos y se aplican los filtros sobre los antecedentes obtenidos, con paginación de 10/25/50/100. Por defecto se consideran registradas y en trámite. El índice se muestra en porcentaje y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.
+
+Informes descargables en PDF y Word editable, con logo del estudio, imágenes y lenguaje simple, sin LLM. El usuario selecciona marcas para el informe; sin selección se incluyen hasta cinco de mayor índice. La recomendación aparece al final y se sugiere según las coincidencias de toda la búsqueda, con mayor cautela ante similitudes altas. El abogado puede editarla.
 
 ## Ambiente y documentos
 
 - [Aplicación Dev](https://buho-marc-web-dev.up.railway.app/app).
+- [Decisiones UX y operación vigentes · 24/09/2026](docs/DECISIONES_UX_2026-09-24.md).
 - [Entrega, verificación y próximas versiones](docs/V1_0_RELEASE.md).
 - [Plan actualizado](docs/VIGILANCIA_REAL_PLAN.md) y [resumen de decisiones](docs/VIGILANCIA_REAL_HANDOFF.md).
 - [Acceso e importación de cartera](docs/PILOTO_DANIEL.md).
@@ -94,7 +103,7 @@ La cartera combina ejemplos identificados como simulados y expedientes importado
 
 Hay autenticación de cuentas piloto, consulta y sincronización INAPI, vigilancia real y prefactibilidad real. Todavía faltan almacenamiento duradero de archivos/estudios, envío de correos e informe PDF técnico específico. El PDF demo no se ofrece en coincidencias reales.
 
-El filtro de estados aún no existe en la llamada de Víctor. La interfaz aplica por ahora la exclusión local de Denegada, Desistida y Abandonada; esto no clasifica jurídicamente el expediente como terminado. **Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.**
+El filtro de estados aún no existe en la llamada de Víctor. Se interpretan y filtran los estados en la aplicación con los antecedentes disponibles, conservando la respuesta original. **Falta acordar el catálogo completo con la fuente. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.** LOLA 1367215 tiene una corrección individual respaldada por resoluciones oficiales; no se extrapola a otros expedientes. La API directa de INAPI quedó aplazada hasta contar con acceso documentado.
 
 ### Mejoras de UX entregadas
 

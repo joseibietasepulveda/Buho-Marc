@@ -1,5 +1,7 @@
 # Vigilancia, oposiciones e informes — 22/09/2026
 
+> Continuidad al 24/09/2026: véase [decisiones vigentes](DECISIONES_UX_2026-09-24.md). Se incorporaron Word editable, recomendación según resultados, columnas separadas de imagen/marca y un único selector inferior de cliente en oposición recibida. Las revisiones manuales se solicitan desde el chat; se retiran sus controles de Vigilancia. Las verificaciones siguientes corresponden a la entrega original.
+
 ## Comportamiento
 
 - Solicitudes de registro tiene una cuarta vista, «Marcas seguidas por oposición», exclusivamente con tarjetas. Lee los casos con rol oponente, sin incorporar esas marcas a la cartera propia. Sus enlaces abren el historial disponible y el caso.

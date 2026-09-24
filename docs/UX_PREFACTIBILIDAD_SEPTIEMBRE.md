@@ -1,5 +1,7 @@
 # Ajustes del 22 de septiembre de 2026
 
+> Antecedente histórico. [Decisiones vigentes al 24/09/2026](DECISIONES_UX_2026-09-24.md) reemplaza los puntos modificados después: vigilancia incluye registradas/concedidas, informes PDF y Word con porcentajes, selección de marcas y recomendación automática al final. La corrección individual de LOLA y la ausencia de API directa documentada se mantienen.
+
 ## Resúmenes y cronologías
 
 Los dos resúmenes comparten el encabezado de tareas (dos por página), con tareas de casos y solicitudes y acceso a la misma sección Tareas. Registros reutiliza la jerarquía de indicadores, agenda y actividad de Vigilancia. Los detalles legales adicionales se conservan, sin desplazar la agenda.

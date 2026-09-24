@@ -1,5 +1,7 @@
 # Buho Marc 1.0 · vigilancia y prefactibilidad reales
 
+> Esta página conserva la entrega inicial y sus verificaciones. Para el comportamiento actual, consultar [Decisiones UX del 24/09/2026](DECISIONES_UX_2026-09-24.md): umbrales 65%/45%, filtros actuales, informes PDF/Word, oposiciones y revisiones manuales desde el chat. Los pendientes iniciales se interpretan junto con esa actualización.
+
 Ambiente de entrega: **Railway Dev**. La actualización previa de main incorporó únicamente los dos commits que ya estaban en dev (`6170e3f`). La versión 1.0 se desarrolla en dev y no se promueve a producción.
 
 ## Comportamiento de esta versión

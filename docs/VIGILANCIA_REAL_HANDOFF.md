@@ -1,8 +1,8 @@
 # Traspaso al desarrollo: vigilancia real y prefactibilidad
 
-> **Actualización vinculante para v1.0:** el usuario autorizó actualizar main con la base de dev e implementar únicamente en **Dev**. El stock solicita **30 similitudes**, muestra cinco y **Buscar más** agrega cinco del lote guardado en cada clic. **No se filtran estados en esta versión.** Víctor incorporará ese filtro después; tanto el filtro como el catálogo exacto de estados quedan en próximas versiones. No interpretar un rechazo como término definitivo sin revisar recursos/instancias. Ver [entrega y pendientes vigentes](V1_0_RELEASE.md).
+> **Estado vigente al 24/09/2026:** consultar [Decisiones UX y operación](DECISIONES_UX_2026-09-24.md) y [Control de consumo](COST_CONTROL.md). Stock de 50, estados interpretados/filtrados en la aplicación, umbrales 65%/45%, informes PDF/Word y revisiones manuales desde el chat. Los cambios se publican en Dev. El filtro previo en la API de la fuente sigue pendiente; no interpretar rechazo como firmeza sin evidencia.
 >
-> Los apartados siguientes conservan la conversación y el diseño previo. Las restricciones anteriores a solicitudes de terceros en proceso, el tamaño exploratorio de 50 y el estado «implementación no iniciada» son antecedentes; quedan reemplazados por la decisión y el estado de entrega de v1.0.
+> Los apartados siguientes conservan la conversación y el diseño previo. Las cifras, restricciones y pendientes históricos no reemplazan las decisiones del documento vigente.
 
 Actualizado el 21 de septiembre de 2026. Leer junto con [VIGILANCIA_REAL_PLAN.md](VIGILANCIA_REAL_PLAN.md) y [RESULTADOS.md](VIGILANCIA_BENCHMARK.md).
 

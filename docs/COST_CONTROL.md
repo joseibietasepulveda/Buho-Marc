@@ -6,11 +6,17 @@ los expedientes. La migración conserva datos, decisiones y revisiones completad
 cancela únicamente búsquedas automáticas de Búho todavía en cola o en reintento.
 Las solicitudes manuales y una búsqueda que ya esté ejecutándose pueden terminar.
 
-Abrir la aplicación no inicia una revisión de INAPI. En Vigilancia se puede revisar
-una marca seleccionada o toda la cartera. La actualización manual de expedientes
-sigue disponible desde Mis marcas. Las dos funciones siguen siendo independientes.
+Abrir la aplicación no inicia una revisión de INAPI. Por decisión del 24/09/2026,
+Vigilancia ya no ofrece botones para revisar una marca ni toda la cartera: las
+revisiones manuales se solicitan desde el chat con el asistente y usan la cola
+existente. La actualización manual de expedientes sigue disponible desde Mis
+marcas. Las dos funciones siguen siendo independientes. La retirada de controles
+no cambia la programación automática de Daniel ni el modo a pedido de Búho.
 El modo manual posterga la detección de novedades y los avisos hasta que se solicite
 la revisión. Daniel sigue trabajando automáticamente aunque nadie tenga la web abierta.
+
+Las decisiones actuales de presentación, casos e informes están en
+[Decisiones UX del 24 de septiembre](DECISIONES_UX_2026-09-24.md).
 
 ## Descargas
 
