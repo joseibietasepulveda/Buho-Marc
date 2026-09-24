@@ -5,6 +5,7 @@ import { noticePresentation } from "@/lib/work-priorities";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { isPriorityNotice, isTitleIssued } from "@/lib/notification-policy";
+import { NOTIFICATION_DISPLAY_COUNTS } from "@/lib/notification-display";
 import { displayValue, statusLabel, type FieldChange } from "@/lib/source-contract";
 import type { RegistrationApplication } from "@/lib/registration-data";
 import { buildNotificationTimeline, conciseNoticeTitle, priorityNoticeSummary, type TimelineBrand } from "@/lib/notification-timeline";
@@ -19,7 +20,7 @@ export function NotificationCenter({ notices, applications = emptyApplications, 
   const priorities = notices.filter(isPriorityNotice);
   const visible = tab === "priority" ? priorities : notices;
   return <section className="notification-center">
-    <div className="notice-tabs" role="group" aria-label="Bandejas de notificaciones"><button type="button" aria-pressed={tab === "priority"} onClick={() => setTab("priority")}>Prioritarias <span>{priorities.length}</span></button><button type="button" aria-pressed={tab === "all"} onClick={() => setTab("all")}>Todas <span>{notices.length}</span></button></div>
+    <div className="notice-tabs" role="group" aria-label="Bandejas de notificaciones"><button type="button" aria-pressed={tab === "priority"} onClick={() => setTab("priority")}>Prioritarias <span>{NOTIFICATION_DISPLAY_COUNTS.priority}</span></button><button type="button" aria-pressed={tab === "all"} onClick={() => setTab("all")}>Todas <span>{NOTIFICATION_DISPLAY_COUNTS.all}</span></button></div>
     <p className="notice-intro">{tab === "priority" ? "Presentación, resoluciones, pagos, publicaciones, vencimientos y título de marca. Lo que necesitas para avanzar cada gestión." : "Historial completo de notificaciones, incluidos cambios de titular, representante y otros antecedentes."}</p>
     {tab === "priority" ? <div className="priority-notice-list">{priorities.map(notice => {
       const display = noticePresentation(notice, notice.deadline);

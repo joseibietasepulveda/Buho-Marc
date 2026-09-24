@@ -50,7 +50,7 @@ import { BrandSearch } from "./brand-search";
 import { BRAND_SEARCH_FIELDS, type BrandSearchField, type SearchCandidate } from "@/lib/brand-search";
 import { oppositionEmail } from "@/lib/client-email";
 import { caseAgenda, registrationAgenda } from "@/lib/agenda";
-import { isPriorityNotice } from "@/lib/notification-policy";
+import { NOTIFICATION_DISPLAY_COUNTS } from "@/lib/notification-display";
 import { registrationDeadlines } from "@/lib/registration-procedure";
 import { DEMO_V05_CASE_DATES, DEMO_V05_EXTRA_CASES, DEMO_V05_MATCH_DATES, DEMO_V05_MIN_DATE, upgradeDemoCaseDateV05 } from "@/lib/demo-v05-data";
 
@@ -311,7 +311,7 @@ function BuhoWorkspace() {
     <aside className="buho-sidebar">
       <div aria-label="Buho Marc" className="buho-wordmark">BUHO MARC<small>v{APP_VERSION}</small></div>
       <button className="buho-profile" type="button"><span>{currentUser?.initials ?? "—"}</span><div><strong>{currentUser?.name ?? "Usuario de la sesión"}</strong><small>{organizationName}</small></div></button><div className="buho-session-actions"><a href="/cambiar-clave">Cambiar clave</a><button type="button" onClick={async () => { const r = await fetch("/api/auth/logout", { method: "POST" }); if (r.ok) window.location.assign("/ingresar"); else setToast("No se pudo cerrar sesión. Reintenta."); }}>Salir</button></div>
-      <nav aria-label="Navegación de la aplicación">{NAV.map((item, index) => <div className="buho-nav-group" key={item.id}><button className={view === item.id ? "is-active" : ""} onClick={() => { if (item.id !== "matches") { setLevelFilters([]); setStatusFilters([]); } navigate(item.id); }} type="button"><span>{String(index + 1).padStart(2, "0")}</span>{item.label}{item.id === "notifications" && notices.filter((notice) => notice.status === "Pendiente" && isPriorityNotice(notice)).length > 0 && <b>{notices.filter((notice) => notice.status === "Pendiente" && isPriorityNotice(notice)).length}</b>}</button></div>)}</nav>
+      <nav aria-label="Navegación de la aplicación">{NAV.map((item, index) => <div className="buho-nav-group" key={item.id}><button className={view === item.id ? "is-active" : ""} onClick={() => { if (item.id !== "matches") { setLevelFilters([]); setStatusFilters([]); } navigate(item.id); }} type="button"><span>{String(index + 1).padStart(2, "0")}</span>{item.label}{item.id === "notifications" && <b>{NOTIFICATION_DISPLAY_COUNTS.priority}</b>}</button></div>)}</nav>
       {FEATURE_FLAGS.brandLimits && <div className="buho-plan"><span>PLAN ESTUDIO</span><strong>{monitoredCount} de 25 marcas</strong><i><b style={{ width: `${Math.min(100, monitoredCount / 25 * 100)}%` }} /></i><small>{Math.max(0, 25 - monitoredCount)} espacios disponibles</small><a href="https://buho-marc.vercel.app/#pricing">Ver pricing</a></div>}
     </aside>
     <section className="buho-workspace"><DeadlineAlerts events={allAgendaEvents} loading={registrationLoad.loading} error={registrationLoad.error} onOpen={event => event.entityType === "case" ? setSelectedCase(event.entityId) : openRegistration({ id: event.entityId })} />

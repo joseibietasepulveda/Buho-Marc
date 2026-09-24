@@ -31,6 +31,7 @@ Este documento consolida las decisiones de la conversación y las contrasta con 
 - Tareas tiene acceso propio debajo de Casos y conserva los demás accesos. Ambos resúmenes apuntan a la misma sección y muestran dos tareas por página. Resumen de registros comparte la estructura visual del de Vigilancia.
 - Vigilancias nuevas muestra hasta tres coincidencias pendientes reales, o las disponibles si hay menos. Este criterio final reemplaza la mención inicial contradictoria a cuatro. Sus textos e insignias deben caber sin superposición.
 - Cronologías de trámites: actuaciones antiguas arriba y recientes abajo. Notificaciones y auditoría muestran descripciones comprensibles para abogados, en lugar de nombres de campos o eventos internos como `image_url`, `registration_id` o `brand.monitoring_changed`.
+- Ajuste de presentación solicitado después: los contadores de Notificaciones están fijados en 22 para Prioritarias, 30 para Todas y 22 en la barra lateral, mediante `lib/notification-display.ts`. No son el recuento real ni disminuyen al revisar avisos. Cada pestaña conserva la lista completa que le corresponde; no se recortan resultados ni se modifican estados de lectura en la base. No se acordó una fecha de expiración de este ajuste.
 
 ## Prefactibilidad e informes
 
