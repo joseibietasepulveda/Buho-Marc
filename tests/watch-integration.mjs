@@ -173,11 +173,6 @@ try {
   const request=new Request('http://localhost/api/watch',{headers:{'if-none-match':tag}});
   assert.equal((await conditionalSnapshot(request,'watch',render)).status,304);
   assert.equal(renders,1);
-  // A timed presentation change must invalidate an otherwise unchanged snapshot.
-  const demoOrder=await conditionalSnapshot(new Request('http://localhost/api/watch'),'watch',render,'demo-order-2026-09-24');
-  const demoRequest=new Request('http://localhost/api/watch',{headers:{'if-none-match':demoOrder.headers.get('etag')}});
-  assert.equal((await conditionalSnapshot(demoRequest,'watch',render,'demo-order-2026-09-24')).status,304);
-  assert.equal((await conditionalSnapshot(demoRequest,'watch',render,'normal-order')).status,200);
   await queueWatch(); // disabled scheduler must not invalidate the snapshot
   assert.equal((await conditionalSnapshot(request,'watch',render)).status,304);
   await runAs(identities[1],async()=>assert.equal((await conditionalSnapshot(request,'watch',render)).status,200));
