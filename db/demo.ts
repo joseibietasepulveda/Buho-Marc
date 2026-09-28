@@ -1,5 +1,6 @@
 import { automaticMonitoringEnabled } from "./monitoring-policy";
-import { hiddenDiscoveryState, DEFAULT_WATCH_SETTINGS, discoveryLevel } from "../lib/watch-policy";
+import { watchSnapshot } from "./similarity";
+import { discoveryGroups } from "../lib/watch-list";
 import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { auditAction, auditEntity } from "../lib/legal-language";
 import { organizationId, actorId, isDemoOrganization, currentIdentity } from "../lib/tenant-context";
@@ -159,17 +160,11 @@ export async function getDemoSnapshot() {
     LEFT JOIN case_tasks ct ON a.entity_type = 'task' AND ct.id = a.entity_id AND ct.organization_id = a.organization_id
     LEFT JOIN registration_tasks rt ON a.entity_type = 'task' AND rt.id = a.entity_id AND rt.organization_id = a.organization_id WHERE a.organization_id = ${organizationId()} ORDER BY a.occurred_at DESC LIMIT 200`;
 
-  const findingRows = await sql`SELECT b.id AS brand_id, b.name AS brand, m.public_code AS id, m.evidence->'hit' AS hit, o.watch_settings
-    FROM matches m JOIN brands b ON b.id = m.brand_id JOIN organizations o ON o.id = b.organization_id
-    JOIN LATERAL (SELECT result FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) j ON true
-    WHERE m.organization_id = ${organizationId()} AND b.archived_at IS NULL AND m.review_status IN ('Detectada','Pendiente de clasificación')
-      AND j.result->'resultIds' ? m.public_code`;
-  const eligibleFindings = findingRows.flatMap(row => {
-    if (!row.hit) return [];
-    const hit = applyVerifiedDecision(row.hit);
-    const level = discoveryLevel(hit,row.watch_settings ?? DEFAULT_WATCH_SETTINGS);
-    return hiddenDiscoveryState(hit.status) || !level ? [] : [{brand_id:String(row.brand_id),brand:String(row.brand),id:String(row.id),hit,level}];
-  }).sort((a,b)=>b.hit.score-a.hit.score);
+  const watch = await watchSnapshot(true);
+  const brandIds = new Map(brandRows.map(b => [b.public_code, String(b.id)]));
+  const eligibleFindings = discoveryGroups(watch.targets, '', watch.settings).flatMap(group => group.rows.flatMap(({ target, hits }) => hits.map(hit => ({
+    brand_id: brandIds.get(target.id) ?? '', brand: target.name, id: hit.matchId!, hit, level: group.level,
+  })))).sort((a,b) => b.hit.score - a.hit.score);
   const visibleFindingCounts = new Map<string,number>();
   for (const row of eligibleFindings) visibleFindingCounts.set(row.brand_id,(visibleFindingCounts.get(row.brand_id)??0)+1);
   const watchSummary = {targets:brandRows.filter(row=>row.status!=="Pausada" && row.monitoring_config?.monitoringEnabled).length,detected:eligibleFindings.length};

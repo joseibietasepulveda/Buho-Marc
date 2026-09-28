@@ -1,4 +1,4 @@
-import { discoveryLevel, discoveryOrder, hiddenDiscoveryState, type WatchSettings } from './watch-policy';
+import { discoveryLevel, discoveryOrder, hiddenDiscoveryState, registeredState, type WatchSettings } from './watch-policy';
 import type { SimilarityHit } from './similarity-contract';
 export type WatchLevel = 'Alta' | 'Media' | 'Baja';
 export type WatchStatus = 'Pendiente de clasificación' | 'En seguimiento' | 'Convertida en caso' | 'Descartada';
@@ -35,15 +35,19 @@ export function matchesPublication(hit: Pick<SimilarityHit, 'publishedAt'>, filt
   if (source === 'official' && !day) return false;
   return (!filter.from || !!day && day >= filter.from) && (!filter.to || !!day && day <= filter.to);
 }
-export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings, publication = DEFAULT_PUBLICATION_FILTER) {
+export type DiscoveryScope = 'new' | 'baseline';
+export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings, publication = DEFAULT_PUBLICATION_FILTER, scope: DiscoveryScope = 'new', relevance: 'related' | 'all' = 'related') {
   return (['Alta', 'Media'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
-    const visible = hits.filter(hit => !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
+    const visible = hits.filter(hit => (scope === 'baseline' || !target.paused) &&
+      ((hit.discoveryKind ?? 'baseline') === 'baseline') === (scope === 'baseline') &&
+      (relevance === 'all' || hit.commercialRelevance !== 'unrelated') &&
+      !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
     return visible.length ? [{ target, hits: visible }] : [];
   }).sort((a,b) => (b.hits[0]?.score ?? 0) - (a.hits[0]?.score ?? 0) || a.target.name.localeCompare(b.target.name,'es')) }));
 }
 export function followedGroups(targets: WatchTarget[], query: string, publication = DEFAULT_PUBLICATION_FILTER) {
   return filterWatchTargets(targets, query, [], ['En seguimiento', 'Convertida en caso']).flatMap(({target,hits}) => {
-    const visible = hits.filter(hit => matchesPublication(hit, publication)).sort(discoveryOrder);
+    const visible = hits.filter(hit => !registeredState(hit.status) && matchesPublication(hit, publication)).sort(discoveryOrder);
     return visible.length ? [{target, hits:visible}] : [];
   });
 }

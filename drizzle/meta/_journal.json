@@ -71,6 +71,13 @@
       "when": 1790200000000,
       "tag": "0009_monitoring_cost_control",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790600000000,
+      "tag": "0010_watch_discovery",
+      "breakpoints": true
     }
   ]
 }

@@ -45,16 +45,20 @@ try {
  const running=processWatchJob(async input=>{entered();await gate;return search(input);});await began;
  assert.equal((await processWatchJob(search)).skipped,true);release();assert.equal((await running).completed,true);
  await runAs(identities[0],async()=>{
-  let snapshot=await watchSnapshot();assert.equal(snapshot.targets[0].results.length,50);const target=snapshot.targets[0];const id=target.results[0].matchId;
+  let snapshot=await watchSnapshot();assert.equal(snapshot.targets[0].results.length,50);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,0);
+  assert.equal(watchPage(snapshot,new URLSearchParams()).count,0);
+  assert.equal(watchPage(snapshot,new URLSearchParams({scope:'baseline'})).baselineCount,46);
+const target=snapshot.targets[0];const id=target.results[0].matchId;
   await followWatch(id,true);await followWatch(id,true);
   assert.equal((await watchSnapshot()).targets[0].results[0].watchPublication,true);
   await saveWatchSettings({high:.8,medium:.4});assert.deepEqual((await watchSnapshot()).settings,{high:.8,medium:.4});
-  await runAs(identities[1],async()=>assert.deepEqual((await watchSnapshot()).settings,{high:.65,medium:.45}));
+  await runAs(identities[1],async()=>assert.deepEqual((await watchSnapshot()).settings,{high:.7,medium:.55}));
   await assert.rejects(saveWatchSettings({high:.2,medium:.4}));
   assert.equal((await sql`SELECT count(*)::int AS n FROM match_reviews`)[0].n,1);
   await queueWatch(target.id);publication='2026-09-21';await processWatchJob(search);
   assert.equal((await sql`SELECT count(*)::int AS n FROM matches`)[0].n,50);
-  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,51);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,1);
   snapshot=await watchSnapshot();assert.equal(snapshot.targets[0].results[0].reviewStatus,'En seguimiento');
   assert.equal(snapshot.targets[0].results[0].watchPublication,true);
   await assert.rejects(followWatch(id,true),/ya tiene una publicación/);
@@ -63,7 +67,7 @@ try {
   assert.equal((await watchSnapshot()).targets[0].status,'retry');assert.equal((await watchSnapshot()).targets[0].results.length,50);
   await setWatchPaused(target.id,true);assert.equal((await processWatchJob(search)).skipped,true);
   await setWatchPaused(target.id,false);await processWatchJob(search);
-  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,51);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,1);
   // A lease lost after a worker crash cannot publish stale results.
   await queueWatch(target.id);
   const [stale] = await sql`UPDATE monitoring_jobs SET status='running', started_at=now()-interval '4 minutes', request=request || '{"since":null}'::jsonb, attempt_count=1, lease_token='11111111-1111-4111-8111-111111111111' WHERE status='queued' RETURNING *`;
@@ -121,7 +125,7 @@ try {
   await followWatch(tracked.public_code);publication='2026-09-22';
   let upgradeRequest;await processWatchJob(async request=>{upgradeRequest=request;return search(request);});
   assert.equal(upgradeRequest.limit,50);assert.equal(upgradeRequest.filed_after,undefined);
-  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE entity_id=${tracked.id} AND type='similarity_publication' AND title LIKE '%Tercero%'`)[0].n,2);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE entity_id=${tracked.id} AND type='similarity_publication' AND title LIKE '%Tercero%'`)[0].n,1);
   assert.equal((await watchSnapshot()).targets[0].results.find(hit=>hit.applicationId==='201').reviewStatus,'En seguimiento');
 });
  // One-time recovery only fills missing stock, keeps failed attempts and is safe
@@ -198,5 +202,29 @@ try {
   assert.equal((await conditionalSnapshot(request,'source',render)).status,200);
   assert.equal((await sql`SELECT revision::int AS n FROM snapshot_revisions WHERE organization_id=${adminOrg.id} AND scope='watch'`)[0].n,1);
  });
+ // Notifications require a follow choice, including direct case conversions.
+ await sql`UPDATE monitoring_jobs SET status='cancelled' WHERE status IN ('queued','retry','running')`;
+ await runAs(identities[1],async()=>{
+  const target=(await watchSnapshot()).targets[0];
+  const recent={...query,applicationId:'900',name:'Novedad seleccionable',filedAt:new Date().toISOString().slice(0,10),score:.9,channels:{},history:[]};
+  let results=[recent];
+  const selectedSearch=async()=>({query,results,groups:[],warnings:[],candidateCount:1,elapsedSeconds:.1,fetchedAt:new Date().toISOString()});
+  const review=async()=>{await queueWatch(target.id);assert.equal((await processWatchJob(selectedSearch)).completed,true);};
+  await review();
+  let current=await watchSnapshot();const id=current.targets[0].results[0].matchId;
+  const notices=async()=>Number((await sql`SELECT count(*)::int AS n FROM notifications WHERE organization_id=${identities[1].organizationId}`)[0].n);
+  assert.equal(await notices(),0);
+  assert.equal(watchPage(current,new URLSearchParams()).count,1);
+  results=[];await review();current=await watchSnapshot();
+  assert.equal(watchPage(current,new URLSearchParams()).count,1,'pending new event survives leaving current results');
+  await sql`UPDATE matches SET review_status='Convertida en caso' WHERE public_code=${id} AND organization_id=${identities[1].organizationId}`;
+  results=[{...recent,publishedAt:'2026-09-29'}];await review();assert.equal(await notices(),0,'direct conversion is not notification consent');
+  await followWatch(id);await review();assert.equal(await notices(),0,'following never sends retrospective publication');
+  await sql`UPDATE matches SET evidence=jsonb_set(evidence,'{hit,publishedAt}','null'::jsonb) WHERE public_code=${id} AND organization_id=${identities[1].organizationId}`;
+  await review();assert.equal(await notices(),1);await review();assert.equal(await notices(),1,'same event cannot duplicate');
+  await sql`UPDATE matches SET review_status='Descartada',evidence=jsonb_set(evidence-'followedAt'-'watchPublication','{hit,publishedAt}','null'::jsonb) WHERE public_code=${id} AND organization_id=${identities[1].organizationId}`;
+  results=[{...recent,publishedAt:'2026-09-30'}];await review();assert.equal(await notices(),1,'discarded result cannot notify');
+ });
+ console.log('PASS: baseline, retained new findings, no unsolicited notifications, explicit follow consent, no retrospective notices, direct case conversion, deduplication and stopping follow.');
  console.log('PASS: migrations, owned pending enrollment, 50 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, pause/resume, tenant isolation and registration transition.');
 }finally{if(sql)await sql.end();await pg.stop();}

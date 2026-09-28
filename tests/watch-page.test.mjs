@@ -1,8 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {watchPage} from '../lib/watch-page.ts';
-const targets=Array.from({length:12},(_,i)=>({id:`BM-${i}`,name:`Marca ${String(i).padStart(2,'0')}`,applicationId:String(i),image:'',ownStatus:'Registrada',paused:false,status:'success',reviewedAt:'2026-09-24T15:30:00Z',nextReviewAt:null,warnings:[],savedResults:[],results:Array.from({length:12},(_,j)=>({applicationId:`${i}-${j}`,name:`Hallazgo ${i}-${j}`,holders:[{name:'Titular'}],classes:[{nice_class:35}],score:.9-j*.01,status:'En Trámite',publishedAt:j===11?'2026-09-24':null,reviewStatus:'Detectada',image:'',history:[],channels:{}}))}));
+const targets=Array.from({length:12},(_,i)=>({id:`BM-${i}`,name:`Marca ${String(i).padStart(2,'0')}`,applicationId:String(i),image:'',ownStatus:'Registrada',paused:false,status:'success',reviewedAt:'2026-09-24T15:30:00Z',nextReviewAt:null,warnings:[],savedResults:[],results:Array.from({length:12},(_,j)=>({applicationId:`${i}-${j}`,name:`Hallazgo ${i}-${j}`,holders:[{name:'Titular'}],classes:[{nice_class:35}],score:.9-j*.01,status:'En Trámite',publishedAt:j===11?'2026-09-24':null,reviewStatus:'Detectada',discoveryKind:'filing',commercialRelevance:'related',image:'',history:[],channels:{}}))}));
 const snapshot={configured:true,automaticEnabled:false,settings:{high:.65,medium:.3},targets};
+test('registered and granted results are excluded from every watch tab and counter without deleting saved decisions',()=>{
+ const variants=['Registrada','Registrado','Concedida','Concedido · vigente'];
+ const results=variants.flatMap((status,i)=>[
+  {...targets[0].results[0],applicationId:`new-${i}`,status},
+  {...targets[0].results[0],applicationId:`baseline-${i}`,status,discoveryKind:'baseline'},
+  {...targets[0].results[0],applicationId:`follow-${i}`,status,reviewStatus:'En seguimiento'},
+  {...targets[0].results[0],applicationId:`case-${i}`,status,reviewStatus:'Convertida en caso'},
+ ]);
+ const data={...snapshot,targets:[{...targets[0],results}]};
+ for(const scope of ['new','baseline']) {
+  const page=watchPage(data,new URLSearchParams({scope,relevance:'all'}));
+  assert.equal(page.count,0);assert.equal(page.baselineCount,0);assert.equal(page.followedCount,0);
+  assert.ok(page.groups.every(group=>group.rows.length===0));assert.deepEqual(page.followed,[]);
+ }
+ assert.equal(results.length,16);assert.equal(results[2].reviewStatus,'En seguimiento');
+});
 test('pagination sends 10 groups and five hits while retaining full counts; more reaches remaining results',()=>{
  const page=watchPage(snapshot,new URLSearchParams());
  assert.equal(page.count,144);assert.equal(page.groups[0].totalGroups,12);assert.equal(page.groups[0].rows.length,10);
@@ -22,4 +38,14 @@ test('followed results outside the current stock stay accessible without duplica
  const page=watchPage(data,new URLSearchParams());
  assert.equal(page.followedCount,1);assert.equal(page.followed[0].hits[0].applicationId,'followed');
  assert.equal(watchPage(data,new URLSearchParams({followState:'Convertida en caso'})).followed.length,0);
+});
+
+test('baseline, commercial filters and paused targets stay out of new counts without deleting access',()=>{
+ const [one,two,three,four]=targets[0].results;
+ const data={...snapshot,targets:[{...targets[0],results:[{...one,discoveryKind:'baseline'},{...two,commercialRelevance:'unrelated'},{...three,commercialRelevance:'unknown'},four]}]};
+ const page=watchPage(data,new URLSearchParams());assert.equal(page.count,2);assert.equal(page.baselineCount,1);
+ const history=watchPage(data,new URLSearchParams({scope:'baseline'}));assert.equal(history.groups[0].rows[0].hits[0].applicationId,one.applicationId);
+ assert.equal(watchPage(data,new URLSearchParams({relevance:'all'})).count,3);
+ assert.equal(watchPage({...data,targets:[{...data.targets[0],paused:true}]},new URLSearchParams()).count,0);
+ assert.equal(data.targets[0].results.length,4);
 });

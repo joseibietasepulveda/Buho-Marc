@@ -1,3 +1,4 @@
+import { discoveryKind, commercialRelevance } from "../lib/watch-discovery";
 import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { createHash, randomUUID } from "node:crypto";
@@ -77,7 +78,7 @@ async function milestone(tx: TransactionSql, org: string, brand: string, match: 
 export async function persistWatch(job: { id: string; organization_id: string; brand_id: string; lease_token: string; attempt_count: number }, responses: SimilarityResult[], refreshed: SimilarityHit[] = []) {
   const sql = getSql();
   return sql.begin(async tx => {
-    const [lease] = await tx`SELECT id, request FROM monitoring_jobs WHERE id = ${job.id} AND status = 'running' AND lease_token = ${job.lease_token} FOR UPDATE`;
+    const [lease] = await tx`SELECT id, request, started_at FROM monitoring_jobs WHERE id = ${job.id} AND status = 'running' AND lease_token = ${job.lease_token} FOR UPDATE`;
     if (!lease) return false;
     const [brand] = await tx`SELECT * FROM brands WHERE id = ${job.brand_id} AND organization_id = ${job.organization_id} FOR UPDATE`;
     if (!brand || brand.archived_at || brand.status === 'Pausada') {
@@ -85,6 +86,9 @@ export async function persistWatch(job: { id: string; organization_id: string; b
       await tx`UPDATE monitoring_job_attempts SET status = 'cancelled', completed_at = now() WHERE monitoring_job_id = ${job.id} AND attempt_no = ${job.attempt_count}`;
       return false;
     }
+    const watchStartedAt = brand.monitoring_config.watchStartedAt || new Date(lease.started_at).toISOString();
+    const startedDay = santiagoDay(new Date(watchStartedAt));
+    if (!brand.monitoring_config.watchStartedAt) await tx`UPDATE brands SET monitoring_config = monitoring_config || ${tx.json({ watchStartedAt })} WHERE id = ${brand.id}`;
     const seen = new Map<string, SimilarityHit>();
     for (const response of responses) for (const hit of response.results) if (!seen.has(hit.applicationId)) seen.set(hit.applicationId, hit);
     // Refresh followed applications even when they leave the current top results.
@@ -92,18 +96,15 @@ export async function persistWatch(job: { id: string; organization_id: string; b
     const resultIds: string[] = [];
     for (const hit of seen.values()) {
       const [old] = await tx`SELECT id, public_code, evidence, review_status FROM matches WHERE organization_id = ${job.organization_id} AND brand_id = ${brand.id} AND source = 'DeQuiénEs' AND source_record_id = ${hit.applicationId} FOR UPDATE`;
-      const evidence = { watchPublication: old?.evidence?.watchPublication === true, hit, query: responses[0].query, fetchedAt: responses[0].fetchedAt };
+      const evidence = { discoveryKind: discoveryKind(hit, startedDay, old?.evidence), commercialRelevance: commercialRelevance(responses[0].query.classes, hit.classes), followedAt: old?.evidence?.followedAt, watchPublication: old?.evidence?.watchPublication === true, hit, query: responses[0].query, fetchedAt: responses[0].fetchedAt };
       const [saved] = await tx`INSERT INTO matches (organization_id, public_code, brand_id, monitoring_job_id, source, source_record_id, published_at, found_name, applicant, application_number, level, total_score, explanation, review_status, evidence)
         VALUES (${job.organization_id}, ${code('CO-', `${brand.id}:${hit.applicationId}`)}, ${brand.id}, ${job.id}, 'DeQuiénEs', ${hit.applicationId}, ${hit.publishedAt}, ${hit.name.slice(0,180)}, ${(hit.holders.map(h => h.name).join('; ') || 'No informado').slice(0,180)}, ${hit.applicationId}, 'Sin clasificar', 0, ${similarityExplanation(hit)}, 'Detectada', ${tx.json(json(evidence))})
         ON CONFLICT (organization_id, brand_id, source, source_record_id) DO UPDATE SET published_at = EXCLUDED.published_at, found_name = EXCLUDED.found_name, applicant = EXCLUDED.applicant, explanation = EXCLUDED.explanation, evidence = EXCLUDED.evidence, monitoring_job_id = EXCLUDED.monitoring_job_id, updated_at = now() RETURNING id, public_code`;
       if (responses.some(r => r.results.some(h => h.applicationId === hit.applicationId))) resultIds.push(saved.public_code);
-      if (lease.request.since && !old && !hiddenDiscoveryState(hit.status)) await milestone(tx, job.organization_id, brand.name, { id: saved.id, public_code: saved.public_code }, hit, "filing", hit.filedAt ?? responses[0].fetchedAt.slice(0, 10));
-      if ((lease.request.since || ["En seguimiento", "Convertida en caso"].includes(old?.review_status)) && hit.publishedAt && (!old || !old.evidence?.hit?.publishedAt) && (!hiddenDiscoveryState(hit.status) || old?.evidence?.watchPublication)) await milestone(tx, job.organization_id, brand.name, { id: saved.id, public_code: saved.public_code }, hit, "publication", hit.publishedAt);
-    }
-    if (!lease.request.since && resultIds.length) {
-      const title = `Se encontraron ${resultIds.length} coincidencias para ${brand.name}`.slice(0, 220);
-      const [notice] = await tx`INSERT INTO notifications (organization_id, public_code, entity_type, entity_id, type, title, brand_name, urgency) VALUES (${job.organization_id}, ${code('NW-', `${brand.id}:initial`)}, 'brand', ${brand.id}, 'similarity_summary', ${title}, ${brand.name}, 'Media') ON CONFLICT (organization_id, public_code) DO NOTHING RETURNING id`;
-      if (notice) await tx`INSERT INTO email_drafts (organization_id, notification_id, subject, body) VALUES (${job.organization_id}, ${notice.id}, ${title}, ${'Abre Vigilancia → Por revisar para evaluar las coincidencias y elegir cuáles seguir. La vigilancia aplica los filtros de estado configurados para la cartera. La semejanza no representa una probabilidad de conflicto.'})`;
+      // A search result alone never opts a person into notifications. Conversion
+      // to a case retains an earlier follow choice, but does not create one.
+      const followed = old?.evidence?.followedAt && ["En seguimiento", "Convertida en caso"].includes(old.review_status);
+      if (followed && hit.publishedAt && !old.evidence?.hit?.publishedAt && (!hiddenDiscoveryState(hit.status) || old.evidence.watchPublication)) await milestone(tx, job.organization_id, brand.name, { id: saved.id, public_code: saved.public_code }, hit, "publication", hit.publishedAt);
     }
     await tx`UPDATE monitoring_jobs SET status = 'success', completed_at = now(), result = ${tx.json(json({ responses, resultIds }))}, error_code = NULL, lease_token = NULL WHERE id = ${job.id}`;
     await tx`UPDATE monitoring_job_attempts SET status = 'success', completed_at = now() WHERE monitoring_job_id = ${job.id} AND attempt_no = ${job.attempt_count}`;
@@ -196,13 +197,18 @@ export async function watchSnapshot(compact = false) {
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) s ON true
     WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled' ORDER BY b.name`;
-  const matches = await sql`SELECT public_code, brand_id,
-    CASE WHEN ${compact} THEN jsonb_build_object('watchPublication', evidence->'watchPublication', 'hit',
-      ((evidence->'hit') - 'classes') || jsonb_build_object('classes',
-        (SELECT COALESCE(jsonb_agg(jsonb_build_object('nice_class', c->'nice_class')), '[]'::jsonb) FROM jsonb_array_elements(evidence->'hit'->'classes') c)))
-    ELSE evidence END AS evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
-  const map = new Map(matches.map(row => [row.public_code, row]));
-  const present = (m: typeof matches[number]) => ({ ...applyVerifiedDecision(m.evidence.hit as SimilarityHit), history: [], watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at });
+  const matches = await sql`SELECT public_code, brand_id, evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
+  const present = (m: typeof matches[number]) => {
+    const hit = applyVerifiedDecision(m.evidence.hit as SimilarityHit);
+    return { ...hit, history: [], classes: compact ? hit.classes.map(c => ({ nice_class: c.nice_class })) : hit.classes,
+      discoveryKind: m.evidence.discoveryKind ?? 'baseline', commercialRelevance: commercialRelevance(m.evidence.query?.classes ?? [], hit.classes),
+      watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at };
+  };
+  const presented = new Map(matches.map(m => [m.public_code, present(m)]));
+  const byBrand = new Map<string, ReturnType<typeof present>[]>();
+  for (const m of matches) {
+    const hits = byBrand.get(m.brand_id) ?? []; hits.push(presented.get(m.public_code)!); byBrand.set(m.brand_id, hits);
+  }
   return {
     settings: watchSettingsSchema.safeParse(org?.watch_settings).data ?? DEFAULT_WATCH_SETTINGS,
     configured: similarityConfigured(), automaticEnabled,
@@ -214,8 +220,8 @@ export async function watchSnapshot(compact = false) {
       paused: t.status === 'Pausada', status: t.job_status ?? 'pending', error: t.error_code, reviewedAt: t.completed_at,
       nextReviewAt: t.completed_at && t.status !== 'Pausada' ? nextSourceReview(new Date(t.completed_at), automaticEnabled) : null,
       warnings: t.warnings ?? [],
-      results: (t.result_ids ?? []).flatMap((id: string) => { const m = map.get(id); return m ? [present(m)] : []; }),
-      savedResults: matches.filter(m => m.brand_id === t.id && m.review_status !== 'Detectada').map(present),
+      results: (t.result_ids ?? []).flatMap((id: string) => { const hit = presented.get(id); return hit ? [hit] : []; }),
+      savedResults: byBrand.get(t.id) ?? [],
     })),
   };
 }
@@ -234,6 +240,7 @@ export async function followWatch(id: string, publicationOnly = false) {
     if (!match) throw new Error("Coincidencia no encontrada");
     if (publicationOnly && !canWatchPublication(match.evidence.hit)) throw new Error('Esta solicitud ya tiene una publicación o registro informado. Puedes pasarla a seguimiento.');
     if (publicationOnly) await tx`UPDATE matches SET evidence = evidence || '{"watchPublication":true}'::jsonb, updated_at = now() WHERE id = ${match.id}`;
+    if (!match.evidence.followedAt) await tx`UPDATE matches SET evidence = evidence || ${tx.json({ followedAt: new Date().toISOString() })}, updated_at = now() WHERE id = ${match.id}`;
     if (['En seguimiento', 'Convertida en caso'].includes(match.review_status)) return;
     await tx`UPDATE matches SET review_status = 'En seguimiento', owner_id = COALESCE(owner_id, ${actorId()}), updated_at = now() WHERE id = ${match.id}`;
     await tx`INSERT INTO match_reviews (organization_id, match_id, reviewer_id, decision, comparison_snapshot) VALUES (${organizationId()}, ${match.id}, ${actorId()}, 'En seguimiento', ${tx.json(match.evidence)})`;

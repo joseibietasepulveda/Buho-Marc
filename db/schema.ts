@@ -47,7 +47,7 @@ export const sourceSyncRuns = pgTable("source_sync_runs", {
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(), name: varchar("name", { length: 180 }).notNull(),
   automaticMonitoring: boolean("automatic_monitoring").default(true).notNull(),
-  slug: varchar("slug", { length: 120 }).notNull(), watchSettings: jsonb("watch_settings").default({ high: 0.65, medium: 0.45 }).notNull(), status: varchar("status", { length: 30 }).default("active").notNull(), ...timestamps,
+  slug: varchar("slug", { length: 120 }).notNull(), watchSettings: jsonb("watch_settings").default({ high: 0.7, medium: 0.55 }).notNull(), status: varchar("status", { length: 30 }).default("active").notNull(), ...timestamps,
 }, (table) => [uniqueIndex("organizations_slug_uq").on(table.slug)]);
 
 export const users = pgTable("users", {

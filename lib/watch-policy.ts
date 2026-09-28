@@ -2,10 +2,10 @@ import { z } from 'zod';
 import type { SimilarityHit } from './similarity-contract';
 export const watchSettingsSchema = z.object({ high: z.number().min(0).max(1), medium: z.number().min(0).max(1) }).strict().refine(v => v.medium < v.high, { message: 'El límite medio debe ser menor que el alto.' });
 export type WatchSettings = z.infer<typeof watchSettingsSchema>;
-export const DEFAULT_WATCH_SETTINGS: WatchSettings = { high: .65, medium: .45 };
+export const DEFAULT_WATCH_SETTINGS: WatchSettings = { high: .7, medium: .55 };
 export const normalizedState = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
 // System feature flags. Shared by the lists AND database counters. No records are deleted.
-export const WATCH_VISIBILITY = { showRegistered: true, showLapsed: false, showExpired: false };
+export const WATCH_VISIBILITY = { showRegistered: false, showLapsed: false, showExpired: false };
 const terminalStates = ['denegada', 'rechazada', 'rechazada definitivamente', 'desistida', 'abandonada', 'abandonada por falta de pago', 'anulada', 'anulado', 'cancelada', 'cancelado', 'no presentada', 'caducada', 'caducado', 'vencida', 'vencido', 'expirada', 'expirado'];
 export const registeredState = (value: string) => /^(registrad[ao]|concedid[ao])(?:$|\s| ·)/.test(normalizedState(value));
 export const terminalState = (value: string) => terminalStates.includes(normalizedState(value)) || /^rechazada · recurso por verificar/.test(normalizedState(value));

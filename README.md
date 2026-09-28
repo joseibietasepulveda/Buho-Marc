@@ -6,17 +6,19 @@ Las decisiones vigentes, incluidas las revisiones manuales desde el chat y los i
 
 ## Vigilancia real
 
-Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **50 similitudes**. La respuesta se conserva completa; Por revisar admite estados confirmados en trámite o concedidos/registrados y excluye estados terminales o ambiguos mediante la política compartida con los contadores. «Mis marcas» reúne marcas registradas y solicitudes propias, con columnas iniciales RUT, Parte Figurativa y Marca; el logo tiene su propia celda y usa «Sin logo» cuando falta.
+Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **50 similitudes**. La respuesta se conserva completa; Vigilancia excluye las coincidencias registradas o concedidas en todas sus pestañas y contadores. Novedades y Antecedentes admiten estados confirmados en trámite y excluyen estados terminales o ambiguos. «Mis marcas» reúne marcas registradas y solicitudes propias, con columnas iniciales RUT, Parte Figurativa y Marca; el logo tiene su propia celda y usa «Sin logo» cuando falta.
 
-«Vigilancia» tiene dos pestañas: «Por revisar» y «En seguimiento». Por revisar organiza los hallazgos en alta y media similitud, con umbrales iniciales de **65% y 45%**, ajustables de 5 en 5 y persistentes por organización. Ordena de mayor a menor índice y muestra inicialmente cinco coincidencias por marca/categoría; **Buscar más** añade cinco del lote guardado. En seguimiento usa una tabla sin niveles de similitud y conserva las decisiones incluso si cambia el estado del expediente. Cada resultado permite comparar marcas, consultar historial, seguir o convertir en caso.
+«Vigilancia» tiene tres pestañas: «Novedades por revisar», «Antecedentes» y «En seguimiento». Los antecedentes anteriores al inicio de vigilancia no suman pendientes nuevos. Por defecto se muestran productos y servicios relacionados o por confirmar; el selector permite consultar también los no relacionados. Los hallazgos se organizan en alta y media similitud, con umbrales iniciales de **70% y 55%**, ajustables de 5 en 5 y persistentes por organización. Ordena de mayor a menor índice y muestra inicialmente cinco coincidencias por marca/categoría; **Buscar más** añade cinco del lote guardado. En seguimiento usa una tabla sin niveles de similitud y conserva las decisiones guardadas incluso si cambia el estado del expediente; las coincidencias registradas quedan ocultas. Cada resultado permite comparar marcas, consultar historial, seguir o convertir en caso.
 
 Los botones de revisión manual se retiraron de Vigilancia: las actualizaciones a pedido se solicitan desde el chat con el asistente. Daniel conserva su revisión automática diaria; Búho permanece a pedido. Abrir la pantalla no inicia una búsqueda. Véase [control de consumo](docs/COST_CONTROL.md).
 
-«Avísame si se publica en el Diario Oficial» guarda el seguimiento y genera un aviso interno cuando la fuente informa la publicación. El sistema sigue consultando esos expedientes aunque salgan de los primeros resultados.
+Las similitudes no generan notificaciones hasta que el usuario elige expresamente seguirlas. «Avísame si se publica en el Diario Oficial» guarda el seguimiento y genera un aviso interno cuando la fuente informa la publicación. El sistema sigue consultando esos expedientes aunque salgan de los primeros resultados.
 
 La revisión diaria combina stock con búsquedas separadas de ingresos y publicaciones. Las novedades se agregan sin duplicar solicitudes; el lote posterior puede superar 50 por incluir ventanas adicionales. La publicación posterior conserva la revisión anterior. Hay cola persistente, reintentos, pausa/reanudación e indicadores separados de la sincronización de expedientes.
 
 Ante un HTTP 403 de la fuente, la vigilancia espera 20 segundos y reintenta hasta 10 veces después del intento inicial. La espera y el contador persisten entre reinicios; durante la espera no inicia otra búsqueda de vigilancia. Si se agotan los reintentos, conserva el último resultado exitoso e informa el fallo.
+
+Las decisiones y los pendientes de esta revisión están en [Vigilancia · 28 de septiembre](docs/VIGILANCIA_REVISION_2026-09-28.md).
 
 ## Prefactibilidad
 

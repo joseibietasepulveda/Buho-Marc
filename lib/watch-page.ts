@@ -11,7 +11,12 @@ export function watchPage(snapshot: WatchSnapshot, params: URLSearchParams) {
     from: params.get("from") || "", to: params.get("to") || "",
   };
   const groupLimit = positive(params.get("groups"), 10, 2000);
-  const groups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication);
+  const scope = params.get('scope') === 'baseline' ? 'baseline' : 'new';
+  const relevance = params.get('relevance') === 'all' ? 'all' : 'related';
+  const newGroups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication, 'new', relevance);
+  const baselineGroups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication, 'baseline', relevance);
+  const groups = scope === 'baseline' ? baselineGroups : newGroups;
+  const groupCount = (groups: typeof newGroups) => groups.reduce((n, g) => n + g.rows.reduce((m, r) => m + r.hits.length, 0), 0);
   const followed = followedGroups(snapshot.targets, params.get("q") || "", publication);
   const pageRows = (rows: typeof followed, band: string) => rows.slice(0, groupLimit).map(row => ({
     ...row, total: row.hits.length,
@@ -26,7 +31,7 @@ export function watchPage(snapshot: WatchSnapshot, params: URLSearchParams) {
     total: snapshot.targets.length, reviewed: snapshot.targets.filter(t => t.reviewedAt).length,
     pending: snapshot.targets.filter(t => ["queued", "running", "retry"].includes(t.status) && !t.paused).length,
     reviewedAt: snapshot.targets.reduce<string | null>((latest, t) => t.reviewedAt && (!latest || t.reviewedAt > latest) ? t.reviewedAt : latest, null),
-    count: groups.reduce((n, g) => n + g.rows.reduce((m, r) => m + r.hits.length, 0), 0),
+    scope, relevance, count: groupCount(newGroups), baselineCount: groupCount(baselineGroups),
     followedCount: followed.reduce((n, r) => n + r.hits.length, 0),
     groups: groups.map(g => ({ level: g.level, totalGroups: g.rows.length, rows: pageRows(g.rows, g.level) })),
     followed: pageRows(filteredFollowed, "follow"), followedTotalGroups: filteredFollowed.length,

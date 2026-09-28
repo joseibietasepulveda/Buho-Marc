@@ -36,7 +36,7 @@ try{
   for(const d of baseline)fixture.documents[d.application_id]=d;
   for(const r of raw.runs){fixture.searches[r.id]=r.search.data;for(const d of r.details.data.documents)fixture.documents[d.application_id]=d;}
  }else{
-  const dates={filed_at:'2026-01-01',published_at:null,registered_at:null,expires_at:null,last_changed_at:null};
+  const dates={filed_at:new Date().toISOString().slice(0,10),published_at:null,registered_at:null,expires_at:null,last_changed_at:null};
   for(const id of [100,...Array.from({length:50},(_,i)=>200+i)])fixture.documents[id]={application_id:id,registration_id:null,name:`Marca QA ${id}`,status:{code:'ET',description:'En Trámite'},dates,trademark:{sign_type:'Mixta'},holders:[{name:'Titular QA',country:'CL'}],representatives:[],classes:[{nice_class:35,coverage_text:'Publicidad'}],events:[],annotations:[],source:{}};
   const mark=id=>({application_id:id,registration_id:null,name:`Marca QA ${id}`,sign_type:'Mixta',dates,holders:[{name:'Titular QA'}],classes:[{nice_class:35,coverage_text:'Publicidad'}]});
   fixture.searches[100]={query:mark(100),results:Array.from({length:50},(_,i)=>({...mark(200+i),score:1-i/100,channels:{name:{rank:i+1}}})),candidate_count:50,elapsed_seconds:.1,warnings:[]};
@@ -54,11 +54,11 @@ try{
  assert.equal((await http('/api/watch',{cookie,body:{action:'review'},origin:'https://untrusted.test'})).status,403);
  assert.equal((await http('/api/watch/worker',{body:{}})).status,403);
  for(const id of Object.keys(fixture.searches)){void id;const work=await http('/api/watch/worker',{body:{},authorization:'Bearer isolated-watch-cron'});assert.equal(work.status,200);assert.equal(work.body.completed,true,JSON.stringify(work.body));}
- const snapshot=await http('/api/watch',{cookie});assert.equal(snapshot.body.targets[0].results.length,50);const match=snapshot.body.targets[0].results[0].matchId;
+ const snapshot=await http('/api/watch',{cookie});assert.equal(snapshot.body.count+snapshot.body.baselineCount,46);const firstRows=snapshot.body.groups.flatMap(g=>g.rows);const fallback=firstRows.length?snapshot.body:(await http('/api/watch?scope=baseline',{cookie})).body;const match=fallback.groups.flatMap(g=>g.rows)[0].hits[0].matchId;
  assert.equal((await http(`/api/watch/${match}`)).status,401);
  const detail=await http(`/api/watch/${match}`,{cookie});assert.equal(detail.status,200);assert.ok(detail.body.evidence.hit);
  assert.equal((await http('/api/watch/nonexistent',{cookie})).status,404);
- const beforeFollow=await http('/api/demo',{cookie});if(process.env.WATCH_REPLAY_REAL!=='true')assert.equal(beforeFollow.body.data.watchSummary.detected,50*Object.keys(fixture.searches).length);
+ const beforeFollow=await http('/api/demo',{cookie});if(process.env.WATCH_REPLAY_REAL!=='true')assert.equal(beforeFollow.body.data.watchSummary.detected,46*Object.keys(fixture.searches).length);
  assert.equal(beforeFollow.body.data.watchSummary.preview.length,3);
  assert.ok(beforeFollow.body.data.watchSummary.updatedAt);
  for(const preview of beforeFollow.body.data.watchSummary.preview)assert.equal((await http(`/api/watch/${preview.id}`,{cookie})).status,200);
@@ -93,7 +93,7 @@ try{
     const app=i===3?'1367215':row.application_number;
     await sql`UPDATE matches SET application_number=${app},evidence=${sql.json({...row.evidence,hit:{...row.evidence.hit,status:state,applicationId:app}})} WHERE id=${row.id}`;
   }
-  assert.equal((await http('/api/demo',{cookie})).body.data.watchSummary.detected,countBefore-cached.length+1);
+  assert.equal((await http('/api/demo',{cookie})).body.data.watchSummary.detected,countBefore-cached.length);
   for(const row of cached) await sql`UPDATE matches SET application_number=${row.application_number},evidence=${sql.json(row.evidence)} WHERE id=${row.id}`;
   const clientData={name:'Cliente de prueba',rut:'',contact:'',phone:'',email:''};
   const brandId=beforeFollow.body.data.brands[0].id;
@@ -123,6 +123,8 @@ try{
   console.log('PASS: client creation, concurrent numbering, edit, assignment persistence, conflicts, tenant isolation, atomic failure and readable audit.');
  }
  if(process.env.WATCH_QA_KEEP==='true'){
+   await sql`UPDATE matches SET evidence=jsonb_set(evidence,'{discoveryKind}','"baseline"'::jsonb) WHERE id IN (SELECT id FROM matches WHERE organization_id=${org.id} ORDER BY public_code LIMIT 3)`;
+   await http('/api/watch',{cookie,body:{action:'settings',settings:{high:.7,medium:.55}}});
    const [brand]=await sql`SELECT id FROM brands WHERE organization_id=${org.id} LIMIT 1`;
    const [legacyNotice]=await sql`INSERT INTO notifications(organization_id,public_code,entity_type,entity_id,type,title,brand_name,urgency,change_detail) VALUES (${org.id},'QA-LEGACY','brand',${brand.id},'source-change','Se actualizó Marca QA 100: image_url, registration_id','Marca QA 100','Media',${sql.json({source:'inapi',summary:'Se actualizó Marca QA 100: image_url, registration_id',changes:[{field:'inapi.image_url',label:'image_url',before:null,after:'https://example.com/marca.png',ancillary:false},{field:'inapi.registration_id',label:'registration_id',before:null,after:123456,ancillary:false}]})}) RETURNING id`;
    await sql`INSERT INTO email_drafts(organization_id,notification_id,subject,body) VALUES (${org.id},${legacyNotice.id},'Actualización de antecedentes','Información de prueba para la revisión visual.')`;
