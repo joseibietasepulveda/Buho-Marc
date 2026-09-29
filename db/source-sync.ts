@@ -8,7 +8,7 @@ import { fetchSource } from "../lib/source-provider";
 import type { RegistrationApplication } from "../lib/registration-data";
 import { isRealSource, reprojectInapiRecord } from "../lib/inapi-provider";
 import { realBrandConfig, importRealRecord } from "./inapi-portfolio";
-import type { OppositionProceeding } from "../lib/opposition";
+import { proceedingLabel, type OppositionProceeding } from "../lib/opposition";
 import { syncReceivedOpposition } from "./received-oppositions";
 
 export async function syncSource(trigger: "manual" | "scheduled", provider = fetchSource, now = new Date()) {
@@ -56,6 +56,13 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
         const receivedCase = target.entity_type !== "case" ? await syncReceivedOpposition(tx, after, target.entity_type === "application") : undefined;
         if (after.provider === "inapi") await tx`UPDATE source_records SET data = ${tx.json(after)}, registration_number = ${after.registrationNumber}, updated_at = now(), version = version + ${changes.length ? 1 : 0} WHERE id = ${target.source_id}`;
         if (target.entity_type === "brand") await tx`UPDATE brands SET last_reviewed_at = now() WHERE id = ${target.entity_id}`;
+        let caseProceeding: OppositionProceeding | undefined;
+        if (target.entity_type === "case") {
+          const [item] = await tx`SELECT proceeding FROM cases WHERE id = ${target.entity_id} AND organization_id = ${organizationId()} AND status = 'active' FOR UPDATE`;
+          if (!item) throw new Error("El caso dejó de estar en seguimiento");
+          caseProceeding = { ...item.proceeding, record: after };
+          await tx`UPDATE cases SET proceeding = ${tx.json(caseProceeding!)}, updated_at = now() WHERE id = ${target.entity_id} AND organization_id = ${organizationId()}`;
+        }
         if (!changes.length) {
           // A rules correction changes the projection, not the external facts.
           // Refresh the baseline silently so it does not remain marked pending.
@@ -65,8 +72,8 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
         changed++;
         const message = describeChanges(before, after, changes);
         if (target.entity_type === "case") {
-          message.title = `Oposición presentada · ${after.name}`.slice(0, 220);
-          message.body = `Novedades del expediente contrario. Revisa su alcance para la parte oponente.\n\n${message.body}`;
+          message.title = `${proceedingLabel(caseProceeding!)} · ${after.name}`.slice(0, 220);
+          message.body = `Novedades del expediente seguido. Revisa su alcance para el rol del cliente en este caso.\n\n${message.body}`;
         }
         const reportable = changes.some(c => !c.ancillary);
         detail.push({ name: after.name, publicCode: target.public_code, title: reportable ? message.title : `Antecedentes complementarios de ${after.name}`, notified: reportable, changes });
@@ -79,11 +86,7 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
           await tx`DELETE FROM brand_classes WHERE brand_id = ${target.entity_id}`;
           for (const n of after.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${target.entity_id}, ${n})`;
         } else if (target.entity_type === "case") {
-          const [item] = await tx`SELECT proceeding FROM cases WHERE id = ${target.entity_id} AND organization_id = ${organizationId()} AND status = 'active' FOR UPDATE`;
-          if (!item) throw new Error("El caso dejó de estar en seguimiento");
-          const proceeding = { ...(item.proceeding as OppositionProceeding), record: after };
-          await tx`UPDATE cases SET proceeding = ${tx.json(proceeding)}, updated_at = now() WHERE id = ${target.entity_id} AND organization_id = ${organizationId()}`;
-          if (reportable) await tx`INSERT INTO case_tasks (organization_id, case_id, title, status, priority, assignee_id) VALUES (${organizationId()}, ${target.entity_id}, ${`Revisar nueva actuación del expediente contrario ${after.applicationNumber} (${clock.day})`}, 'pending', 'Alta', ${actorId()})`;
+          if (reportable) await tx`INSERT INTO case_tasks (organization_id, case_id, title, status, priority, assignee_id) VALUES (${organizationId()}, ${target.entity_id}, ${`Revisar ${proceedingLabel(caseProceeding!).toLowerCase()}: nueva actuación del expediente ${after.applicationNumber} (${clock.day})`}, 'pending', 'Alta', ${actorId()})`;
         } else {
           const [a] = await tx`SELECT data FROM registration_applications WHERE id = ${target.entity_id} AND organization_id = ${organizationId()} FOR UPDATE`;
           if (!a) throw new Error("La solicitud dejó de estar en seguimiento");

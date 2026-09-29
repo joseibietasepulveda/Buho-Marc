@@ -1,5 +1,7 @@
 import type { SourceRecord } from "./source-contract";
 export type OppositionProceeding = {
+  type?: "opposition" | "nullity";
+  clientName?: string;
   role: "opponent" | "respondent";
   opponent: string;
   applicationCode?: string;
@@ -20,4 +22,8 @@ export function hasReceivedOpposition(record: SourceRecord): boolean {
     if (/sin oposicion|no se (?:ha |han )?present|plazo.{0,35}oposici|oposici.{0,35}plazo/.test(text)) return false;
     return /(?:oposicion|oposiciones)/.test(text) && /presenta|presento|traslado|contest|demanda|interpuest|deducid|notific/.test(text);
   });
+}
+
+export function proceedingLabel(value: Pick<OppositionProceeding, "type" | "role">) {
+  return `${value.type === "nullity" ? "Nulidad" : "Oposición"} ${value.role === "respondent" ? "recibida" : "presentada"}`;
 }

@@ -2,15 +2,15 @@ import type { TransactionSql } from "postgres";
 import { actorId, organizationId } from "../lib/tenant-context";
 import type { OppositionProceeding } from "../lib/opposition";
 
-export async function isFiledOpposition(tx: TransactionSql, applicationNumber: string) {
-  const [item] = await tx`SELECT id FROM cases WHERE organization_id = ${organizationId()} AND proceeding->>'role' = 'opponent' AND proceeding->'record'->>'applicationNumber' = ${applicationNumber} LIMIT 1`;
+export async function isFiledOpposition(tx: TransactionSql, applicationNumber: string, onlyOpposition = false) {
+  const [item] = await tx`SELECT id FROM cases WHERE organization_id = ${organizationId()} AND (${onlyOpposition} = false OR COALESCE(proceeding->>'type', 'opposition') = 'opposition') AND proceeding->>'role' = 'opponent' AND proceeding->'record'->>'applicationNumber' = ${applicationNumber} LIMIT 1`;
   return Boolean(item);
 }
 
 /** Correct an explicitly confirmed role, retaining IDs, work, stage and source baseline. */
 export async function correctReceivedToFiled(tx: TransactionSql, applicationNumber: string) {
   await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
-  const items = await tx`SELECT * FROM cases WHERE organization_id = ${organizationId()} AND proceeding->'record'->>'applicationNumber' = ${applicationNumber} FOR UPDATE`;
+  const items = await tx`SELECT * FROM cases WHERE organization_id = ${organizationId()} AND COALESCE(proceeding->>'type', 'opposition') = 'opposition' AND proceeding->'record'->>'applicationNumber' = ${applicationNumber} FOR UPDATE`;
   if (!items.length) return { applicationNumber, outcome: "absent" };
   if (items.length !== 1) throw new Error(`La solicitud ${applicationNumber} tiene varios casos; requiere conciliación sin perder trabajo.`);
   const item = items[0];

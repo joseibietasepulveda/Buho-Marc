@@ -12,7 +12,7 @@ export function portfolioKind(record: SourceRecord): "brand" | "application" {
   return record.registrationNumber && ["registered", "expired", "cancelled"].includes(record.status) ? "brand" : "application";
 }
 // Check the ZIP directory before decompression, including highly compressed XLSX files.
-function checkWorkbookSize(buffer: Buffer) {
+export function checkWorkbookSize(buffer: Buffer) {
   let total = 0, entries = 0;
   for (let i = 0; i + 46 <= buffer.length; i++) {
     if (buffer.readUInt32LE(i) !== 0x02014b50) continue;
@@ -37,6 +37,7 @@ export async function readImportFile(buffer: Buffer, filename: string) {
   const seen = new Set<string>();
   for (const sheet of workbook.worksheets) {
     if (!sheet.actualRowCount) continue;
+    if (/oposicion|nulidad/.test(sheet.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase())) throw new Error("Este archivo contiene oposiciones o nulidades. Súbelo desde Solicitudes de registro → Marcas seguidas por oposición o nulidad.");
     const header = sheet.getRow(1);
     const labels = (header.values as ExcelJS.CellValue[]).map(v => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, ""));
     const column = labels.findIndex(v => ["numerosolicitud", "numerodesolicitud", "nsolicitud", "solicitud", "applicationnumber", "applicationid", "idsolicitud", "id"].includes(v));

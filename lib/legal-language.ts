@@ -13,7 +13,7 @@ export function legalText(text: string): string {
 }
 const actions: Record<string, string> = {
   "brand.monitoring_changed": "Cambio en la vigilancia de una marca", "watch.settings_changed": "Límites de similitud actualizados", "match.followed": "Coincidencia incorporada a seguimiento",
-  "opposition.role_corrected": "Calidad de la parte corregida en la oposición", "opposition.received": "Oposición recibida", "opposition.created": "Oposición presentada incorporada",
+  "opposition.role_corrected": "Calidad de la parte corregida en la oposición", "opposition.received": "Oposición recibida", "opposition.created": "Oposición incorporada", "nullity.created": "Nulidad incorporada",
   "brand.created": "Marca incorporada a la cartera", "brand.imported_by_rut": "Marca incorporada por RUT", "portfolio.imported": "Expediente incorporado a la cartera",
   "case.created": "Caso creado", "case.stage_changed": "Etapa del caso actualizada", "case.match_unlinked": "Vigilancia desvinculada del caso", "case.discarded": "Caso descartado", "case.owner_changed": "Responsable del caso actualizado",
   "member.added": "Usuario incorporado al equipo", "client_updated": "Datos del cliente actualizados", "client.created": "Cliente creado", "brand.client_assigned": "Cliente asociado a la marca",

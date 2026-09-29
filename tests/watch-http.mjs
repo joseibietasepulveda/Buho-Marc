@@ -1,5 +1,8 @@
 // Isolated PostgreSQL, credentials and API replay. Never mutates a hosted environment.
 import assert from 'node:assert/strict';
+import ExcelJS from 'exceljs';
+import { createProceeding } from '../db/proceedings.ts';
+import { proceedingInput } from '../lib/proceeding-input.ts';
 import { mkdtemp, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -121,6 +124,39 @@ try{
   assert.ok(audit.some(a=>a.action==='Cliente asociado a la marca'&&a.detail.includes('Cliente 1')));
   assert.ok(audit.every(a=>!a.action.includes('watch.settings_changed')));
   console.log('PASS: client creation, concurrent numbering, edit, assignment persistence, conflicts, tenant isolation, atomic failure and readable audit.');
+ }
+ if(process.env.WATCH_REPLAY_REAL!=='true') {
+  const book=new ExcelJS.Workbook();book.addWorksheet('Oposiciones').addRows([['Solicitud'],[200]]);book.addWorksheet('Nulidades').addRows([['Solicitud'],[201]]);
+  const upload=new FormData();upload.set('file',new File([await book.xlsx.writeBuffer()],'prueba.xlsx'));
+  const parsed=await fetch(base+'/api/oppositions/import',{method:'POST',headers:{origin:base,cookie},body:upload});assert.equal(parsed.status,200);const parsedBody=await parsed.json();assert.deepEqual(parsedBody.rows.map(r=>r.type),['opposition','nullity']);assert.ok(parsedBody.rows.every(r=>r.role===''));
+  fixture.documents[201].registration_number=123456;fixture.documents[201].dates={...fixture.documents[201].dates,filed_at:'2025-01-01',registered_at:'2026-09-01'};await writeFile(fixturePath,JSON.stringify(fixture));
+  const rows=[{key:'opposition:200',applicationNumber:'200',type:'opposition',role:'opponent',opponent:'Cliente prueba'},{key:'nullity:201',applicationNumber:'201',type:'nullity',role:'respondent',opponent:'Cliente defensa'}];
+  const payload={action:'import',rows};
+  assert.equal((await http('/api/oppositions/import',{body:payload})).status,401);
+  assert.equal((await http('/api/oppositions/import',{cookie,body:payload,origin:'https://untrusted.test'})).status,403);
+  assert.equal((await http('/api/oppositions/import',{cookie,body:{action:'import',rows:[{key:'nullity:202',applicationNumber:'202',type:'nullity'}]}})).status,400);
+  const before=await sql`SELECT (SELECT count(*)::int FROM brands) AS brands, (SELECT count(*)::int FROM registration_applications) AS applications, (SELECT count(*)::int FROM cases) AS cases, (SELECT count(*)::int FROM notifications) AS notices`;
+  const preview=await http('/api/oppositions/import',{cookie,body:{action:'preview',rows}});assert.equal(preview.status,200);assert.ok(preview.body.results.every(r=>r.outcome==='ready'),JSON.stringify(preview.body));
+  assert.equal((await sql`SELECT count(*)::int AS n FROM cases`)[0].n,before[0].cases);
+  const saved=await http('/api/oppositions/import',{cookie,body:payload});assert.equal(saved.status,200);assert.ok(saved.body.results.every(r=>r.outcome==='imported'),JSON.stringify(saved.body));
+  const repeated=await http('/api/oppositions/import',{cookie,body:payload});assert.ok(repeated.body.results.every(r=>r.outcome==='existing'));
+  const partial=await http('/api/oppositions/import',{cookie,body:{action:'import',rows:[{...rows[0],role:'respondent'},rows[1]]}});assert.equal(partial.body.results[0].outcome,'error');assert.equal(partial.body.results[1].outcome,'existing');
+  const after=await sql`SELECT (SELECT count(*)::int FROM brands) AS brands, (SELECT count(*)::int FROM registration_applications) AS applications, (SELECT count(*)::int FROM cases) AS cases, (SELECT count(*)::int FROM notifications) AS notices`;
+  assert.equal(after[0].brands,before[0].brands);assert.equal(after[0].applications,before[0].applications);assert.equal(after[0].notices,before[0].notices);assert.equal(after[0].cases,before[0].cases+2);
+  const item=(await sql`SELECT id,proceeding FROM cases WHERE public_code=${saved.body.results[1].caseId}`)[0];assert.equal(item.proceeding.type,'nullity');assert.equal(item.proceeding.role,'respondent');
+  const tasks=await sql`SELECT title,due_at FROM case_tasks WHERE case_id=${item.id}`;assert.equal(tasks.length,1);assert.match(tasks[0].title,/nulidad recibida/);assert.equal(tasks[0].due_at,null);
+  assert.equal(item.proceeding.record.status,'registered');
+  const anotherType=await http('/api/oppositions/import',{cookie,body:{action:'import',rows:[{...rows[0],key:'nullity:200',type:'nullity'}]}});assert.equal(anotherType.body.results[0].outcome,'imported');
+  const [isolatedOrg]=await sql`INSERT INTO organizations(name,slug) VALUES ('Litigation tenant','litigation-tenant') RETURNING id`;
+  const other=await runAs({...identity,organizationId:isolatedOrg.id},()=>sql.begin(tx=>createProceeding(tx,proceedingInput.parse({applicationNumber:'201',type:'nullity',role:'respondent'}),normalizeInapi(fixture.documents[201]))));assert.equal(other.existing,false);
+  fixture.documents[201].events=[{event_id:'nullity-event',status_code:'000',due_date:null,updated_at:'2026-09-29',event_date:'2026-09-29',status_description:'Notificación de demanda de nulidad',observation:'Antecedentes de prueba',seq:1}];await writeFile(fixturePath,JSON.stringify(fixture));
+  const sync=await http('/api/monitoring/sync',{cookie,body:{}});assert.equal(sync.status,200,JSON.stringify(sync.body));
+  const notices=await sql`SELECT title,change_detail FROM notifications WHERE entity_type='case' AND entity_id=${item.id}`;assert.equal(notices.length,1);assert.match(notices[0].title,/Nulidad recibida/);assert.doesNotMatch(notices[0].change_detail.summary,/parte oponente/);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE organization_id=${isolatedOrg.id}`)[0].n,0);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM case_tasks WHERE case_id=${item.id}`)[0].n,2);
+  assert.equal((await http('/api/monitoring/sync',{cookie,body:{}})).status,200);
+  assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE entity_type='case' AND entity_id=${item.id}`)[0].n,1);
+  console.log('PASS: opposition/nullity import requires auth, origin, explicit role; preview is read-only; retries are idempotent; errors are per row; no portfolio or historical notifications.');
  }
  if(process.env.WATCH_QA_KEEP==='true'){
    await sql`UPDATE matches SET evidence=jsonb_set(evidence,'{discoveryKind}','"baseline"'::jsonb) WHERE id IN (SELECT id FROM matches WHERE organization_id=${org.id} ORDER BY public_code LIMIT 3)`;
