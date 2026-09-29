@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import type { ProceedingImportRow } from "@/lib/proceeding-import";
 import { statusLabel, type SourceRecord } from "@/lib/source-contract";
 import { ReviewDialog } from "./review-dialog";
+import { ImportFilePicker } from "./import-file-picker";
 import "./pilot.css";
 type Row = ProceedingImportRow & { outcome: "pending" | "ready" | "existing" | "imported" | "error"; record?: SourceRecord; message?: string; caseId?: string; existingRole?: string };
 const labels = { pending: "Pendiente de consulta", ready: "Lista para crear", existing: "Ya existe; se conserva", imported: "Seguimiento creado", error: "Revisar" };
@@ -45,7 +46,7 @@ export function ProceedingImport({ onClose, onSaved }: { onClose: () => void; on
   return <ReviewDialog title="Subir oposiciones y nulidades" className="pilot-dialog proceeding-import-dialog" onClose={() => { if (!busy) onClose(); }}><div className="pilot-body">
     <p>Usa una columna <strong>Solicitud</strong>. Las hojas <strong>Oposiciones</strong> y <strong>Nulidades</strong> determinan el tipo. También puedes usar columnas tipo, rol y cliente en un Excel o CSV.</p>
     <p>Los expedientes se guardarán como casos en este espacio. Las marcas impugnadas no se agregan a tu cartera. La carga crea una tarea inicial de revisión, sin avisos históricos ni plazos calculados.</p>
-    <label className="pilot-file">Elegir archivo<input type="file" accept=".xlsx,.csv" disabled={busy} onChange={e => void read(e.target.files?.[0])}/></label>
+    <ImportFilePicker filename={filename} disabled={busy} onFile={file => void read(file)} />
     {filename && <p><strong>{filename}</strong> · {rows.length} filas · {duplicates} repetidos omitidos</p>}
     {rows.length > 0 && <div className="pilot-form"><label>Aplicar rol a todas las filas pendientes<select aria-label="Rol para todas las filas" defaultValue="" disabled={busy} onChange={e => { const role = e.target.value as Row["role"]; setRows(current => current.map(row => editable(row) ? { ...row, role } : row)); setConfirmed(false); }}><option value="">Seleccionar rol</option><option value="opponent">Nuestro cliente presenta la acción</option><option value="respondent">Nuestro cliente defiende la marca</option></select></label><p>Si hay distintos roles, ajústalos fila por fila. Puedes dejar el cliente por confirmar.</p></div>}
     <p role="status">{progress}</p>{error && <p role="alert" className="task-error">{error}</p>}

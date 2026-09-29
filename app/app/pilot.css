@@ -7,3 +7,38 @@
 .proceeding-import-dialog td select, .proceeding-import-dialog td input { width: 100%; min-width: 140px; padding: 8px; border: 1px solid #ded4e7; border-radius: 6px; background: white; }
 .proceeding-confirm { display: flex; align-items: flex-start; gap: 10px; margin-top: 20px; }
 .opposition-follow-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Import dialogs are portalled to body, so their controls cannot depend on .buho-app. */
+.review-dialog.pilot-dialog { width: min(1000px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
+.review-dialog.proceeding-import-dialog { width: min(1240px, calc(100vw - 32px)); }
+.review-dialog.pilot-dialog > header h2:focus { outline: none; }
+.pilot-dialog .pilot-body { padding: 24px 28px; font-size: 15px; }
+.pilot-dialog .pilot-body > p { max-width: 85ch; color: #615569; }
+.pilot-dialog .import-file-picker { position: relative; display: flex; align-items: center; gap: 18px; margin: 24px 0 16px; padding: 24px; border: 2px dashed #cab6d8; border-radius: 12px; background: #fff; color: #302039; cursor: pointer; }
+.import-file-picker > input { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.import-file-picker:hover { border-color: #8553a6; background: #fcf8ff; }
+.import-file-picker:focus-within { outline: 3px solid #8553a6; outline-offset: 3px; }
+.import-file-icon { display: grid; place-items: center; flex: 0 0 56px; width: 56px; height: 56px; border-radius: 12px; color: #744391; background: #f1e9f8; }
+.import-file-copy { flex: 1; min-width: 0; }
+.import-file-copy strong { display: block; font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
+.import-file-copy small { display: block; margin-top: 5px; color: #75677d; font-size: 13px; }
+.import-file-button { flex-shrink: 0; padding: 11px 18px; border: 1px solid #70458b; border-radius: 8px; color: #fff; background: #70458b; font-size: 14px; font-weight: 700; }
+.import-file-picker.is-disabled { opacity: .6; cursor: wait; }
+.pilot-confirm, .proceeding-confirm { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid #e0d6e7; border-radius: 8px; background: #f5f0f8; font-size: 14px; line-height: 1.6; }
+.pilot-dialog input[type="checkbox"] { appearance: auto; flex: 0 0 18px; width: 18px; height: 18px; margin: 3px 0 0; accent-color: #79489b; cursor: pointer; }
+.pilot-dialog .pilot-template-link { display: inline-flex; align-items: center; min-height: 40px; margin-bottom: 12px; padding: 8px 14px; border: 1px solid #d4c5de; border-radius: 7px; color: #70428f; background: #fff; font-size: 14px; font-weight: 600; }
+.pilot-dialog .pilot-template-link:hover { background: #f2eaf8; }
+.pilot-dialog .pilot-body > [role="status"]:empty { display: none; }
+.pilot-dialog .pilot-body > [role="status"]:not(:empty) { margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: #f1eaf7; color: #553369; }
+.review-dialog.pilot-dialog > footer { min-height: 0; padding: 16px 28px; background: #fffdfa; color: #302039; }
+.review-dialog.pilot-dialog > footer button { border: 1px solid #d4c5de; background: #fff; color: #523164; font-size: 14px; }
+.review-dialog.pilot-dialog > footer .buho-primary { border-color: #35213f; background: #35213f; color: #fff; }
+.review-dialog.pilot-dialog > footer button:disabled { opacity: 1; color: #817886; background: #eee9f0; border-color: #e0d8e5; cursor: not-allowed; }
+.review-dialog.pilot-dialog :is(button, a, select, input[type="checkbox"]):focus-visible { outline: 3px solid #8553a6; outline-offset: 3px; }
+@media (max-width: 640px) {
+  .pilot-dialog .pilot-body { padding: 20px 16px; }
+  .pilot-dialog .import-file-picker { flex-wrap: wrap; padding: 18px; gap: 12px; }
+  .import-file-button { width: 100%; text-align: center; }
+  .review-dialog.pilot-dialog > footer { padding: 14px 16px; }
+  .review-dialog.pilot-dialog > footer button { flex: 1 1 auto; }
+}

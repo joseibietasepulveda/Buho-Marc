@@ -1,5 +1,7 @@
 # Decisiones vigentes de UX y operación · 24 de septiembre de 2026
 
+> Continuidad: [Corrección visual de tarjetas e importadores · 29/09/2026](UX_IMPORTACIONES_2026-09-29.md).
+
 Este documento consolida las decisiones de la conversación y las contrasta con el código actual. Prevalece sobre los textos históricos del 21 y 22 de septiembre cuando hay diferencias. No implica que se hayan repetido todas las pruebas de aquellas entregas.
 
 ## Vigilancia y revisiones desde el chat
