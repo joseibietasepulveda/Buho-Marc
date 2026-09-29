@@ -91,10 +91,11 @@ export function useRegistrationTasks() {
 
 export type RegistrationSelection = { id?: string; status?: RegistrationStatusId; view?: "cards" | "list" | "calendar" | "oppositions" };
 
-export function TrademarkRegistrationCanvas({ allowExamples = false, initialSelection = {}, members = [], currentUserId, oppositionCases = [], onOpenOpposition = () => {}, onAddOpposition, onImportProceedings, onViewChange }: { onImportProceedings?:()=>void; onViewChange?:(view:NonNullable<RegistrationSelection["view"]>)=>void; oppositionCases?: FollowedOppositionCase[]; onOpenOpposition?: (id:string)=>void; onAddOpposition?:()=>void; allowExamples?: boolean; initialSelection?: RegistrationSelection; members?: TaskMember[]; currentUserId?: string }) {
+export function TrademarkRegistrationCanvas({ allowExamples = false, initialSelection = {}, members = [], currentUserId, oppositionCases = [], onOpenOpposition = () => {}, onAddOpposition, onImportProceedings, onViewChange, activeView }: { activeView?: NonNullable<RegistrationSelection["view"]>; onImportProceedings?:()=>void; onViewChange?:(view:NonNullable<RegistrationSelection["view"]>)=>void; oppositionCases?: FollowedOppositionCase[]; onOpenOpposition?: (id:string)=>void; onAddOpposition?:()=>void; allowExamples?: boolean; initialSelection?: RegistrationSelection; members?: TaskMember[]; currentUserId?: string }) {
   const [importedApplications, refresh, loadState] = useRegistrationApplications();
   const [examples, setExamples] = useState(false);
-  const [viewMode, setViewMode] = useState<"cards" | "list" | "calendar" | "oppositions">(initialSelection.view ?? "cards");
+  const [localViewMode, setViewMode] = useState<"cards" | "list" | "calendar" | "oppositions">(initialSelection.view ?? "cards");
+  const viewMode = activeView ?? localViewMode;
   const { tasks, save } = useRegistrationTasks();
   const [taskEditor, setTaskEditor] = useState<{ task?: CaseTask; applicationId?: string; date?: string } | null>(null);
   const applications = examples ? PROCESS_SCENARIOS : importedApplications;

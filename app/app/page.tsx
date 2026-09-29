@@ -232,7 +232,7 @@ function BuhoWorkspace() {
       if (!NAV.some(item => item.id === section)) return;
       const requestedMode = new URLSearchParams(parameters).get("view");
       if (section === "cases" && requestedMode === "calendar") setCaseViewMode("calendar");
-      if (section === "registrations" && requestedMode === "calendar") setRegistrationSelection({ view: "calendar" });
+      if (section === "registrations" && requestedMode === "calendar") { setRegistrationSelection({ view: "calendar" }); setRegistrationMode("calendar"); }
       setView(section as View);
     };
     syncHash();
@@ -327,7 +327,7 @@ function BuhoWorkspace() {
         {view === "sourceAdmin" && <SourceAdmin />}
         {view === "brands" && <ReviewSource />}
         {view === "brands" && <BrandsView onFindings={brand => {navigate("matches");setWatchQuery(brand.applicationNumber || brand.name);}} brands={brands} filter={brandFilter} onFilter={setBrandFilter} onOpenBrand={(brand) => setSelectedBrand(brand.id)} onToggleMonitoring={toggleBrandMonitoring} query={query} filters={brandFilters} onFilters={setBrandFilters} onQuery={setQuery} />}
-        {view === "registrations" && <TrademarkRegistrationCanvas onViewChange={setRegistrationMode} onImportProceedings={()=>setProceedingImportOpen(true)} oppositionCases={cases} onOpenOpposition={setSelectedCase} onAddOpposition={()=>setOppositionOpen(true)} allowExamples={demo} key={JSON.stringify(registrationSelection)} initialSelection={registrationSelection} members={users} currentUserId={currentUserId} />}
+        {view === "registrations" && <TrademarkRegistrationCanvas activeView={registrationMode} onViewChange={setRegistrationMode} onImportProceedings={()=>setProceedingImportOpen(true)} oppositionCases={cases} onOpenOpposition={setSelectedCase} onAddOpposition={()=>setOppositionOpen(true)} allowExamples={demo} key={JSON.stringify(registrationSelection)} initialSelection={registrationSelection} members={users} currentUserId={currentUserId} />}
         {view === "matches" && real && <WatchPanel initialQuery={watchQuery} onRefresh={refreshPortfolio} onOpen={setSelectedMatch} onCases={() => navigate("cases")} />}{view === "matches" && !real && <MatchesView allMatches={matches} levels={levelFilters} matches={filteredMatches} statuses={statusFilters} onBulkReview={reviewMatches} onContact={(match) => setContactContext({ brand: match.brand, client: initialBrands.find((brand) => brand.id === match.brandId)?.owner ?? match.brand, reference: match.id })} onLevels={setLevelFilters} onMatchLevel={updateMatchLevel} onMatchStatus={(id, status) => reviewMatches([id], status)} onSelect={setSelectedMatch} onStatuses={setStatusFilters} />}
         {view === "cases" && <CasesView mode={caseViewMode} onMode={setCaseViewMode} users={users} currentUserId={currentUserId} onSaveTask={saveCaseTask} onDeleteTask={deleteCaseTask} cases={cases.map(item => ({ ...item, thirdParty: item.proceeding?.role === "respondent" ? undefined : item.proceeding?.record.name ?? matches.find(match => match.id === item.sourceMatch)?.found }))} onAdd={() => setCaseFormOpen(true)} onMove={moveCase} onSelect={setSelectedCase} />}
         {view === "tasks" && <TasksView cases={cases} users={users} currentUserId={currentUserId} onSaveCase={(id, task) => saveCaseTask(cases.find(item => item.id === id)!, task)} onDeleteCase={(id, task) => deleteCaseTask(cases.find(item => item.id === id)!, task)} onCase={setSelectedCase} onApplication={id => openRegistration({ id })} />}
