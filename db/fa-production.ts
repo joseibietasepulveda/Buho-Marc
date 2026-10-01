@@ -46,7 +46,7 @@ export async function repairFaPartyOrderNotices(sql: Sql, environmentId: string 
     await tx`SELECT pg_advisory_xact_lock(hashtext(${org.id}), 741028)`;
     const [run] = await tx`SELECT started_at, completed_at, changed, notifications FROM source_sync_runs WHERE id = ${runId} AND organization_id = ${org.id} AND status = 'success'`;
     if (!run?.completed_at) throw new Error("No se confirmó la corrida de incorporación FA");
-    const [done] = await tx`SELECT id FROM audit_events WHERE organization_id = ${org.id} AND action = 'source.fa_party_order_repaired_2026_10_01'`;
+    const [done] = await tx`SELECT id FROM audit_events WHERE organization_id = ${org.id} AND action = 'source.fa_party_order_repaired_v2_2026_10_01'`;
     if (done) return { applied: false, invalidated: 0, completedTasks: 0 };
     const rows = await tx`SELECT id, change_detail FROM notifications WHERE organization_id = ${org.id} AND change_detail->>'runId' = ${runId}`;
     const names = (value: unknown) => typeof value === 'string' ? value.split(';').map(s => s.trim()).sort().join(';') : null;
@@ -56,11 +56,13 @@ export async function repairFaPartyOrderNotices(sql: Sql, environmentId: string 
     for (const row of rows) {
       if (!row.change_detail.caseId) continue;
       const title = `Revisar nueva actuación de la solicitud con oposición ${row.change_detail.applicationNumber} (2026-10-01)`;
-      const tasks = await tx`UPDATE case_tasks t SET status = 'completed', completed_at = now(), updated_at = now() FROM cases c WHERE t.case_id = c.id AND t.organization_id = ${org.id} AND c.organization_id = ${org.id} AND c.public_code = ${row.change_detail.caseId} AND t.title = ${title} AND t.status = 'pending' AND t.created_at >= ${run.started_at} AND t.created_at <= ${run.completed_at} RETURNING t.id`;
+      // Compare timestamps inside PostgreSQL: JS Dates truncate microseconds,
+      // whereas tasks and completed_at share the same transaction timestamp.
+      const tasks = await tx`UPDATE case_tasks t SET status = 'completed', completed_at = now(), updated_at = now() FROM cases c, source_sync_runs sr WHERE t.case_id = c.id AND t.organization_id = ${org.id} AND c.organization_id = ${org.id} AND c.public_code = ${row.change_detail.caseId} AND t.title = ${title} AND t.status = 'pending' AND sr.id = ${runId} AND sr.organization_id = ${org.id} AND t.created_at >= sr.started_at AND t.created_at <= sr.completed_at RETURNING t.id`;
       completedTasks += tasks.length;
     }
     await tx`UPDATE source_sync_runs SET changed = 0, notifications = 0 WHERE id = ${runId} AND organization_id = ${org.id}`;
-    await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, before_data, after_data) VALUES (${org.id}, ${org.user_id}, 'source.fa_party_order_repaired_2026_10_01', 'organization', ${org.id}, ${tx.json({ runId, changed: run.changed, notifications: run.notifications })}, ${tx.json({ invalidated: rows.length, completedTasks, evidencePreserved: true })})`;
+    await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, before_data, after_data) VALUES (${org.id}, ${org.user_id}, 'source.fa_party_order_repaired_v2_2026_10_01', 'organization', ${org.id}, ${tx.json({ runId, changed: run.changed, notifications: run.notifications })}, ${tx.json({ invalidated: rows.length, completedTasks, evidencePreserved: true })})`;
     return { applied: true, invalidated: rows.length, completedTasks };
   });
 }
