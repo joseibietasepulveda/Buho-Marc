@@ -8,6 +8,7 @@ import { isPriorityNotice, isTitleIssued } from "@/lib/notification-policy";
 import { displayValue, statusLabel, type FieldChange } from "@/lib/source-contract";
 import type { RegistrationApplication } from "@/lib/registration-data";
 import { buildNotificationTimeline, conciseNoticeTitle, priorityNoticeSummary, type TimelineBrand } from "@/lib/notification-timeline";
+import { notificationPage } from "@/lib/notification-page";
 
 type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { applicationNumber?: string; caseId?: string; changes: FieldChange[]; source?: string; summary: string } };
 const emptyApplications: RegistrationApplication[] = [];
@@ -15,27 +16,35 @@ const emptyBrands: TimelineBrand[] = [];
 export function NotificationCenter({ notices, applications = emptyApplications, brands = emptyBrands, onManage, onOpenMatch, onOpenCase }: { notices: Notice[]; applications?: RegistrationApplication[]; brands?: TimelineBrand[]; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
   const [tab, setTab] = useState<"priority" | "all">("priority");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   const selected = notices.find(notice => notice.id === selectedId);
   const priorities = notices.filter(isPriorityNotice);
   const visible = tab === "priority" ? priorities : notices;
+  const paginated = notificationPage(visible, page);
   return <section className="notification-center">
-    <div className="notice-tabs" role="group" aria-label="Bandejas de notificaciones"><button type="button" aria-pressed={tab === "priority"} onClick={() => setTab("priority")}>Prioritarias <span>{priorities.length}</span></button><button type="button" aria-pressed={tab === "all"} onClick={() => setTab("all")}>Todas <span>{notices.length}</span></button></div>
+    <div className="notice-tabs" role="group" aria-label="Bandejas de notificaciones"><button type="button" aria-pressed={tab === "priority"} onClick={() => { setTab("priority"); setPage(0); }}>Prioritarias <span>{priorities.length}</span></button><button type="button" aria-pressed={tab === "all"} onClick={() => { setTab("all"); setPage(0); }}>Todas <span>{notices.length}</span></button></div>
     <p className="notice-intro">{tab === "priority" ? "Presentación, resoluciones, pagos, publicaciones, vencimientos y título de marca. Lo que necesitas para avanzar cada gestión." : "Historial completo de notificaciones, incluidos cambios de titular, representante y otros antecedentes."}</p>
-    {tab === "priority" ? <div className="priority-notice-list">{priorities.map(notice => {
+    {visible.length > 50 && <NoticePagination {...paginated} onPage={setPage} />}
+    {tab === "priority" ? <div className="priority-notice-list">{paginated.items.map(notice => {
       const display = noticePresentation(notice, notice.deadline);
       return <button type="button" key={notice.id} className={`priority-notice-row ${notice.status === "Pendiente" ? "is-unread" : ""}`} onClick={() => setSelectedId(notice.id)} aria-haspopup="dialog">
         <i className="notice-unread-dot" aria-hidden /><span className="priority-notice-copy"><small>Aviso · {notice.date} · {notice.brand}</small><strong>{display.kind === "deadline" ? conciseNoticeTitle(display.title, notice.brand) : priorityNoticeSummary(notice)}</strong><span>{display.kind === "deadline" ? `${display.label} · ` : ""}{notice.status === "Pendiente" ? "Pendiente de revisión" : "Revisada"}</span></span><span className="priority-notice-source">{noticeSource(notice)}</span><span className="priority-notice-open">Ver historia <span aria-hidden>→</span></span>
       </button>;
-    })}</div> : <div className="notice-accordion">{visible.map(notice => { const display = noticePresentation(notice, notice.deadline); return <details key={notice.id} className={notice.status === "Pendiente" ? "is-unread" : ""}>
+    })}</div> : <div className="notice-accordion">{paginated.items.map(notice => { const display = noticePresentation(notice, notice.deadline); return <details key={notice.id} className={notice.status === "Pendiente" ? "is-unread" : ""}>
       <summary><i className="notice-unread-dot" aria-hidden /><span><small>{notice.date} · {notice.brand}</small><strong>{legalText(display.title)}</strong>{display.kind === "deadline" && <small>{display.label}</small>}<small>{notice.status === "Pendiente" ? "Pendiente de revisión" : "Gestionada"}</small></span><b>{isTitleIssued(notice.title) ? "Título disponible" : notice.changeDetail?.changes.some(change => change.field === "publicationDate") || /Diario Oficial/i.test(notice.title) ? "Diario Oficial" : notice.changeDetail ? "INAPI" : "Seguimiento"}</b><span className="notice-chevron" aria-hidden>⌄</span></summary>
       <div className="notice-details">{isTitleIssued(notice.title) && <p className="notice-title-issued">El título de marca figura emitido. Revisa el documento para completar la entrega al cliente.</p>}
         {notice.changeDetail ? <><p>{legalText(notice.changeDetail.summary.split("\n\nAntecedentes detectados:")[0])}</p><div className="notice-change-list">{notice.changeDetail.changes.map((change, index) => <details key={`${change.field}-${index}`}><summary>{legalText(change.label)}<span aria-hidden>⌄</span></summary><dl><div><dt>Antes</dt><dd>{change.field === "status" ? statusLabel(String(change.before)) : displayValue(change.before)}</dd></div><div><dt>Ahora</dt><dd>{change.field === "status" ? statusLabel(String(change.after)) : displayValue(change.after)}</dd></div></dl></details>)}</div></> : <><p className="notice-body">{legalText(notice.body)}</p>{display.kind === "deadline" && <p>El texto original corresponde a la fecha del aviso. Confirma el vencimiento en el expediente; las referencias como “en 5 días” no son una cuenta regresiva actualizada.</p>}</>}
         <footer>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => onOpenCase(notice.changeDetail!.caseId!)}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => onOpenMatch(notice.matchId!)}>Ver vigilancia →</button>}<button type="button" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
       </div>
     </details>; })}</div>}
+    {visible.length > 50 && <NoticePagination {...paginated} onPage={setPage} />}
     {!visible.length && <div className="notice-empty"><h3>{tab === "priority" ? "No hay novedades prioritarias" : "Todavía no hay notificaciones"}</h3><p>Los nuevos hitos aparecerán aquí cuando se detecten en tus expedientes.</p>{tab === "priority" && notices.length > 0 && <button type="button" onClick={() => setTab("all")}>Ver todas las notificaciones</button>}</div>}
     {selected && <PriorityNoticeDrawer key={selected.id} notice={selected} notices={notices} applications={applications} brands={brands} onClose={() => setSelectedId(null)} onManage={onManage} onOpenMatch={onOpenMatch} onOpenCase={onOpenCase} />}
   </section>;
+}
+
+function NoticePagination({ page, pages, total, from, to, onPage }: { page: number; pages: number; total: number; from: number; to: number; onPage: (page: number) => void }) {
+  return <div className="notice-pagination" role="group" aria-label="Paginación de notificaciones"><span>{from}–{to} de {total} avisos · página {page + 1} de {pages}</span><div><button type="button" disabled={page === 0} onClick={() => onPage(page - 1)}>Anterior</button><button type="button" disabled={page + 1 >= pages} onClick={() => onPage(page + 1)}>Siguiente</button></div></div>;
 }
 
 function noticeSource(notice: Notice) {
