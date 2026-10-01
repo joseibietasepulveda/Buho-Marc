@@ -9,10 +9,11 @@ Solicitud del 1 de octubre de 2026. Entrega autorizada **primero en Dev**, sin p
 - Se reconocen una sola vez las notificaciones existentes en este espacio. Se conservan los avisos y se registra la operación en auditoría. Una nueva notificación permanece pendiente: reiniciar el servicio no vuelve a marcarla automáticamente.
 - Las diez comparaciones de las capturas tienen prioridad en **Coincidencias destacadas** y en la vista previa del resumen. La configuración solo se aplica a este tenant. Las selecciones respetan búsquedas, fechas y decisiones de revisión, pero pueden incluir marcas registradas o índices inferiores al umbral general porque son ejemplos elegidos expresamente para esta cuenta de prueba.
 - Se conservan los porcentajes del motor, estados, clases e historiales. Las estimaciones humanas de las capturas no sustituyen automáticamente los índices del motor. Fuera de esta selección, siguen vigentes los filtros normales de vigilancia.
+- La Brioche se añade como **Ejemplo de prueba**, con evidencia pública consultada el 29 de septiembre de 2026 y un índice original de 75,23%. No se copia la cartera de Daniel ni se añade a Mis marcas, solicitudes propias o consultas automáticas. El ejemplo conserva imágenes, coberturas e historial público; no crea avisos retroactivos y respeta las decisiones posteriores de revisión.
 
 Comparaciones, en el orden solicitado:
 
-1. Club Del Mal Amor (1659715) → Chaparrita del amor (1683639) y Titanes del amor (1699486).
+1. Club Del Mal Amor (1659715) → Chaparrita del amor (1683639) y Titanes del amor (1689486).
 2. La Brioche Bakery Café (1638707) → LA BRIOCHE DOREE (997604).
 3. Maison Dubai Niche (1644808) → M MAISON NICHE (1397032).
 4. Bosques del Norte por un Mundo Sustentable (1675838) → bosquesdelnorte por un mundo sustentable (1245326).

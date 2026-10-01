@@ -1,7 +1,7 @@
 import { getSql } from "../db/index";
 import { hashPassword } from "../lib/password";
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from "../lib/tenant-context";
-import { provisionFaWorkspace, prepareIbietaPresentation, featuredPilotAvailability } from "../db/fa-pilot";
+import { provisionFaWorkspace, prepareIbietaPresentation, featuredPilotAvailability, provisionPublicBriocheExample } from "../db/fa-pilot";
 
 const password = process.env.DANIEL_INITIAL_PASSWORD;
 const sql = getSql();
@@ -50,6 +50,7 @@ try {
     const fa = await provisionFaWorkspace(sql, process.env.FA_INITIAL_PASSWORD);
     console.log(fa.created ? "FA Abogados: espacio vacío creado." : "FA Abogados: cuenta existente conservada.");
     console.log("Presentación de Ibieta:", JSON.stringify(await prepareIbietaPresentation(sql)));
+    console.log("Ejemplo público La Brioche:", JSON.stringify(await provisionPublicBriocheExample(sql)));
     console.log("Coincidencias destacadas disponibles:", JSON.stringify(await featuredPilotAvailability(sql)));
   }
 } finally { await sql.end(); }

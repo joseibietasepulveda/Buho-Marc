@@ -9,7 +9,7 @@ import EmbeddedPostgres from 'embedded-postgres';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import { provisionFaWorkspace, prepareIbietaPresentation } from '../db/fa-pilot.ts';
+import { provisionFaWorkspace, prepareIbietaPresentation, provisionPublicBriocheExample } from '../db/fa-pilot.ts';
 import { verifyPassword } from '../lib/password.ts';
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from '../lib/tenant-context.ts';
 
@@ -37,6 +37,17 @@ test('pilot provisioning and one-off notification acknowledgment are isolated an
     assert.ok((await sql`SELECT managed_at FROM notifications WHERE public_code='OLD'`)[0].managed_at);
     assert.equal((await sql`SELECT managed_at FROM notifications WHERE public_code='OTHER'`)[0].managed_at,null);
     await notice(DEMO_ORGANIZATION,'NEW');assert.deepEqual(await prepareIbietaPresentation(sql),{applied:false,reviewed:0});
+    assert.equal((await sql`SELECT managed_at FROM notifications WHERE public_code='NEW'`)[0].managed_at,null);
+    assert.deepEqual(await provisionPublicBriocheExample(sql), { created: true });
+    const [example] = await sql`SELECT b.monitoring_config, m.evidence, m.id FROM matches m JOIN brands b ON b.id=m.brand_id WHERE m.public_code='CO-EX-BRIOCHE-997604' AND m.organization_id=${DEMO_ORGANIZATION}`;
+    assert.equal(example.monitoring_config.presentationExample,true);
+    assert.equal(example.monitoring_config.monitoringEnabled,false);
+    assert.equal(example.evidence.hit.score,0.7523);
+    assert.equal(example.evidence.hit.history.length,19);
+    assert.equal((await sql`SELECT count(*)::int AS n FROM source_snapshots WHERE organization_id=${DEMO_ORGANIZATION}`)[0].n,0);
+    await sql`UPDATE matches SET review_status='Descartada' WHERE id=${example.id}`;
+    assert.deepEqual(await provisionPublicBriocheExample(sql), { created: false });
+    assert.equal((await sql`SELECT review_status FROM matches WHERE id=${example.id}`)[0].review_status,'Descartada');
     assert.equal((await sql`SELECT managed_at FROM notifications WHERE public_code='NEW'`)[0].managed_at,null);
     assert.equal((await sql`SELECT count(*)::int AS n FROM brands WHERE organization_id=${fa.organizationId}`)[0].n,0);
   } finally {if(sql)await sql.end();await pg.stop();}

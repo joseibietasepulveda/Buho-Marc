@@ -184,7 +184,7 @@ export async function getDemoSnapshot() {
     demo: isDemoOrganization(),
     currentUserId: actorId(),
     provider: isRealSource() ? "inapi" : "simulated",
-    brands: brandRows.map((row) => {
+    brands: brandRows.filter(row => row.monitoring_config?.presentationExample !== true).map((row) => {
       const config = (row.monitoring_config ?? {}) as Partial<ReturnType<typeof demoBrandDetails>> & { provider?: string; rut?: string; inapiUrl?: string; visual?: string; type?: string; registrationState?: string; legalStatus?: string; logo?: string };
       const source = config.provider === "inapi" ? projectedSources.get(row.id) : undefined;
       const legalStatus = source?.status ?? config.legalStatus ?? "registered";

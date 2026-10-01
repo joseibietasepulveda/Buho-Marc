@@ -3,7 +3,7 @@ import type { SimilarityHit } from './similarity-contract';
 export type WatchLevel = 'Alta' | 'Media' | 'Baja';
 export type WatchStatus = 'Pendiente de clasificación' | 'En seguimiento' | 'Convertida en caso' | 'Descartada';
 export type WatchHit = SimilarityHit & { level?: WatchLevel | 'Sin clasificar'; featuredRank?: number };
-export type WatchTarget = { id: string; name: string; applicationId: string; image: string; ownStatus: string; classes?: number[]; type?: string; paused: boolean; status: string; error?: string; reviewedAt: string | null; nextReviewAt: string | null; warnings: string[]; results: WatchHit[]; savedResults?: WatchHit[] };
+export type WatchTarget = { id: string; name: string; applicationId: string; image: string; ownStatus: string; classes?: number[]; type?: string; presentationExample?: boolean; paused: boolean; status: string; error?: string; reviewedAt: string | null; nextReviewAt: string | null; warnings: string[]; results: WatchHit[]; savedResults?: WatchHit[] };
 export const watchStatuses: WatchStatus[] = ['Pendiente de clasificación', 'En seguimiento', 'Convertida en caso', 'Descartada'];
 export const reviewStatus = (hit: WatchHit): WatchStatus => !hit.reviewStatus || hit.reviewStatus === 'Detectada' ? 'Pendiente de clasificación' : hit.reviewStatus as WatchStatus;
 const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();

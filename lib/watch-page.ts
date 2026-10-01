@@ -26,12 +26,13 @@ export function watchPage(snapshot: WatchSnapshot, params: URLSearchParams) {
   }));
   const followState = params.get("followState") || "all";
   const filteredFollowed = followed.map(row => ({ ...row, hits: row.hits.filter(hit => followState === "all" || hit.reviewStatus === followState) })).filter(row => row.hits.length);
+  const ownTargets = snapshot.targets.filter(t => !t.presentationExample);
   return {
     configured: snapshot.configured, automaticEnabled: snapshot.automaticEnabled, settings: snapshot.settings,
-    reviewTargets: snapshot.targets.map(t => ({ id: t.id, name: t.name, paused: t.paused })),
-    total: snapshot.targets.length, reviewed: snapshot.targets.filter(t => t.reviewedAt).length,
-    pending: snapshot.targets.filter(t => ["queued", "running", "retry"].includes(t.status) && !t.paused).length,
-    reviewedAt: snapshot.targets.reduce<string | null>((latest, t) => t.reviewedAt && (!latest || t.reviewedAt > latest) ? t.reviewedAt : latest, null),
+    reviewTargets: ownTargets.map(t => ({ id: t.id, name: t.name, paused: t.paused })),
+    total: ownTargets.length, reviewed: ownTargets.filter(t => t.reviewedAt).length,
+    pending: ownTargets.filter(t => ["queued", "running", "retry"].includes(t.status) && !t.paused).length,
+    reviewedAt: ownTargets.reduce<string | null>((latest, t) => t.reviewedAt && (!latest || t.reviewedAt > latest) ? t.reviewedAt : latest, null),
     scope, relevance, count: groupCount(newGroups), baselineCount: groupCount(baselineGroups),
     followedCount: followed.reduce((n, r) => n + r.hits.length, 0),
     groups: groups.map(g => ({ level: g.level, totalGroups: g.rows.length, rows: pageRows(g.rows, g.level) })),

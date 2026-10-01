@@ -97,7 +97,7 @@ export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Pr
   </section>;
 }
 function FindingGroup({target,hits,total,onMore,busy,following,action,review,onOpen,onCases}:{target:WatchTarget;hits:WatchHit[];total:number;onMore:()=>void;busy:string;following?:boolean;action:(input:Record<string,unknown>)=>Promise<void>;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:()=>void}) {
-  return <section className="watch-family"><header><SimilarityImage src={target.image} name={target.name}/><div><h3>{target.name}</h3><p>Tu marca · Solicitud {target.applicationId} · {target.ownStatus}</p></div><span>{total} {total === 1 ? 'coincidencia' : 'coincidencias'}</span></header><div className="watch-children">{hits.map(hit => <SimilarityCard key={hit.applicationId} hit={hit} onDetails={() => onOpen(hit.matchId!)}>
+  return <section className="watch-family"><header><SimilarityImage src={target.image} name={target.name}/><div><h3>{target.name}</h3><p>{target.presentationExample ? 'Ejemplo de prueba' : 'Tu marca'} · Solicitud {target.applicationId} · {target.ownStatus}</p></div><span>{total} {total === 1 ? 'coincidencia' : 'coincidencias'}</span></header><div className="watch-children">{hits.map(hit => <SimilarityCard key={hit.applicationId} hit={hit} onDetails={() => onOpen(hit.matchId!)}>
     <span className="watch-publication">{discoveryLabels[hit.discoveryKind ?? "baseline"]}</span>
     {hit.commercialRelevance === "unknown" && <span className="watch-publication">Relación de productos o servicios por confirmar</span>}
     {hit.commercialRelevance === "unrelated" && <span className="watch-publication">Sin relación comercial identificada</span>}

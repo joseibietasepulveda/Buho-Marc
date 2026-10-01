@@ -51,7 +51,7 @@ export async function queueWatch(brandCode?: string, now = new Date(), manual = 
   return sql.begin(async tx => {
     await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 908101)`;
     const targets = await tx`SELECT b.*, (SELECT completed_at FROM monitoring_jobs j WHERE j.brand_id = b.id AND j.status = 'success' ORDER BY completed_at DESC LIMIT 1) AS last_success, (SELECT (request->>'limit')::int FROM monitoring_jobs j WHERE j.brand_id = b.id AND j.status = 'success' ORDER BY completed_at DESC LIMIT 1) AS last_limit FROM brands b
-      WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.status <> 'Pausada' AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config->>'monitoringEnabled' = 'true' AND (${brandCode ?? null}::text IS NULL OR b.public_code = ${brandCode ?? null})`;
+      WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.status <> 'Pausada' AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config->>'monitoringEnabled' = 'true' AND COALESCE(b.monitoring_config->>'presentationExample', 'false') <> 'true' AND (${brandCode ?? null}::text IS NULL OR b.public_code = ${brandCode ?? null})`;
     let queued = 0;
     for (const target of targets) {
       const last = target.last_success ? new Date(target.last_success) : null;
@@ -217,6 +217,7 @@ export async function watchSnapshot(compact = false) {
     configured: similarityConfigured(), automaticEnabled,
     targets: targets.map(t => ({
       id: t.public_code, name: t.name, applicationId: t.monitoring_config.applicationNumber,
+      presentationExample: t.monitoring_config.presentationExample === true,
       image: t.query_image || t.monitoring_config.logo || "",
       ownStatus: t.monitoring_config.sourceStatus || t.monitoring_config.registrationState,
       classes: t.query_classes?.map((c: { nice_class:number })=>c.nice_class) ?? [], type: t.monitoring_config.type,
