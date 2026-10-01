@@ -4,7 +4,8 @@ import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { createHash, randomUUID } from "node:crypto";
 import type { TransactionSql } from "postgres";
 import { getSql } from "./index";
-import { organizationId, actorId } from "../lib/tenant-context";
+import { organizationId, actorId, isDemoOrganization } from "../lib/tenant-context";
+import { featuredWatchRank } from "../lib/featured-watch";
 import { realBrandConfig } from "./inapi-portfolio";
 import { fetchInapiEvidence, InapiHttpError } from "../lib/inapi-provider";
 import { searchSimilar, similarityConfigured, SimilarityError, withRecord } from "../lib/similarity-provider";
@@ -198,9 +199,11 @@ export async function watchSnapshot(compact = false) {
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) s ON true
     WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled' ORDER BY b.name`;
   const matches = await sql`SELECT public_code, brand_id, evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
+  const ownApplications = new Map(targets.map(t => [t.id, String(t.monitoring_config.applicationNumber)]));
   const present = (m: typeof matches[number]) => {
     const hit = applyVerifiedDecision(m.evidence.hit as SimilarityHit);
     return { ...hit, history: [], classes: compact ? hit.classes.map(c => ({ nice_class: c.nice_class })) : hit.classes,
+      featuredRank: isDemoOrganization() ? featuredWatchRank(ownApplications.get(m.brand_id) ?? "", hit.applicationId) : undefined,
       discoveryKind: m.evidence.discoveryKind ?? 'baseline', commercialRelevance: commercialRelevance(m.evidence.query?.classes ?? [], hit.classes),
       watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at };
   };

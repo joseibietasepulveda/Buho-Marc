@@ -1,6 +1,8 @@
 import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { watchSnapshot } from "./similarity";
-import { discoveryGroups } from "../lib/watch-list";
+import { discoveryGroups, featuredGroups } from "../lib/watch-list";
+import { discoveryLevel } from "../lib/watch-policy";
+import { workspacePolicy } from "../lib/workspace-policy";
 import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { auditAction, auditEntity } from "../lib/legal-language";
 import { organizationId, actorId, isDemoOrganization, currentIdentity } from "../lib/tenant-context";
@@ -162,9 +164,13 @@ export async function getDemoSnapshot() {
 
   const watch = await watchSnapshot(true);
   const brandIds = new Map(brandRows.map(b => [b.public_code, String(b.id)]));
-  const eligibleFindings = discoveryGroups(watch.targets, '', watch.settings).flatMap(group => group.rows.flatMap(({ target, hits }) => hits.map(hit => ({
+  const regularFindings = discoveryGroups(watch.targets, '', watch.settings).flatMap(group => group.rows.flatMap(({ target, hits }) => hits.map(hit => ({
     brand_id: brandIds.get(target.id) ?? '', brand: target.name, id: hit.matchId!, hit, level: group.level,
   })))).sort((a,b) => b.hit.score - a.hit.score);
+  const highlightedFindings = featuredGroups(watch.targets, '').flatMap(({ target, hits }) => hits.map(hit => ({
+    brand_id: brandIds.get(target.id) ?? '', brand: target.name, id: hit.matchId!, hit, level: discoveryLevel(hit, watch.settings) ?? 'Baja',
+  })));
+  const eligibleFindings = [...highlightedFindings, ...regularFindings];
   const visibleFindingCounts = new Map<string,number>();
   for (const row of eligibleFindings) visibleFindingCounts.set(row.brand_id,(visibleFindingCounts.get(row.brand_id)??0)+1);
   const watchSummary = {targets:brandRows.filter(row=>row.status!=="Pausada" && row.monitoring_config?.monitoringEnabled).length,detected:eligibleFindings.length};
@@ -174,6 +180,7 @@ export async function getDemoSnapshot() {
     watchSummary: { ...watchSummary, preview: watchPreview, updatedAt: watchReview?.updated_at ?? null, automaticEnabled: await automaticMonitoringEnabled() },
     audit: auditRows.map(row => ({ id: row.id, date: shortDate(row.occurred_at, true), actor: row.name ?? "Sistema", action: auditAction(row.action, row.after_data), detail: [row.entity_name || auditEntity(row.entity_type), row.after_data?.applicationNumber ? `Solicitud ${row.after_data.applicationNumber}` : "", row.after_data?.stage || "", row.action === "watch.settings_changed" ? `Alta desde ${row.after_data?.high}; media desde ${row.after_data?.medium}` : "", row.after_data?.clientName ? `Cliente: ${row.after_data.clientName}` : ""].filter(Boolean).join(" · ") })),
     organizationName: currentIdentity()?.organizationName ?? "Estudio Ibieta IP",
+    workspacePolicy: workspacePolicy(currentIdentity()?.organizationSlug),
     demo: isDemoOrganization(),
     currentUserId: actorId(),
     provider: isRealSource() ? "inapi" : "simulated",

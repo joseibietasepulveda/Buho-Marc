@@ -587,6 +587,11 @@ button, a { -webkit-tap-highlight-color:transparent; }
   scrollbar-width:none;
 }
 .buho-sidebar nav::-webkit-scrollbar { display:none; }
+.buho-sidebar .buho-session-actions { display:grid; gap:8px; flex-shrink:0; margin-top:14px; padding:14px 0 0; border-top:1px solid rgba(255,255,255,.14); }
+.buho-sidebar .buho-session-actions a,.buho-sidebar .buho-session-actions button { display:flex; align-items:center; justify-content:center; min-height:40px; padding:9px 12px; border:1px solid rgba(221,192,245,.32); border-radius:9px; background:rgba(255,255,255,.06); color:#f5eff8; font-size:13px; font-weight:600; text-decoration:none; cursor:pointer; }
+.buho-sidebar .buho-session-actions a:hover,.buho-sidebar .buho-session-actions button:hover { background:rgba(255,255,255,.13); border-color:#c796f5; }
+.buho-sidebar .buho-session-actions a:focus-visible,.buho-sidebar .buho-session-actions button:focus-visible { outline:2px solid #c796f5; outline-offset:3px; }
+@media(max-width:620px) { .buho-sidebar .buho-session-actions { display:flex; margin:0 0 0 8px; padding:0; border:0; }.buho-sidebar .buho-session-actions a,.buho-sidebar .buho-session-actions button { min-height:36px; padding:6px 8px; font-size:10px; } }
 .buho-sidebar .buho-wordmark,
 .buho-sidebar .buho-profile,
 .buho-sidebar .buho-plan { flex-shrink:0; }

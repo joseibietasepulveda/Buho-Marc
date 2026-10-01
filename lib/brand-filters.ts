@@ -8,6 +8,19 @@ export const brandStateLabel = (brand: FilterableBrand) => brand.legalStatus ? s
 export const brandClassNumbers = (brand: FilterableBrand) => (brand.classes.match(/\d+/g) ?? []).map(Number);
 const fold = (value: string) => value.trim().replace(/\s+/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
+type PortfolioBrand = FilterableBrand & { logo?: string; matches: number };
+const known = (value?: string) => !!value?.trim() && !/^(sin |no informado|no disponible|pendiente|por confirmar|—|-|otra$)/i.test(value.trim());
+/** Missing table data goes last. No logo is expected for a word-only mark. */
+export function missingBrandFields(brand: PortfolioBrand): number {
+  const required = [brand.name, brand.owner, brand.rut, brand.applicationNumber, brand.type, brand.classes, brandStateLabel(brand)];
+  if (brand.legalStatus === "registered" || (!brand.legalStatus && /registrad/i.test(brand.registrationState))) required.push(brand.registration);
+  if (brand.type !== "Denominativa") required.push(brand.logo);
+  return required.filter(value => !known(value)).length;
+}
+export function comparePortfolioBrands(a: PortfolioBrand, b: PortfolioBrand): number {
+  return missingBrandFields(a) - missingBrandFields(b) || b.matches - a.matches || a.name.localeCompare(b.name, "es");
+}
+
 /** Portfolio filtering is partial; the separate source-lookup flow stays exact. */
 export function containsBrandMatch(brand: SearchableBrand, field: BrandSearchField, query: string): boolean {
   const search = fold(query);

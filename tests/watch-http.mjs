@@ -18,6 +18,7 @@ import { getSql } from '../db/index.ts';
 import { runAs } from '../lib/tenant-context.ts';
 import { importRealRecord } from '../db/inapi-portfolio.ts';
 import { normalizeInapi } from '../lib/inapi-provider.ts';
+import { provisionFaWorkspace } from '../db/fa-pilot.ts';
 async function port(){const s=createServer();s.listen(0,'127.0.0.1');await once(s,'listening');const p=s.address().port;await new Promise(r=>s.close(r));return p;}
 const dbPort=await port(), appPort=Number(process.env.WATCH_QA_PORT || await port()), base=`http://127.0.0.1:${appPort}`;
 const directory=await mkdtemp(path.join(tmpdir(),'buho-watch-http-'));
@@ -54,6 +55,21 @@ try{
  for(let i=0;i<80;i++){try{if((await http('/api/health')).status===200)break;}catch{}await new Promise(r=>setTimeout(r,250));}
  assert.equal((await http('/api/watch')).status,401);
  const login=await http('/api/auth/login',{body:{username:'qa_vigilancia',password:'vigilancia-local-1'}});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];
+ const fa=await provisionFaWorkspace(sql,'fa-isolated-test-password');
+ const faLogin=await http('/api/auth/login',{body:{username:'FA_abogados',password:'fa-isolated-test-password'}});assert.equal(faLogin.status,200);assert.equal(faLogin.body.redirect,'/app');
+ const faCookie=faLogin.headers.get('set-cookie').split(';')[0];
+ const faSnapshot=(await http('/api/demo',{cookie:faCookie})).body.data;
+ assert.equal(faSnapshot.organizationName,'FA Abogados');assert.equal(faSnapshot.brands.length,0);assert.equal(faSnapshot.matches.length,0);assert.equal(faSnapshot.cases.length,0);assert.equal(faSnapshot.notices.length,0);
+ assert.deepEqual(faSnapshot.workspacePolicy,{sourceAdmin:false,about:false,changePassword:false});
+ assert.equal((await http('/api/registrations',{cookie:faCookie})).body.applications.length,0);
+ assert.equal((await http('/api/watch',{cookie:faCookie})).body.total,0);
+ assert.equal((await http('/api/source/admin',{cookie:faCookie})).status,403);
+ assert.equal((await http('/api/source/admin',{cookie:faCookie,body:{action:'advance'}})).status,403);
+ assert.equal((await http('/api/auth/password',{cookie:faCookie,body:{currentPassword:'fa-isolated-test-password',password:'another-isolated-password'}})).status,403);
+ const passwordPage=await fetch(base+'/cambiar-clave',{headers:{cookie:faCookie},redirect:'manual'});assert.equal(passwordPage.status,307);assert.equal(passwordPage.headers.get('location'),'/app');
+ assert.equal((await http('/api/demo',{cookie})).body.data.workspacePolicy.sourceAdmin,true);
+ assert.equal((await provisionFaWorkspace(sql,'do-not-overwrite-existing-password')).created,false);
+ console.log('PASS: FA login is case-insensitive; empty isolated workspace; source/password capabilities enforced; existing credentials preserved.');
  assert.equal((await http('/api/watch',{cookie,body:{action:'review'},origin:'https://untrusted.test'})).status,403);
  assert.equal((await http('/api/watch/worker',{body:{}})).status,403);
  for(const id of Object.keys(fixture.searches)){void id;const work=await http('/api/watch/worker',{body:{},authorization:'Bearer isolated-watch-cron'});assert.equal(work.status,200);assert.equal(work.body.completed,true,JSON.stringify(work.body));}

@@ -38,5 +38,5 @@ async function handlePOST(request: Request) {
   } catch (error) { return sourceError(error); }
 }
 
-export const GET = withSession(request => conditionalSnapshot(request, "source", handleGET));
-export const POST = withSession(handlePOST);
+export const GET = withSession(request => conditionalSnapshot(request, "source", handleGET), { capability: "sourceAdmin" });
+export const POST = withSession(handlePOST, { capability: "sourceAdmin" });

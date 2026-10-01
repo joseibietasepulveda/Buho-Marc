@@ -9,9 +9,10 @@ import { matchesPublication, discoveryGroups, followedGroups } from '../lib/watc
 import { applyVerifiedDecision } from '../lib/verified-decisions.ts';
 import { reportRecommendation } from '../lib/feasibility-recommendation.ts';
 const hit=(extra={})=>({ applicationId:'123',name:'Marca',status:'En Trámite',statusCode:'P',registrationId:null,type:'Mixta',image:'',holders:[],classes:[],filedAt:null,publishedAt:null,registeredAt:null,score:.75,channels:{name:{rank:1}},history:[],...extra });
-test('watch feature flags show granted marks and hide final states while allowing each visibility flag to change',()=>{
+test('watch feature flags hide registered and final states while allowing each visibility flag to change',()=>{
  for(const state of ['Caducada','Vencida','Denegada','Rechazada definitivamente']) assert.equal(hiddenDiscoveryState(state),true,state);
- assert.equal(hiddenDiscoveryState('Registrada'),false);
+ assert.equal(hiddenDiscoveryState('Registrada'),true);
+ assert.equal(hiddenDiscoveryState('Registrada',{showRegistered:true,showLapsed:false,showExpired:false}),false);
  assert.equal(hiddenDiscoveryState('Concedida · pendiente de registro',{showRegistered:false,showLapsed:false,showExpired:false}),true);
  assert.equal(hiddenDiscoveryState('Caducada',{showRegistered:false,showLapsed:true,showExpired:false}),false);
  assert.equal(hiddenDiscoveryState('Vencida',{showRegistered:false,showLapsed:false,showExpired:true}),false);

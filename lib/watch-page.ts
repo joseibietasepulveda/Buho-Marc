@@ -1,4 +1,4 @@
-import { discoveryGroups, followedGroups, DEFAULT_PUBLICATION_FILTER, type PublicationFilter, type WatchTarget } from "./watch-list";
+import { discoveryGroups, featuredGroups, followedGroups, DEFAULT_PUBLICATION_FILTER, type PublicationFilter, type WatchTarget } from "./watch-list";
 import { watchSettingsSchema, type WatchSettings } from "./watch-policy";
 
 export type WatchSnapshot = { configured: boolean; automaticEnabled: boolean; settings: WatchSettings; targets: WatchTarget[] };
@@ -16,6 +16,7 @@ export function watchPage(snapshot: WatchSnapshot, params: URLSearchParams) {
   const newGroups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication, 'new', relevance);
   const baselineGroups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication, 'baseline', relevance);
   const groups = scope === 'baseline' ? baselineGroups : newGroups;
+  const featured = featuredGroups(snapshot.targets, params.get("q") || "", publication);
   const groupCount = (groups: typeof newGroups) => groups.reduce((n, g) => n + g.rows.reduce((m, r) => m + r.hits.length, 0), 0);
   const followed = followedGroups(snapshot.targets, params.get("q") || "", publication);
   const pageRows = (rows: typeof followed, band: string) => rows.slice(0, groupLimit).map(row => ({
@@ -34,6 +35,7 @@ export function watchPage(snapshot: WatchSnapshot, params: URLSearchParams) {
     scope, relevance, count: groupCount(newGroups), baselineCount: groupCount(baselineGroups),
     followedCount: followed.reduce((n, r) => n + r.hits.length, 0),
     groups: groups.map(g => ({ level: g.level, totalGroups: g.rows.length, rows: pageRows(g.rows, g.level) })),
+    featured: featured.map(row => ({ ...row, total: row.hits.length, target: { ...row.target, results: [], savedResults: [] } })),
     followed: pageRows(filteredFollowed, "follow"), followedTotalGroups: filteredFollowed.length,
   };
 }

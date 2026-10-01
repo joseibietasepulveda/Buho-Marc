@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-export type Identity = { organizationId: string; userId: string; name: string; organizationName: string; role: string; mustChangePassword: boolean };
+export type Identity = { organizationId: string; organizationSlug?: string; userId: string; name: string; organizationName: string; role: string; mustChangePassword: boolean };
 export const DEMO_ORGANIZATION = "10000000-0000-4000-8000-000000000001";
 export const DEMO_ACTOR = "10000000-0000-4000-8000-000000000101";
 const context = new AsyncLocalStorage<Identity>();

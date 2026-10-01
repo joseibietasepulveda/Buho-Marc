@@ -2,7 +2,7 @@ import { discoveryLevel, discoveryOrder, hiddenDiscoveryState, registeredState, 
 import type { SimilarityHit } from './similarity-contract';
 export type WatchLevel = 'Alta' | 'Media' | 'Baja';
 export type WatchStatus = 'Pendiente de clasificación' | 'En seguimiento' | 'Convertida en caso' | 'Descartada';
-export type WatchHit = SimilarityHit & { level?: WatchLevel | 'Sin clasificar' };
+export type WatchHit = SimilarityHit & { level?: WatchLevel | 'Sin clasificar'; featuredRank?: number };
 export type WatchTarget = { id: string; name: string; applicationId: string; image: string; ownStatus: string; classes?: number[]; type?: string; paused: boolean; status: string; error?: string; reviewedAt: string | null; nextReviewAt: string | null; warnings: string[]; results: WatchHit[]; savedResults?: WatchHit[] };
 export const watchStatuses: WatchStatus[] = ['Pendiente de clasificación', 'En seguimiento', 'Convertida en caso', 'Descartada'];
 export const reviewStatus = (hit: WatchHit): WatchStatus => !hit.reviewStatus || hit.reviewStatus === 'Detectada' ? 'Pendiente de clasificación' : hit.reviewStatus as WatchStatus;
@@ -36,9 +36,16 @@ export function matchesPublication(hit: Pick<SimilarityHit, 'publishedAt'>, filt
   return (!filter.from || !!day && day >= filter.from) && (!filter.to || !!day && day <= filter.to);
 }
 export type DiscoveryScope = 'new' | 'baseline';
+export function featuredGroups(targets: WatchTarget[], query: string, publication = DEFAULT_PUBLICATION_FILTER) {
+  return filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
+    const visible = hits.filter(hit => hit.featuredRank !== undefined && matchesPublication(hit, publication))
+      .sort((a, b) => a.featuredRank! - b.featuredRank!);
+    return visible.length ? [{ target, hits: visible }] : [];
+  }).sort((a, b) => a.hits[0].featuredRank! - b.hits[0].featuredRank!);
+}
 export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings, publication = DEFAULT_PUBLICATION_FILTER, scope: DiscoveryScope = 'new', relevance: 'related' | 'all' = 'related') {
   return (['Alta', 'Media'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
-    const visible = hits.filter(hit => (scope === 'baseline' || !target.paused) &&
+    const visible = hits.filter(hit => hit.featuredRank === undefined && (scope === 'baseline' || !target.paused) &&
       ((hit.discoveryKind ?? 'baseline') === 'baseline') === (scope === 'baseline') &&
       (relevance === 'all' || hit.commercialRelevance !== 'unrelated') &&
       !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);

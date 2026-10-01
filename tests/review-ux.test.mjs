@@ -19,7 +19,7 @@ test('terminal wording and recorded abandonment cannot be mislabeled as pending,
 test('brands and hits rank by the strongest evidence, while followed terminal marks remain available',()=>{
   const a={id:'a',name:'A',results:[hit('1',{score:.7}),hit('2',{score:.9})]};
   const b={id:'b',name:'B',results:[hit('3',{score:.95})]};
-  const group=discoveryGroups([a,b],'',{high:.65,medium:.45})[0];
+  const group=discoveryGroups([a,b],'',{high:.65,medium:.45},undefined,'baseline')[0];
   assert.deepEqual(group.rows.map(row=>row.target.id),['b','a']);
   assert.deepEqual(group.rows[1].hits.map(hit=>hit.applicationId),['2','1']);
   assert.equal(followedGroups([{...a,results:[hit('1',{status:'Rechazada definitivamente',reviewStatus:'En seguimiento'})]}],'').length,1);

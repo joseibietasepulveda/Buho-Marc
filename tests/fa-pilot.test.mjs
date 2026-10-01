@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { once } from 'node:events';
+import { createServer } from 'node:net';
+import EmbeddedPostgres from 'embedded-postgres';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { provisionFaWorkspace, prepareIbietaPresentation } from '../db/fa-pilot.ts';
+import { verifyPassword } from '../lib/password.ts';
+import { DEMO_ACTOR, DEMO_ORGANIZATION } from '../lib/tenant-context.ts';
+
+test('pilot provisioning and one-off notification acknowledgment are isolated and idempotent', async () => {
+  const listener=createServer().listen(0,'127.0.0.1');await once(listener,'listening');const port=listener.address().port;await new Promise(r=>listener.close(r));
+  const directory=await mkdtemp(path.join(tmpdir(),'buho-fa-pilot-'));
+  const pg=new EmbeddedPostgres({databaseDir:path.join(directory,'pg'),user:'postgres',password:'isolated',port,persistent:false,initdbFlags:['--locale=C','--encoding=UTF8'],postgresFlags:['-h','127.0.0.1'],onLog(){},onError(){}});
+  let sql;
+  try {
+    await pg.initialise();await pg.start();await pg.createDatabase('pilot');
+    const url=`postgresql://postgres:isolated@127.0.0.1:${port}/pilot`;
+    const migration=postgres(url,{max:1,onnotice(){}});await migrate(drizzle(migration),{migrationsFolder:'drizzle'});await migration.end();
+    sql=postgres(url,{max:1,prepare:false,onnotice(){}});
+    await sql`INSERT INTO organizations(id,name,slug) VALUES (${DEMO_ORGANIZATION},'Estudio Ibieta IP','estudio-ibieta-ip')`;
+    await sql`INSERT INTO users(id,name,initials) VALUES (${DEMO_ACTOR},'Ibieta','JI')`;
+    await sql`INSERT INTO organization_members(organization_id,user_id,role) VALUES (${DEMO_ORGANIZATION},${DEMO_ACTOR},'admin')`;
+    const fa=await provisionFaWorkspace(sql,'isolated-initial-password');assert.equal(fa.created,true);
+    const [u]=await sql`SELECT password_hash,must_change_password FROM users WHERE id=${fa.userId}`;
+    assert.equal(await verifyPassword('isolated-initial-password',u.password_hash),true);assert.equal(u.must_change_password,false);
+    assert.equal((await provisionFaWorkspace(sql,'different-password-to-preserve')).created,false);
+    assert.equal((await sql`SELECT password_hash FROM users WHERE id=${fa.userId}`)[0].password_hash,u.password_hash);
+    const notice=async(org,code)=>sql`INSERT INTO notifications(organization_id,public_code,entity_type,entity_id,type,title,brand_name,urgency) VALUES (${org},${code},'organization',${org},'test','Aviso de prueba','Marca','Media')`;
+    await notice(DEMO_ORGANIZATION,'OLD');await notice(fa.organizationId,'OTHER');
+    assert.deepEqual(await prepareIbietaPresentation(sql),{applied:true,reviewed:1});
+    assert.ok((await sql`SELECT managed_at FROM notifications WHERE public_code='OLD'`)[0].managed_at);
+    assert.equal((await sql`SELECT managed_at FROM notifications WHERE public_code='OTHER'`)[0].managed_at,null);
+    await notice(DEMO_ORGANIZATION,'NEW');assert.deepEqual(await prepareIbietaPresentation(sql),{applied:false,reviewed:0});
+    assert.equal((await sql`SELECT managed_at FROM notifications WHERE public_code='NEW'`)[0].managed_at,null);
+    assert.equal((await sql`SELECT count(*)::int AS n FROM brands WHERE organization_id=${fa.organizationId}`)[0].n,0);
+  } finally {if(sql)await sql.end();await pg.stop();}
+});

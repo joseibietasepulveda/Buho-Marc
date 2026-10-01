@@ -1,6 +1,7 @@
 import { getSql } from "../db/index";
 import { hashPassword } from "../lib/password";
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from "../lib/tenant-context";
+import { provisionFaWorkspace, prepareIbietaPresentation, featuredPilotAvailability } from "../db/fa-pilot";
 
 const password = process.env.DANIEL_INITIAL_PASSWORD;
 const sql = getSql();
@@ -42,5 +43,13 @@ try {
       return true;
     });
     console.log(activated ? "Acceso Buho_Marc habilitado al espacio anterior; cartera y asignaciones conservadas." : "El acceso Buho_Marc ya existe; se conserva su clave vigente.");
+  }
+  // Explicitly requested for Dev only. Never copy the pilot account or acknowledgment to production.
+  if (process.env.FA_INITIAL_PASSWORD) {
+    if (process.env.RAILWAY_ENVIRONMENT_ID !== "9e2891f0-7281-4872-a992-2c48866a782d") throw new Error("La preparación de FA Abogados está autorizada únicamente en Dev");
+    const fa = await provisionFaWorkspace(sql, process.env.FA_INITIAL_PASSWORD);
+    console.log(fa.created ? "FA Abogados: espacio vacío creado." : "FA Abogados: cuenta existente conservada.");
+    console.log("Presentación de Ibieta:", JSON.stringify(await prepareIbietaPresentation(sql)));
+    console.log("Coincidencias destacadas disponibles:", JSON.stringify(await featuredPilotAvailability(sql)));
   }
 } finally { await sql.end(); }

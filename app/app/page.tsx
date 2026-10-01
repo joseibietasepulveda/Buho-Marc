@@ -41,7 +41,8 @@ import { chileToday, parseWorkDate, workDeadline, displayWorkDate, noticePresent
 import { latestActivityFirst, activityContent } from "@/lib/registration-activity";
 import { SourceAdmin, ReviewSource, ChangeTable, EnrollInapi } from "./source-admin";
 import { statusLabel, type FieldChange } from "@/lib/source-contract";
-import { EMPTY_BRAND_FILTERS, matchesBrandFilters, brandStateLabel, brandClassNumbers, type BrandFilterValues } from "@/lib/brand-filters";
+import { EMPTY_BRAND_FILTERS, matchesBrandFilters, comparePortfolioBrands, brandStateLabel, brandClassNumbers, type BrandFilterValues } from "@/lib/brand-filters";
+import { DEFAULT_WORKSPACE_POLICY, type WorkspacePolicy } from "@/lib/workspace-policy";
 import { TrademarkRegistrationCanvas, RegistrationProvider, useRegistrationTasks, useRegistrationApplications, type RegistrationSelection } from "./registrations";
 import { APP_VERSION, RELEASE_INCLUDED, RELEASE_UPCOMING } from "@/lib/release-notes";
 import { LegalAgenda } from "./legal-agenda";
@@ -69,7 +70,7 @@ type Match = { evidence?: { hit: SimilarityHit; query: SimilarityMark; fetchedAt
 type LegalCase = { history?: string[]; proceeding?: OppositionProceeding; thirdParty?: string; tasks?: CaseTask[]; id: string; title: string; brand: string; client: string; stage: CaseStage; priority: MatchLevel; deadline: string; deadlineDescription: string; owner: string; sourceMatch?: string };
 type DemoUser = { id: string; name: string; email: string; createdAt: string; initials: string };
 type Notice = { changeDetail?: { applicationNumber?: string; caseId?: string; source?: string; changes: FieldChange[]; summary: string; runId: string }; id: string; title: string; brand: string; urgency: MatchLevel; status: "Pendiente" | "Gestionada"; date: string; subject: string; body: string; matchId?: string };
-type DemoSnapshot = { watchSummary?: WatchSummary; organizationName?: string; demo?: boolean; audit?: AuditEntry[]; currentUserId?: string; provider?: string; brands: Brand[]; matches: Match[]; cases: LegalCase[]; users: DemoUser[]; notices: Notice[] };
+type DemoSnapshot = { workspacePolicy?: WorkspacePolicy; watchSummary?: WatchSummary; organizationName?: string; demo?: boolean; audit?: AuditEntry[]; currentUserId?: string; provider?: string; brands: Brand[]; matches: Match[]; cases: LegalCase[]; users: DemoUser[]; notices: Notice[] };
 type RutCandidate = { name: string; registration: string; classes: string; visual: string; inapiUrl: string; description: string };
 type AuditEntry = { id: string; date: string; actor: string; action: string; detail: string };
 type ContactContext = { brand: string; client: string; reference: string };
@@ -211,6 +212,7 @@ function BuhoWorkspace() {
   const { tasks: registrationTasks } = useRegistrationTasks();
   const [real, setReal] = useState(false);
   const [organizationName, setOrganizationName] = useState("");
+  const [policy, setPolicy] = useState<WorkspacePolicy | null>(null);
   const [watchSummary, setWatchSummary] = useState<WatchSummary | undefined>();
   const [demo, setDemo] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -260,7 +262,10 @@ function BuhoWorkspace() {
   const pendingPriorityNotices = notices.filter(notice => notice.status === "Pendiente" && isPriorityNotice(notice)).length;
   const monitoredCount = brands.filter((brand) => brand.status === "En monitoreo").length;
   const filteredMatches = useMemo(() => matches.filter((match) => (!levelFilters.length || levelFilters.some(level => level === match.level)) && (!statusFilters.length || statusFilters.includes(match.status))).sort((a, b) => b.score - a.score), [levelFilters, matches, statusFilters]);
-  function applySnapshot(snapshot: DemoSnapshot) { setWatchSummary(snapshot.watchSummary); setOrganizationName(snapshot.organizationName ?? "Mi espacio"); setDemo(snapshot.demo ?? false); setAudit(snapshot.audit ?? []); setCurrentUserId(snapshot.currentUserId); setReal(snapshot.provider === "inapi"); setBrands(snapshot.brands.map(normalizeBrand)); setMatches(snapshot.matches.map(normalizeMatch)); setCases(normalizeCases(snapshot.cases)); setUsers(snapshot.users); setNotices(snapshot.demo ? enrichedNotices(snapshot.notices) : snapshot.notices); }
+  function applySnapshot(snapshot: DemoSnapshot) { setPolicy(snapshot.workspacePolicy ?? DEFAULT_WORKSPACE_POLICY); setWatchSummary(snapshot.watchSummary); setOrganizationName(snapshot.organizationName ?? "Mi espacio"); setDemo(snapshot.demo ?? false); setAudit(snapshot.audit ?? []); setCurrentUserId(snapshot.currentUserId); setReal(snapshot.provider === "inapi"); setBrands(snapshot.brands.map(normalizeBrand)); setMatches(snapshot.matches.map(normalizeMatch)); setCases(normalizeCases(snapshot.cases)); setUsers(snapshot.users); setNotices(snapshot.demo && snapshot.provider !== "inapi" ? enrichedNotices(snapshot.notices) : snapshot.notices); }
+  useEffect(() => {
+    if (policy && ((view === "sourceAdmin" && !policy.sourceAdmin) || (view === "about" && !policy.about))) navigate("dashboard");
+  }, [policy, view]);
   const currentUser = users.find(user => user.id === currentUserId);
   const allAgendaEvents = [...caseAgenda(cases), ...registrationAgenda(registrationApplications, registrationTasks)];
   async function refreshPortfolio() {
@@ -314,9 +319,10 @@ function BuhoWorkspace() {
     {importOpen && <PortfolioImport onClose={() => setImportOpen(false)} onSaved={refreshPortfolio} />}{proceedingImportOpen && <ProceedingImport onClose={() => setProceedingImportOpen(false)} onSaved={refreshPortfolio}/>} {oppositionOpen && <OppositionForm ownRecords={[...brands, ...registrationApplications]} onClose={() => setOppositionOpen(false)} onSaved={refreshPortfolio} />}{enrollOpen && <EnrollInapi onClose={() => setEnrollOpen(false)} onSaved={async () => { const r = await fetch("/api/demo", { cache: "no-store" }); if (!r.ok) throw new Error("No se pudo actualizar la cartera"); applySnapshot((await r.json()).data); window.dispatchEvent(new Event("buho-source-reviewed")); }} />}
     <aside className="buho-sidebar">
       <div aria-label="Buho Marc" className="buho-wordmark">BUHO MARC<small>v{APP_VERSION}</small></div>
-      <button className="buho-profile" type="button"><span>{currentUser?.initials ?? "—"}</span><div><strong>{currentUser?.name ?? "Usuario de la sesión"}</strong><small>{organizationName}</small></div></button><div className="buho-session-actions"><a href="/cambiar-clave">Cambiar clave</a><button type="button" onClick={async () => { const r = await fetch("/api/auth/logout", { method: "POST" }); if (r.ok) window.location.assign("/ingresar"); else setToast("No se pudo cerrar sesión. Reintenta."); }}>Salir</button></div>
-      <nav aria-label="Navegación de la aplicación">{NAV.map((item, index) => <div className="buho-nav-group" key={item.id}><button className={view === item.id ? "is-active" : ""} onClick={() => { if (item.id !== "matches") { setLevelFilters([]); setStatusFilters([]); } navigate(item.id); }} type="button"><span>{String(index + 1).padStart(2, "0")}</span>{item.label}{item.id === "notifications" && pendingPriorityNotices > 0 && <b>{pendingPriorityNotices}</b>}</button></div>)}</nav>
+      <button className="buho-profile" type="button"><span>{currentUser?.initials ?? "—"}</span><div><strong>{currentUser?.name ?? "Usuario de la sesión"}</strong><small>{organizationName}</small></div></button>
+      <nav aria-label="Navegación de la aplicación">{NAV.filter(item => item.id === "sourceAdmin" ? policy?.sourceAdmin : item.id === "about" ? policy?.about : true).map((item, index) => <div className="buho-nav-group" key={item.id}><button className={view === item.id ? "is-active" : ""} onClick={() => { if (item.id !== "matches") { setLevelFilters([]); setStatusFilters([]); } navigate(item.id); }} type="button"><span>{String(index + 1).padStart(2, "0")}</span>{item.label}{item.id === "notifications" && pendingPriorityNotices > 0 && <b>{pendingPriorityNotices}</b>}</button></div>)}</nav>
       {FEATURE_FLAGS.brandLimits && <div className="buho-plan"><span>PLAN ESTUDIO</span><strong>{monitoredCount} de 25 marcas</strong><i><b style={{ width: `${Math.min(100, monitoredCount / 25 * 100)}%` }} /></i><small>{Math.max(0, 25 - monitoredCount)} espacios disponibles</small><a href="https://buho-marc.vercel.app/#pricing">Ver pricing</a></div>}
+      <div className="buho-session-actions" aria-label="Sesión">{policy?.changePassword && <a href="/cambiar-clave">Cambiar clave</a>}<button type="button" onClick={async () => { const r = await fetch("/api/auth/logout", { method: "POST" }); if (r.ok) window.location.assign("/ingresar"); else setToast("No se pudo cerrar sesión. Reintenta."); }}>Salir</button></div>
     </aside>
     <section className="buho-workspace"><DeadlineAlerts events={allAgendaEvents} loading={registrationLoad.loading} error={registrationLoad.error} onOpen={event => event.entityType === "case" ? setSelectedCase(event.entityId) : openRegistration({ id: event.entityId })} />
       <div className={`buho-workspace-content${view === "dashboard" || view === "registrationsSummary" ? "" : " is-compact"}`}>
@@ -324,7 +330,7 @@ function BuhoWorkspace() {
         {view === "dashboard" && <Dashboard watchSummary={real ? watchSummary : undefined} users={users} brands={brands} cases={cases} matches={matches} notices={notices} onCase={setSelectedCase} onNotice={setSelectedNotice} onMatch={setSelectedMatch} onNavigate={navigate} onOpenCalendar={openCaseCalendar} />}
         {view === "registrationsSummary" && <RegistrationsSummary onNavigate={navigate} onRegistration={openRegistration} />}
         {view === "feasibility" && <FeasibilityReview />}
-        {view === "sourceAdmin" && <SourceAdmin />}
+        {view === "sourceAdmin" && policy?.sourceAdmin && <SourceAdmin />}
         {view === "brands" && <ReviewSource />}
         {view === "brands" && <BrandsView onFindings={brand => {navigate("matches");setWatchQuery(brand.applicationNumber || brand.name);}} brands={brands} filter={brandFilter} onFilter={setBrandFilter} onOpenBrand={(brand) => setSelectedBrand(brand.id)} onToggleMonitoring={toggleBrandMonitoring} query={query} filters={brandFilters} onFilters={setBrandFilters} onQuery={setQuery} />}
         {view === "registrations" && <TrademarkRegistrationCanvas activeView={registrationMode} onViewChange={setRegistrationMode} onImportProceedings={()=>setProceedingImportOpen(true)} oppositionCases={cases} onOpenOpposition={setSelectedCase} onAddOpposition={()=>setOppositionOpen(true)} allowExamples={demo} key={JSON.stringify(registrationSelection)} initialSelection={registrationSelection} members={users} currentUserId={currentUserId} />}
@@ -335,7 +341,7 @@ function BuhoWorkspace() {
         {view === "users" && <UsersView users={users} onAdd={() => setUserFormOpen(true)} />}
         {view === "clients" && <ClientsView />}
         {view === "audit" && <AuditView entries={audit} />}
-        {view === "about" && <AboutVersionView />}
+        {view === "about" && policy?.about && <AboutVersionView />}
       </div>
     </section>
     {brandFormOpen && <BrandSearch real={real} tracked={brands} onAddMock={addMockCandidate} onRefresh={refreshPortfolio} onClose={() => setBrandFormOpen(false)} />}{rutDrawerOpen && <RutBrandsDrawer brands={brands} onAdd={addRutBrands} onClose={() => setRutDrawerOpen(false)} />}{caseFormOpen && <CaseForm brands={brands} users={users} onClose={() => setCaseFormOpen(false)} onSubmit={addCase} />}{matchFormOpen && <MatchForm brands={brands.filter((brand) => brand.status === "En monitoreo")} onClose={() => setMatchFormOpen(false)} onSubmit={addManualMatch} />}{userFormOpen && <UserForm onClose={() => setUserFormOpen(false)} onSubmit={addUser} />}{selectedBrandData && <BrandDrawer brand={selectedBrandData} onClose={() => setSelectedBrand(null)} />}{selectedCaseData && <CaseDrawer onOpenApplication={id => { setSelectedCase(null); openRegistration({ id }); }} currentUserId={currentUserId} onDeleteTask={task => deleteCaseTask(selectedCaseData, task)} key={selectedCaseData.id} onSaveTask={(task) => saveCaseTask(selectedCaseData, task)} item={selectedCaseData} onChangeOwner={(owner) => changeCaseOwner(selectedCaseData, owner)} onClose={() => setSelectedCase(null)} onContact={() => setContactContext({ brand: selectedCaseData.brand, client: selectedCaseData.client, reference: selectedCaseData.id })} onDiscard={() => void discardCase(selectedCaseData)} onMove={(stage) => moveCase(selectedCaseData, stage)} onOpenMatch={(id) => setSelectedMatch(id)} users={users} />}{selectedMatchData && <MatchDrawer busy={reviewBusy} match={selectedMatchData} onClose={() => setSelectedMatch(null)} onContact={() => setContactContext({ brand: selectedMatchData.brand, client: initialBrands.find((brand) => brand.id === selectedMatchData.brandId)?.owner ?? selectedMatchData.brand, reference: selectedMatchData.id })} onReview={reviewMatch} />}{selectedNoticeData && <NoticeDrawer cases={cases} notice={selectedNoticeData} onChange={(patch) => updateNotice(selectedNoticeData.id, patch)} onClose={() => setSelectedNotice(null)} onCopy={copyText} />}{contactContext && <ContactDrawer match={matches.find(match => match.id === contactContext.reference || match.id === cases.find(item => item.id === contactContext.reference)?.sourceMatch) ?? (remoteMatch?.id === contactContext.reference ? remoteMatch : undefined)} brands={brands} lawyer={currentUser?.name ?? ""} context={contactContext} onClose={() => setContactContext(null)} onCopy={copyText} />}{toast && <div className="buho-toast" role="status"><span />{toast}</div>}
@@ -437,7 +443,7 @@ function ScrollableTable({ children, width = 1100 }: { children: ReactNode; widt
 function BrandsView({ onFindings, brands, filter, onFilter, onOpenBrand, onToggleMonitoring, query, filters, onFilters, onQuery }: { brands: Brand[]; filter: string; onFilter: (filter: string) => void; onOpenBrand: (brand: Brand) => void; onToggleMonitoring: (brand: Brand) => void; onFindings: (brand: Brand) => void; query: string; filters: BrandFilterValues; onFilters: (value: BrandFilterValues) => void; onQuery: (value: string) => void }) {
   const [statusMenu, setStatusMenu] = useState<string | null>(null);
   const matching = brands.filter(brand => matchesBrandFilters(brand, filters, query));
-  const visible = [...matching.filter(brand => filter === "Todas" || brand.status === filter)].sort((a, b) => b.matches - a.matches || a.name.localeCompare(b.name, "es"));
+  const visible = [...matching.filter(brand => filter === "Todas" || brand.status === filter)].sort(comparePortfolioBrands);
   const monitored = brands.filter((item) => item.status === "En monitoreo").length;
 
   const matchingMonitored = matching.filter(brand => brand.status === "En monitoreo").length;
