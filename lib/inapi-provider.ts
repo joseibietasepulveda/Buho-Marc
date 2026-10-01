@@ -175,14 +175,18 @@ function normalizeDocument(input: unknown, evidenceOnly: boolean): SourceRecord 
   for (const key of ["application_id", "registration_number", "name", "source", "dates"]) delete extra[key];
   const extraDates = Object.fromEntries(Object.entries(d.dates).filter(([k]) => !["filed_at", "published_at", "registered_at", "expires_at", "last_changed_at"].includes(k)));
   if (Object.keys(extraDates).length) extra.dates = extraDates;
+  // Saved evidence is canonicalized; use that same ordering in projections so
+  // importing and rereading identical parties cannot manufacture a change.
+  const holders = canonical(d.holders) as typeof d.holders;
+  const representatives = canonical(d.representatives) as typeof d.representatives;
   const parties = (p: typeof d.holders) => (p.map(h => h.name).join("; ") || "No informado").slice(0,180);
-  const rut = d.holders[0]?.rut ? `${d.holders[0].rut}${d.holders[0].dv ? `-${d.holders[0].dv}` : ""}` : "";
+  const rut = holders[0]?.rut ? `${holders[0].rut}${holders[0].dv ? `-${holders[0].dv}` : ""}` : "";
   return (evidenceOnly ? evidenceRecordSchema : sourceRecordSchema).parse({
     provider: "inapi", inapi: canonical(extra), applicationNumber: String(d.application_id), registrationNumber: d.registration_number ? String(d.registration_number) : null,
     name: (d.name?.trim() || "Marca figurativa sin denominación").slice(0,180), status,
     type: ["Denominativa", "Figurativa", "Mixta"].includes(d.trademark.sign_type ?? "") ? d.trademark.sign_type : "Otra",
     filingDate: day(d.dates.filed_at), publicationDate, expirationDate: day(d.dates.expires_at), registrationDate: registeredAt, statusDate,
-    owner: parties(d.holders), ownerRut: rut, ownerCountry: country(d.holders[0]?.country), representativeName: parties(d.representatives), representativeCountry: country(d.representatives[0]?.country),
+    owner: parties(holders), ownerRut: rut, ownerCountry: country(holders[0]?.country), representativeName: parties(representatives), representativeCountry: country(representatives[0]?.country),
     classes: d.classes.map(c => c.nice_class), logo: ["Mixta", "Figurativa"].includes(d.trademark.sign_type ?? "") ? `/api/inapi/logo/${d.application_id}` : "",
     officialUrl: `https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx`,
   });

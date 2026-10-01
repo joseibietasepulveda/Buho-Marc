@@ -12,7 +12,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { provisionFaWorkspace, prepareIbietaPresentation, provisionPublicBriocheExample } from '../db/fa-pilot.ts';
 import { verifyPassword } from '../lib/password.ts';
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from '../lib/tenant-context.ts';
-import { prepareFaProduction, FA_PRODUCTION_ENVIRONMENT } from '../db/fa-production.ts';
+import { prepareFaProduction, repairFaPartyOrderNotices, FA_PRODUCTION_ENVIRONMENT } from '../db/fa-production.ts';
 
 test('pilot provisioning and one-off notification acknowledgment are isolated and idempotent', async () => {
   const listener=createServer().listen(0,'127.0.0.1');await once(listener,'listening');const port=listener.address().port;await new Promise(r=>listener.close(r));
@@ -60,6 +60,22 @@ test('pilot provisioning and one-off notification acknowledgment are isolated an
     assert.deepEqual(await prepareFaProduction(sql,'different-password-to-preserve',FA_PRODUCTION_ENVIRONMENT),{applied:false,created:false});
     assert.equal(await verifyPassword('eleven-char',(await sql`SELECT password_hash FROM users WHERE id=${fa.userId}`)[0].password_hash),true);
     // A fresh production database exercises creation without copying another tenant.
+    const runId='6b4aacaa-bb3d-431d-8a24-69cbd8820710';
+    await sql`INSERT INTO source_sync_runs(id,organization_id,trigger,status,started_at,completed_at,changed,notifications,request) VALUES (${runId},${fa.organizationId},'scheduled','success',now()-interval '1 hour',now(),89,89,'{}')`;
+    const [opposition]=await sql`INSERT INTO cases(organization_id,public_code,client_name,title) VALUES (${fa.organizationId},'OR-TEST','Sin asignar','Oposición recibida') RETURNING id`;
+    await sql`INSERT INTO case_tasks(organization_id,case_id,title,created_at) VALUES (${fa.organizationId},${opposition.id},'Revisar nueva actuación de la solicitud con oposición 1234567 (2026-10-01)',now()-interval '30 minutes'),(${fa.organizationId},${opposition.id},'Revisar caso inicial',now()-interval '30 minutes')`;
+    for(let i=0;i<89;i++) await sql`INSERT INTO notifications(organization_id,public_code,entity_type,entity_id,type,title,brand_name,change_detail) VALUES (${fa.organizationId},${'ORDER-'+i},'organization',${fa.organizationId},'source','Aviso por orden','Marca',${sql.json({runId,applicationNumber:'1234567',...(i===0?{caseId:'OR-TEST'}:{}),changes:[{field:'representativeName',before:'Flores Acevedo; José Miguel Flores',after:'José Miguel Flores; Flores Acevedo'}]})})`;
+    await assert.rejects(repairFaPartyOrderNotices(sql,'dev',runId),/corrida FA/);
+    await sql`UPDATE notifications SET change_detail=jsonb_set(change_detail,'{changes,0,after}','"Otro representante"') WHERE public_code='ORDER-88'`;
+    await assert.rejects(repairFaPartyOrderNotices(sql,FA_PRODUCTION_ENVIRONMENT,runId),/diferencias distintas/);
+    assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE change_detail->>'invalidated'='true'`)[0].n,0);
+    await sql`UPDATE notifications SET change_detail=jsonb_set(change_detail,'{changes,0,after}','"José Miguel Flores; Flores Acevedo"') WHERE public_code='ORDER-88'`;
+    assert.deepEqual(await repairFaPartyOrderNotices(sql,FA_PRODUCTION_ENVIRONMENT,runId),{applied:true,invalidated:89,completedTasks:1});
+    assert.equal((await sql`SELECT count(*)::int AS n FROM notifications WHERE organization_id=${fa.organizationId} AND change_detail->>'invalidated'='true'`)[0].n,89);
+    assert.equal((await sql`SELECT status FROM case_tasks WHERE title='Revisar caso inicial'`)[0].status,'pending');
+    assert.ok((await sql`SELECT completed_at FROM case_tasks WHERE status='completed'`)[0].completed_at);
+    assert.equal((await sql`SELECT managed_at FROM notifications WHERE public_code='NEW'`)[0].managed_at,null);
+    assert.deepEqual(await repairFaPartyOrderNotices(sql,FA_PRODUCTION_ENVIRONMENT,runId),{applied:false,invalidated:0,completedTasks:0});
     await pg.createDatabase('fresh_production');
     const freshUrl=`postgresql://postgres:isolated@127.0.0.1:${port}/fresh_production`;
     const freshMigration=postgres(freshUrl,{max:1,onnotice(){}});

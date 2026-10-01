@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeInapi, fetchInapi } from "../lib/inapi-provider.ts";
+import { normalizeInapi, fetchInapi, reprojectInapiRecord } from "../lib/inapi-provider.ts";
 import { compareRecords, describeChanges } from "../lib/source-contract.ts";
 
 function doc(id=1663533) {
@@ -28,6 +28,17 @@ test("scrape timestamps and array reordering do not send false notices; coverage
 test("initial expiry completion is recorded without a notification",()=>{
   const d=doc(),before=normalizeInapi(d);d.dates.expires_at="2036-09-01T00:00:00.000Z";
   const changes=compareRecords(before,normalizeInapi(d));assert.equal(changes.length,1);assert.equal(changes[0].ancillary,true);
+});
+test("party ordering is stable between live records and saved evidence, including primary identity",()=>{
+  const d=doc();
+  d.holders.push({name:'Another holder',rut:'12345678',dv:'9',country:'US'});
+  d.representatives=[{name:'José Miguel Flores',rut:'10964517',dv:'6',country:'US'},{name:'Flores Acevedo Abogados',rut:'76229620',dv:'9',country:'CL'}];
+  const before=normalizeInapi(d);
+  assert.deepEqual(compareRecords(reprojectInapiRecord(before),before),[]);
+  d.holders.reverse(); d.representatives.reverse();
+  assert.deepEqual(compareRecords(before,normalizeInapi(d)),[]);
+  d.representatives[0].name='Different representative';
+  assert.ok(compareRecords(before,normalizeInapi(d)).some(c=>c.field==='representativeName'));
 });
 test("a JSONB round trip reorders keys without creating changes or notifications",()=>{
   const reorder = value => Array.isArray(value) ? value.map(reorder) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).reverse().map(([k,v])=>[k,reorder(v)])) : value;

@@ -2,7 +2,7 @@ import { getSql } from "../db/index";
 import { hashPassword } from "../lib/password";
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from "../lib/tenant-context";
 import { provisionFaWorkspace, prepareIbietaPresentation, featuredPilotAvailability, provisionPublicBriocheExample } from "../db/fa-pilot";
-import { prepareFaProduction } from "../db/fa-production";
+import { prepareFaProduction, repairFaPartyOrderNotices } from "../db/fa-production";
 
 const password = process.env.DANIEL_INITIAL_PASSWORD;
 const sql = getSql();
@@ -58,5 +58,8 @@ try {
   // the operator variable survives a restart; remove it after verification.
   if (process.env.FA_PRODUCTION_PASSWORD) {
     console.log("Preparación FA production:", JSON.stringify(await prepareFaProduction(sql, process.env.FA_PRODUCTION_PASSWORD, process.env.RAILWAY_ENVIRONMENT_ID)));
+  }
+  if (process.env.FA_REPAIR_PARTY_ORDER_RUN) {
+    console.log("Reparación FA de avisos por orden:", JSON.stringify(await repairFaPartyOrderNotices(sql, process.env.RAILWAY_ENVIRONMENT_ID, process.env.FA_REPAIR_PARTY_ORDER_RUN)));
   }
 } finally { await sql.end(); }
