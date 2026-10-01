@@ -12,6 +12,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { provisionFaWorkspace, prepareIbietaPresentation, provisionPublicBriocheExample } from '../db/fa-pilot.ts';
 import { verifyPassword } from '../lib/password.ts';
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from '../lib/tenant-context.ts';
+import { prepareFaProduction, FA_PRODUCTION_ENVIRONMENT } from '../db/fa-production.ts';
 
 test('pilot provisioning and one-off notification acknowledgment are isolated and idempotent', async () => {
   const listener=createServer().listen(0,'127.0.0.1');await once(listener,'listening');const port=listener.address().port;await new Promise(r=>listener.close(r));
@@ -50,5 +51,30 @@ test('pilot provisioning and one-off notification acknowledgment are isolated an
     assert.equal((await sql`SELECT review_status FROM matches WHERE id=${example.id}`)[0].review_status,'Descartada');
     assert.equal((await sql`SELECT managed_at FROM notifications WHERE public_code='NEW'`)[0].managed_at,null);
     assert.equal((await sql`SELECT count(*)::int AS n FROM brands WHERE organization_id=${fa.organizationId}`)[0].n,0);
+    await sql`INSERT INTO auth_sessions(token_hash,user_id,organization_id,expires_at) VALUES ('fa-session',${fa.userId},${fa.organizationId},now()+interval '1 hour'),('other-session',${DEMO_ACTOR},${DEMO_ORGANIZATION},now()+interval '1 hour')`;
+    await assert.rejects(prepareFaProduction(sql,'eleven-char','dev'), /solo en production/);
+    assert.deepEqual(await prepareFaProduction(sql,'eleven-char',FA_PRODUCTION_ENVIRONMENT),{applied:true,created:false});
+    assert.equal(await verifyPassword('eleven-char',(await sql`SELECT password_hash FROM users WHERE id=${fa.userId}`)[0].password_hash),true);
+    assert.equal((await sql`SELECT count(*)::int AS n FROM auth_sessions WHERE user_id=${fa.userId}`)[0].n,0);
+    assert.equal((await sql`SELECT count(*)::int AS n FROM auth_sessions WHERE user_id=${DEMO_ACTOR}`)[0].n,1);
+    assert.deepEqual(await prepareFaProduction(sql,'different-password-to-preserve',FA_PRODUCTION_ENVIRONMENT),{applied:false,created:false});
+    assert.equal(await verifyPassword('eleven-char',(await sql`SELECT password_hash FROM users WHERE id=${fa.userId}`)[0].password_hash),true);
+    // A fresh production database exercises creation without copying another tenant.
+    await pg.createDatabase('fresh_production');
+    const freshUrl=`postgresql://postgres:isolated@127.0.0.1:${port}/fresh_production`;
+    const freshMigration=postgres(freshUrl,{max:1,onnotice(){}});
+    await migrate(drizzle(freshMigration),{migrationsFolder:'drizzle'}); await freshMigration.end();
+    const fresh=postgres(freshUrl,{max:1,prepare:false,onnotice(){}});
+    try {
+      assert.deepEqual(await prepareFaProduction(fresh,'eleven-char',FA_PRODUCTION_ENVIRONMENT),{applied:true,created:true});
+      assert.equal((await fresh`SELECT count(*)::int AS n FROM organizations`)[0].n,1);
+      assert.equal((await fresh`SELECT count(*)::int AS n FROM brands`)[0].n,0);
+      assert.equal(await verifyPassword('eleven-char',(await fresh`SELECT password_hash FROM users WHERE username='fa_abogados'`)[0].password_hash),true);
+      assert.deepEqual(await prepareFaProduction(fresh,'different-password-to-preserve',FA_PRODUCTION_ENVIRONMENT),{applied:false,created:false});
+      const [other]=await fresh`INSERT INTO organizations(name,slug) VALUES ('Other','other') RETURNING id`;
+      const [faUser]=await fresh`SELECT id FROM users WHERE username='fa_abogados'`;
+      await fresh`INSERT INTO organization_members(organization_id,user_id,role) VALUES (${other.id},${faUser.id},'member')`;
+      await assert.rejects(prepareFaProduction(fresh,'different-password-to-preserve',FA_PRODUCTION_ENVIRONMENT), /vinculación distinta/);
+    } finally {await fresh.end();}
   } finally {if(sql)await sql.end();await pg.stop();}
 });

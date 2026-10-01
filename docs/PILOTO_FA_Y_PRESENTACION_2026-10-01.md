@@ -37,3 +37,11 @@ Comparaciones, en el orden solicitado:
 `scripts/provision-pilot.ts` prepara FA y reconoce los avisos de prueba únicamente si recibe `FA_INITIAL_PASSWORD` y el identificador exacto del ambiente Dev. La variable se retira al completar la preparación; no debe copiarse a producción. La auditoría protege la operación única de notificaciones.
 
 Pruebas: orden por completitud; selección exacta sin cambiar índices; filtros y decisiones de revisión; creación idempotente; avisos antiguos y futuros; inicio de sesión con usuario en mayúsculas; aislamiento del espacio; bloqueo de rutas; compilación y revisión visual.
+
+## Promoción e incorporación autorizadas posteriormente
+
+El 1 de octubre el usuario autorizó pasar Dev a Main y después incorporar los 272 expedientes encontrados por el RUT del representante **76.229.620-9** a FA Abogados en producción. La búsqueda por nombre devuelve 310 candidatos aproximados y no se usa para importar: incluye otras personas y RUT que requieren revisión. La búsqueda exacta también recupera variantes antiguas como Flores y Asociados Abogados.
+
+La promoción del código no copia la base de Dev. `db/fa-production.ts` prepara únicamente el tenant `fa-abogados` y el usuario `fa_abogados`, con guardia del identificador exacto de producción y comprobación de pertenencia exclusiva. Recibe la contraseña administrativa mediante `FA_PRODUCTION_PASSWORD`, la almacena como hash y revoca sesiones de ese usuario. Una auditoría impide volver a cambiar la clave en los reinicios. La variable se retira después de verificar el acceso; la contraseña no se guarda en archivos. Se conserva la política de interfaz restringida y no se obliga a cambiar la clave.
+
+La carga reutiliza `/api/portfolio/import` autenticada como FA: los expedientes con registro acreditado se incorporan a Mis marcas y los restantes a Solicitudes de registro, preservando datos, actuaciones y estados normalizados. Los estados ambiguos no se convierten en activos por suposición. Se mantienen los expedientes cerrados como antecedentes; no se importa la cartera de otros representantes ni se inventan clientes. Las oposiciones recibidas identificadas pueden generar sus casos y tareas iniciales según el comportamiento existente, sin crear avisos por actuaciones históricas. La deduplicación por solicitud permite reintentar lotes sin duplicar expedientes.
