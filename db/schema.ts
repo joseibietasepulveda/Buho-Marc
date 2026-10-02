@@ -1,6 +1,6 @@
 import {
   bigint, boolean, check, date, index, integer, jsonb, pgTable, primaryKey, real, text,
-  timestamp, uniqueIndex, uuid, varchar,
+  timestamp, uniqueIndex, uuid, varchar, numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -47,6 +47,8 @@ export const sourceSyncRuns = pgTable("source_sync_runs", {
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(), name: varchar("name", { length: 180 }).notNull(),
   automaticMonitoring: boolean("automatic_monitoring").default(true).notNull(),
+  reportProfile: jsonb("report_profile").default({}).notNull(),
+  reportProfileVersion: integer("report_profile_version").default(0).notNull(),
   slug: varchar("slug", { length: 120 }).notNull(), watchSettings: jsonb("watch_settings").default({ high: 0.7, medium: 0.55 }).notNull(), status: varchar("status", { length: 30 }).default("active").notNull(), ...timestamps,
 }, (table) => [uniqueIndex("organizations_slug_uq").on(table.slug)]);
 
@@ -57,6 +59,14 @@ export const users = pgTable("users", {
   mustChangePassword: boolean("must_change_password").default(false).notNull(),
   initials: varchar("initials", { length: 4 }).notNull(), ...timestamps,
 }, (table) => [uniqueIndex("users_email_uq").on(table.email), uniqueIndex("users_username_uq").on(table.username)]);
+
+export const feasibilityConclusions = pgTable("feasibility_conclusions", {
+  id: uuid("id").primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }), contextHash: varchar("context_hash", { length: 64 }).notNull(),
+  input: jsonb("input").notNull(), status: varchar("status", { length: 20 }).default("pending").notNull(), output: jsonb("output"),
+  model: varchar("model", { length: 180 }), providerId: varchar("provider_id", { length: 180 }), usage: jsonb("usage"), cost: numeric("cost", { precision: 18, scale: 8 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(), completedAt: timestamp("completed_at", { withTimezone: true }),
+}, table => [uniqueIndex("feasibility_conclusions_org_context_uq").on(table.organizationId, table.contextHash), index("feasibility_conclusions_org_date_idx").on(table.organizationId, table.createdAt)]);
 
 export const authSessions = pgTable("auth_sessions", {
   tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),

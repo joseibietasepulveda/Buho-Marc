@@ -1,6 +1,6 @@
 // Dedicated throwaway PostgreSQL and app. No hosted credentials or real INAPI calls.
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -15,6 +15,7 @@ import { hashPassword } from "../lib/password.ts";
 import ExcelJS from "exceljs";
 import { runAs } from "../lib/tenant-context.ts";
 import { correctReceivedToFiled } from "../db/opposition-role.ts";
+import { provisionReportProfiles, REPORT_PROFILE_DEV_ENVIRONMENT } from "../db/report-profile-provision.ts";
 
 async function freePort() { const s = createServer(); s.listen(0, "127.0.0.1"); await once(s, "listening"); const port = s.address().port; await new Promise(r => s.close(r)); return port; }
 const directory = await mkdtemp(path.join(tmpdir(), "buho-pilot-test-"));
@@ -49,7 +50,7 @@ try {
     identities.push({ org: org.id, user: user.id });
   }
   await saveFixture();
-  const env = { ...process.env, DATABASE_URL: databaseUrl, SOURCE_PROVIDER: "inapi", INAPI_API_KEY: "isolated-fixture", PILOT_FIXTURE_FILE: fixtureFile, APP_PUBLIC_ORIGIN: base, MONITORING_SCHEDULER_ENABLED: "false", MONITORING_CRON_SECRET: "isolated-cron", INAPI_IMPORT_COHORT: "false", NODE_ENV: "production", PORT: String(appPort) };
+  const env = { ...process.env, OPENROUTER_API_KEY:"isolated-fixture", DATABASE_URL: databaseUrl, SOURCE_PROVIDER: "inapi", INAPI_API_KEY: "isolated-fixture", PILOT_FIXTURE_FILE: fixtureFile, APP_PUBLIC_ORIGIN: base, MONITORING_SCHEDULER_ENABLED: "false", MONITORING_CRON_SECRET: "isolated-cron", INAPI_IMPORT_COHORT: "false", NODE_ENV: "production", PORT: String(appPort) };
   delete env.RAILWAY_PUBLIC_DOMAIN; delete env.SOURCE_API_URL; delete env.DANIEL_INITIAL_PASSWORD;
   server = spawn(process.execPath, ["--import", "./tests/inapi-fixture-hook.mjs", "node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(appPort)], { env, stdio: ["ignore", "pipe", "pipe"] });
   server.stdout.on("data", d => { output = (output + d).slice(-18000); }); server.stderr.on("data", d => { output = (output + d).slice(-18000); });
@@ -65,6 +66,51 @@ try {
   assert.equal((await http("/api/registrations", { cookie: alice })).body.applications.length, 0);
   assert.equal((await http("/api/clients", { cookie: alice })).body.clients.length, 0);
   console.log("PASS: login, forced password change, protected endpoints and empty isolated workspace");
+
+  for(const slug of ['zamora-ip','fa-abogados','daniel-morales'])await sql`INSERT INTO organizations (name,slug) VALUES (${slug},${slug})`;
+  await sql`INSERT INTO organizations (name,slug) VALUES ('Juan Pablo Zamora','estudio-zamora-piloto')`;
+  await assert.rejects(provisionReportProfiles(sql,'production'),/únicamente en Dev/);
+  assert.equal((await provisionReportProfiles(sql,REPORT_PROFILE_DEV_ENVIRONMENT)).length,4);
+  assert.equal((await sql`SELECT report_profile FROM organizations WHERE slug='estudio-zamora-piloto'`)[0].report_profile.studioName,'Zamora IP');
+  const profiles=await sql`SELECT slug,report_profile,report_profile_version FROM organizations WHERE slug IN ('zamora-ip','fa-abogados','daniel-morales')`;
+  assert.equal(profiles.find(row=>row.slug==='zamora-ip').report_profile.lawyerName,'Juan Pablo Zamora Iturra');
+  assert.match(profiles.find(row=>row.slug==='fa-abogados').report_profile.logo,/^data:image\/png;base64/);
+  assert.equal(profiles.find(row=>row.slug==='daniel-morales').report_profile.lawyerName,'Daniel Morales Sorondo');
+  assert.match(profiles.find(row=>row.slug==='daniel-morales').report_profile.address,/Torre Coraceros/);
+  await sql`UPDATE organizations SET report_profile='{}'::jsonb,report_profile_version=2 WHERE slug='fa-abogados'`;
+  assert.deepEqual(await provisionReportProfiles(sql,REPORT_PROFILE_DEV_ENVIRONMENT),[]);
+  assert.deepEqual((await sql`SELECT report_profile FROM organizations WHERE slug='fa-abogados'`)[0].report_profile,{});
+  console.log('PASS: study defaults are scoped to Dev and never replace saved edits or an intentionally cleared profile');
+
+  const study={studioName:"Estudio de prueba",address:"Dirección de prueba 123",lawyerName:"Abogada de prueba",email:"prueba@estudio.cl",phone:"+56 9 1234 5678",website:"https://estudio.cl",logo:""};
+  assert.equal((await http("/api/report-profile")).status,401);
+  assert.equal((await http("/api/report-profile",{cookie:alice})).body.version,0);
+  const logo="data:image/png;base64,"+(await readFile("public/reports/studio-logo.png")).toString("base64");
+  const savedStudy=await http("/api/report-profile",{cookie:alice,method:"PUT",body:{profile:{...study,logo},version:0}});
+  assert.equal(savedStudy.status,200,JSON.stringify(savedStudy.body)); assert.equal(savedStudy.body.version,1); assert.match(savedStudy.body.profile.logo,/^data:image\/png/);
+  assert.equal((await http("/api/report-profile",{cookie:alice})).body.profile.studioName,study.studioName);
+  assert.equal((await http("/api/report-profile",{cookie:bob})).body.profile.studioName,"");
+  assert.equal((await http("/api/report-profile",{cookie:alice,method:"PUT",body:{profile:study,version:0}})).status,409);
+  assert.equal((await http("/api/report-profile",{cookie:alice,origin:"https://foreign.invalid",method:"PUT",body:{profile:study,version:1}})).status,403);
+  assert.equal((await http("/api/report-profile",{cookie:alice,method:"PUT",body:{profile:{...study,logo:"data:image/png;base64,YWJj"},version:1}})).status,422);
+  const conclusionMark=id=>({applicationId:id,registrationId:null,name:"Marca "+id,type:"Denominativa",image:"",holders:[{name:"Titular"}],classes:[{nice_class:30,coverage_text:"Confites"}],filedAt:null,publishedAt:null,registeredAt:null,status:"Registrada",statusCode:"R",score:.8,channels:{name:{rank:1}},history:[{date:"2026-01-01",title:"Actuación de prueba"}]});
+  const conclusionInput={proposal:{name:"Propuesta de prueba",coverage:[{nice_class:30,text:"Confites"}]},result:{query:conclusionMark(""),results:[conclusionMark("111"),conclusionMark("222")],groups:[],warnings:[],candidateCount:2,elapsedSeconds:1,fetchedAt:"2026-10-02T12:00:00Z"},selectedIds:["111"]};
+  const simultaneous=await Promise.all([1,2].map(()=>http("/api/feasibility/conclusions",{cookie:alice,body:conclusionInput})));
+  assert.ok(simultaneous.every(result=>[200,202].includes(result.status)),JSON.stringify(simultaneous));
+  const prepared=await http("/api/feasibility/conclusions",{cookie:alice,body:conclusionInput}); assert.equal(prepared.status,200,JSON.stringify(prepared.body));
+  assert.equal(prepared.body.conclusion.source,"openrouter");
+  const generationId=prepared.body.conclusion.generationId;
+  assert.equal((await http("/api/feasibility/conclusions/"+generationId,{cookie:alice})).body.conclusion.generationId,generationId);
+  assert.equal((await http("/api/feasibility/conclusions/"+generationId,{cookie:bob})).status,404);
+  assert.equal((await http("/api/feasibility/conclusions",{cookie:alice,body:conclusionInput})).body.conclusion.generationId,generationId);
+  const records=await sql`SELECT * FROM feasibility_conclusions WHERE organization_id=${identities[0].org}`;
+  assert.equal(records.length,1); assert.equal(Number(records[0].cost),.000136); assert.equal(records[0].usage.completion_tokens,60); assert.equal(records[0].input.search.results.length,2);
+  assert.equal((await readFile(fixtureFile+".llm.jsonl","utf8")).trim().split("\n").length,1,"identical downloads should make one provider call");
+  fixture.llmFail=true; await saveFixture();
+  const failed=await http("/api/feasibility/conclusions",{cookie:alice,body:{...conclusionInput,client:"Otra consulta"}});
+  assert.equal(failed.status,200); assert.equal(failed.body.conclusion.source,"deterministic"); assert.equal(failed.body.conclusion.recommendation,"adjust"); assert.ok(failed.body.conclusion.paragraphs.length);
+  fixture.llmFail=false; await saveFixture();
+  console.log("PASS: optional study profile, normalized logo, conflict protection, tenant isolation, persistent deduplicated conclusions, usage and deterministic fallback");
 
   const workbook = new ExcelJS.Workbook(); workbook.addWorksheet("Cartera").addRows([["numero_solicitud", "estado"], [1234567, "en trámite"], [2345678, "registrada"], [3456789, "concluida"], [5678901, "registrada"], [1234567, "duplicado"], [9999999, ""], ["incorrecto", ""]]);
   const form = new FormData(); form.set("file", new File([await workbook.xlsx.writeBuffer()], "prueba.xlsx"));

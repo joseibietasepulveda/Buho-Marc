@@ -12,6 +12,7 @@ export function legalText(text: string): string {
   return text.replace(/\b(?:inapi\.)?[a-z]+(?:_[a-z]+)+\b/g, key => legalFieldLabel(key));
 }
 const actions: Record<string, string> = {
+  "report_profile.updated": "Información del estudio actualizada para sus informes",
   "brand.monitoring_changed": "Cambio en la vigilancia de una marca", "watch.settings_changed": "Límites de similitud actualizados", "match.followed": "Coincidencia incorporada a seguimiento",
   "opposition.role_corrected": "Calidad de la parte corregida en la oposición", "opposition.received": "Oposición recibida", "opposition.created": "Oposición incorporada", "nullity.created": "Nulidad incorporada",
   "brand.created": "Marca incorporada a la cartera", "brand.imported_by_rut": "Marca incorporada por RUT", "portfolio.imported": "Expediente incorporado a la cartera",

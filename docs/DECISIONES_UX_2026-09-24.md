@@ -36,6 +36,8 @@ Este documento consolida las decisiones de la conversación y las contrasta con 
 
 ## Prefactibilidad e informes
 
+Actualización del 02/10: [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md) reemplaza las decisiones históricas de generación sin LLM y logo genérico de esta sección. Agrega perfiles persistentes opcionales, conclusión asistida con respaldo determinista y formato basado en el informe SEMASK revisado por el cliente.
+
 - Antes de Buscar se eligen estados y similitud mínima en pasos de 5%. Registradas y en trámite son los estados predeterminados; se pueden ampliar. Los resultados tienen selección individual celeste, imágenes ampliables, paginación de 10/25/50/100 y mensaje de búsqueda vacía.
 - La fuente todavía no ofrece un filtro documentado de estados previo a recuperar candidatos. El servidor consulta hasta 100 candidatos y aplica los criterios a los antecedentes obtenidos; no promete exhaustividad ni envía parámetros inexistentes.
 - Descargas PDF y Word editable (`.docx`, también abrible en Google Docs). No se crea un documento en Drive. Ambos formatos se generan sin LLM, con diseño sobrio, lenguaje simple, logo del estudio arriba a la derecha e imágenes de las marcas incluidas.

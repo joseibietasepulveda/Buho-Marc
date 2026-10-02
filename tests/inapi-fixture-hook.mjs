@@ -1,8 +1,16 @@
 // Loaded only by the isolated pilot test process, never by application startup.
-import { readFileSync } from "node:fs";
+import { readFileSync, appendFileSync } from "node:fs";
 const originalFetch = globalThis.fetch;
 if (process.env.PILOT_FIXTURE_FILE) globalThis.fetch = async (input, init) => {
   const url = String(input);
+  if (url === "https://openrouter.ai/api/v1/chat/completions") {
+    const fixture=JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,"utf8"));
+    const body=JSON.parse(init.body), context=JSON.parse(body.messages[1].content);
+    appendFileSync(process.env.PILOT_FIXTURE_FILE+".llm.jsonl",JSON.stringify({context,model:body.model})+"\n");
+    if(fixture.llmFail)return new Response("fixture outage",{status:503});
+    await new Promise(resolve=>setTimeout(resolve,150));
+    return Response.json({id:"isolated-generation",model:body.model,usage:{prompt_tokens:100,completion_tokens:60,cost:.000136},choices:[{finish_reason:"stop",message:{content:JSON.stringify({recommendation:context.selection.recommendationChosenByAuthor || context.deterministicAssessment.suggested,paragraphs:["Las coincidencias recuperadas aconsejan comparar los signos y los productos o servicios antes de presentar la propuesta. La decisión sobre el registro corresponde a INAPI."],evidenceApplicationIds:context.search.results.slice(0,2).map(hit=>hit.applicationId)})}}]});
+  }
   if (!["https://dequienes.cl/inapi/trademarks/batch", "https://dequienes.cl/inapi/trademarks/by-holder", "https://dequienes.cl/inapi/trademarks/search"].includes(url)) return originalFetch(input, init);
   const fixture = JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE, "utf8"));
   if (fixture.fail) return new Response("temporary outage", { status: 503 });

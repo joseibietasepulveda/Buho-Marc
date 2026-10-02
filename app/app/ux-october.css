@@ -180,3 +180,43 @@
   .review-dialog.buho-client-profile { min-height:0; }
 }
 .review-dialog.ux-discovery-dialog { max-width:calc(100vw - 40px); }
+
+.report-profile-launcher { display:flex; align-items:center; gap:14px; padding:18px 20px; margin:0 0 24px; background:#fbf8fd; border:1px solid #e5dcec; border-radius:12px; }
+.report-profile-launcher-icon { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; color:#7c4b99; background:#efe5f7; border-radius:10px; }
+.report-profile-launcher button { display:flex; align-items:center; gap:10px; padding:0; border:0; background:transparent; color:#754392; font:inherit; font-weight:600; text-align:left; cursor:pointer; }
+.report-profile-launcher p { margin:6px 0 0; font-size:13px; line-height:1.5; color:#87748f; }
+.report-profile-launcher span[role=alert] { display:block; margin-top:8px; color:#a54156; font-size:13px; }
+.review-dialog.report-profile-dialog { width:min(660px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); padding:0; overflow:hidden; }
+.review-dialog.report-profile-dialog[open] { display:flex; flex-direction:column; }
+.report-profile-dialog > header { flex-shrink:0; }
+.report-profile-dialog > form { display:flex; flex-direction:column; min-height:0; flex:1; }
+.report-profile-content { padding:24px 28px; overflow:auto; max-height:calc(100dvh - 230px); }
+.report-profile-dialog .report-profile-content { flex:1; min-height:0; max-height:none; overflow-x:hidden; }
+.report-profile-dialog .buho-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.report-profile-content > p:first-child { color:#827087; font-size:14px; line-height:1.65; margin:0 0 22px; }
+.report-profile-fields { display:grid; grid-template-columns:1fr 1fr; gap:18px; border:0; padding:0; margin:0; }
+.report-profile-fields label { display:grid; gap:8px; color:#594263; font-size:14px; }
+.report-profile-fields .report-profile-wide { grid-column:1/-1; }
+.report-profile-fields :is(input,textarea) { min-width:0; width:100%; padding:11px 13px; border:1px solid #d8cbe0; border-radius:8px; background:white; color:#38233f; font:inherit; resize:vertical; }
+.report-profile-fields :is(input,textarea):focus { outline:2px solid #b18acb; outline-offset:2px; }
+.report-profile-logo { display:flex; align-items:center; gap:18px; margin:24px 0; }
+.report-profile-logo-preview { display:grid; place-items:center; width:150px; height:100px; flex-shrink:0; border:1px solid #e4dbe9; border-radius:10px; background:white; color:#ad94bb; }
+.report-profile-logo-preview img { width:calc(100% - 16px); height:calc(100% - 16px); object-fit:contain; }
+.report-profile-logo strong { color:#5e426b; font-size:14px; }
+.report-profile-logo p { margin:6px 0 10px; font-size:12px; color:#8a7794; }
+.report-profile-logo-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.report-profile-logo-actions button { display:flex; align-items:center; gap:6px; border:1px solid #d9c9e3; background:#fff; padding:8px 10px; border-radius:7px; color:#754492; font:inherit; font-size:12px; cursor:pointer; }
+.report-profile-dialog form > footer { display:flex; justify-content:flex-end; gap:12px; padding:18px 28px; border-top:1px solid #e6dceb; background:#fffcff; }
+.report-profile-dialog form > footer { flex:0 0 auto; min-height:0; margin:0; align-items:center; color:inherit; letter-spacing:normal; }
+.report-profile-dialog form > footer button { min-height:44px; padding:10px 16px; border:1px solid #d9c9e3; border-radius:8px; font:inherit; background:#fff; color:#744391; cursor:pointer; }
+.report-profile-dialog form > footer .buho-primary { background:#32213d; border-color:#32213d; color:#fff; }
+.feasibility-conclusion-actions { display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin:20px 0; }
+.feasibility-conclusion-actions button { border:1px solid #d6bfe3; background:#fff; border-radius:8px; padding:11px 15px; color:#744391; font:inherit; cursor:pointer; }
+.feasibility-conclusion-actions span { color:#87748f; font-size:12px; line-height:1.5; }
+.feasibility-conclusion-preview { padding:22px; background:#fbf9fd; border:1px solid #e2d5ea; border-radius:10px; margin:16px 0 24px; }
+.feasibility-conclusion-preview > span { color:#866195; font-size:11px; text-transform:uppercase; letter-spacing:.07em; }
+.feasibility-conclusion-preview h4 { margin:12px 0; color:#4b3158; font-size:17px; }
+.feasibility-conclusion-preview p { font-size:14px; line-height:1.7; color:#68556f; }
+.feasibility-conclusion-preview small { display:block; font-size:12px; line-height:1.6; color:#87758f; }
+@media(min-width:901px) { .review-dialog.report-profile-dialog { zoom:1.25; } }
+@media(max-width:620px) { .report-profile-launcher { padding:14px; gap:10px; } .report-profile-fields { grid-template-columns:1fr; } .report-profile-logo { align-items:flex-start; gap:12px; } .report-profile-logo-preview { width:92px; height:88px; } .report-profile-content { padding:20px; } .report-profile-dialog form > footer { padding:16px 20px; } }

@@ -8,6 +8,7 @@ import { hiddenDiscoveryState, terminalState, canWatchPublication } from '../lib
 import { matchesPublication, discoveryGroups, followedGroups } from '../lib/watch-list.ts';
 import { applyVerifiedDecision } from '../lib/verified-decisions.ts';
 import { reportRecommendation } from '../lib/feasibility-recommendation.ts';
+import JSZip from 'jszip';
 const hit=(extra={})=>({ applicationId:'123',name:'Marca',status:'En Trámite',statusCode:'P',registrationId:null,type:'Mixta',image:'',holders:[],classes:[],filedAt:null,publishedAt:null,registeredAt:null,score:.75,channels:{name:{rank:1}},history:[],...extra });
 test('watch feature flags hide registered and final states while allowing each visibility flag to change',()=>{
  for(const state of ['Caducada','Vencida','Denegada','Rechazada definitivamente']) assert.equal(hiddenDiscoveryState(state),true,state);
@@ -54,7 +55,7 @@ test('PDF generation supports empty filters, long text, Unicode, PNG image and a
  for(const status of ['all','registered']){
   const bytes=await createFeasibilityReport({proposal,result,status,image:new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXioAAAAASUVORK5CYII=','base64')),imageType:'png'});
   const doc=await PDFDocument.load(bytes);
-  assert.ok(doc.getPageCount() >= 1 && doc.getPageCount() <= 4);assert.ok(bytes.length>1000);
+  assert.ok(doc.getPageCount() >= 1 && doc.getPageCount() <= 20);assert.ok(bytes.length>1000);
  }
 });
 test('recommendation responds to high and low similarity, active state and overlapping class',()=>{
@@ -85,4 +86,17 @@ test('report supports logo, optional full appendix and multipage author explanat
  const {readFile}=await import('node:fs/promises');
  const bytes=await createFeasibilityReport({proposal:{name:'Marca',coverage:[],grouped:false},result,status:'all',studioLogo:await readFile('public/reports/studio-logo.png'),includeAppendix:true,explanation:'Texto de prueba. '.repeat(160)});
  assert.ok((await PDFDocument.load(bytes)).getPageCount()>3);
+});
+test('Word retains the supplied conclusion, full coverages and optional study details',async()=>{
+ const fullCoverage='Productos y servicios de cobertura extensa. '.repeat(50)+'Fin de la cobertura original.';
+ const result={query:hit(),results:[hit({classes:[{nice_class:30,coverage_text:fullCoverage},{nice_class:35,coverage_text:'Servicios relacionados de otra clase.'}]})],groups:[],warnings:[],candidateCount:1,elapsedSeconds:1,fetchedAt:'2026-10-02T12:00:00Z'};
+ const conclusion={title:'Revisión del abogado',recommendation:'review',source:'openrouter',paragraphs:['Esta conclusión preparada debe aparecer igual en los dos formatos.','Segundo párrafo de la conclusión guardada.'],evidenceApplicationIds:['123']};
+ const blob=await createFeasibilityDocx({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',conclusion,studioProfile:{studioName:'Estudio personalizado',lawyerName:'Abogada personalizada',address:'Dirección personalizada',email:'',phone:'',website:'',logo:''}});
+ const zip=await JSZip.loadAsync(await blob.arrayBuffer());const xml=await zip.file('word/document.xml').async('string');
+ const allXml=(await Promise.all(Object.keys(zip.files).filter(name=>/^word\/.*\.xml$/.test(name)).map(name=>zip.file(name).async('string')))).join(' ');
+ for(const value of [conclusion.title,...conclusion.paragraphs,'Estudio personalizado','Abogada personalizada','Dirección personalizada',fullCoverage,'Servicios relacionados de otra clase.','IV.    Conclusión.'])assert.ok(allXml.includes(value),value);
+ assert.match(xml,/w:keepNext/);assert.match(xml,/w:ascii="Arial"/);
+ assert.equal(Object.keys(zip.files).some(name=>name.startsWith('word/media/')),false,'no logo or placeholder should be inserted when the profile has no logo');
+ const pdf=await createFeasibilityReport({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',conclusion});
+ assert.ok((await PDFDocument.load(pdf)).getPageCount()>=2);
 });

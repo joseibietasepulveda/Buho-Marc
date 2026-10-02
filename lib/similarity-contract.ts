@@ -13,6 +13,7 @@ export type SimilarityMark = {
   filedAt: string | null; publishedAt: string | null; registeredAt: string | null;
   status: string; statusCode: string | null;
   sourceStatus?: string;
+  sourceEvidence?: { search: Record<string, unknown>; dossier?: Record<string, unknown> };
 };
 export type SimilarityHit = SimilarityMark & { score: number; discoveryKind?: DiscoveryKind; commercialRelevance?: CommercialRelevance; watchPublication?: boolean; dataWarnings?: string[]; officialDecision?: { status: string; firmAt: string; verifiedAt: string; sourceStatus: string; sources: { date: string; title: string; page: number; url: string }[] }; channels: Record<string, { rank?: number; score?: number; cosine?: number; contribution?: number }>; history: { date: string; title: string; detail?: string }[]; matchId?: string; reviewStatus?: string; detectedAt?: string };
 export type SimilarityResult = { query: SimilarityMark; results: SimilarityHit[]; groups: { representative_id: number; member_ids: number[]; holder_names?: string[] }[]; warnings: string[]; candidateCount: number; elapsedSeconds: number; fetchedAt: string; searchScope?: { retrieved:number; limit:number; states?:string[]; minSimilarity:number } };
