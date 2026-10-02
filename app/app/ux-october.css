@@ -163,14 +163,20 @@
 .case-filter-controls label { display:grid; gap:6px; font-size:12px; }
 .case-filter-controls input { min-height:40px; max-width:250px; border:1px solid #d8cae1; border-radius:8px; padding:8px 12px; font:inherit; background:white; }
 @media(max-width:620px) {
-  .buho-app { display:flex; flex-direction:column; height:100dvh; }
-  .buho-sidebar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; height:auto; min-height:0; flex-shrink:0; padding:12px 14px; }
-  .buho-sidebar .buho-wordmark { grid-column:1; grid-row:1; margin:0; font-size:20px; }
-  .buho-sidebar .buho-session-actions { grid-column:2; grid-row:1; margin:0; }
-  .buho-sidebar .workspace-search-launcher { grid-column:1/-1; grid-row:2; margin:0; width:100%; min-height:40px; padding:10px 12px; }
-  .buho-sidebar nav { grid-column:1/-1; grid-row:3; margin:0; overflow-x:auto; display:flex; gap:6px; padding-bottom:2px; }
-  .buho-sidebar nav > .buho-nav-group { display:block; flex-shrink:0; }
-  .buho-sidebar nav > .buho-nav-group > button { min-height:36px; width:max-content; padding:8px 12px; font-size:12px; }
-  .buho-sidebar nav button b { position:static; margin-left:4px; min-width:20px; height:20px; }
-  .buho-workspace { flex:1; min-height:0; height:auto; padding-top:22px; }
+  main.buho-app { display:flex; flex-direction:column; height:100dvh; }
+  main.buho-app > .buho-sidebar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; height:auto; min-height:0; flex-shrink:0; padding:12px 14px; }
+  main.buho-app > .buho-sidebar .buho-wordmark { grid-column:1; grid-row:1; margin:0; font-size:20px; }
+  main.buho-app > .buho-sidebar .buho-session-actions { grid-column:2; grid-row:1; margin:0; }
+  main.buho-app > .buho-sidebar .workspace-search-launcher { grid-column:1/-1; grid-row:2; margin:0; width:100%; min-height:40px; padding:10px 12px; }
+  main.buho-app > .buho-sidebar nav { grid-column:1/-1; grid-row:3; margin:0; overflow-x:auto; display:flex; gap:6px; padding-bottom:2px; }
+  main.buho-app > .buho-sidebar nav > .buho-nav-group { display:block; flex-shrink:0; }
+  main.buho-app > .buho-sidebar nav > .buho-nav-group > button { min-height:36px; width:max-content; padding:8px 12px; font-size:12px; }
+  main.buho-app > .buho-sidebar nav button b { position:static; margin-left:4px; min-width:20px; height:20px; }
+  main.buho-app > .buho-workspace { flex:1; min-height:0; height:auto; padding-top:22px; }
 }
+
+@media(min-width:901px) {
+  .review-dialog:is(.buho-drawer,.buho-client-profile,.ux-discovery-dialog,.assisted-import-dialog,.workspace-search-dialog) { zoom:1.25; }
+  .review-dialog.buho-client-profile { min-height:0; }
+}
+.review-dialog.ux-discovery-dialog { max-width:calc(100vw - 40px); }
