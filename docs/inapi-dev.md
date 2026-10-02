@@ -1,6 +1,16 @@
-# Integración INAPI · actualización v1.0
+# Integración INAPI · estado al 2 de octubre de 2026
 
-Vigilancia y prefactibilidad ya usan `/trademarks/search`, más `/trademarks/batch` para estados e historial. El adaptador admite `registration_id` y el nombre anterior `registration_number`. Las imágenes propuestas usan `options` e `image` en multipart. Se solicitan 30 similitudes por consulta de vigilancia, sin filtrar estados. Víctor implementará el filtro por estado en una versión posterior; falta acordar su catálogo, considerando recursos e instancias tras un rechazo. [Entrega y límites](V1_0_RELEASE.md).
+Vigilancia y factibilidad usan `/trademarks/search` y `/trademarks/batch` para estados, coberturas e historial. Se piden 50 resultados de stock por vigilancia y hasta 100 candidatos por factibilidad. El adaptador admite `registration_id` y el nombre anterior `registration_number`; las imágenes propuestas usan `options` e `image` en multipart. Los estados se interpretan y filtran sobre antecedentes recuperados; el filtro previo en la fuente y su catálogo siguen pendientes. Un rechazo puede tener recursos o instancias posteriores.
+
+## Capacidades integradas en octubre
+
+La [documentación de DeQuiénEs](https://dequienes.cl/inapi/docs) se revisó para incorporar `/trademarks/by-holder`: RUT exacto, nombre por semejanza y roles `holder`, `representative` o `any`, con paginación de hasta 100 y desplazamiento máximo de 10.000. El flujo combina criterios, consulta expedientes completos por lote, explica candidatos y exige confirmar cliente/rol antes de incorporar. No resuelve directamente números de registro solos; estos se buscan entre datos guardados.
+
+Factibilidad envía Solicitud desde, Publicación DO desde y Registro desde a los canales de recuperación. Admite descripción de etiqueta, titular de propuesta/exclusión y selección del modelo visual. Contiene, Similar, Contiene palabra completa, Empieza con, Termina con y Exacto están disponibles donde corresponde; los modos textuales, estados y filtros estrictos se aplican al lote recuperado, sin prometer exhaustividad. Las clases orientan la recuperación y no excluyen por sí solas otras clases.
+
+El adaptador conserva evidencia textual adicional de búsqueda y expediente para preparar el contexto completo de conclusión. Los resultados/actuaciones son datos de referencia; no se ejecutan instrucciones incluidas en documentos o campos de la fuente. [Contrato y límites de UI](UX_OCTUBRE_2026.md) · [Contexto e informes](INFORMES_FACTIBILIDAD_2026-10-02.md).
+
+La publicación funcional de estas mejoras se verificó en Dev con `b42ae34`, estado `SUCCESS` y base/fuente conectadas. Las secciones siguientes conservan la historia de septiembre; cantidades iniciales, botones antiguos y estados de producción se interpretan con su fecha.
 
 ## Historial de la integración de expedientes
 

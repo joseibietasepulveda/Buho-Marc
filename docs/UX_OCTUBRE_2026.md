@@ -43,3 +43,11 @@ Se ofrecen identificación, estado, fechas, titular, representante, rol del clie
 - Verificación visual e interacción en navegador: tablero simple/detallado, tabla del expediente defendido, búsqueda de cartera, selector de columnas, agrupación inicial y fechas de factibilidad, cierre exterior y tamaño angosto.
 
 Las pruebas aisladas no utilizan expedientes ni claves alojadas. La publicación se completa únicamente al verificar el commit desplegado en Dev y su estado de salud.
+
+## Informes de factibilidad y perfiles del estudio
+
+La ronda posterior reemplazó la generación sin LLM y el logo genérico: **Agrega la información de tu estudio** abre un formulario encima de los criterios, con campos opcionales persistentes por organización. PDF y Word siguen el ejemplo del cliente, con coberturas completas, conclusión y firma al final. OpenRouter está preparado con todos los antecedentes textuales de la búsqueda, deduplicación y respaldo determinista ante falta de clave o fallo. Se precargaron Zamora IP, De Las Heras para Daniel y FA en sus espacios existentes de Dev; no se cambiaron claves ni datos de producción. [Formato, configuración y QA](INFORMES_FACTIBILIDAD_2026-10-02.md).
+
+## Publicación comprobada
+
+La ronda de búsqueda/clientes/acciones corresponde a `5a2010e`, seguida por ajustes de paneles/móvil `d4a5272` y los nuevos informes `b42ae34`. El despliegue funcional Dev `f02635e3-bd50-4342-9931-710d648b36a4` terminó en `SUCCESS` el 2 de octubre, con migraciones aplicadas y `/api/health` 200 (base conectada y `engine: dequienes`). La precarga de los tres perfiles se confirmó en los registros de ese despliegue. [Evidencia de operación](RAILWAY_DEPLOYMENT.md). Esta ronda permanece en Dev.

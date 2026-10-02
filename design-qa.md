@@ -1,5 +1,7 @@
 # Design QA — Buho Marc Dev · 24 Aug 2026
 
+> Actualización del 2 de octubre de 2026: las secciones antiguas conservan su fecha, referencias y alcance. El registro de la ronda actual se encuentra al final de este documento; [UI/UX](docs/UX_OCTUBRE_2026.md) e [informes](docs/INFORMES_FACTIBILIDAD_2026-10-02.md) describen la implementación vigente.
+
 ## Comparison target
 
 - Dashboard KPI and calendar references: `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-af30a0a1-c633-41f1-a47a-a4e292ffb251.png`, `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-2d5f27f8-7566-4c5b-85ff-f412ba4f5c31.png` and `/var/folders/f4/cbzkgm01331dq916d_pw6k6r0000gn/T/codex-clipboard-391a342c-b141-4935-8c43-9c51f644d464.png`.
@@ -177,3 +179,29 @@ final result: passed
 - Railway Dev was checked after deployment at 1280 × 900: all ten live rows—including `En observación` and `Convertida en caso`—remain inside their cells at 10 px; the published table scrolls horizontally from `0` to `286.11` and its console has no warnings or errors.
 
 final result: passed
+
+## QA de UI e informes · 2 de octubre de 2026
+
+Entrega funcional `b42ae34`, publicada y verificada en Railway Dev. Esta ronda no revalida automáticamente los ejemplos ni screenshots de agosto/septiembre.
+
+### Pantallas
+
+- Alta de cartera con criterios a la izquierda/candidatos a la derecha, coincidencias por persona y confirmación de cliente/rol; búsqueda y Excel/CSV sin duplicar expedientes.
+- Agrupación inicial y filtros de fecha de factibilidad; formulario de estudio por encima de los criterios, todos los campos opcionales, guardado/recarga y edición.
+- Casos simple/detallado, prioridad, tabla del expediente defendido; informe de cliente por columnas y formatos.
+- Paneles/diálogos con cierre exterior, Escape y foco; formulario de estudio en escritorio y ancho móvil, desplazamiento interno, footer completo y sin desborde horizontal.
+- Retirada/limpieza persistente de notificaciones y eliminación de tareas en el piloto aislado, sin eliminar plazos del expediente.
+
+### PDF y Word
+
+Referencia del cliente: `Informe Factibilidad SEMASK (rev dms).pdf`, autor Daniel Morales, 11 páginas Carta. Se utiliza su estructura institucional, no su conclusión ni resultados sobre SEMASK. Referencias de marca: sitios oficiales de Zamora IP/FA y logo FA adjuntado por el usuario; logo De Las Heras extraído del ejemplo.
+
+Se renderizaron y revisaron las seis variantes completas: estudio de ejemplo, sin estudio, texto largo, Zamora, FA y Daniel. PDF: 5/4/6/5/4/5 páginas respectivamente; Word renderizado: 4/4/5/4/4/4. Las diferencias de paginación entre formatos conservan todos los datos. Se comprobaron nombres/coberturas largos, imagen junto a sus identificadores, encabezados/pies, ausencia de cortes o superposición y conclusión/nota/firma finales. Se corrigió una firma aislada y se regeneraron las variantes antes del control final.
+
+Artefactos locales reproducibles en `work/report-qa/` (ignorados por Git): seis `.pdf` y `.docx`, PDFs/PNG de los Word y hojas de revisión `pdf-todas-*.png` / `word-todas-*.png`. Son ejemplos con una búsqueda histórica y «Cliente de Ejemplo», sin una llamada nueva al motor ni una clave real de OpenRouter. El generador puede descargar imágenes si no están en caché.
+
+### Verificación funcional y publicación
+
+Compilación/TypeScript y ESLint de componentes modificados aprobados. Las pruebas dirigidas y el piloto descartable verificaron el contexto completo, respuesta válida/error del proveedor, decisión del autor, fallback, persistencia, costo/uso, generación concurrente única, aislamiento, control de versiones del perfil y precarga sin sobrescribir ediciones. Se comprobó descargar PDF y Word con la misma conclusión preparada.
+
+Dev `f02635e3-bd50-4342-9931-710d648b36a4`: `SUCCESS`, migraciones aplicadas, perfil de los tres estudios precargado, salud 200 con base conectada, logos 200 y perfil anónimo 401. No se verificó un llamado OpenRouter con credencial real. Resultado: aprobado para el alcance implementado; activar el proveedor real sigue pendiente de clave.

@@ -37,3 +37,46 @@ En Railway se configura `OPENROUTER_API_KEY` como variable privada del servicio 
 ## Verificación
 
 `tests/feasibility-conclusion.test.mjs`, `tests/feasibility-report.test.mjs` y el piloto aislado verifican contexto completo, errores del proveedor, persistencia, costo, deduplicación, conflictos del perfil, separación de organizaciones y precarga sin sobrescritura. `scripts/verify-feasibility-layout.ts` genera PDF y Word con estudio, sin estudio, texto largo y los tres perfiles pedidos a partir de una consulta histórica guardada. Los documentos se renderizan y revisan visualmente; no se ejecuta una nueva búsqueda para maquetarlos.
+
+## API, persistencia y límites
+
+- `GET /api/report-profile` devuelve perfil y versión de la organización de la sesión. `PUT` exige esa versión, valida/normaliza el logo y devuelve 409 si otro usuario editó antes; el borrador no se descarta automáticamente.
+- El formulario admite PNG/JPEG/WebP de hasta 4 MiB y normaliza antes de enviar. El servidor exige hasta 1 MiB, hasta 20 MP y redimensiona dentro de 1000 × 1000. Se audita el cambio sin copiar el binario del logo a la auditoría.
+- `POST /api/feasibility/conclusions` prepara o reutiliza una conclusión. Devuelve 202 si existe una generación pendiente; `GET /api/feasibility/conclusions/[id]` permite esperarla y devuelve 404 para otra organización. Ambas rutas requieren sesión; las escrituras validan origen.
+- `0012_feasibility_report_settings.sql` agrega perfil/versionado y `feasibility_conclusions`. El UUID y contexto se guardan antes del llamado; los estados son `pending`, `complete` o `abandoned`. Un resultado `complete` puede ser respaldo determinista: el origen/motivo quedan en el resultado.
+- La clave no se envía al navegador ni se persiste. Uso/costo se guardan cuando el proveedor los informa. Mismo contexto/modelo/prompt/configuración reutiliza la generación; un fallo transitorio permite reintentar tras cinco minutos, y una generación pendiente por más de 120 segundos se conserva como abandonada.
+- El motivo escrito por el abogado tiene prioridad y se utiliza directamente. La validación de respuesta rechaza referencias ajenas a la consulta o una decisión distinta de la elegida por el autor.
+
+El guardado de conclusiones no equivale a un archivo completo de estudios: no se conservan aquí las imágenes propuestas ni los documentos exportados. No hay almacenamiento general de adjuntos en esta entrega.
+
+## Revisión visual completa
+
+Se generaron y revisaron todas las páginas de cada formato con la misma búsqueda histórica, cinco antecedentes detallados y coberturas completas. Los documentos de QA usan «Cliente de Ejemplo»; no constituyen un informe nuevo para un cliente real.
+
+| Variante | Páginas PDF | Páginas Word renderizado |
+| --- | ---: | ---: |
+| Estudio de ejemplo | 5 | 4 |
+| Sin estudio | 4 | 4 |
+| Texto extenso | 6 | 5 |
+| Zamora IP | 5 | 4 |
+| FA Abogados | 4 | 4 |
+| Daniel / De Las Heras | 5 | 4 |
+
+Se corrigió una firma que quedaba sola al final del PDF; la nota y firma ahora se mantienen juntas. Los logos, imágenes y datos de cada antecedente, encabezados/pies repetidos, párrafos largos y conclusión se comprobaron sin cortes ni superposición. La paginación puede variar entre PDF y Word por sus métricas, conservando contenido y estructura. [Registro de QA](../design-qa.md).
+
+Para reproducir desde una consulta JSON guardada:
+
+```sh
+node --import ./tests/ts-loader.mjs --test tests/feasibility-conclusion.test.mjs tests/feasibility-report.test.mjs
+npm run build
+node --import ./tests/ts-loader.mjs tests/pilot-e2e.mjs
+node --import ./tests/ts-loader.mjs scripts/verify-feasibility-layout.ts ruta/consulta-guardada.json work/report-qa
+```
+
+El último comando no ejecuta una búsqueda ni llama a OpenRouter; puede recuperar imágenes de origen si faltan en su caché. La revisión visual requiere renderizar los DOCX y PDF generados. Los artefactos locales de QA en `work/report-qa/` están ignorados por Git y no contienen credenciales.
+
+## Publicación y activación
+
+Dev verificó `b42ae34c4bc15bb8224206cb4b4db5b8452452f8` en el despliegue `f02635e3-bd50-4342-9931-710d648b36a4`, estado `SUCCESS`, migraciones aplicadas y `/api/health` 200. El arranque confirmó perfiles en `juan-pablo-zamora`, `fa-abogados` y `daniel-morales`. Los tres PNG respondieron 200 y la ruta de perfil 401 sin sesión. La ronda no se promovió a producción.
+
+La integración OpenRouter se verificó con un proveedor aislado, incluidos éxito, fallos, costo/uso, concurrencia, caché y separación entre organizaciones. **Falta una clave real para activar y verificar un llamado en Dev.** El archivo privado local quedó preparado, vacío e ignorado; debe configurarse `OPENROUTER_API_KEY` en el servicio web para activar el ambiente publicado.

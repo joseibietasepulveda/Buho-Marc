@@ -1,6 +1,6 @@
 # UX: promoción de la base y siguiente ronda
 
-> Actualización del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
+> Historial de entregas de septiembre. El comportamiento actual y los pendientes están en el [índice](README.md), [decisiones actualizadas](DECISIONES_UX_2026-09-24.md), [UI/UX de octubre](UX_OCTUBRE_2026.md) e [informes](INFORMES_FACTIBILIDAD_2026-10-02.md). Búsqueda general, importación por titular/representante, informes de cliente y conclusiones asistidas/deterministas ya están implementados; las exclusiones antiguas de alcance no vuelven a abrir esas tareas.
 
 ## Secuencia autorizada
 

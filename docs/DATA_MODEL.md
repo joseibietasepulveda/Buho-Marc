@@ -74,16 +74,34 @@ La demo ya usa `registration_applications` con una proyección JSONB por organiz
 
 La fuente INAPI es de solo lectura desde el Administrador. Una revisión actualiza la proyección de cartera y el snapshot de forma idempotente; sólo una diferencia material genera un aviso. La interfaz conserva los códigos originales y presenta etiquetas, fechas y actuaciones en formato legible.
 
-## Revisiones de factibilidad
+## Perfiles de estudio y conclusiones implementados · octubre
 
-Modelo propuesto para sustituir la demostración frontend:
+La migración `0012_feasibility_report_settings.sql` agrega:
 
-- `feasibility_reviews`: organización, usuario, denominación consultada, estado del análisis, probabilidad formal, probabilidad de fondo, versión del modelo y advertencia mostrada.
+- `organizations.report_profile`: JSONB con nombre, dirección, abogado, encabezado adicional, correo, teléfono, web y logo opcionales. El logo se normaliza a PNG dentro de 1000 × 1000 y hasta 1 MiB; este activo pequeño se guarda en el perfil, no en la tabla propuesta `files`.
+- `organizations.report_profile_version`: entero inicial 0; cada escritura incrementa la versión. `PUT /api/report-profile` bloquea la organización y devuelve 409 ante una versión anterior, conservando el borrador en la interfaz.
+- `feasibility_conclusions`: `id` UUID asignado antes de la llamada, `organization_id`, `user_id`, `context_hash`, `input` JSONB, `status`, `output` JSONB, `model`, `provider_id`, `usage`, `cost` numérico `(18,8)`, `created_at` y `completed_at`.
+
+La combinación organización/contexto es única y hay un índice por organización/fecha. El hash considera contexto, modelo, versión del prompt y huella de credencial; la clave no se persiste. Los estados son `pending`, `complete` y `abandoned`. `complete` también puede contener una conclusión determinista: su `output.source` y `reason` distinguen la asistencia exitosa del respaldo. Uso/costo se guardan solo cuando el proveedor los informa.
+
+El contexto contiene consulta, filtros, todos los resultados recuperados con cobertura/historial/evidencia textual, selección y evaluación determinista. Los intentos previos se conservan al liberar la clave de deduplicación para un reintento. El logo binario no forma parte del contexto enviado al modelo. La auditoría `report_profile.updated` registra cambios del perfil sin repetir el logo en antes/después.
+
+La precarga en Dev reconoce identidades existentes de Zamora IP, FA y Daniel; solo escribe perfiles vacíos con versión 0. Una edición posterior, incluido vaciar el formulario, nunca se restaura en un reinicio. No crea usuarios ni cambia contraseñas.
+
+## Archivo completo de estudios: modelo propuesto
+
+La consulta real ya está implementada y las conclusiones se persisten. Las tablas siguientes conservan una propuesta para un archivo completo de estudios con imágenes y candidatos, todavía pendiente:
+
+- `feasibility_reviews`: organización, usuario, denominación y criterios consultados, estado del análisis, versión del modelo y advertencias. No se proponen porcentajes jurídicos a partir del ranking de similitud.
 - `feasibility_review_classes`: relación acumulativa entre revisión y clase Niza.
 - `feasibility_review_assets`: referencia privada al logo, huella del archivo, tipo y política de retención; el binario debe vivir fuera de PostgreSQL.
 - `feasibility_candidates`: marca encontrada, solicitante, solicitud, estado, clases, fuente, puntaje visual, fonético, conceptual, puntaje combinado y explicación versionada.
 
 Los porcentajes deben conservar la versión del modelo y los insumos utilizados para que una revisión posterior pueda reproducir el resultado. Nunca deben almacenarse como si fueran una actuación oficial de INAPI.
+
+## Retirada de avisos y tareas · octubre
+
+`0011_notification_dismissal.sql` agrega `notifications.dismissed_at`. La retirada individual o limpieza de bandeja es persistente por organización y conserva el aviso y su evidencia para auditoría; no impide avisos de actuaciones futuras. Limpiar Prioritarias no retira los avisos administrativos exclusivos de Todas. La eliminación de tareas respeta la organización y los límites del flujo; no elimina el plazo legal ni el hito del expediente.
 
 ## Colaboración, archivos y comunicación
 

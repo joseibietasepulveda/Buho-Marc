@@ -16,7 +16,8 @@ El modo manual posterga la detección de novedades y los avisos hasta que se sol
 la revisión. Daniel sigue trabajando automáticamente aunque nadie tenga la web abierta.
 
 Las decisiones actuales de presentación, casos e informes están en
-[Decisiones UX del 24 de septiembre](DECISIONES_UX_2026-09-24.md).
+[UI/UX de octubre](UX_OCTUBRE_2026.md), [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md)
+y las [decisiones de septiembre](DECISIONES_UX_2026-09-24.md).
 
 ## Descargas
 
@@ -32,6 +33,16 @@ Las decisiones actuales de presentación, casos e informes están en
   La ficha individual conserva esos antecedentes y se carga al abrirla.
 - Los datos se conservan en memoria de cada pantalla, sin caché compartida entre
   sesiones ni almacenamiento persistente en el navegador.
+
+## Búsquedas e informes · octubre
+
+- El buscador general filtra datos guardados: escribir no inicia consultas remotas. Buscar candidatos para cartera y la consulta de factibilidad sí requieren una acción explícita.
+- Los modos textuales/estados trabajan sobre el lote recuperado; las fechas de factibilidad se envían a la fuente. La búsqueda por persona es paginada y acotada. No se asegura exhaustividad por ampliar una tabla local.
+- El informe de cliente usa datos persistidos, sin volver a consultar INAPI. Cambiar columnas o formato no dispara una búsqueda.
+- PDF y Word de factibilidad reutilizan la misma conclusión preparada. El servidor deduplica por organización/contexto, modelo, versión de prompt y huella de credencial; las solicitudes concurrentes esperan la generación existente.
+- Las respuestas asistidas y el respaldo por falta de clave se reutilizan para el mismo contexto. Un respaldo por fallo transitorio se conserva cinco minutos antes de habilitar reintento; los trabajos pendientes de más de 120 segundos se conservan como abandonados antes de crear otro intento.
+- El llamado OpenRouter tiene límite de 45 segundos. Un contexto textual mayor a 2 MiB usa la conclusión determinista sin truncar expedientes. Se persisten uso/costo solo cuando el proveedor los entrega; no se estima un costo desconocido como cero.
+- La clave permanece en servidor. Sin credencial se genera el informe completo con respaldo determinista. No se ejecutan llamadas facturables para verificar estilos: la QA de documentos usa una consulta histórica guardada.
 
 ## Verificación
 

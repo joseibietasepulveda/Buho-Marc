@@ -1,4 +1,4 @@
-# Piloto Daniel Morales · v0.6
+# Piloto Daniel Morales · acceso y operación
 
 ## Acceso
 
@@ -12,17 +12,25 @@ El espacio anterior tiene acceso con `Buho_Marc` (el ingreso no distingue mayús
 
 ## Excel
 
-Desde Marcas, Solicitudes o Resumen de registros: **Subir desde Excel**. Admite `.xlsx` y `.csv`, hasta 2 MB y 2.000 filas por archivo. La columna es `numero_solicitud`. También se acepta una columna sin encabezado cuando contiene números. Se leen varias hojas y los dos archivos se pueden subir consecutivamente.
+Desde Mis marcas, Solicitudes o Resumen de registros: **Subir desde Excel**. Admite `.xlsx` y `.csv`, hasta 2 MB y 2.000 filas por archivo, varias hojas y cargas consecutivas. La carga ampliada de octubre acepta números de solicitud, RUT, razones sociales y representantes. Las columnas con clientes son sugerencias y no crean vínculos automáticamente.
 
-Se necesita el **número de solicitud INAPI**, incluso para marcas ya registradas. El proveedor actual no resuelve números de registro solos. Las columnas adicionales de estado se ignoran: la clasificación se obtiene de la fuente.
+También se puede preparar una cartera sin Excel desde Agregar marcas: combinar marca, solicitud, persona/RUT, rol titular/representante, clase y estado; revisar a la derecha los candidatos y confirmar los elegidos. La fuente no resuelve directamente números de registro solos; se pueden buscar entre los expedientes ya guardados.
 
-1. Lectura: detecta IDs inválidos y repetidos.
-2. Consulta: muestra marca, estado y destino antes de incorporar.
-3. Incorporación: consulta nuevamente y guarda los expedientes válidos. Los existentes se omiten; los errores se muestran y se pueden reintentar. Se puede pausar al terminar el bloque actual.
+1. Lectura: detecta identificadores inválidos y reúne filas repetidas. Una fila de persona exige revisar el rol y buscar candidatos expresamente.
+2. Revisión: muestra coincidencia, datos, estado y destino. Se confirma cartera propia, cliente y rol por expediente, o se elige dejarlo sin cliente.
+3. Incorporación: guarda los expedientes válidos por lotes; omite duplicados y conserva los vínculos de expedientes existentes. Los errores no borran lo ya incorporado y se pueden reintentar. Se puede pausar al terminar el bloque actual.
+
+Alcance y límites de la fuente en [UI/UX de octubre](UX_OCTUBRE_2026.md).
 
 Registro concedido con número de registro → Marcas. Registros vencidos/cancelados conservan su estado explícito. Tramitaciones activas y solicitudes terminadas sin concesión → Solicitudes. Una concesión posterior crea la marca durante la revisión y conserva la solicitud con su historial. La carga inicial no genera avisos históricos.
 
-Las marcas nuevas quedan **Sin monitoreo** de coincidencias y con cero vigilancias. La revisión de novedades del expediente INAPI continúa independientemente de esa etiqueta. El motor de cruces sigue pendiente.
+El motor de cruces ya está integrado. Los expedientes propios importados participan del seguimiento por organización y la cartera de Daniel mantiene su revisión automática diaria. La consulta de novedades del expediente y la vigilancia de similitudes son operaciones independientes; no se inventan hallazgos al incorporar. El buscador y la vista no disparan una revisión por el solo hecho de abrirse.
+
+## Informe y datos de De Las Heras · 2 de octubre
+
+En Dev se cargó el perfil De Las Heras Abogados para Daniel Morales Sorondo a partir de `Informe Factibilidad SEMASK (rev dms).pdf`: logo, nombres del encabezado, direcciones, teléfonos y web. Se dejó vacío el correo no informado. El formulario **Agrega la información de tu estudio** aparece encima de los criterios de factibilidad; todos los campos son opcionales, persistentes y editables.
+
+PDF y Word siguen la estructura del ejemplo, con coberturas completas, conclusión y firma al final. La conclusión toma la búsqueda actual completa; no copia los resultados ni el análisis jurídico de SEMASK a otras marcas. OpenRouter está preparado y conserva un respaldo determinista cuando falta la clave o falla. [Configuración y pruebas](INFORMES_FACTIBILIDAD_2026-10-02.md).
 
 ## Oposiciones presentadas
 
@@ -48,6 +56,6 @@ Compilación de producción y TypeScript; suite de reglas y regresiones; pruebas
 
 Revisión visual: ingreso, carga con IDs repetidos/erróneos y consulta del expediente contrario. Ningún expediente de prueba se carga en la cuenta de Daniel.
 
-Seguridad de dependencias: Next.js actualizado a 16.3.5 y dependencias transitivas compatibles. La auditoría de producción no reporta hallazgos altos/críticos. Quedan dos entradas moderadas relacionadas con el mismo aviso de `uuid` transitivo de ExcelJS (v3/v5/v6 con buffer proporcionado); ExcelJS utiliza únicamente v4 sin buffer en su código. No se fuerza una degradación de ExcelJS para ocultar ese aviso.
+Seguridad de dependencias, registro de la entrega v0.6: Next.js actualizado a 16.3.5 y dependencias transitivas compatibles. La auditoría de producción de aquella entrega no reportó hallazgos altos/críticos; esto no acredita una auditoría nueva el 2 de octubre. Quedan dos entradas moderadas relacionadas con el mismo aviso de `uuid` transitivo de ExcelJS (v3/v5/v6 con buffer proporcionado); ExcelJS utiliza únicamente v4 sin buffer en su código. No se fuerza una degradación de ExcelJS para ocultar ese aviso.
 
 Esta entrega se publica en **Dev**. Producción conserva su versión anterior.

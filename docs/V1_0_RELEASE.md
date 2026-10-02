@@ -1,6 +1,6 @@
 # Buho Marc 1.0 · vigilancia y prefactibilidad reales
 
-> Esta página conserva la entrega inicial y sus verificaciones. Para el comportamiento actual, consultar [Decisiones UX del 24/09/2026](DECISIONES_UX_2026-09-24.md): umbrales 65%/45%, filtros actuales, informes PDF/Word, oposiciones y revisiones manuales desde el chat. Los pendientes iniciales se interpretan junto con esa actualización.
+> Esta página conserva la entrega inicial y sus verificaciones. El estado actual está en el [índice](README.md), [UI/UX de octubre](UX_OCTUBRE_2026.md), [informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md) y [decisiones actualizadas](DECISIONES_UX_2026-09-24.md). Vigilancia usa 70%/55% como configuración inicial y excluye registradas; factibilidad tiene criterios independientes. Las cifras, pantallas y commits de la entrega inicial son históricos.
 
 Ambiente de entrega: **Railway Dev**. La actualización previa de main incorporó únicamente los dos commits que ya estaban en dev (`6170e3f`). La versión 1.0 se desarrolla en dev y no se promueve a producción.
 
@@ -48,13 +48,15 @@ Las dos primeras revisiones automáticas verificadas en Dev terminaron con 30 re
 
 ## Próximas versiones
 
-- [ ] **Filtro por estado en la llamada a la API.** Víctor confirmó que lo incorporará, pero todavía no está realizado. Aplicarlo antes de seleccionar los mejores resultados cuando esté disponible. No simularlo recortando localmente esta versión.
+- [ ] **Filtro por estado en la llamada a la API.** Aplicarlo antes de recuperar candidatos cuando esté documentado/disponible. Actualmente los estados y modos textuales filtran el lote recuperado y la interfaz explica ese alcance; no equivalen a una consulta exhaustiva del registro.
 - [ ] **Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.**
 - [ ] Calibrar relevancia y niveles con revisión humana. El puntaje de fusión no es una probabilidad jurídica. Confirmar alcance semántico sin confundirlo con fonética, que ya está integrada.
 - [ ] Cursor por incorporación/actualización, recuperación adicional y conciliación para cargas tardías. Dos días de solapamiento y resultados acotados no garantizan exhaustividad ante retrasos arbitrarios.
 - [ ] Confirmar hora de disponibilidad diaria, cuotas, concurrencia y comparación de rendimiento 5/30/50 con Víctor.
-- [ ] Informe PDF específico, almacenamiento de archivos y estudios de prefactibilidad, con políticas de acceso/retención.
-- [ ] Búsqueda e importación ampliada por titular/representante, RUT con DV validado y selección paginada. No ampliar el onboarding en esta entrega.
+- [x] Informes de factibilidad PDF/Word e informes de cliente Excel/Word/PDF, entregados en octubre. Perfiles de estudio y conclusiones persistentes.
+- [ ] Almacenamiento general de archivos, archivo completo de estudios con imágenes y PDF técnico específico de vigilancia, con políticas de acceso/retención.
+- [x] Búsqueda e importación ampliada por titular/representante, RUT y selección paginada, entregadas en octubre con confirmación de cliente/rol y deduplicación.
+- [ ] Activar OpenRouter con credencial real; la integración y el respaldo determinista ya están implementados y probados en aislamiento.
 - [ ] Migrar la configuración de Railway al formato vigente, según el aviso de obsolescencia emitido por su CLI durante esta entrega.
 - [ ] Correos con Resend, TPI, patentes, colaboración avanzada y calendario plurianual: se mantienen fuera de esta entrega.
 
@@ -78,3 +80,7 @@ Validación: pruebas de rangos y sus límites, exclusión exacta de estados, ord
 Daniel conserva las revisiones diarias; Búho pasa a pedido. La interfaz evita descargas completas repetidas, pagina Vigilancia y pausa las consultas en pestañas ocultas. Véase [control de consumo y validación](COST_CONTROL.md).
 
 Pendiente: poner el sistema en un servidor dedicado para revisar más solicitudes, con capacidad y cuotas de la fuente verificadas.
+
+## Entregas posteriores · octubre
+
+`5a2010e` incorporó búsqueda de cartera, carga asistida, informes de clientes y acciones de UI; `d4a5272` ajustó paneles y navegación móvil. `b42ae34` incorporó perfiles persistentes, conclusiones asistidas/deterministas y documentos según el ejemplo del cliente. La entrega funcional se verificó en Dev el 2 de octubre: despliegue `f02635e3-bd50-4342-9931-710d648b36a4`, `SUCCESS`, migraciones aplicadas y tres perfiles precargados. [Registro de publicación](RAILWAY_DEPLOYMENT.md). Esta ronda no modificó producción ni promovió main.

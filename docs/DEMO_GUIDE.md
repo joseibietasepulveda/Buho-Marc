@@ -1,76 +1,40 @@
-> Estado actualizado: la aplicación combina expedientes importados y ejemplos simulados. Ver [UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md) y [inapi-dev.md](inapi-dev.md) para distinguir funciones disponibles y limitaciones.
+# Guía de recorrido de Buho Marc
 
-> Actualización del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
+Actualizada el 2 de octubre de 2026 para [Railway Dev](https://buho-marc-web-dev.up.railway.app/app). Los espacios autenticados guardan datos separados por organización. Los ejemplos del espacio de prueba y del explorador de proceso no se convierten en antecedentes reales de otras carteras. La landing de [Vercel](https://buho-marc.vercel.app/) tiene un dashboard promocional estático; el trabajo interactivo ocurre en `/app`.
 
-# Guía de la demo
+## Preparación
 
-## Objetivo
-
-La demo permite mostrar la experiencia de Buho Marc con datos ficticios persistentes en Railway o, sin configuración adicional, con respaldo local en el navegador. Está pensada para una conversación comercial o una validación de producto, no para operar información real.
-
-## Accesos de demostración
-
-- Landing comercial: [https://buho-marc.vercel.app/](https://buho-marc.vercel.app/).
-- Web app navegable: [https://buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app).
-- URL anterior de prueba: [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js), que redirige a la landing principal.
-
-El dashboard incluido dentro de las landings es una vista previa estática, pensada para explicar la herramienta antes de contratarla. La interacción completa está disponible únicamente en la web app.
+Usar una cuenta y ambiente autorizados. Para una demostración que implique altas, cambios o eliminaciones, preferir el piloto local descartable o datos del propio espacio de prueba. No modificar carteras ajenas ni volver a consultar INAPI solo para mostrar estilos. El [README](../README.md) explica el inicio local; el [índice](README.md) distingue guías actuales e historial.
 
 ## Recorrido sugerido
 
-1. Abrir **Resumen Vigilancia** y explicar la jerarquía: tareas jurídicas pendientes con su caso asociado, atención inmediata separada por nivel de similitud, indicadores, vigilancias y plazos. El KPI de Casos activos destaca los vencimientos dentro de 14 días.
-2. Entrar a **Revisor de factibilidad**. El caso demo viene preparado como “Cafeteras Mistral”, con logo y clases Niza 11, 30 y 43.
-3. Mostrar que las clases son opcionales y acumulativas: el desplegable explica el significado completo y, al seleccionar, agrega sólo el número como etiqueta. Presionar **Ver comparación de ejemplo**.
-4. Revisar el aviso de demostración antes de abrir los ejemplos. La probabilidad de oposición de terceros (35 %) y los porcentajes de cada coincidencia son datos mock; no constituyen un pronóstico de concesión ni una evaluación oficial. Cambiar el nombre, imagen, tipo de coincidencia o clases invalida la vista anterior.
-5. Revisar la tabla: “Cafeteras Las Delicias” destaca por similitud visual, “Hotel Mistral” por fonética, “Pisco Mistral” por coincidencia baja y “Museo Gabriela Mistral” por coincidencia muy baja. Abrir una fila para comparar ambos logos, ampliar cada imagen y revisar las clases compartidas y la razón.
-6. Entrar a **Inscripción de marcas**. Revisar el Canvas de escritorio, separado en **INAPI: Ingreso y publicación** y **Diario Oficial: Oposición, fondo y resolución**, y comparar ejemplos de plazo normal, próximo a vencer, vencido y estado terminal.
-7. Buscar una solicitud por marca, número, titular o cliente; filtrar por fase, estado o atención; abrir una tarjeta y revisar que el estado aparezca primero, seguido por los antecedentes y el historial de más antiguo a más reciente, con flechas.
-8. En expedientes importados, revisar el estado recibido de la fuente y el historial de actuaciones, con fechas y detalle desplegable. Los datos oficiales no se cambian mediante el selector de la demo.
-9. Entrar a **Marcas registradas**, revisar el cupo, agregar una marca por número de registro INAPI o usar la importación por RUT. Cualquier fila abre su ficha con el enlace a INAPI y los datos de tipo de marca.
-10. Entrar a **Vigilancia**, buscar por nombre y aplicar uno o varios filtros de **Similitud** y **Estado**. El botón **Todas** o **Todos** limpia el grupo respectivo. La tabla comienza por **Similitud** y **Estado**, que se pueden cambiar directamente; cuando el ancho disponible no alcanza, usa sus barras horizontales en lugar de superponer columnas.
-11. Agregar una vigilancia manual: elegir una marca en seguimiento, buscar un número de inscripción o solicitud y confirmar los campos completados, incluida la fecha de publicación en Diario Oficial.
-12. Revisar la comparación y convertirla en caso.
-13. Entrar a **Casos**, abrir el caso creado, revisar el calendario de plazos o arrastrarlo entre las tres etapas del tablero. En la ficha se pueden activar sugerencias jurídicas, escribir una tarea y marcarla como No aplica, Pendiente o Completado. Las pendientes aparecen en Resumen Vigilancia. También se puede superponer la vigilancia de origen o desvincularla con confirmación.
-14. Entrar a **Notificaciones**, revisar los avisos de inscripción próximos a vencer o vencidos y copiar el contenido de correo si se necesita.
-15. Entrar a **Clientes**, abrir una fila y editar la ficha lateral. Luego revisar **Administrador de fuente**: abrir ALIMENTOS WINKLER para mostrar estado, datos, cobertura y actuaciones ascendentes con resoluciones desplegables. Entrar a **Usuarios** y agregar una persona.
+1. **Resumen Vigilancia**: tareas pendientes con su caso, indicadores y agenda legal. Abrir el calendario completo y una tarea. Las fechas internas y los plazos legales se presentan por separado.
+2. **Buscador general**: buscar marca, cliente, RUT, solicitud, registro, representante o contraparte y abrir la ficha relacionada. Filtra datos guardados; escribir no inicia una búsqueda remota.
+3. **Mis marcas**: revisar Número de solicitud como primera columna, logo y marca separados, Estado INAPI en texto y «5+ por revisar» cuando corresponde. El RUT se consulta en la ficha/buscador, sin columna visible ni filtro Real/Mock.
+4. **Agregar marcas**: combinar criterios a la izquierda; buscar explícitamente y revisar candidatos a la derecha. Mostrar coincidencias de titular/representante, elegir expedientes y confirmar cartera propia, cliente y rol, o dejarlos sin cliente. Número de solicitud es exacto; nombre y RUT de persona permiten preparar una cartera sin Excel.
+5. **Subir desde Excel**: cargar solicitudes, RUT, razones sociales o representantes; revisar candidatos y filas inválidas/repetidas. No atribuir un cliente porque figure en el archivo. La incorporación preserva vínculos existentes y no duplica solicitudes.
+6. **Vigilancia**: recorrer Novedades por revisar, Antecedentes y En seguimiento; niveles alta/media, clases, coberturas e historial. Buscar más amplía el lote guardado de cinco en cinco. Las revisiones manuales se solicitan desde el chat; abrir, filtrar o ampliar no consulta la fuente. Seguir o esperar publicación son decisiones explícitas.
+7. **Casos**: comparar modo simple inicial y detallado en tablero, lista y calendario. El simple omite tareas de las tarjetas; la ficha conserva el detalle. Cambiar prioridad desde su píldora y revisar la tabla del expediente defendido. Abrir historial y solicitud vinculada cuando existan.
+8. **Clientes**: abrir una fila, editar su ficha y acceder a marcas/solicitudes. Junto a Marcas vinculadas, abrir Descargar informe de cliente; elegir columnas una a una y Excel (inicial), Word o PDF. Descargar desde abajo a la derecha. Usa información guardada, sin otra consulta a INAPI.
+9. **Factibilidad**: abrir Agrega la información de tu estudio, encima de los criterios. Mostrar campos opcionales y el perfil precargado de Zamora IP, Daniel/De Las Heras o FA. Guardar, recargar y reabrir para comprobar persistencia; no reemplazar datos de otro estudio durante una demo.
+10. Revisar agrupación activa inicialmente, seis modos de nombre, clases/coberturas, estados/índice y fechas de solicitud/publicación/registro. Las fechas limitan canales en la fuente; los otros filtros trabajan sobre el lote recuperado. El índice mide semejanza y no una probabilidad jurídica.
+11. Con una búsqueda disponible, seleccionar antecedentes, pulsar Preparar conclusión y revisar el texto antes de descargar. El abogado puede elegir recomendación y motivo. PDF/Word usan la misma conclusión preparada y consideran toda la búsqueda para el análisis, aunque se detallen menos marcas.
+12. Descargar **Informe de factibilidad** en PDF y Word: logo/encabezado, cuatro secciones, coberturas completas, imágenes, conclusión y firma opcional al final; direcciones/contactos en el pie. Sin datos de estudio, los campos se omiten.
+13. **Notificaciones**: distinguir Prioritarias/Todas, revisar historia, retirar un aviso y mostrar la limpieza por bandeja. Se conserva evidencia y nuevas actuaciones pueden volver a generar avisos. Las tareas admiten X bajo el calendario y botón rojo en su editor; eliminarlas no borra plazos legales.
+14. Abrir fichas laterales de clientes, marcas o casos y cerrarlas pulsando fuera. Los diálogos compartidos admiten Escape y devuelven el foco al origen. Verificar que nombres/coberturas largos se puedan leer y que el pie de los formularios siga accesible.
 
-## Datos editables
+## Conclusión asistida y respaldo
 
-- Marcas, casos y usuarios se pueden agregar.
-- Las vigilancias se pueden clasificar como pendientes, en seguimiento, descartadas o pasadas a caso; la similitud también se puede ajustar manualmente.
-- Los casos se pueden mover arrastrándolos o desde el detalle de caso; también se puede devolver su coincidencia de origen a revisión sin cerrar el caso.
-- Las tareas de un caso aceptan texto libre y estados No aplica, Pendiente o Completado. En Railway se guardan en PostgreSQL; Resumen Vigilancia muestra únicamente las pendientes.
-- Las notificaciones se pueden marcar como gestionadas y su contenido de referencia se puede copiar. No existe una etapa de borrador visible.
-- Los estados de inscripciones provienen de las actuaciones. «Explorar ejemplos del proceso» abre 22 expedientes ficticios sin editar estados ni incorporarlos a la cartera.
-- El Revisor de factibilidad permite cambiar el texto, subir una imagen local y acumular clases; al analizar devuelve el conjunto curado de cuatro coincidencias de la demo.
-- En Railway los cambios se guardan en PostgreSQL y son visibles para todos quienes abran la demo.
-- En local, si no existe `DATABASE_URL`, se usa `localStorage` como respaldo sin configuración.
+OpenRouter recibe los antecedentes textuales de la consulta completa desde el servidor. No recibe una autorización para seguir instrucciones incrustadas en nombres/documentos. Sin clave, error, timeout o respuesta inválida, se conserva una conclusión determinista y la descarga permanece disponible. Un motivo escrito por el abogado se usa directamente. La integración se probó con un proveedor aislado; la clave real de Dev sigue pendiente. [Configuración y formato](INFORMES_FACTIBILIDAD_2026-10-02.md).
 
-## Comportamientos simulados
+No presentar los ejemplos, puntajes del motor o la redacción asistida como un pronóstico oficial de concesión. La búsqueda es acotada y la revisión profesional conserva su lugar. La conclusión de SEMASK del PDF de referencia no se copia a otras marcas.
 
-- La búsqueda por número de registro INAPI rellena parámetros ficticios; no consulta aún la fuente oficial.
-- Los niveles y explicaciones de vigilancia son datos ficticios; la interfaz muestra Alta, Media o Baja, sin porcentajes de similitud.
-- El enlace a la fuente oficial abre INAPI como referencia, no una publicación específica.
-- El seguimiento identifica cada gestión, su activador y la procedencia de su fecha. Si falta el antecedente que activa el plazo, informa qué dato falta y evita inventar un vencimiento. El cálculo LPI cubre 2026 y no fecha la resolución de etapas sin plazo fijo.
-- Los porcentajes de factibilidad y similitud son mock. La interfaz lo indica expresamente y no los presenta como búsqueda, pronóstico o resolución oficial.
-- El transcurso del plazo no modifica automáticamente el estado, acredita ausencia de oposición ni concede la marca; se espera la actuación correspondiente.
-- Cargar un archivo, exportar, vistas guardadas y filtros secundarios son controles visuales.
-- Copiar un correo usa el portapapeles del navegador; nunca se envía automáticamente.
+## Ejemplos del procedimiento
 
-## Criterios UX aplicados
+En **Solicitudes de registro → Explorar ejemplos del proceso**, recorrer los 22 expedientes ficticios para forma, publicación, oposición/fondo concurrentes, aceptación parcial, apelación, ejecutoria, pago y registro. No generan avisos ni cambios en la cartera. El transcurso del tiempo no acredita por sí solo notificación, firmeza, ausencia de oposición ni concesión. El calendario implementado cubre 2026–2027 y no extrapola años sin cobertura. [Reglas y límites](REGISTRATION_PROCESS_REVIEW.md).
 
-- Se conserva el contexto con paneles laterales para revisar vigilancias, casos y notificaciones.
-- El color siempre se acompaña de texto.
-- Las vigilancias combinan filtros acumulables y cada fila tiene cursor de mano, foco visible y apertura por teclado.
-- Las acciones de mayor impacto se explicitan y muestran confirmación.
-- Los formularios no borran datos hasta que el usuario confirma o cierra el panel.
-- Las tablas pueden desplazarse horizontalmente cuando el ancho disponible no alcanza y el tablero conserva sus columnas. En escritorio se aplica una densidad visual equivalente al 90 % de zoom.
-- La experiencia está optimizada para computador. Tablet y móvil ofrecen acceso básico, pero no condicionan la densidad ni la distribución principal del Canvas.
+## Límites y evidencia
 
-## Ronda UX de septiembre
+Se guardan perfiles y contextos/resultados de conclusiones; el archivo completo de estudios con imágenes propuestas y el almacenamiento general de adjuntos siguen pendientes. El correo comparativo se copia, sin envío automático. No hay consulta directa documentada por registro en la fuente ni garantía de exhaustividad en el lote de semejanza.
 
-El resumen abre la agenda en el mes actual y muestra una tabla de tareas pendientes, con las columnas «Tareas pendientes» y «Caso». La prioridad interna y el estado temporal se presentan por separado. Inscripciones explica la gestión y el antecedente faltante cuando no puede calcular un vencimiento. Las notificaciones de plazo nunca usan etiquetas de similitud. El administrador distingue expedientes e historial de consultas, muestra la última consulta completada y abre una ficha de solo lectura desde cada fila.
-
-## Recorrido del procedimiento para abogados
-
-En **Inscripción de marcas → Explorar ejemplos del proceso**, todos los expedientes son ficticios y usan como referencia el 7 de septiembre de 2026. Recorrer UMBRAL (DEMO-004, requerir publicación), PÁGINA (DEMO-005, esperando publicación), NEXO (DEMO-014, oposición y fondo concurrentes), FRONDA (DEMO-016, aceptación parcial), PRISMA (DEMO-017, apelación), CIMA (DEMO-018, ejecutoria y pago), HUELLA (DEMO-019, pago acreditado) y RAÍZ (DEMO-020, registro). Los filtros permiten revisar los demás supuestos: forma, prueba, prórroga y cierres por resolución. Ninguno genera avisos ni cambios en la cartera. Las reglas y límites están en [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).
+La entrega funcional `b42ae34` quedó en Dev con despliegue `SUCCESS`, migraciones y perfiles preparados. PDF/Word pasaron revisión completa en seis variantes; pantallas y mutaciones se verificaron en base aislada. [QA](../design-qa.md) · [UI/UX](UX_OCTUBRE_2026.md) · [Publicación](RAILWAY_DEPLOYMENT.md). Las mejoras del 2 de octubre no se promovieron a producción.
