@@ -1,51 +1,105 @@
 "use client";
 import { useRef, useState } from "react";
+import type { AssistedQuery } from "@/lib/portfolio-import";
+import type { DiscoveryCandidate, DiscoveryResult } from "@/lib/inapi-discovery";
 import { ReviewDialog } from "./review-dialog";
 import { ImportFilePicker } from "./import-file-picker";
+import { CandidateReview, type CandidateAssignment } from "./candidate-review";
+import { useClientDirectory } from "./client-provider";
 import "./pilot.css";
-type Row = { id: string; outcome: string; name?: string; destination?: string; status?: string; message?: string };
-const outcomeLabel: Record<string, string> = { ready: "Lista para incorporar", existing: "Ya incorporada", imported: "Incorporada", error: "Revisar", pending: "Pendiente", opposition: "Ya seguida como oposición presentada; no se carga como propia" };
+import "./ux-october.css";
+type QueryRow = AssistedQuery & { done?: boolean; nextOffset?: number | null; total?: number; error?: string };
+type IdentifierRow = { id: string; outcome: string; message?: string; candidate?: DiscoveryCandidate };
 export function PortfolioImport({ onClose, onSaved }: { onClose: () => void; onSaved: () => Promise<void> }) {
-  const [rows, setRows] = useState<Row[]>([]);
+  const [identifiers, setIdentifiers] = useState<IdentifierRow[]>([]), [queries, setQueries] = useState<QueryRow[]>([]);
+  const [candidates, setCandidates] = useState<DiscoveryCandidate[]>([]), [selected, setSelected] = useState<string[]>([]);
+  const [assignments, setAssignments] = useState<Record<string, CandidateAssignment>>({});
   const [invalid, setInvalid] = useState<{ sheet: string; row: number; value: string }[]>([]);
-  const [duplicates, setDuplicates] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [progress, setProgress] = useState("");
-  const [filename, setFilename] = useState("");
-  const [ownPortfolioConfirmed, setOwnPortfolioConfirmed] = useState(false);
-  const stop = useRef(false);
-  async function process(ids: string[], action: "preview" | "import") {
-    setBusy(true); setError(""); stop.current = false;
-    try {
-      for (let i = 0; i < ids.length && !stop.current; i += 10) {
-        setProgress(`${action === "preview" ? "Consultando INAPI" : "Incorporando"}: ${i} de ${ids.length}`);
-        const response = await fetch("/api/portfolio/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ids: ids.slice(i, i + 10), ownPortfolioConfirmed }) });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.message);
-        setRows(current => current.map(row => payload.results.find((result: Row) => result.id === row.id) ?? row));
-      }
-      setProgress(stop.current ? "Proceso pausado. Puedes continuar con los pendientes." : action === "preview" ? "Consulta terminada. Revisa los resultados antes de incorporar." : "Carga terminada. Tus módulos ya están actualizados.");
-    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo completar. Puedes reintentar los pendientes."); }
-    finally { if (action === "import") { try { await onSaved(); } catch { setError("La carga se guardó, pero no se pudo actualizar la vista. Recarga la página."); } } setBusy(false); }
+  const [duplicates, setDuplicates] = useState(0), [repeatedCandidates, setRepeatedCandidates] = useState(0);
+  const [busy, setBusy] = useState(false), [error, setError] = useState(""), [progress, setProgress] = useState("");
+  const [filename, setFilename] = useState(""), [confirmed, setConfirmed] = useState(false);
+  const [defaultClient, setDefaultClient] = useState(""), [defaultRole, setDefaultRole] = useState<CandidateAssignment["clientRole"]>("holder");
+  const { clients } = useClientDirectory();
+  const stop = useRef(false), seen = useRef(new Set<string>());
+  function merge(items: DiscoveryCandidate[]) {
+    let repeats = 0;
+    for (const item of items) { if (seen.current.has(item.applicationNumber)) repeats++; else seen.current.add(item.applicationNumber); }
+    setRepeatedCandidates(current => current + repeats);
+    setCandidates(current => {
+      const records = new Map(current.map(c => [c.applicationNumber, c]));
+      for (const c of items) { const old = records.get(c.applicationNumber); records.set(c.applicationNumber, old ? { ...old, tracked: old.tracked || c.tracked, explanation: [...new Set([old.explanation, c.explanation])].join(" · ") } : c); }
+      return [...records.values()];
+    });
+  }
+  async function previewIds(ids: string[]) {
+    for (let i = 0; i < ids.length && !stop.current; i += 10) {
+      setProgress(`Consultando solicitudes: ${i} de ${ids.length}`);
+      const response = await fetch("/api/portfolio/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "preview", ids: ids.slice(i, i + 10) }) });
+      const payload = await response.json(); if (!response.ok) throw new Error(payload.message);
+      setIdentifiers(current => current.map(row => payload.results.find((result: IdentifierRow) => result.id === row.id) ?? row));
+      merge(payload.results.flatMap((row: IdentifierRow) => row.candidate ? [row.candidate] : []));
+    }
   }
   async function read(file?: File) {
     if (!file) return;
-    setOwnPortfolioConfirmed(false);
-    setBusy(true); setError(""); setProgress("Leyendo archivo…"); setRows([]); setInvalid([]); setDuplicates(0); setFilename(file.name);
+    stop.current = false; seen.current = new Set(); setConfirmed(false); setBusy(true); setError(""); setProgress("Leyendo archivo…");
+    setCandidates([]); setSelected([]); setAssignments({}); setIdentifiers([]); setQueries([]); setInvalid([]); setDuplicates(0); setRepeatedCandidates(0); setFilename(file.name);
     try {
       if (file.size > 2 * 1024 * 1024) throw new Error("El archivo supera 2 MB");
       const data = new FormData(); data.set("file", file);
       const response = await fetch("/api/portfolio/import", { method: "POST", body: data });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message);
-      setRows(payload.ids.map((id: string) => ({ id, outcome: "pending" }))); setInvalid(payload.invalid); setDuplicates(payload.duplicates);
-      if (payload.ids.length) await process(payload.ids, "preview");
-      else setProgress("No hay números válidos para consultar. Corrige las filas indicadas.");
-    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo leer el archivo"); setProgress(""); }
+      const payload = await response.json(); if (!response.ok) throw new Error(payload.message);
+      setIdentifiers(payload.ids.map((id: string) => ({ id, outcome: "pending" }))); setQueries(payload.queries ?? []); setInvalid(payload.invalid); setDuplicates(payload.duplicates);
+      if (payload.ids.length) await previewIds(payload.ids);
+      setProgress(stop.current ? "Consulta pausada. Puedes continuar con los pendientes." : payload.queries?.length ? "Archivo leído. Revisa los roles y busca los candidatos." : "Consulta terminada. Selecciona los expedientes y confirma sus clientes.");
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "No se pudo leer el archivo."); setProgress(""); }
     finally { setBusy(false); }
   }
-  const ready = rows.filter(r => r.outcome === "ready");
-  const pending = rows.filter(r => ["pending", "error"].includes(r.outcome));
-  return <ReviewDialog title="Subir cartera desde Excel" onClose={() => { if (!busy) onClose(); }} className="pilot-dialog"><div className="pilot-body"><p>Usa una columna <strong>numero_solicitud</strong>, con un número INAPI por fila. Consultaremos el estado para ubicar cada expediente en Marcas o Solicitudes.</p><p>Admite .xlsx y .csv, hasta 2.000 filas y 2 MB. Puedes cargar tus dos archivos consecutivamente; los repetidos se omiten. Las oposiciones y nulidades se cargan desde Solicitudes de registro → Marcas seguidas por oposición o nulidad.</p><label className="pilot-confirm"><input type="checkbox" checked={ownPortfolioConfirmed} disabled={busy} onChange={e => setOwnPortfolioConfirmed(e.target.checked)} /> Confirmo que son solicitudes propias o de mis clientes como solicitantes, no solicitudes de terceros contra las que presentamos oposición.</label><ImportFilePicker filename={filename} disabled={busy} onFile={file => void read(file)} /><a className="pilot-template-link" download="plantilla-solicitudes.csv" href="data:text/csv;charset=utf-8,numero_solicitud%0A">Descargar plantilla CSV</a>{filename && <p><strong>{filename}</strong> · {rows.length} IDs únicos · {duplicates} repetidos omitidos</p>}<p role="status">{progress}</p>{error && <p role="alert" className="task-error">{error}</p>}{invalid.length > 0 && <section><h3>Filas que necesitan corrección</h3><ul>{invalid.map((row,i) => <li key={i}>{row.sheet}, fila {row.row}: {row.value}</li>)}</ul></section>}{rows.length > 0 && <div className="pilot-table"><table><thead><tr><th>Solicitud</th><th>Marca</th><th>Estado INAPI</th><th>Destino</th><th>Resultado</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td>{row.id}</td><td>{row.name ?? "—"}</td><td>{row.status ?? "—"}</td><td>{row.destination ?? "—"}</td><td>{row.message ?? outcomeLabel[row.outcome]}</td></tr>)}</tbody></table></div>}</div><footer><button disabled={busy} onClick={onClose}>Cerrar</button>{busy ? <button onClick={() => { stop.current = true; setProgress("Se pausará al terminar el bloque actual…"); }}>Pausar</button> : <>{pending.length > 0 && <button onClick={() => void process(pending.map(r => r.id), "preview")}>Reintentar pendientes</button>}<button className="buho-primary" disabled={!ready.length || !ownPortfolioConfirmed} onClick={() => void process(ready.map(r => r.id), "import")}>Incorporar {ready.length} expedientes</button></>}</footer></ReviewDialog>;
+  async function searchQueries(rows: QueryRow[], more = false) {
+    setBusy(true); setError(""); stop.current = false;
+    try {
+      for (const [index, row] of rows.entries()) {
+        if (stop.current) break;
+        setProgress(`Buscando candidatos: ${index + 1} de ${rows.length} · ${row.rut || row.partyName || row.name}`);
+        const response = await fetch("/api/inapi/search", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: row.name, partyName: row.partyName, rut: row.rut, role: row.role, offset: more ? row.nextOffset ?? 0 : 0, limit: 50 }) });
+        const payload: DiscoveryResult & { message?: string } = await response.json();
+        if (!response.ok) { setQueries(current => current.map(q => q.key === row.key ? { ...q, error: payload.message || "No se pudo consultar" } : q)); continue; }
+        merge(payload.candidates.map(c => ({ ...c, explanation: `${c.explanation} · ${row.sheet}, fila ${row.row}` })));
+        setQueries(current => current.map(q => q.key === row.key ? { ...q, done: true, error: undefined, total: payload.total, nextOffset: payload.nextOffset } : q));
+      }
+      setProgress(stop.current ? "Consulta pausada. Se conservan los candidatos encontrados." : "Consulta terminada. Revisa candidatos, clientes y roles antes de incorporar.");
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "No se pudo completar la consulta."); }
+    finally { setBusy(false); }
+  }
+  async function incorporate() {
+    if (busy || !confirmed || !selected.length) return;
+    if (selected.some(id => !assignments[id]?.clientId)) { setError("Confirma el cliente de cada selección o elige «Sin cliente asignado»."); return; }
+    setBusy(true); setError(""); stop.current = false; const ids = [...selected];
+    try {
+      for (let i = 0; i < ids.length && !stop.current; i += 10) {
+        setProgress(`Incorporando selección: ${i} de ${ids.length}`); const batch = ids.slice(i, i + 10);
+        const response = await fetch("/api/portfolio/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "import", ids: batch, ownPortfolioConfirmed: true, assignments: Object.fromEntries(batch.map(id => [id, assignments[id]])) }) });
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.message);
+        const completed = payload.results.filter((row: IdentifierRow) => ["imported", "existing"].includes(row.outcome)).map((row: IdentifierRow) => row.id);
+        setCandidates(current => current.map(c => completed.includes(c.applicationNumber) ? { ...c, tracked: true } : c));
+        setSelected(current => current.filter(id => !completed.includes(id)));
+        const failure = payload.results.find((row: IdentifierRow) => !["imported", "existing"].includes(row.outcome));
+        if (failure) throw new Error(failure.message || "Hay expedientes que requieren revisión. Los incorporados se conservaron.");
+      }
+      setProgress(stop.current ? "Carga pausada. Los expedientes incorporados se conservaron." : "Carga terminada. Tus expedientes están en Mis marcas o Solicitudes, según su estado.");
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "No se pudo completar la carga."); }
+    finally { try { await onSaved(); } catch { setError("La carga se guardó; recarga la página para actualizar la cartera."); } setBusy(false); setConfirmed(false); }
+  }
+  const pendingIds = identifiers.filter(row => ["pending", "error"].includes(row.outcome));
+  const pendingQueries = queries.filter(row => !row.done || row.error);
+  return <ReviewDialog title="Carga asistida desde Excel" onClose={() => { if (!busy) onClose(); }} className="pilot-dialog assisted-import-dialog">
+    <div className="pilot-body"><p>Sube solicitudes, RUT, razones sociales o representantes. Encontraremos los expedientes y podrás confirmar cada cliente y su rol.</p><p className="assisted-import-hint">Columnas reconocidas: <strong>numero_solicitud, rut, razon_social, representante, rut_representante, rol, cliente y marca</strong>. «Rol» admite titular, representante o ambos. Puedes combinar columnas y hojas.</p><ImportFilePicker filename={filename} disabled={busy} onFile={file => void read(file)} />
+      <div className="assisted-template-links"><a className="pilot-template-link" download="plantilla-solicitudes.csv" href="data:text/csv;charset=utf-8,numero_solicitud%0A">Plantilla por solicitud</a><a className="pilot-template-link" download="plantilla-cartera-asistida.csv" href="data:text/csv;charset=utf-8,rut%2Crazon_social%2Crepresentante%2Crut_representante%2Crol%2Ccliente%2Cmarca%0A">Plantilla por cliente o representante</a><small>.xlsx o .csv · hasta 2.000 filas y 2 MB</small></div>
+      {filename && <p><strong>{filename}</strong> · {identifiers.length} solicitudes · {queries.length} búsquedas · {duplicates} filas repetidas omitidas · {repeatedCandidates} coincidencias repetidas reunidas</p>}<p role="status" className="assisted-progress">{progress}</p>{error && <p role="alert" className="task-error">{error}</p>}
+      {invalid.length > 0 && <details><summary>{invalid.length} filas necesitan corrección</summary><ul>{invalid.map((row, i) => <li key={i}>{row.sheet}, fila {row.row}: {row.value}</li>)}</ul></details>}
+      {queries.length > 0 && <section className="assisted-queries"><header><h3>Datos que vamos a buscar</h3><button type="button" disabled={busy || !pendingQueries.length} onClick={() => void searchQueries(pendingQueries)}>Buscar candidatos ({pendingQueries.length})</button></header>{queries.map(row => <div key={row.key}><span><strong>{row.rut || row.partyName || row.name}</strong><small>{row.sheet}, fila {row.row}{row.clientName ? ` · Cliente sugerido: ${row.clientName}` : ""}</small>{row.done && <small>{row.total} candidatos en la fuente</small>}{row.error && <small role="alert">{row.error}</small>}</span><label>Buscar como<select aria-label={`Rol de búsqueda de la fila ${row.row} en ${row.sheet}`} value={row.role} disabled={busy || row.done} onChange={e => setQueries(current => current.map(q => q.key === row.key ? { ...q, role: e.target.value as QueryRow["role"] } : q))}><option value="holder">Titular / solicitante</option><option value="representative">Representante</option><option value="any">Ambos</option></select></label>{row.nextOffset != null && <button type="button" disabled={busy} onClick={() => void searchQueries([row], true)}>Cargar más de esta búsqueda</button>}</div>)}</section>}
+      {pendingIds.length > 0 && <section><h3>Solicitudes pendientes de consulta</h3>{pendingIds.map(row => <p key={row.id}>Solicitud {row.id} · {row.message || "Pendiente"}</p>)}<button type="button" disabled={busy} onClick={async () => { setBusy(true); stop.current = false; try { await previewIds(pendingIds.map(row => row.id)); } catch (failure) { setError(failure instanceof Error ? failure.message : "No se pudo consultar."); } finally { setBusy(false); } }}>Reintentar solicitudes</button></section>}
+      {candidates.length > 0 && <section><h3>Expedientes encontrados ({candidates.length})</h3><div className="candidate-defaults"><label>Cliente de la selección<select value={defaultClient} disabled={busy} onChange={e => { const value = e.target.value; setDefaultClient(value); setAssignments(current => ({ ...current, ...Object.fromEntries(selected.map(id => [id, { clientId: value, clientRole: current[id]?.clientRole ?? defaultRole }])) })); }}><option value="">Elegir cliente…</option><option value="unassigned">Sin cliente asignado</option>{clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}</select></label><label>Rol del cliente<select value={defaultRole} disabled={busy} onChange={e => { const value = e.target.value as CandidateAssignment["clientRole"]; setDefaultRole(value); setAssignments(current => ({ ...current, ...Object.fromEntries(selected.map(id => [id, { clientId: current[id]?.clientId ?? defaultClient, clientRole: value }])) })); }}><option value="holder">Titular / solicitante</option><option value="representative">Representante</option></select></label><small>Aplica a la selección actual; cada expediente puede ajustarse abajo.</small></div><CandidateReview candidates={candidates} selected={selected} onSelected={ids => { setSelected(ids); setAssignments(current => ({ ...current, ...Object.fromEntries(ids.filter(id => !current[id]?.clientId && defaultClient).map(id => [id, { clientId: defaultClient, clientRole: defaultRole }])) })); }} assignments={assignments} onAssignment={(id, value) => setAssignments(current => ({ ...current, [id]: value }))} busy={busy} /><label className="candidate-confirm"><input type="checkbox" checked={confirmed} disabled={busy} onChange={e => setConfirmed(e.target.checked)} />Confirmo los clientes y roles seleccionados y que estos expedientes pertenecen a nuestra cartera. Las oposiciones y nulidades contra terceros se cargan desde Casos.</label></section>}
+    </div><footer><span>{selected.length} expedientes seleccionados</span><button type="button" disabled={busy} onClick={onClose}>Cerrar</button>{busy ? <button type="button" onClick={() => { stop.current = true; setProgress("Se pausará al terminar la consulta actual…"); }}>Pausar</button> : <button type="button" className="buho-primary" disabled={!selected.length || !confirmed} onClick={() => void incorporate()}>Incorporar {selected.length} expedientes</button>}</footer>
+  </ReviewDialog>;
 }

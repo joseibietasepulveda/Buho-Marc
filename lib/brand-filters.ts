@@ -1,7 +1,8 @@
 import { BRAND_SEARCH_FIELDS, type BrandSearchField, type SearchableBrand } from "./brand-search";
+import { textMatches, compactRut, type TextMatchMode } from "./text-search";
 import { statusLabel } from "./source-contract";
 
-export type BrandFilterValues = { searchField?: BrandSearchField; origin: string; state: string; type: string; niceClass: string };
+export type BrandFilterValues = { matchMode?: TextMatchMode; searchField?: BrandSearchField; origin: string; state: string; type: string; niceClass: string };
 export const EMPTY_BRAND_FILTERS: BrandFilterValues = { origin: "", state: "", type: "", niceClass: "" };
 type FilterableBrand = SearchableBrand & { name: string; owner: string; rut: string; registration: string; applicationNumber?: string; provider?: string; legalStatus?: string; registrationState: string; type: string; classes: string; status: string };
 export const brandStateLabel = (brand: FilterableBrand) => brand.legalStatus ? statusLabel(brand.legalStatus) : brand.registrationState;
@@ -41,5 +42,9 @@ export function matchesBrandFilters(brand: FilterableBrand, filters: BrandFilter
   if (filters.state && brandStateLabel(brand) !== filters.state) return false;
   if (filters.type && brand.type !== filters.type) return false;
   if (filters.niceClass && !brandClassNumbers(brand).includes(Number(filters.niceClass))) return false;
-  return containsBrandMatch({ ...brand, registrationState: brandStateLabel(brand) }, filters.searchField ?? "any", query);
+  const field = filters.searchField ?? "any", mode = filters.matchMode ?? "contains";
+  const values = { ...brand, registrationState: brandStateLabel(brand) };
+  if (!query.trim()) return true;
+  const matches = (key: Exclude<BrandSearchField, "any">) => key === "rut" ? Boolean(compactRut(query)) && textMatches(compactRut(values[key] ?? ""), compactRut(query), mode) : textMatches(values[key], query, mode);
+  return field === "any" ? Object.keys(BRAND_SEARCH_FIELDS).some(key => key !== "any" && matches(key as Exclude<BrandSearchField, "any">)) : matches(field);
 }

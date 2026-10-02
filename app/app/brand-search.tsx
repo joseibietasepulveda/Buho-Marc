@@ -1,56 +1,80 @@
 "use client";
-import { useState } from "react";
-import Image from "next/image";
-import { BRAND_SEARCH_FIELDS, MOCK_ATTRIBUTE_SEARCH, MOCK_SEARCH_CATALOGUE, exactBrandMatch, type BrandSearchField, type SearchCandidate } from "@/lib/brand-search";
-import { statusLabel } from "@/lib/source-contract";
+import { useEffect, useRef, useState } from "react";
+import { MOCK_SEARCH_CATALOGUE, type SearchCandidate } from "@/lib/brand-search";
+import { TEXT_MATCH_MODES, textMatches, type TextMatchMode } from "@/lib/text-search";
+import type { DiscoveryCandidate, DiscoveryInput, DiscoveryResult } from "@/lib/inapi-discovery";
+import { NICE_CLASSES } from "@/lib/nice-classes";
 import { ReviewDialog } from "./review-dialog";
+import { CandidateReview, type CandidateAssignment } from "./candidate-review";
+import { useClientDirectory } from "./client-provider";
+import "./ux-october.css";
 
 export function BrandSearch({ real, tracked, onAddMock, onRefresh, onClose }: { real: boolean; tracked: { registration: string; applicationNumber?: string }[]; onAddMock: (candidate: SearchCandidate) => Promise<boolean>; onRefresh: () => Promise<void>; onClose: () => void }) {
-  const [field, setField] = useState<BrandSearchField>("applicationNumber");
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchCandidate[] | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [criteria, setCriteria] = useState<DiscoveryInput>({ name: "", applicationNumber: "", partyName: "", rut: "", role: "any", matchMode: "similar" });
+  const [result, setResult] = useState<DiscoveryResult | null>(null);
+  const [selected, setSelected] = useState<string[]>([]), [assignments, setAssignments] = useState<Record<string, CandidateAssignment>>({});
+  const [defaultClient, setDefaultClient] = useState(""), [defaultRole, setDefaultRole] = useState<CandidateAssignment["clientRole"]>("holder");
+  const [busy, setBusy] = useState(false), [error, setError] = useState(""), [message, setMessage] = useState(""), [confirmed, setConfirmed] = useState(false);
   const [added, setAdded] = useState<string[]>([]);
-  const live = real && field === "applicationNumber";
-  const already = (candidate: SearchCandidate) => added.includes(candidate.applicationNumber) || tracked.some(brand => brand.applicationNumber === candidate.applicationNumber || Boolean(candidate.registration) && brand.registration === candidate.registration);
-  function clear() { setResults(null); setSelected([]); setMessage(""); setError(""); }
-  async function search() {
-    setBusy(true); clear();
+  const { clients } = useClientDirectory();
+  const controller = useRef<AbortController | null>(null);
+  useEffect(() => () => controller.current?.abort(), []);
+  const canSearch = Boolean(criteria.name?.trim() || criteria.applicationNumber?.trim() || criteria.partyName?.trim() || criteria.rut?.trim());
+  function change(patch: Partial<DiscoveryInput>) { setCriteria(current => ({ ...current, ...patch })); setResult(null); setSelected([]); setError(""); setMessage(""); }
+  async function search(more = false) {
+    if (busy) return;
+    setBusy(true); setError(""); setMessage(""); if (!more) { setSelected([]); setConfirmed(false); }
+    const request = new AbortController(); controller.current = request;
     try {
-      if (live) {
-        const r = await fetch("/api/inapi/enroll", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ applicationNumber: query.trim() }) });
-        const p = await r.json(); if (!r.ok) throw new Error(p.message);
-        const record = p.record;
-        setResults([{ ...record, registration: record.registrationNumber ?? "", classes: record.classes.join(", "), rut: record.ownerRut, registrationState: statusLabel(record.status) }]);
-      } else setResults(MOCK_SEARCH_CATALOGUE.filter(candidate => exactBrandMatch(candidate, field, query)));
-    } catch (error) { setError(error instanceof Error ? error.message : "No se pudo buscar. Intenta nuevamente."); }
+      let payload: DiscoveryResult;
+      if (real) {
+        const response = await fetch("/api/inapi/search", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...criteria, offset: more ? result?.nextOffset ?? 0 : 0 }), signal: request.signal });
+        payload = await response.json(); if (!response.ok) throw new Error((payload as unknown as { message: string }).message);
+      } else {
+        const candidates = MOCK_SEARCH_CATALOGUE.filter(c => (!criteria.name || textMatches(c.name, criteria.name, criteria.matchMode)) && (!criteria.applicationNumber || c.applicationNumber === criteria.applicationNumber) && (!criteria.partyName || textMatches(criteria.role === "representative" ? c.representativeName : c.owner, criteria.partyName, "similar")) && (!criteria.rut || c.rut.replace(/[.\s-]/g, "") === criteria.rut.replace(/[.\s-]/g, ""))).map(c => ({ ...c, representativeName: c.representativeName ?? "", registrationState: c.registrationState ?? "No informado", matchedParties: [], explanation: "Ejemplo de demostración" } as DiscoveryCandidate));
+        payload = { candidates, total: candidates.length, nextOffset: null, hasMore: false, filtered: false, scope: "Ejemplos de demostración · conexión real no configurada" };
+      }
+      const candidates = payload.candidates.map(c => ({ ...c, tracked: c.tracked || tracked.some(b => b.applicationNumber === c.applicationNumber) || added.includes(c.applicationNumber) }));
+      setResult(current => ({ ...payload, candidates: more ? [...(current?.candidates ?? []), ...candidates.filter(c => !current?.candidates.some(old => old.applicationNumber === c.applicationNumber))] : candidates }));
+      setAssignments(current => ({ ...current, ...Object.fromEntries(candidates.filter(c => !current[c.applicationNumber]).map(c => [c.applicationNumber, { clientId: defaultClient, clientRole: defaultRole }])) }));
+    } catch (failure) { if (!request.signal.aborted) setError(failure instanceof Error ? failure.message : "No se pudo completar la búsqueda."); }
     finally { setBusy(false); }
   }
   async function add() {
-    if (busy) return;
-    setBusy(true); setError("");
+    if (busy || !confirmed || !selected.length) return;
+    const chosen = result?.candidates.filter(c => selected.includes(c.applicationNumber) && !c.tracked) ?? [];
+    if (chosen.some(c => !assignments[c.applicationNumber]?.clientId)) { setError("Confirma el cliente de cada selección. Puedes elegir «Sin cliente asignado»."); return; }
+    setBusy(true); setError(""); let count = 0;
     try {
-      for (const candidate of results?.filter(result => selected.includes(result.applicationNumber) && !already(result)) ?? []) {
-        if (live) {
-          const r = await fetch("/api/inapi/enroll", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ applicationNumber: candidate.applicationNumber, confirm: true }) });
-          const p = await r.json(); if (!r.ok) throw new Error(p.message);
-        } else if (!await onAddMock(candidate)) throw new Error("No se pudo agregar la marca. Puedes reintentar.");
-        setAdded(current => [...current, candidate.applicationNumber]);
+      for (let i = 0; i < chosen.length; i += 10) {
+        const batch = chosen.slice(i, i + 10);
+        if (real) {
+          const response = await fetch("/api/portfolio/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "import", ids: batch.map(c => c.applicationNumber), ownPortfolioConfirmed: true, assignments: Object.fromEntries(batch.map(c => [c.applicationNumber, assignments[c.applicationNumber]])) }) });
+          const payload = await response.json(); if (!response.ok) throw new Error(payload.message);
+          const successful = payload.results.filter((row: { outcome: string }) => ["imported", "existing"].includes(row.outcome));
+          const successfulIds = successful.map((row: { id: string }) => row.id);
+          count += successfulIds.length; setAdded(current => [...current, ...successfulIds]);
+          setResult(current => current ? { ...current, candidates: current.candidates.map(c => successfulIds.includes(c.applicationNumber) ? { ...c, tracked: true } : c) } : current);
+          setSelected(current => current.filter(id => !successfulIds.includes(id)));
+          const failed = payload.results.find((row: { outcome: string }) => !["imported", "existing"].includes(row.outcome));
+          if (failed) throw new Error(failed.message || "Hay expedientes que requieren revisión. Los incorporados se conservaron.");
+        } else for (const candidate of batch) { if (!await onAddMock(candidate)) throw new Error("No se pudo agregar la marca."); count++; setAdded(current => [...current, candidate.applicationNumber]); setSelected(current => current.filter(id => id !== candidate.applicationNumber)); }
       }
-      await onRefresh(); setSelected([]); setMessage("Seguimiento actualizado. Las marcas incorporadas aparecen en tu cartera.");
-    } catch (error) { setError(error instanceof Error ? error.message : "No se pudo incorporar la selección."); }
-    finally { setBusy(false); }
+      setMessage(`${count} expedientes incorporados. Se ubicaron en Mis marcas o Solicitudes según su estado.`); setConfirmed(false);
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "No se pudo incorporar la selección."); }
+    finally { try { await onRefresh(); } catch { setError("La selección se guardó. Recarga la página para actualizar la cartera."); } setBusy(false); }
   }
-  const focused = results?.find(result => selected.includes(result.applicationNumber)) ?? results?.[0];
-  return <ReviewDialog title="Agregar marcas al seguimiento" onClose={() => { if (!busy) onClose(); }} className="brand-search-dialog">
-    <div className="brand-search-layout"><aside className="brand-search-parameters"><form onSubmit={event => { event.preventDefault(); void search(); }}><h3>Buscar una marca</h3><label>Buscar por<select value={field} disabled={busy} onChange={event => { setField(event.target.value as BrandSearchField); setQuery(""); clear(); }}>{Object.entries(BRAND_SEARCH_FIELDS).filter(([key]) => key !== "id" && (MOCK_ATTRIBUTE_SEARCH || key === "applicationNumber")).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label><label>Valor exacto<input type="search" required value={query} disabled={busy} onChange={event => { setQuery(event.target.value); clear(); }} placeholder={field === "rut" ? "77.888.410-5" : field === "name" ? "ACME ANDES" : field === "applicationNumber" ? "1700998" : "Escribe el valor completo"} /></label><small>Coincidencia exacta. El RUT admite puntos y guion o solo dígitos.</small><button className="buho-primary" type="submit" disabled={busy || !query.trim()}>{busy ? "Consultando…" : "Buscar"}</button></form>
-      {focused && <section className="brand-search-facts"><h3>Datos encontrados</h3><dl>{[["Marca", focused.name], ["Titular", focused.owner], ["RUT", focused.rut], ["Solicitud", focused.applicationNumber], ["Registro", focused.registration || "Aún no asignado"], ["Clases Niza", focused.classes], ["Representante", focused.representativeName], ["Estado", focused.registrationState]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || "No informado"}</dd></div>)}</dl></section>}
-    </aside><section className="brand-search-results"><p className="brand-search-provenance">{live ? "Consulta INAPI por número de solicitud" : "Catálogo de demostración · búsqueda por atributos"}</p>{!live && <p>Prueba con ACME ANDES, RUT 77.888.410-5 o registro 1560998. Los resultados por atributos son de ejemplo mientras se amplía la conexión.</p>}
-      {results === null ? <div className="brand-search-empty"><h3>Encuentra la marca que quieres seguir</h3><p>Elige un campo a la izquierda. Al buscar, podrás revisar los datos y seleccionar una o varias marcas.</p></div> : <><h3>{results.length} {results.length === 1 ? "resultado" : "resultados"}</h3>{results.map(candidate => <label className="brand-search-result" key={candidate.applicationNumber}><input type="checkbox" disabled={busy || already(candidate)} checked={selected.includes(candidate.applicationNumber)} onChange={event => setSelected(current => event.target.checked ? [...current, candidate.applicationNumber] : current.filter(id => id !== candidate.applicationNumber))} />{candidate.logo ? <Image tabIndex={0} role="button" aria-label={`Ampliar imagen de ${candidate.name}`} unoptimized src={candidate.logo} width={100} height={80} alt={`Logo de ${candidate.name}`} /> : <span className="brand-search-no-logo">{candidate.type === "Denominativa" ? "Denominativa" : "Sin logo"}</span>}<span><strong>{candidate.name}</strong><small>{candidate.owner} · {candidate.rut}</small><small>Solicitud {candidate.applicationNumber} · Registro {candidate.registration || "pendiente"}</small><small>Clases {candidate.classes}</small>{already(candidate) && <b>Ya en seguimiento</b>}</span></label>)}{!results.length && <p>No hay coincidencias exactas. Revisa el valor o busca por otro campo.</p>}</>}
-      {real && !live && <p>Esta vista permite probar los filtros. Para incorporar un expediente real, busca su número de solicitud en INAPI.</p>}{error && <p role="alert" className="task-error">{error}</p>}{message && <p role="status">{message}</p>}
-    </section></div><footer><button type="button" onClick={onClose} disabled={busy}>Cerrar</button><button type="button" onClick={() => void add()} disabled={busy || !selected.length || real && !live}>Agregar {selected.length || ""} {selected.length === 1 ? "marca" : "marcas"} al seguimiento</button></footer>
+  return <ReviewDialog title="Agregar marcas al seguimiento" onClose={() => { if (!busy) onClose(); }} className="brand-search-dialog ux-discovery-dialog">
+    <div className="brand-search-layout"><aside className="brand-search-parameters"><form onSubmit={event => { event.preventDefault(); void search(); }}><h3>Encuentra tus expedientes</h3><p>Combina los datos que conoces y revisa los resultados antes de agregarlos.</p>
+      <label>Nombre de la marca<input type="search" maxLength={500} value={criteria.name} disabled={busy} onChange={e => change({ name: e.target.value })} placeholder="Ej. Ventisca" /></label>
+      <label>Coincidencia de la marca<select value={criteria.matchMode} disabled={busy} onChange={e => change({ matchMode: e.target.value as TextMatchMode })}>{Object.entries(TEXT_MATCH_MODES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label>Número de solicitud<input inputMode="numeric" pattern="[0-9]{1,9}" maxLength={9} value={criteria.applicationNumber} disabled={busy} onChange={e => change({ applicationNumber: e.target.value })} placeholder="Ej. 1700998" /></label>
+      <div className="discovery-party-fields"><label>Titular o representante<select value={criteria.role} disabled={busy} onChange={e => change({ role: e.target.value as DiscoveryInput["role"] })}><option value="any">Titular o representante</option><option value="holder">Titular / solicitante</option><option value="representative">Representante / estudio</option></select></label><label>Nombre o razón social<input type="search" maxLength={500} value={criteria.partyName} disabled={busy} onChange={e => change({ partyName: e.target.value })} placeholder="Persona, empresa o estudio" /></label><label>RUT<input maxLength={30} value={criteria.rut} disabled={busy} onChange={e => change({ rut: e.target.value })} placeholder="Con o sin puntos y guion" /></label></div>
+      <details className="discovery-more"><summary>Más criterios</summary><label>Clase Niza<select value={criteria.niceClass ?? ""} onChange={e => change({ niceClass: e.target.value ? Number(e.target.value) : undefined })}><option value="">Todas las clases</option>{NICE_CLASSES.map(c => <option key={c.number} value={c.number}>{c.number} · {c.meaning}</option>)}</select></label><label>Estado INAPI<input value={criteria.status ?? ""} onChange={e => change({ status: e.target.value })} placeholder="Ej. Registrada" /></label></details>
+      <small>RUT y solicitud usan coincidencia exacta. Los nombres de titulares y representantes se buscan por semejanza. Los demás criterios se aplican al lote recuperado.</small><button className="buho-primary" type="submit" disabled={busy || !canSearch}>{busy ? "Consultando…" : "Buscar en INAPI"}</button>
+    </form></aside><section className="brand-search-results">
+      {!result ? <div className="brand-search-empty"><span className="buho-overline">BÚSQUEDA ASISTIDA</span><h3>Una marca o toda la cartera de un estudio</h3><p>Busca por marca, solicitud, titular o representante. Podrás revisar quién coincidió, confirmar el cliente y seleccionar los expedientes que deseas seguir.</p></div> : <><header className="discovery-results-heading"><div><h3>{result.candidates.length} resultados recuperados</h3><p>{result.scope}</p><small>{result.total} candidatos informados por la fuente{result.filtered ? " · filtros aplicados al lote recuperado" : ""}</small></div></header><div className="candidate-defaults"><label>Cliente para la selección<select value={defaultClient} disabled={busy} onChange={e => { const value = e.target.value; setDefaultClient(value); setAssignments(current => ({ ...current, ...Object.fromEntries(selected.map(id => [id, { clientId: value, clientRole: current[id]?.clientRole ?? defaultRole }])) })); }}><option value="">Elegir cliente…</option><option value="unassigned">Sin cliente asignado</option>{clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}</select></label><label>Rol del cliente<select value={defaultRole} disabled={busy} onChange={e => { const value = e.target.value as CandidateAssignment["clientRole"]; setDefaultRole(value); setAssignments(current => ({ ...current, ...Object.fromEntries(selected.map(id => [id, { clientId: current[id]?.clientId ?? defaultClient, clientRole: value }])) })); }}><option value="holder">Titular / solicitante</option><option value="representative">Representante</option></select></label><small>Se aplica a la selección actual. Puedes ajustar cada expediente abajo.</small></div><CandidateReview candidates={result.candidates.map(c => added.includes(c.applicationNumber) ? { ...c, tracked: true } : c)} selected={selected} onSelected={ids => { setSelected(ids); setAssignments(current => ({ ...current, ...Object.fromEntries(ids.filter(id => !current[id]?.clientId && defaultClient).map(id => [id, { clientId: defaultClient, clientRole: defaultRole }])) })); }} assignments={assignments} onAssignment={(id, value) => setAssignments(current => ({ ...current, [id]: value }))} busy={busy} />{!result.candidates.length && <p className="discovery-empty">No encontramos candidatos con estos criterios. Amplía la búsqueda o revisa el RUT.</p>}{result.hasMore && <button type="button" disabled={busy} className="discovery-load-more" onClick={() => void search(true)}>Cargar más candidatos</button>}<label className="candidate-confirm"><input type="checkbox" checked={confirmed} disabled={busy} onChange={e => setConfirmed(e.target.checked)} />Confirmo los clientes y roles de la selección, y que son expedientes de nuestra cartera. Los expedientes contrarios se incorporan desde Casos.</label></>}
+      {error && <p role="alert" className="task-error">{error}</p>}{message && <p role="status" className="discovery-success">{message}</p>}
+    </section></div><footer><span>{selected.length ? `${selected.length} expedientes seleccionados` : "Selecciona los expedientes que quieres incorporar"}</span><button type="button" onClick={onClose} disabled={busy}>Cerrar</button><button className="buho-primary" type="button" onClick={() => void add()} disabled={busy || !selected.length || !confirmed}>{busy ? "Procesando…" : `Agregar ${selected.length || ""} al seguimiento`}</button></footer>
   </ReviewDialog>;
 }

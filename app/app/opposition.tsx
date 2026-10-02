@@ -29,19 +29,20 @@ export function OppositionDetails({ proceeding, onOpenApplication }: { proceedin
   const record = proceeding.record;
   const received = proceeding.role === "respondent";
   return <section className="buho-case-section opposition-details">
-    <OppositionBadge role={proceeding.role} type={proceeding.type}/><h3>{received ? "Expediente de la marca defendida" : "Expediente de la marca impugnada"}</h3><button type="button" className="opposition-history-button" onClick={()=>setShowHistory(true)}>Ver historial de {record.name} →</button>
-    <dl>
-      <dt>{proceeding.clientName ? "Cliente" : "Oponente"}</dt><dd>{proceeding.clientName ?? proceeding.opponent}</dd>
-      <dt>{received ? "Marca defendida" : "Marca contraria"}</dt><dd>{record.name} · Solicitud {record.applicationNumber}</dd>
-      <dt>{received ? "Titular de la marca defendida" : "Titular de la marca contraria"}</dt><dd>{record.owner}</dd>
-      <dt>Estado del expediente</dt><dd>{statusLabel(record.status)}</dd>
-      <dt>{received ? "Solicitud vinculada" : "Fundamento vinculado"}</dt><dd>{received ? proceeding.applicationCode ?? "Sin vínculo" : proceeding.basisName ?? "Sin vínculo"}</dd>
-      <dt>Presentación de la acción</dt><dd>{proceeding.filedAt ?? "Ver actuaciones del expediente"}</dd>
-    </dl>
-    {received && proceeding.applicationCode && onOpenApplication && <button type="button" onClick={() => onOpenApplication(proceeding.applicationCode!)}>Ver solicitud vinculada →</button>}
+    <header className="opposition-dossier-header"><OppositionBadge role={proceeding.role} type={proceeding.type}/><div><h3>{received ? "Expediente de la marca defendida" : "Expediente de la marca impugnada"}</h3><button type="button" className="opposition-history-button" onClick={() => setShowHistory(true)}>Ver historial →</button></div></header>
+    <table className="opposition-dossier-table"><tbody>{[
+      [proceeding.clientName ? "Cliente" : "Oponente", proceeding.clientName ?? proceeding.opponent],
+      [received ? "Marca defendida" : "Marca contraria", record.name],
+      ["Número de solicitud", record.applicationNumber],
+      ["Número de registro", record.registrationNumber || "No informado"],
+      [received ? "Titular de la marca defendida" : "Titular de la marca contraria", record.owner],
+      ["Estado del expediente", statusLabel(record.status)],
+      [received ? "Solicitud vinculada" : "Fundamento vinculado", received ? proceeding.applicationCode ? `Solicitud ${record.applicationNumber}` : "Sin vínculo" : proceeding.basisName ?? "Sin vínculo"],
+      ["Presentación de la acción", proceeding.filedAt ? displayWorkDate(proceeding.filedAt) : "Ver actuaciones del expediente"],
+    ].map(([label, value]) => <tr key={label}><th scope="row">{label}</th><td>{value || "No informado por la fuente"}</td></tr>)}</tbody></table>
+    <div className="opposition-dossier-actions">{received && proceeding.applicationCode && onOpenApplication && <button type="button" className="opposition-history-button" onClick={() => onOpenApplication(proceeding.applicationCode!)}>Ver solicitud vinculada →</button>}{proceeding.documentUrl && <a href={proceeding.documentUrl} target="_blank" rel="noreferrer">Abrir respaldo ↗</a>}</div>
     {proceeding.note && <p>{proceeding.note}</p>}
-    {proceeding.documentUrl && <a href={proceeding.documentUrl} target="_blank" rel="noreferrer">Abrir respaldo ↗</a>}
-    <p>{received && proceeding.applicationCode ? "La solicitud permanece en Solicitudes de registro. Este caso comparte su seguimiento y sus avisos. Las novedades generan una tarea de revisión; verifica los plazos y la notificación en la solicitud vinculada." : "Las novedades generan una tarea de revisión. Verifica los plazos según la acción, el rol del cliente y la notificación de cada actuación."}</p>
+    <p className="opposition-dossier-note">{received && proceeding.applicationCode ? "La solicitud comparte su seguimiento y sus avisos con este caso. Revisa sus actuaciones para confirmar plazos y notificaciones." : "Las novedades generan una tarea de revisión. Confirma los plazos según la acción, el rol del cliente y la notificación de cada actuación."}</p>
     {showHistory && <ReviewDialog title={`Historial · ${record.name}`} className="pilot-dialog" onClose={()=>setShowHistory(false)}><div className="pilot-body"><OppositionHistory proceeding={proceeding}/></div><footer><button type="button" onClick={()=>setShowHistory(false)}>Cerrar historial</button></footer></ReviewDialog>}
   </section>;
 }

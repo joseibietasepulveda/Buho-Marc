@@ -18,7 +18,8 @@ import { correctReceivedToFiled } from "../db/opposition-role.ts";
 
 async function freePort() { const s = createServer(); s.listen(0, "127.0.0.1"); await once(s, "listening"); const port = s.address().port; await new Promise(r => s.close(r)); return port; }
 const directory = await mkdtemp(path.join(tmpdir(), "buho-pilot-test-"));
-const dbPort = await freePort(), appPort = await freePort();
+const dbPort = await freePort(), appPort = process.env.PILOT_APP_PORT ? Number(process.env.PILOT_APP_PORT) : await freePort();
+assert.ok(Number.isInteger(appPort) && appPort >= 1024 && appPort <= 65535, "PILOT_APP_PORT debe ser un puerto local válido");
 const base = `http://127.0.0.1:${appPort}`;
 const databaseUrl = `postgresql://postgres:isolated-pilot-test@127.0.0.1:${dbPort}/pilot_test`;
 const db = new EmbeddedPostgres({ databaseDir: path.join(directory, "postgres"), user: "postgres", password: "isolated-pilot-test", port: dbPort, persistent: false, initdbFlags: ["--locale=C", "--encoding=UTF8"], postgresFlags: ["-h", "127.0.0.1"], onLog: () => {}, onError: () => {} });

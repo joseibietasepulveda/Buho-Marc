@@ -1,5 +1,6 @@
 "use client";
 
+import { dismissDialogBackdrop } from "./dialog-dismiss";
 import { useEffect, useRef } from "react";
 import { ArrowSquareOut, X } from "@phosphor-icons/react";
 import { activityDate, oldestActivityFirst } from "@/lib/registration-activity";
@@ -52,7 +53,9 @@ export function SourceInspector({ data, tracked, pending, onClose }: { data: Sou
     ["Número de solicitud", data.applicationNumber], ["Número de registro", data.registrationNumber ?? "No asignado"], ["Tipo de marca", data.type], ["Clases de Niza", data.classes.join(", ") || "No informadas"],
     ["Presentación", sourceDate(data.filingDate)], ["Publicación en Diario Oficial", sourceDate(data.publicationDate)], ["Fecha de registro", sourceDate(data.registrationDate)], ["Vencimiento del registro", sourceDate(data.expirationDate)],
   ];
-  return <dialog ref={dialog} className="source-inspector" onCancel={onClose} aria-labelledby="source-inspector-title">
+  // Native dialog supports Escape; this handler only dismisses its backdrop.
+  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+  return <dialog ref={dialog} onClick={event => dismissDialogBackdrop(event, onClose)} className="source-inspector" onCancel={onClose} aria-labelledby="source-inspector-title">
     <header><div><span>INAPI · SOLICITUD {data.applicationNumber}</span><h2 id="source-inspector-title">{data.name}</h2></div><button type="button" onClick={onClose} aria-label="Cerrar expediente"><X size={22} /></button></header>
     <div className="source-inspector-body">
       <section className="source-inspector-status"><div className="source-status-heading"><span>Etapa según los antecedentes</span><span className={`source-pill ${pending ? "pending" : ""}`}>{pending ? "Con diferencias pendientes" : tracked ? "En cartera" : "Fuera de cartera"}</span></div><h3>{statusLabel(data.status)}</h3><p>Estado general de INAPI: <strong>{String(general.description ?? "No informado")}</strong>{general.code ? ` · Código ${general.code}` : ""}</p>{data.status === "registered" && general.description === "En Trámite" && <p className="source-feedback">El estado general de la fuente aún indica “En trámite”. Los antecedentes de registro y la resolución del historial sustentan la etapa “Registro concedido”.</p>}</section>

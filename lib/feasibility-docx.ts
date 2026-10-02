@@ -27,7 +27,7 @@ export async function createFeasibilityDocx(input: FeasibilityReportInput): Prom
   const heading = (value: string) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: value, bold: true, color: '000000', size: 27, font: 'Aptos' })], spacing: { before: 280, after: 130 }, keepNext: true });
   const picture = (bytes: Uint8Array, width: number, height: number) => new Paragraph({ children: [new ImageRun({ type: 'png', data: bytes, transformation: pngSize(bytes, width, height), altText: { name: 'Imagen de marca', title: 'Imagen de marca', description: 'Imagen de la marca examinada' } })], spacing: { after: 130 }, keepNext: false });
 
-  body.push(new Paragraph({ style: 'Title', children: [new TextRun({ text: 'Informe de prefactibilidad de marca', bold: true, color: '000000', size: 34, font: 'Aptos' })], spacing: { after: 120 } }));
+  body.push(new Paragraph({ style: 'Title', children: [new TextRun({ text: 'Informe de factibilidad de marca', bold: true, color: '000000', size: 34, font: 'Aptos' })], spacing: { after: 120 } }));
   body.push(paragraph(proposal.name.trim() || 'Marca sin nombre', { bold: true, after: 80 }));
   body.push(paragraph(date(result.fetchedAt), { small: true }));
   if (input.client?.trim()) body.push(paragraph(`Para: ${input.client.trim()}`, { small: true }));
@@ -72,7 +72,7 @@ export async function createFeasibilityDocx(input: FeasibilityReportInput): Prom
 
   const logo = input.studioLogo && new ImageRun({ type: 'png', data: input.studioLogo, transformation: pngSize(input.studioLogo, 150, 110), altText: { name: 'Logo del estudio', title: 'Logo del estudio', description: 'Estudio Jurídico' } });
   const doc = new Document({
-    creator: input.author?.trim() || 'Estudio Jurídico', title: `Informe de prefactibilidad de marca ${proposal.name.trim()}`,
+    creator: input.author?.trim() || 'Estudio Jurídico', title: `Informe de factibilidad de marca ${proposal.name.trim()}`,
     sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1900, right: 1150, bottom: 1200, left: 1150, header: 450 } } },
       headers: logo ? { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [logo] })] }) } : undefined,
       children: body,

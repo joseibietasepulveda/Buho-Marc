@@ -24,6 +24,7 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("updateMatchLevel"), id: z.string().min(1), level: z.enum(["Alta", "Media", "Baja"]) }),
   z.object({ action: z.literal("toggleBrandMonitoring"), id: z.string().min(1), enabled: z.boolean() }),
   z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Esperando confirmación de cliente", "En seguimiento", "Concluido"]) }),
+  z.object({ action: z.literal("updateCasePriority"), id: z.string().min(1), priority: z.enum(["Alta", "Media", "Baja"]) }),
   z.object({ action: z.literal("updateCaseOwner"), id: z.string().min(1), owner: z.string().min(2).max(180) }),
   z.object({ action: z.literal("discardCase"), id: z.string().min(1) }),
   z.object({ action: z.literal("unlinkCaseMatch"), id: z.string().min(1) }),
@@ -176,6 +177,12 @@ async function handlePOST(request: Request) {
       if (!owner) throw new Error("Abogado no encontrado");
       const [item] = await sql`UPDATE cases SET owner_id = ${owner.id}, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
       if (!item) throw new Error("Caso no encontrado");
+    } else if (input.action === "updateCasePriority") {
+      await sql.begin(async tx => {
+        const [item] = await tx`UPDATE cases SET priority = ${input.priority}, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
+        if (!item) throw new Error("Caso no encontrado");
+        await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${organizationId()}, ${actorId()}, 'case.priority_changed', 'case', ${item.id}, ${tx.json({ priority: input.priority })})`;
+      });
     } else if (input.action === "discardCase") {
       await sql.begin(async (tx) => {
         const [item] = await tx`SELECT id, source_match_id FROM cases WHERE organization_id = ${organizationId()} AND public_code = ${input.id} LIMIT 1`;

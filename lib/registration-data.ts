@@ -59,6 +59,7 @@ export type LegalEvidence = {
 export type NotificationProof = { date: string; method: string; reference: string; sourceUrl?: string; verifiedBy: "public-document" | "team" | "source" };
 
 export type RegistrationApplication = {
+  clientId?: string; clientRole?: "holder" | "representative";
   demoScenario?: string;
   legalEvidence?: LegalEvidence[];
   procedure?: {

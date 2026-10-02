@@ -27,7 +27,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const hits = selectReportHits(allHits,input.selectedIds);
   const recommendation = reportRecommendation(result, input.recommendation, input.explanation, proposal.coverage.map(item => item.nice_class));
   const pdf = await PDFDocument.create();
-  pdf.setTitle(`Informe de prefactibilidad - ${proposal.name || 'Marca sin nombre'}`);
+  pdf.setTitle(`Informe de factibilidad - ${proposal.name || 'Marca sin nombre'}`);
   pdf.setAuthor(input.author?.trim() || 'Estudio Jurídico'); pdf.setLanguage('es-CL');
   const regular = await pdf.embedFont(StandardFonts.Helvetica), bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const ink = rgb(.12,.16,.20), muted = rgb(.40,.43,.46), gold = rgb(.54,.47,.32), line = rgb(.85,.85,.83);
@@ -64,7 +64,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const name = proposal.name.trim() || 'Marca sin nombre';
   // Place the supplied asset intact, using its own white margins for spacing.
   if (logo) page.drawImage(logo,{x:365,y:650,...logo.scaleToFit(190,190)});
-  text('INFORME DE PREFACTIBILIDAD',10,true,gold,295);
+  text('INFORME DE FACTIBILIDAD',10,true,gold,295);
   y -= 8; text(name,25,true,ink,295);
   text(date(result.fetchedAt),10,false,muted,295);
   if (input.client?.trim()) text(`Para: ${input.client.trim()}`,10,false,muted,295);
@@ -142,7 +142,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const pages = pdf.getPages();
   pages.forEach((p,i)=>{
     p.drawLine({start:{x:52,y:48},end:{x:543,y:48},color:line,thickness:.5});
-    p.drawText('INFORME DE PREFACTIBILIDAD',{x:52,y:32,size:8,font:regular,color:muted});
+    p.drawText('INFORME DE FACTIBILIDAD',{x:52,y:32,size:8,font:regular,color:muted});
     p.drawText(`${i+1} / ${pages.length}`,{x:515,y:32,size:8,font:regular,color:muted});
   });
   return pdf.save();

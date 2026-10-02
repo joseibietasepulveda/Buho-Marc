@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "@phosphor-icons/react";
 
-export function ReviewDialog({ title, children, onClose, className = "" }: { title: string; children: ReactNode; onClose: () => void; className?: string }) {
+export function ReviewDialog({ title, children, onClose, className = "", eyebrow }: { eyebrow?: string; title: string; children: ReactNode; onClose: () => void; className?: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
@@ -28,7 +28,7 @@ export function ReviewDialog({ title, children, onClose, className = "" }: { tit
     const bounds = event.currentTarget.getBoundingClientRect();
     if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
   }}>
-    <header><h2 id={titleId} ref={titleRef} tabIndex={-1}>{title}</h2><button aria-label={`Cerrar ${title}`} onClick={onClose} type="button"><X size={22} aria-hidden /></button></header>
+    <header><div>{eyebrow && <span className="buho-overline">{eyebrow}</span>}<h2 id={titleId} ref={titleRef} tabIndex={-1}>{title}</h2></div><button aria-label={`Cerrar ${title}`} onClick={onClose} type="button"><X size={22} aria-hidden /></button></header>
     {children}
   </dialog>, document.body);
 }

@@ -220,7 +220,7 @@ export const notifications = pgTable("notifications", {
   publicCode: varchar("public_code", { length: 30 }).notNull(), userId: uuid("user_id").references(() => users.id), entityType: varchar("entity_type", { length: 40 }).notNull(),
   entityId: uuid("entity_id").notNull(), type: varchar("type", { length: 80 }).notNull(), title: varchar("title", { length: 220 }).notNull(),
   brandName: varchar("brand_name", { length: 180 }).notNull(), urgency: varchar("urgency", { length: 20 }).default("Media").notNull(),
-  readAt: timestamp("read_at", { withTimezone: true }), managedAt: timestamp("managed_at", { withTimezone: true }), ...timestamps,
+  dismissedAt: timestamp("dismissed_at", { withTimezone: true }), readAt: timestamp("read_at", { withTimezone: true }), managedAt: timestamp("managed_at", { withTimezone: true }), ...timestamps,
 }, (table) => [uniqueIndex("notifications_org_code_uq").on(table.organizationId, table.publicCode), index("notifications_inbox_idx").on(table.organizationId, table.managedAt, table.createdAt)]);
 
 export const emailDrafts = pgTable("email_drafts", {

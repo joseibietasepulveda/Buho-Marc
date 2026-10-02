@@ -1,5 +1,6 @@
 "use client";
 import "./notification-center.css";
+import { dismissDialogBackdrop } from "./dialog-dismiss";
 import { legalText, legalFieldLabel } from "@/lib/legal-language";
 import { noticePresentation } from "@/lib/work-priorities";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
@@ -13,33 +14,36 @@ import { notificationPage } from "@/lib/notification-page";
 type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { applicationNumber?: string; caseId?: string; changes: FieldChange[]; source?: string; summary: string } };
 const emptyApplications: RegistrationApplication[] = [];
 const emptyBrands: TimelineBrand[] = [];
-export function NotificationCenter({ notices, applications = emptyApplications, brands = emptyBrands, onManage, onOpenMatch, onOpenCase }: { notices: Notice[]; applications?: RegistrationApplication[]; brands?: TimelineBrand[]; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
+export function NotificationCenter({ notices, applications = emptyApplications, brands = emptyBrands, onManage, onDismiss, onClear, onOpenMatch, onOpenCase }: { onDismiss: (id: string) => Promise<boolean>; onClear: (scope: "priority" | "all") => Promise<boolean>; notices: Notice[]; applications?: RegistrationApplication[]; brands?: TimelineBrand[]; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
   const [tab, setTab] = useState<"priority" | "all">("priority");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [busy, setBusy] = useState(false), [error, setError] = useState("");
+  async function dismiss(id?: string) { if (busy) return; setBusy(true); setError(""); try { if (!await (id ? onDismiss(id) : onClear(tab))) setError("No se pudieron eliminar los avisos. Intenta nuevamente."); } catch { setError("No se pudo confirmar la eliminación. Revisa tu conexión."); } finally { setBusy(false); } }
+
   const selected = notices.find(notice => notice.id === selectedId);
   const priorities = notices.filter(isPriorityNotice);
   const visible = tab === "priority" ? priorities : notices;
   const paginated = notificationPage(visible, page);
   return <section className="notification-center">
-    <div className="notice-tabs" role="group" aria-label="Bandejas de notificaciones"><button type="button" aria-pressed={tab === "priority"} onClick={() => { setTab("priority"); setPage(0); }}>Prioritarias <span>{priorities.length}</span></button><button type="button" aria-pressed={tab === "all"} onClick={() => { setTab("all"); setPage(0); }}>Todas <span>{notices.length}</span></button></div>
+    <div className="notice-toolbar"><div className="notice-tabs" role="group" aria-label="Bandejas de notificaciones"><button type="button" aria-pressed={tab === "priority"} onClick={() => { setTab("priority"); setPage(0); }}>Prioritarias <span>{priorities.length}</span></button><button type="button" aria-pressed={tab === "all"} onClick={() => { setTab("all"); setPage(0); }}>Todas <span>{notices.length}</span></button></div><button type="button" className="notice-clear" disabled={busy || !visible.length} onClick={() => void dismiss()}>{busy ? "Limpiando…" : tab === "priority" ? "Limpiar prioritarias" : "Limpiar todas"}</button></div>{error && <p role="alert" className="notice-error">{error}</p>}
     <p className="notice-intro">{tab === "priority" ? "Presentación, resoluciones, pagos, publicaciones, vencimientos y título de marca. Lo que necesitas para avanzar cada gestión." : "Historial completo de notificaciones, incluidos cambios de titular, representante y otros antecedentes."}</p>
     {visible.length > 50 && <NoticePagination {...paginated} onPage={setPage} />}
     {tab === "priority" ? <div className="priority-notice-list">{paginated.items.map(notice => {
       const display = noticePresentation(notice, notice.deadline);
-      return <button type="button" key={notice.id} className={`priority-notice-row ${notice.status === "Pendiente" ? "is-unread" : ""}`} onClick={() => setSelectedId(notice.id)} aria-haspopup="dialog">
+      return <div className="notice-row-wrapper" key={notice.id}><button type="button" className={`priority-notice-row ${notice.status === "Pendiente" ? "is-unread" : ""}`} onClick={() => setSelectedId(notice.id)} aria-haspopup="dialog">
         <i className="notice-unread-dot" aria-hidden /><span className="priority-notice-copy"><small>Aviso · {notice.date} · {notice.brand}</small><strong>{display.kind === "deadline" ? conciseNoticeTitle(display.title, notice.brand) : priorityNoticeSummary(notice)}</strong><span>{display.kind === "deadline" ? `${display.label} · ` : ""}{notice.status === "Pendiente" ? "Pendiente de revisión" : "Revisada"}</span></span><span className="priority-notice-source">{noticeSource(notice)}</span><span className="priority-notice-open">Ver historia <span aria-hidden>→</span></span>
-      </button>;
-    })}</div> : <div className="notice-accordion">{paginated.items.map(notice => { const display = noticePresentation(notice, notice.deadline); return <details key={notice.id} className={notice.status === "Pendiente" ? "is-unread" : ""}>
+      </button><button type="button" className="notice-remove" aria-label={`Eliminar notificación ${notice.title}`} disabled={busy} onClick={() => void dismiss(notice.id)}>×</button></div>;
+    })}</div> : <div className="notice-accordion">{paginated.items.map(notice => { const display = noticePresentation(notice, notice.deadline); return <div className="notice-row-wrapper" key={notice.id}><details className={notice.status === "Pendiente" ? "is-unread" : ""}>
       <summary><i className="notice-unread-dot" aria-hidden /><span><small>{notice.date} · {notice.brand}</small><strong>{legalText(display.title)}</strong>{display.kind === "deadline" && <small>{display.label}</small>}<small>{notice.status === "Pendiente" ? "Pendiente de revisión" : "Gestionada"}</small></span><b>{isTitleIssued(notice.title) ? "Título disponible" : notice.changeDetail?.changes.some(change => change.field === "publicationDate") || /Diario Oficial/i.test(notice.title) ? "Diario Oficial" : notice.changeDetail ? "INAPI" : "Seguimiento"}</b><span className="notice-chevron" aria-hidden>⌄</span></summary>
       <div className="notice-details">{isTitleIssued(notice.title) && <p className="notice-title-issued">El título de marca figura emitido. Revisa el documento para completar la entrega al cliente.</p>}
         {notice.changeDetail ? <><p>{legalText(notice.changeDetail.summary.split("\n\nAntecedentes detectados:")[0])}</p><div className="notice-change-list">{notice.changeDetail.changes.map((change, index) => <details key={`${change.field}-${index}`}><summary>{legalText(change.label)}<span aria-hidden>⌄</span></summary><dl><div><dt>Antes</dt><dd>{change.field === "status" ? statusLabel(String(change.before)) : displayValue(change.before)}</dd></div><div><dt>Ahora</dt><dd>{change.field === "status" ? statusLabel(String(change.after)) : displayValue(change.after)}</dd></div></dl></details>)}</div></> : <><p className="notice-body">{legalText(notice.body)}</p>{display.kind === "deadline" && <p>El texto original corresponde a la fecha del aviso. Confirma el vencimiento en el expediente; las referencias como “en 5 días” no son una cuenta regresiva actualizada.</p>}</>}
-        <footer>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => onOpenCase(notice.changeDetail!.caseId!)}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => onOpenMatch(notice.matchId!)}>Ver vigilancia →</button>}<button type="button" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
+        <footer><button type="button" className="is-danger" disabled={busy} onClick={() => void dismiss(notice.id)}>Eliminar notificación</button>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => onOpenCase(notice.changeDetail!.caseId!)}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => onOpenMatch(notice.matchId!)}>Ver vigilancia →</button>}<button type="button" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
       </div>
-    </details>; })}</div>}
+    </details><button type="button" className="notice-remove" aria-label={`Eliminar notificación ${notice.title}`} disabled={busy} onClick={() => void dismiss(notice.id)}>×</button></div>; })}</div>}
     {visible.length > 50 && <NoticePagination {...paginated} onPage={setPage} />}
     {!visible.length && <div className="notice-empty"><h3>{tab === "priority" ? "No hay novedades prioritarias" : "Todavía no hay notificaciones"}</h3><p>Los nuevos hitos aparecerán aquí cuando se detecten en tus expedientes.</p>{tab === "priority" && notices.length > 0 && <button type="button" onClick={() => setTab("all")}>Ver todas las notificaciones</button>}</div>}
-    {selected && <PriorityNoticeDrawer key={selected.id} notice={selected} notices={notices} applications={applications} brands={brands} onClose={() => setSelectedId(null)} onManage={onManage} onOpenMatch={onOpenMatch} onOpenCase={onOpenCase} />}
+    {selected && <PriorityNoticeDrawer key={selected.id} notice={selected} notices={notices} applications={applications} brands={brands} onClose={() => setSelectedId(null)} onManage={onManage} onDismiss={async () => { await dismiss(selected.id); }} busy={busy} onOpenMatch={onOpenMatch} onOpenCase={onOpenCase} />}
   </section>;
 }
 
@@ -72,7 +76,7 @@ function timelineDate(date: string) {
   return date ? new Intl.DateTimeFormat("es-CL", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00Z`)) : "Fecha no informada";
 }
 
-function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, onManage, onOpenMatch, onOpenCase }: { notice: Notice; notices: Notice[]; applications: RegistrationApplication[]; brands: TimelineBrand[]; onClose: () => void; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
+function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, onManage, onDismiss, busy, onOpenMatch, onOpenCase }: { onDismiss: () => Promise<void>; busy: boolean; notice: Notice; notices: Notice[]; applications: RegistrationApplication[]; brands: TimelineBrand[]; onClose: () => void; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const timeline = useMemo(() => buildNotificationTimeline(notice, notices, applications, brands), [notice, notices, applications, brands]);
@@ -87,7 +91,9 @@ function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, 
     document.body.style.overflow = "hidden";
     return () => { element?.close(); document.body.style.overflow = previousOverflow; if (opener?.isConnected) opener.focus(); };
   }, []);
-  return createPortal(<dialog ref={dialog} className="priority-notice-drawer" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); onClose(); }}>
+  // Native dialog provides keyboard dismissal through Escape; clicks dismiss only its backdrop.
+  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+  return createPortal(<dialog ref={dialog} onClick={event => dismissDialogBackdrop(event, onClose)} className="priority-notice-drawer" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); onClose(); }}>
     <header><div><span>NOTIFICACIÓN · {noticeSource(notice)}</span><h2 id={titleId}>{notice.brand}</h2></div><button type="button" aria-label="Cerrar notificación" onClick={onClose}>×</button></header>
     <div className="priority-notice-scroll">
       <section className="priority-notice-highlight"><small>Aviso detectado: {notice.date}</small><h3>{title}</h3><p>{notice.status === "Pendiente" ? "Pendiente de revisión" : "Notificación revisada"}</p>{display.kind === "deadline" && <p>{display.label}. Confirma el vencimiento y su antecedente en el expediente.</p>}{isTitleIssued(title) && <p>Revisa el título emitido para completar la entrega al cliente.</p>}{!notice.changeDetail && <p>{notice.body}</p>}</section>
@@ -99,6 +105,6 @@ function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, 
       {changes.length > 0 && <section className="priority-other-changes"><h3>Otros antecedentes del aviso</h3>{changes.map((change, index) => <details key={`${change.field}-${index}`}><summary>{legalText(change.label)}<span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ Antes: change.field === "status" ? statusLabel(String(change.before)) : change.before, Ahora: change.field === "status" ? statusLabel(String(change.after)) : change.after }]} /></details>)}</section>}
       <details className="priority-notice-reference"><summary>Referencia de la notificación <span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ "ID del aviso": notice.id, "Título del aviso": legalText(notice.title), "Fecha de detección": notice.date, ...(notice.matchId ? { "Vigilancia relacionada": notice.matchId } : {}) }]} /></details>
     </div>
-    <footer>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => { onClose(); onOpenCase(notice.changeDetail!.caseId!); }}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => { onClose(); onOpenMatch(notice.matchId!); }}>Ver vigilancia →</button>}<button type="button" className="priority-review-action" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
+    <footer><button type="button" className="is-danger" disabled={busy} onClick={() => void onDismiss()}>Eliminar notificación</button>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => { onClose(); onOpenCase(notice.changeDetail!.caseId!); }}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => { onClose(); onOpenMatch(notice.matchId!); }}>Ver vigilancia →</button>}<button type="button" className="priority-review-action" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
   </dialog>, document.body);
 }

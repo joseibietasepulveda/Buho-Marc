@@ -18,6 +18,7 @@ const actions: Record<string, string> = {
   "case.created": "Caso creado", "case.stage_changed": "Etapa del caso actualizada", "case.match_unlinked": "Vigilancia desvinculada del caso", "case.discarded": "Caso descartado", "case.owner_changed": "Responsable del caso actualizado",
   "member.added": "Usuario incorporado al equipo", "client_updated": "Datos del cliente actualizados", "client.created": "Cliente creado", "brand.client_assigned": "Cliente asociado a la marca",
   "task.save": "Tarea guardada", "task.delete": "Tarea eliminada", "registration.evidence.add": "Antecedente agregado a la solicitud", "registration.evidence.remove": "Antecedente retirado de la solicitud", "registration.evidence.delete": "Antecedente retirado de la solicitud",
+  "case.priority_changed": "Prioridad del caso actualizada", "portfolio.client_assigned": "Cliente y rol confirmados al incorporar el expediente", "notifications.dismissed": "Notificaciones retiradas de la bandeja",
 };
 export function auditAction(action: string, data?: Record<string, unknown>): string {
   if (action === "brand.monitoring_changed" && typeof data?.enabled === "boolean") return data.enabled ? "Vigilancia de la marca activada" : "Vigilancia de la marca pausada";

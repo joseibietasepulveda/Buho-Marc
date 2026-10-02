@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { textMatches, type TextMatchMode } from "./text-search";
 import { applyVerifiedDecision } from './verified-decisions';
 import { feasibilityStatus } from './feasibility-policy';
 import { fetchInapiEvidence, InapiHttpError } from "./inapi-provider";
@@ -23,7 +24,7 @@ export function withRecord(hit: SimilarityHit, record: SourceRecord): Similarity
 }
 export async function searchSimilar(input: Record<string, unknown>, image?: File, fetcher: typeof fetch = fetch): Promise<SimilarityResult> {
   if (!similarityConfigured()) throw new SimilarityError("La búsqueda real aún no está configurada en este ambiente.", 503);
-  const { states, minSimilarity, ...remoteInput } = input;
+  const { states, minSimilarity, matchMode, ...remoteInput } = input;
   let body: BodyInit = JSON.stringify(remoteInput);
   const headers: Record<string, string> = { "x-api-key": process.env.INAPI_API_KEY! };
   if (image) {
@@ -43,7 +44,7 @@ export async function searchSimilar(input: Record<string, unknown>, image?: File
   const data = parsed.data;
   const allIds = data.results.map(hit => String(hit.application_id));
   if (new Set(allIds).size !== allIds.length || allIds.length > Number(input.limit ?? 30)) throw new SimilarityError("La fuente devolvió resultados duplicados o fuera del límite solicitado.");
-  const candidates = data.results.filter(hit => hit.application_id !== input.application_id && hit.score >= Number(minSimilarity ?? 0));
+  const candidates = data.results.filter(hit => hit.application_id !== input.application_id && hit.score >= Number(minSimilarity ?? 0) && (!matchMode || matchMode === "similar" || textMatches(hit.name ?? "", String(input.name ?? ""), matchMode as TextMatchMode)));
   const ids = candidates.map(hit => String(hit.application_id));
   let records: SourceRecord[] = [];
   try { if (ids.length) records = (await fetchInapiEvidence({ applicationIds: ids, registrationIds: [] }, fetcher)).records; }

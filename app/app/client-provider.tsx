@@ -1,5 +1,6 @@
 "use client";
 
+import { ClientReportPicker } from "./client-report";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { CLIENT_FIELDS, associatedClientId, resolveBrandClientId, type ClientBrand, type Client, type ClientField, type ClientData } from "@/lib/client-directory";
 
@@ -69,7 +70,7 @@ export function ClientDirectoryProvider({ brands, children, onOpenBrand, onAssig
     } catch { return { ok: false, message: "No se pudo confirmar el guardado. Revisa tu conexión e inténtalo nuevamente." }; }
   };
   const brandIdFor = (name: string, id?: string) => {
-    const candidates = brands.filter(brand => id ? brand.id === id : brand.name === name);
+    const candidates = brands.filter(brand => brand.entityType !== "application").filter(brand => id ? brand.id === id : brand.name === name);
     return candidates.length === 1 ? candidates[0].id : undefined;
   };
   const assign: Directory["assign"] = async (brandId, clientId) => {
@@ -111,9 +112,9 @@ export function BrandClientLink({ brand, brandId }: { brand: string; brandId?: s
   if (!client) { const id = brandIdFor(brand, brandId); return id ? <AssignClient brandId={id} brand={brand} /> : <span className="buho-client-unassigned">Sin cliente asignado</span>; }
   return <button className="buho-client-link" type="button" aria-label={`Ver ficha de ${client.name}`} onClick={event => { event.stopPropagation(); openClient(client.id); }} onKeyDown={event => event.stopPropagation()}>{client.name}<span aria-hidden> ↗</span></button>;
 }
-export function ClientNameLink({ name }: { name: string }) {
+export function ClientNameLink({ name, clientId }: { name: string; clientId?: string }) {
   const { clients, openClient } = useClientDirectory();
-  const client = clients.find(item => item.name === name);
+  const client = clientId ? clients.find(item => item.id === clientId) : undefined;
   return client ? <button className="buho-client-link" type="button" onClick={() => openClient(client.id)}>{client.name} ↗</button> : <span>{name}</span>;
 }
 export function ClientContact({ brand, brandId, compact = false }: { brand: string; brandId?: string; compact?: boolean }) {
@@ -144,10 +145,9 @@ function EditableClientCell({ client, field, label }: { client: Client; field: C
 }
 
 function ClientProfile({ client, brands, onClose, onOpenBrand }: { client: Client; brands: ClientBrand[]; onClose: () => void; onOpenBrand: (id: string) => void }) {
-  const dialog = useRef<HTMLDialogElement>(null);
+  const [tab,setTab]=useState<"profile"|"report">("profile");
   const { notice } = useClientDirectory();
-  useEffect(() => { const node = dialog.current; node?.showModal(); return () => node?.close(); }, []);
-  return <dialog ref={dialog} className="buho-client-profile" aria-labelledby="client-profile-title" onCancel={onClose}><header><div><span className="buho-overline">CLIENTE · {client.mock ? "MOCK" : "REAL"}</span><h2 id="client-profile-title">{client.name}</h2></div><button type="button" aria-label="Cerrar ficha del cliente" onClick={onClose}>×</button></header><div className="buho-client-profile-body"><p>Datos del cliente y las marcas que el estudio gestiona para él.</p><dl>{CLIENT_FIELDS.map(field => <div key={field.key}><dt>{field.label}</dt><dd><EditableClientCell client={client} field={field.key} label={field.label} /></dd></div>)}</dl><p className="buho-client-save-status" role="status">{notice}</p><section><h3>Marcas vinculadas <span>({brands.length})</span></h3>{brands.length ? <ul>{brands.map(brand => <li key={brand.id}><button className="client-brand-link" type="button" onClick={() => onOpenBrand(brand.id)}>{brand.name}<span aria-hidden>Ver marca →</span></button></li>)}</ul> : <p>Aún no hay marcas vinculadas a este cliente.</p>}</section>{client.mock && <small>Este cliente y sus vínculos son de demostración. No se asignan automáticamente a marcas reales.</small>}</div></dialog>;
+  return <ReviewDialog title={client.name} eyebrow="CLIENTE" onClose={onClose} className="buho-client-profile"><div className="client-report-tabs" role="tablist" aria-label="Vista del cliente"><button type="button" role="tab" aria-selected={tab==="profile"} onClick={()=>setTab("profile")}>Ficha del cliente</button><button type="button" role="tab" aria-selected={tab==="report"} onClick={()=>setTab("report")}>Informe de cliente</button></div>{tab === "report" ? <ClientReportPicker clientId={client.id} clientName={client.name} onBack={()=>setTab("profile")}/> : <div className="buho-client-profile-body"><p>Datos del cliente y las marcas que el estudio gestiona para él.</p><dl>{CLIENT_FIELDS.map(field => <div key={field.key}><dt>{field.label}</dt><dd><EditableClientCell client={client} field={field.key} label={field.label} /></dd></div>)}</dl><p className="buho-client-save-status" role="status">{notice}</p><section><div className="client-linked-heading"><h3>Marcas vinculadas <span>({brands.length})</span></h3><button type="button" className="client-report-trigger" onClick={()=>setTab("report")}>Descargar informe de cliente ↓</button></div>{brands.length ? <ul>{brands.map(brand => <li key={brand.id}><button className="client-brand-link" type="button" onClick={() => onOpenBrand(brand.id)}>{brand.name}<span aria-hidden>{brand.entityType === "application" ? "Ver solicitud →" : "Ver marca →"}</span></button></li>)}</ul> : <p>Aún no hay marcas vinculadas a este cliente.</p>}</section>{client.mock && <small>Este cliente y sus vínculos son de demostración. No se asignan automáticamente a marcas reales.</small>}</div>}</ReviewDialog>;
 }
 
 export function ClientsView() {

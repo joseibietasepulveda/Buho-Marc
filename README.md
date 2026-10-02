@@ -2,11 +2,11 @@
 
 Vigilancia y prefactibilidad conectadas a la búsqueda real de INAPI / DeQuiénEs. Esta entrega se implementa y valida en **Railway Dev**. El estado de publicación y las pruebas se documentan en [la entrega v1.0](docs/V1_0_RELEASE.md).
 
-Las decisiones vigentes, incluidas las revisiones manuales desde el chat y los informes PDF/Word, están consolidadas en [Decisiones UX del 24 de septiembre de 2026](docs/DECISIONES_UX_2026-09-24.md). Ese documento prevalece sobre las descripciones históricas de versiones anteriores.
+Las mejoras de búsqueda, importación asistida, informes de clientes y simplificación de pantallas están documentadas en [Mejoras UX de octubre](docs/UX_OCTUBRE_2026.md). Esas decisiones actualizan los puntos correspondientes de [Decisiones UX del 24 de septiembre de 2026](docs/DECISIONES_UX_2026-09-24.md), que sigue vigente para vigilancia y operación.
 
 ## Vigilancia real
 
-Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **50 similitudes**. La respuesta se conserva completa; Vigilancia excluye las coincidencias registradas o concedidas en todas sus pestañas y contadores. Novedades y Antecedentes admiten estados confirmados en trámite y excluyen estados terminales o ambiguos. «Mis marcas» reúne marcas registradas y solicitudes propias, con columnas iniciales RUT, Parte Figurativa y Marca; el logo tiene su propia celda y usa «Sin logo» cuando falta.
+Las marcas y solicitudes propias importadas se incorporan automáticamente. Cada búsqueda de stock pide **50 similitudes**. La respuesta se conserva completa; Vigilancia excluye las coincidencias registradas o concedidas en todas sus pestañas y contadores. Novedades y Antecedentes admiten estados confirmados en trámite y excluyen estados terminales o ambiguos. «Mis marcas» reúne marcas registradas y solicitudes propias, con columnas iniciales Número de solicitud, Parte Figurativa y Marca; el RUT sigue disponible en la ficha y las búsquedas. El logo tiene su propia celda y usa «Sin logo» cuando falta.
 
 «Vigilancia» tiene tres pestañas: «Novedades por revisar», «Antecedentes» y «En seguimiento». Los antecedentes anteriores al inicio de vigilancia no suman pendientes nuevos. Por defecto se muestran productos y servicios relacionados o por confirmar; el selector permite consultar también los no relacionados. Los hallazgos se organizan en alta y media similitud, con umbrales iniciales de **70% y 55%**, ajustables de 5 en 5 y persistentes por organización. Ordena de mayor a menor índice y muestra inicialmente cinco coincidencias por marca/categoría; **Buscar más** añade cinco del lote guardado. En seguimiento usa una tabla sin niveles de similitud y conserva las decisiones guardadas incluso si cambia el estado del expediente; las coincidencias registradas quedan ocultas. Cada resultado permite comparar marcas, consultar historial, seguir o convertir en caso.
 
@@ -22,9 +22,9 @@ Las decisiones y los pendientes de esta revisión están en [Vigilancia · 28 de
 
 ## Prefactibilidad
 
-Nombre, imagen o ambos; clases y coberturas opcionales; estados y porcentaje mínimo elegidos antes de Buscar. Se recuperan hasta 100 candidatos y se aplican los filtros sobre los antecedentes obtenidos, con paginación de 10/25/50/100. Por defecto se consideran registradas y en trámite. El índice se muestra en porcentaje y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.
+Nombre, imagen o ambos; clases y coberturas opcionales; estados y porcentaje mínimo elegidos antes de Buscar. La agrupación aparece arriba y está activada inicialmente. Solicitud desde, Publicación DO desde y Registro desde se envían a la fuente; los seis modos de coincidencia textual, estados e índice mínimo se aplican al lote de hasta 100 candidatos, con paginación de 10/25/50/100. Por defecto se consideran registradas y en trámite. El índice se muestra en porcentaje y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.
 
-Informes descargables en PDF y Word editable, con logo del estudio, imágenes y lenguaje simple, sin LLM. El usuario selecciona marcas para el informe; sin selección se incluyen hasta cinco de mayor índice. La recomendación aparece al final y se sugiere según las coincidencias de toda la búsqueda, con mayor cautela ante similitudes altas. El abogado puede editarla.
+Informes de factibilidad descargables en PDF y Word editable, con logo del estudio, imágenes y lenguaje simple, sin LLM. El usuario selecciona marcas para el informe; sin selección se incluyen hasta cinco de mayor índice. La recomendación aparece al final y se sugiere según las coincidencias de toda la búsqueda, con mayor cautela ante similitudes altas. El abogado puede editarla. Las fichas de clientes también ofrecen informes de cartera en Excel, Word y PDF con columnas seleccionables.
 
 ## Ambiente y documentos
 
