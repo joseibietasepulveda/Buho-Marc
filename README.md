@@ -2,7 +2,7 @@
 
 Vigilancia, búsqueda de cartera e informes de factibilidad conectados a INAPI / DeQuiénEs. Las mejoras de octubre están publicadas y verificadas en **Railway Dev**. El [índice de documentación](docs/README.md) reúne el comportamiento actual, la configuración, las pruebas y los antecedentes históricos.
 
-Las mejoras de búsqueda, importación asistida, informes de clientes y simplificación de pantallas están en [Mejoras UX de octubre](docs/UX_OCTUBRE_2026.md). Los perfiles de estudio y las conclusiones mediante OpenRouter, con respaldo determinista, están en [Informes de factibilidad](docs/INFORMES_FACTIBILIDAD_2026-10-02.md). Estas entregas actualizan las [decisiones de septiembre](docs/DECISIONES_UX_2026-09-24.md). La última entrega funcional comprobada corresponde al commit `b42ae34`, con migraciones aplicadas, estado `SUCCESS` y base conectada; esta ronda no se promovió a producción.
+Las mejoras de búsqueda, importación asistida, informes de clientes y simplificación de pantallas están en [Mejoras UX de octubre](docs/UX_OCTUBRE_2026.md). Los perfiles de estudio y las conclusiones mediante OpenRouter, con respaldo determinista, están en [Informes de factibilidad](docs/INFORMES_FACTIBILIDAD_2026-10-02.md). Estas entregas actualizan las [decisiones de septiembre](docs/DECISIONES_UX_2026-09-24.md). El [pulido del 4 de octubre](docs/UX_PULIDO_2026-10-04.md) reorganiza factibilidad, amplía letras, centra las X y convierte Todas en una bandeja con detalle lateral. Limpiar prioritarias conserva los avisos y limpia el indicador lateral. Estas rondas tienen como destino Dev.
 
 ## Vigilancia real
 
@@ -26,7 +26,7 @@ Nombre, imagen o ambos; clases y coberturas opcionales; estados y porcentaje mí
 
 Los informes PDF y Word editable siguen el ejemplo revisado por el cliente: tamaño Carta, logo a la izquierda, encabezado institucional, cuatro secciones, coberturas completas, imágenes, conclusión y firma opcional al final. El usuario elige los antecedentes detallados; sin selección se incluyen hasta cinco de mayor índice. La conclusión considera **toda la búsqueda recuperada**, aunque el informe detalle menos marcas, y el abogado conserva la decisión y el motivo que ingrese.
 
-**Agrega la información de tu estudio**, encima de los criterios de búsqueda, abre un formulario con nombre del estudio, dirección, abogado, texto del encabezado, correo, teléfono, web y logo. Todos son opcionales; se guardan por organización, sobreviven a la recarga y se pueden editar. En Dev quedaron precargados **Zamora IP**, **De Las Heras Abogados para Daniel Morales** y **Flores Acevedo Abogados**, sin cambiar cuentas ni claves. El logo de FA se restauró desde la imagen entregada por el usuario.
+**Agregar la información de tu estudio**, en la tarjeta derecha sobre el logo de la marca, abre un formulario con nombre del estudio, dirección, abogado, texto del encabezado, correo, teléfono, web y logo. Todos son opcionales; se guardan por organización, sobreviven a la recarga y se pueden editar. En Dev quedaron precargados **Zamora IP**, **De Las Heras Abogados para Daniel Morales** y **Flores Acevedo Abogados**, sin cambiar cuentas ni claves. El logo de FA se restauró desde la imagen entregada por el usuario.
 
 La conclusión puede redactarse mediante OpenRouter. Sin clave, error, tiempo agotado o respuesta inválida, el informe usa una conclusión determinista. Cada generación guarda su contexto, resultado e identificador, además del uso y costo cuando el proveedor los entrega. PDF y Word reutilizan la misma conclusión. La integración fue probada con un proveedor aislado; no se realizó una llamada con una clave real.
 
@@ -38,6 +38,7 @@ Las fichas de clientes ofrecen informes de cartera en Excel (formato inicial), W
 
 - [Aplicación Dev](https://buho-marc-web-dev.up.railway.app/app).
 - [Índice y vigencia de la documentación](docs/README.md).
+- [Pulido visual y notificaciones · 04/10/2026](docs/UX_PULIDO_2026-10-04.md).
 - [UI, búsqueda e importaciones · 02/10/2026](docs/UX_OCTUBRE_2026.md).
 - [Perfiles de estudio, PDF/Word y OpenRouter · 02/10/2026](docs/INFORMES_FACTIBILIDAD_2026-10-02.md).
 - [Decisiones UX y operación de septiembre, con actualización de octubre](docs/DECISIONES_UX_2026-09-24.md).
@@ -200,7 +201,8 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 - `app/api/tasks/route.ts`: tareas persistentes de solicitudes y eliminación de tareas.
 - `lib/release-notes.ts`: versión y pendientes mostrados en la app.
 - `app/app/v04.css`: estilos de los nuevos flujos.
-- `app/app/v05.css`, `registration-v05.css` y `notification-center.css`: ajustes visuales de v0.5.
+- `app/app/v05.css` y `registration-v05.css`: ajustes visuales de v0.5.
+- `app/app/ux-polish.css` y `notification-center.css`: pulido del revisor, tareas, X centradas y bandeja de notificaciones de octubre.
 - `app/app/buho-app.css`: sistema visual de la aplicación.
 - `app/app/layout.tsx`: metadatos de la ruta privada de demo.
 - `docs/`: decisiones para el backend y la evolución funcional.
@@ -211,7 +213,7 @@ La app reutiliza los valores de la landing: tinta `#100d18`, fondo claro `#f3efe
 
 ### Ajustes de experiencia de v1.0
 
-Resumen con tareas compactas junto al saludo e iconos de color en los KPIs; dos tarjetas por fila en la columna En seguimiento de Casos, con adaptación móvil. La ficha de vigilancia vuelve a comparar ambas marcas lado a lado con datos reales. Factibilidad conserva el formulario amplio con clases, logo lateral, botón para quitar la imagen y estados coloreados (Registrada verde; Denegada, Abandonada y Desistida rojo).
+Resumen con tareas compactas junto al saludo e iconos de color en los KPIs; dos tarjetas por fila en la columna En seguimiento de Casos, con adaptación móvil. La ficha de vigilancia vuelve a comparar ambas marcas lado a lado con datos reales. Factibilidad conserva el formulario amplio con clases, tarjeta de agrupación a su derecha, datos del estudio sobre el logo lateral, botón para quitar la imagen y estados coloreados (Registrada verde; Denegada, Abandonada y Desistida rojo).
 
 ## Verificación de las mejoras de octubre
 

@@ -105,11 +105,6 @@
 .agenda-simple-count { display:block; font-size:12px; padding:7px 10px; color:#714389; background:#f3eaf9; border-radius:6px; margin:3px 6px; }
 .notice-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
 .notice-clear { min-height:42px; border:1px solid #d9c8e2; border-radius:8px; padding:10px 16px; background:#fff; color:#784c90; cursor:pointer; font:inherit; font-size:13px; }
-.notice-row-wrapper { display:flex; align-items:center; gap:12px; }
-.notice-row-wrapper .priority-notice-row { flex:1; min-width:0; }
-.notice-accordion .notice-row-wrapper { align-items:flex-start; }
-.notice-accordion .notice-row-wrapper > details { flex:1; min-width:0; }
-.notice-accordion .notice-remove { margin-top:20px; }
 .notification-center .notice-error { color:#aa2e48; margin:12px 0; }
 .is-danger { color:#a82d45!important; }
 .review-dialog footer button.is-danger, .task-editor-footer button.is-danger { color:#fff!important; background:#ad3049!important; border:1px solid #ad3049!important; }

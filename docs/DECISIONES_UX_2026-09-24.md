@@ -49,7 +49,7 @@ Actualización del 02/10: [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-
 
 ## Casos, paneles y acciones · actualización de octubre
 
-Casos inicia en modo simple, con modo detallado disponible en tablero, lista y calendario. Las vistas generales omiten códigos BM; la ficha conserva el detalle, permite cambiar la prioridad desde la píldora y organiza el expediente defendido en tabla. Paneles laterales se cierran al pulsar fuera; los diálogos compartidos admiten Escape y restauran el foco. Notificaciones permite retirar una o limpiar Prioritarias/Todas sin borrar evidencia; tareas admite X en las listas bajo calendarios y botón rojo en el editor, sin eliminar plazos legales.
+Casos inicia en modo simple, con modo detallado disponible en tablero, lista y calendario. Las vistas generales omiten códigos BM; la ficha conserva el detalle, permite cambiar la prioridad desde la píldora y organiza el expediente defendido en tabla. Paneles laterales se cierran al pulsar fuera; los diálogos compartidos admiten Escape y restauran el foco. Desde el 4 de octubre, Notificaciones permite retirar una o todas sin borrar evidencia y limpiar el indicador de Prioritarias marcándolas como revisadas, conservándolas en ambas bandejas; tareas admite X en las listas bajo calendarios y botón rojo en el editor, sin eliminar plazos legales.
 
 El buscador general consulta datos guardados por marca, cliente, RUT, solicitud, registro, representante y contraparte, con acceso a las fichas. Es una búsqueda local, no una consulta remota al escribir.
 

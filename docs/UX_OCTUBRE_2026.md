@@ -1,5 +1,7 @@
 # Mejoras de UI y UX · 2 de octubre de 2026
 
+La [ronda del 4 de octubre](UX_PULIDO_2026-10-04.md) actualiza la distribución del revisor, el tamaño de las letras y el comportamiento de notificaciones descritos aquí.
+
 Esta ronda actualiza las decisiones de septiembre sobre las columnas de Mis marcas, el alta de cartera, los informes de clientes y la presentación de Casos. El resto de las reglas de vigilancia, clasificación jurídica y operación se conserva. Destino autorizado: Railway Dev.
 
 ## Búsqueda y carga asistida
@@ -18,7 +20,7 @@ Referencia revisada: [documentación INAPI de DeQuiénEs](https://dequienes.cl/i
 
 La consulta por nombre de marca recupera hasta 100 candidatos mediante `/search`. Contiene, Similar, Contiene palabra completa, Empieza con, Termina con y Exacto están disponibles donde corresponde. Los modos textuales, clases estrictas y estados se aplican al lote recuperado; no constituyen una búsqueda exhaustiva en el registro completo. El número de solicitud usa consulta exacta. La fuente no documenta consulta directa por número de registro; ese número sí se puede buscar entre los expedientes guardados.
 
-En factibilidad, Solicitud desde, Publicación DO desde y Registro desde se envían a la fuente para limitar los canales antes de recuperar candidatos. Las clases orientan la recuperación y no son filtros exclusivos. Se incorporan descripción de etiqueta, titular de la propuesta, exclusión de ese titular y selección del modelo visual. La agrupación está arriba y activada inicialmente. Los filtros de estado y similitud mínima siguen aplicándose a los antecedentes recuperados. Los informes PDF/Word ahora se llaman **Informe de factibilidad**.
+En factibilidad, Solicitud desde, Publicación DO desde y Registro desde se envían a la fuente para limitar los canales antes de recuperar candidatos. Las clases orientan la recuperación y no son filtros exclusivos. Se incorporan descripción de etiqueta, titular de la propuesta, exclusión de ese titular. El revisor utiliza el modelo visual disponible y no muestra un selector de modelos. La agrupación está junto al selector de Niza y activada inicialmente. Los filtros de estado y similitud mínima siguen aplicándose a los antecedentes recuperados. Los informes PDF/Word ahora se llaman **Informe de factibilidad**.
 
 ## Clientes e informes
 
@@ -32,7 +34,7 @@ Se ofrecen identificación, estado, fechas, titular, representante, rol del clie
 - Casos tiene modo simple inicial y modo detallado en tablero, lista y calendario. El simple oculta tareas pendientes en las tarjetas y compacta el calendario. Los códigos BM se retiran de las vistas generales; la ficha conserva el detalle. La prioridad se presenta como Prioridad alta/media/baja y se modifica desde su píldora en la ficha.
 - El expediente de la marca defendida se presenta en tabla, con acciones e historial separados de los datos.
 - Los paneles laterales se cierran al pulsar fuera; los diálogos compartidos también admiten Escape y devuelven el foco al control de origen.
-- Las notificaciones admiten retirada individual y limpieza de Prioritarias o Todas. La retirada se guarda por organización, conserva el registro subyacente y no impide recibir nuevas actuaciones. Limpiar Prioritarias conserva los avisos administrativos de Todas.
+- Las notificaciones admiten retirada individual y limpieza de Prioritarias o Todas. La retirada individual y la limpieza de Todas se guardan por organización, conservan el registro subyacente y no impiden recibir nuevas actuaciones. Desde el 4 de octubre, Limpiar Prioritarias marca los avisos pendientes como revisados: limpia el indicador lateral y los conserva en ambas bandejas; no cambia los avisos administrativos.
 - Las tareas tienen una X en las listas bajo los calendarios y un botón rojo de eliminación en su editor. Se mantienen los plazos legales y los hitos derivados del expediente.
 
 ## Validación
@@ -46,7 +48,7 @@ Las pruebas aisladas no utilizan expedientes ni claves alojadas. La publicación
 
 ## Informes de factibilidad y perfiles del estudio
 
-La ronda posterior reemplazó la generación sin LLM y el logo genérico: **Agrega la información de tu estudio** abre un formulario encima de los criterios, con campos opcionales persistentes por organización. PDF y Word siguen el ejemplo del cliente, con coberturas completas, conclusión y firma al final. OpenRouter está preparado con todos los antecedentes textuales de la búsqueda, deduplicación y respaldo determinista ante falta de clave o fallo. Se precargaron Zamora IP, De Las Heras para Daniel y FA en sus espacios existentes de Dev; no se cambiaron claves ni datos de producción. [Formato, configuración y QA](INFORMES_FACTIBILIDAD_2026-10-02.md).
+La ronda posterior reemplazó la generación sin LLM y el logo genérico: **Agregar la información de tu estudio** abre un editor desde la tarjeta derecha, situada sobre el logo de la marca, con campos opcionales persistentes por organización. PDF y Word siguen el ejemplo del cliente, con coberturas completas, conclusión y firma al final. OpenRouter está preparado con todos los antecedentes textuales de la búsqueda, deduplicación y respaldo determinista ante falta de clave o fallo. Se precargaron Zamora IP, De Las Heras para Daniel y FA en sus espacios existentes de Dev; no se cambiaron claves ni datos de producción. [Formato, configuración y QA](INFORMES_FACTIBILIDAD_2026-10-02.md).
 
 ## Publicación comprobada
 

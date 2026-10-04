@@ -1,17 +1,17 @@
 "use client";
 import { useRef, useState, type FormEvent } from 'react';
 import Image from 'next/image';
-import { Buildings, PencilSimple, UploadSimple, X } from '@phosphor-icons/react';
+import { Buildings, UploadSimple, X } from '@phosphor-icons/react';
 import { reportProfileSchema, type SavedReportProfile } from '@/lib/report-profile';
 import { ReviewDialog } from './review-dialog';
 
 export function ReportProfileLauncher({ saved, loading, error, onOpen }: { saved: SavedReportProfile | null; loading: boolean; error: string; onOpen: () => void }) {
   return <div className="report-profile-launcher">
-    <div className="report-profile-launcher-icon"><Buildings size={24} aria-hidden /></div>
-    <div><button type="button" onClick={onOpen} disabled={loading}>Agrega la información de tu estudio <PencilSimple size={17} aria-hidden /></button>
-      <p>{loading ? 'Cargando los datos guardados…' : saved?.profile.studioName ? `${saved.profile.studioName} · Puedes editar sus datos y logo.` : 'Personaliza tus informes. Todos los datos son opcionales y quedan guardados.'}</p>
-      {error && <span role="alert">{error}</span>}
-    </div>
+    <button type="button" className="report-profile-open" onClick={onOpen} disabled={loading}>
+      <span className="report-profile-launcher-icon"><Buildings size={24} aria-hidden /></span>
+      <span><strong>Agregar la información de tu estudio</strong><small>{loading ? 'Cargando los datos guardados…' : saved?.profile.studioName ? `${saved.profile.studioName} · Editar datos y logo` : 'Personaliza tus informes. Datos opcionales que quedan guardados.'}</small></span>
+    </button>
+    {error && <span role="alert">{error}</span>}
   </div>;
 }
 export function ReportProfileEditor({ saved, onSaved, onClose }: { saved: SavedReportProfile; onSaved: (value: SavedReportProfile) => void; onClose: () => void }) {

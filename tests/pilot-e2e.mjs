@@ -223,11 +223,51 @@ try {
   assert.ok(snapshot.notices.some(n => n.changeDetail?.caseId === correctedCase.id && n.title.startsWith("Oposición presentada")));
   assert.equal((await http("/api/monitoring/sync", { cookie: alice, method: "POST" })).body.notifications, 0);
   console.log("PASS: corrected role disappears from own portfolio, survives reimport, and follows only the contrary dossier with a single notice");
+  async function addNotice(org, code, title, brand = "QUILLAY URBANO") {
+    const [notice] = await sql`INSERT INTO notifications (organization_id, public_code, entity_type, entity_id, type, title, brand_name, urgency) VALUES (${org}, ${code}, 'application', ${randomUUID()}, 'source_change', ${title}, ${brand}, 'Alta') RETURNING id`;
+    await sql`INSERT INTO email_drafts (organization_id, notification_id, subject, body) VALUES (${org}, ${notice.id}, ${title}, 'Antecedente de prueba. Consulta el expediente para revisar los datos completos.')`;
+    return notice.id;
+  }
+  const priorityId = await addNotice(identities[0].org, 'UX-PRIORITY', 'Publicación en Diario Oficial');
+  const adminId = await addNotice(identities[0].org, 'UX-ADMIN', 'Cambio de representante');
+  const otherId = await addNotice(identities[1].org, 'UX-OTHER', 'Concesión de marca');
+  const beforeClear = (await http('/api/demo', { cookie: alice })).body.data.notices;
+  assert.equal((await http('/api/notifications', { cookie: alice, method: 'PATCH', body: { scope: 'all' } })).status, 400);
+  assert.equal((await http('/api/notifications', { cookie: alice, origin: 'https://foreign.invalid', method: 'PATCH', body: { scope: 'priority' } })).status, 403);
+  const clearedPriority = await http('/api/notifications', { cookie: alice, method: 'PATCH', body: { scope: 'priority' } });
+  assert.equal(clearedPriority.status, 200); assert.equal(clearedPriority.body.action, 'reviewed');
+  assert.ok(clearedPriority.body.ids.includes('UX-PRIORITY')); assert.ok(!clearedPriority.body.ids.includes('UX-ADMIN'));
+  const afterClear = (await http('/api/demo', { cookie: alice })).body.data.notices;
+  assert.equal(afterClear.length, beforeClear.length, 'priority clearing must preserve every notice in the inbox');
+  assert.equal(afterClear.find(n => n.id === 'UX-PRIORITY').status, 'Gestionada');
+  assert.equal(afterClear.find(n => n.id === 'UX-ADMIN').status, 'Pendiente');
+  const stored = (await sql`SELECT read_at, managed_at, dismissed_at FROM notifications WHERE id=${priorityId}`)[0];
+  assert.ok(stored.read_at && stored.managed_at); assert.equal(stored.dismissed_at, null);
+  assert.equal((await sql`SELECT managed_at FROM notifications WHERE id=${otherId}`)[0].managed_at, null);
+  assert.equal((await sql`SELECT managed_at FROM notifications WHERE id=${adminId}`)[0].managed_at, null);
+  assert.deepEqual((await http('/api/notifications', { cookie: alice, method: 'PATCH', body: { scope: 'priority' } })).body.ids, []);
+  const futureId = await addNotice(identities[0].org, 'UX-FUTURE', 'Título de marca emitido');
+  assert.equal((await http('/api/demo', { cookie: alice })).body.data.notices.find(n => n.id === 'UX-FUTURE').status, 'Pendiente');
+  const legacyClear = await http('/api/notifications', { cookie: alice, method: 'DELETE', body: { scope: 'priority' } });
+  assert.equal(legacyClear.body.action, 'reviewed');
+  assert.equal((await sql`SELECT dismissed_at FROM notifications WHERE id=${futureId}`)[0].dismissed_at, null);
+  const rejectedDelete = await http('/api/notifications', { cookie: bob, method: 'DELETE', body: { id: 'UX-ADMIN' } });
+  assert.deepEqual(rejectedDelete.body.ids, []);
+  await http('/api/notifications', { cookie: alice, method: 'DELETE', body: { id: 'UX-ADMIN' } });
+  assert.ok(!(await http('/api/demo', { cookie: alice })).body.data.notices.some(n => n.id === 'UX-ADMIN'));
+  assert.ok((await sql`SELECT dismissed_at FROM notifications WHERE id=${adminId}`)[0].dismissed_at);
+  const clearAudit = await sql`SELECT action FROM audit_events WHERE organization_id=${identities[0].org} AND action='notifications.reviewed'`;
+  assert.ok(clearAudit.length >= 2);
+  console.log('PASS: priority clearing retains history and evidence, clears only pending priorities, is idempotent and tenant-scoped; future notices remain pending; legacy clients cannot discard priorities');
   assert.equal((await http("/api/auth/logout", { cookie: alice, method: "POST" })).status, 200);
   assert.equal((await http("/api/demo", { cookie: alice })).status, 401);
   console.log("PASS: opposition role/basis validation, automatic source tracking, review tasks, grant promotion, idempotency, failure preservation and logout");
   // Browser review can use the disposable accounts; no Daniel records are touched.
   if (process.env.PILOT_KEEP_SERVER === "1") {
+    for (let i = 0; i < 56; i++) {
+      const titles = ['Solicitud similar detectada: KALIBRA FTGL', 'Cambio de representante', 'Aceptación a trámite', 'Publicación en Diario Oficial', 'Título de marca emitido', 'Solicitud similar detectada: ZENER'];
+      await addNotice(identities[0].org, `UX-BROWSER-${i}`, titles[i % titles.length], ['QUILLAY URBANO', 'VENTISCA', 'PULSO', 'TIERRA SUR'][i % 4]);
+    }
     console.log(`BROWSER_REVIEW_READY ${base} (pilot_alice / pilot-confirmed-password). Fixture: ${directory}`);
     await new Promise(resolve => { process.once("SIGINT", resolve); process.once("SIGTERM", resolve); });
   }

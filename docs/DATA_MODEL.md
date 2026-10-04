@@ -101,7 +101,7 @@ Los porcentajes deben conservar la versión del modelo y los insumos utilizados 
 
 ## Retirada de avisos y tareas · octubre
 
-`0011_notification_dismissal.sql` agrega `notifications.dismissed_at`. La retirada individual o limpieza de bandeja es persistente por organización y conserva el aviso y su evidencia para auditoría; no impide avisos de actuaciones futuras. Limpiar Prioritarias no retira los avisos administrativos exclusivos de Todas. La eliminación de tareas respeta la organización y los límites del flujo; no elimina el plazo legal ni el hito del expediente.
+`0011_notification_dismissal.sql` agrega `notifications.dismissed_at`. La retirada individual o limpieza de Todas es persistente por organización y conserva el aviso y su evidencia para auditoría; no impide avisos de actuaciones futuras. Desde el 4 de octubre, Limpiar Prioritarias completa `read_at` y `managed_at` de las prioritarias pendientes y conserva `dismissed_at` vacío. Los avisos permanecen en ambas bandejas, el indicador lateral se limpia y los administrativos no cambian. La operación se audita como `notifications.reviewed`. La eliminación de tareas respeta la organización y los límites del flujo; no elimina el plazo legal ni el hito del expediente.
 
 ## Colaboración, archivos y comunicación
 

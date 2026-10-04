@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Files, FolderOpen, Gavel } from "@phosphor-icons/react";
+import { Eye, Files, FolderOpen, Gavel, X } from "@phosphor-icons/react";
 import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
 import { WorkspaceSearch } from "./workspace-search";
 import { WatchPanel } from "./watch-panel";
@@ -35,6 +35,7 @@ import { TasksView } from "./tasks-view";
 import { sourceReviewDate } from "@/lib/source-schedule";
 import "./workspace-refinements.css";
 import "./ux-october.css";
+import "./ux-polish.css";
 import { ReviewDialog } from "./review-dialog";
 import { TEXT_MATCH_MODES, type TextMatchMode } from "@/lib/text-search";
 import { PendingTasks } from "./pending-tasks";
@@ -318,11 +319,13 @@ function BuhoWorkspace() {
   async function toggleBrandMonitoring(brand: Brand) { const nextStatus: BrandStatus = brand.status === "En monitoreo" ? "Sin monitoreo" : "En monitoreo"; if (FEATURE_FLAGS.brandLimits && nextStatus === "En monitoreo" && monitoredCount >= 25) { setToast("No quedan cupos activos en el plan Estudio"); return; } const priorBrands = brands; setBrands((current) => current.map((item) => item.id === brand.id ? { ...item, status: nextStatus, updated: formatToday() } : item)); logAction("Seguimiento actualizado", `${brand.name} cambió a ${nextStatus}.`); setToast(nextStatus === "En monitoreo" ? `${brand.name} volvió al monitoreo` : `${brand.name} quedó sin monitoreo`); if (databaseReady && !await requestAction({ action: "toggleBrandMonitoring", id: brand.id, enabled: nextStatus === "En monitoreo" }, false)) setBrands(priorBrands); }
   function updateNotice(id: string, patch: Partial<Notice>) { setNotices((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item)); if (databaseReady && !["NO-109", "NO-110"].includes(id)) void requestAction({ action: "updateNotice", id, ...patch }, false); }
   async function dismissNotifications(input: { id: string } | { scope: "priority" | "all" }): Promise<boolean> {
-    const r = await fetch("/api/notifications", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify(input) });
-    const data = await r.json(); if (!r.ok) { setToast(data.message || "No se pudieron eliminar los avisos."); return false; }
-    setNotices(current => current.filter(notice => !data.ids.includes(notice.id)));
-    if (selectedNotice && data.ids.includes(selectedNotice)) setSelectedNotice(null);
-    setToast(`${data.ids.length} notificaciones eliminadas`); return true;
+    const reviewing = "scope" in input && input.scope === "priority";
+    const r = await fetch("/api/notifications", { method: reviewing ? "PATCH" : "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify(input) });
+    const data = await r.json(); if (!r.ok) { setToast(data.message || "No se pudieron actualizar los avisos."); return false; }
+    const ids = new Set<string>(data.ids);
+    setNotices(current => reviewing ? current.map(notice => ids.has(notice.id) ? { ...notice, status: "Gestionada" } : notice) : current.filter(notice => !ids.has(notice.id)));
+    if (!reviewing && selectedNotice && ids.has(selectedNotice)) setSelectedNotice(null);
+    setToast(reviewing ? "Indicador de prioritarias limpio. Las notificaciones se conservan en el historial." : `${ids.size} notificaciones eliminadas`); return true;
   }
   async function copyText(text: string, label: string) { try { await navigator.clipboard.writeText(text); setToast(`${label} copiado`); } catch { setToast("Selecciona el texto y cópialo manualmente"); } }
   const pageHeadings: Record<View, [string, string]> = { tasks: ["Tareas", "Gestiona las tareas de tus casos y solicitudes"], sourceAdmin: ["Administrador de la fuente", "Expedientes e historial de revisiones"], dashboard: [`Hola, ${currentUser?.name.split(" ")[0] ?? ""}.`, "Aquí tienes un resumen de tus marcas y vigilancias."], registrationsSummary: ["Resumen de registros", "Aquí tienes un resumen de tus solicitudes y próximas gestiones."], feasibility: ["Revisor de factibilidad", "Evalúa una marca antes de iniciar su solicitud en INAPI"], brands: ["Mis marcas", "Tu cartera de marcas registradas y solicitudes en trámite"], registrations: ["Solicitudes de registro", "Sigue cada solicitud, estado y plazo legal desde su ingreso hasta la resolución"], matches: ["Vigilancia", "Revisa y clasifica los hallazgos de tu cartera"], cases: ["Seguimiento de casos", "Gestiona cada causa sin perder el contexto original"], notifications: ["Centro de notificaciones", "Novedades y plazos de tu cartera"], clients: ["Clientes", "Marcas, empresas y personas de contacto de tu cartera"], users: ["Usuarios activos", "Personas con acceso a la organización"], audit: ["Bitácora de auditoría", "Registro inalterable de las acciones realizadas en la plataforma"], about: [`Acerca de esta versión (v${APP_VERSION})`, "Funcionalidades incluidas y próximos pasos del producto"] };
@@ -432,7 +435,7 @@ function FullCalendar({ cases = [], matches = [], onMatch, onOpenCalendar, calen
     </div></header>
     <div className="buho-calendar-week"><span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span></div>
     <div className="buho-calendar-grid">{Array.from({ length: firstDayOffset }, (_, index) => <span aria-hidden="true" className="is-empty" key={`empty-${index}`} />)}{Array.from({ length: days }, (_, index) => { const day = index + 1; const event = monthEvents.find((item) => Number(item.date.slice(-2)) === day); return event ? <button aria-label={`${day} de ${monthName}: ${event.copy}`} className="is-event" data-tooltip={event.copy} key={day} onClick={() => onMatch(event.match)} title={event.copy} type="button">{day}</button> : <span key={day}>{day}</span>; })}</div>
-    <div className="buho-calendar-events">{monthEvents.length ? monthEvents.map((event) => <div className="summary-calendar-item" key={event.key ?? `${event.date}-${event.match}`}><button onClick={() => onMatch(event.match)} type="button"><span>{event.date.slice(-2)} {monthName.slice(0, 3).toUpperCase()}</span><Tone tone={event.level.toLowerCase()}>{event.badge ?? levelLabel(event.level)}</Tone><strong>{event.copy}</strong></button>{event.onDelete && <button type="button" className="summary-calendar-remove" aria-label={`Eliminar tarea ${event.copy}`} disabled={!!removing} onClick={()=>void remove(event)}>×</button>}</div>) : <p>No hay fechas registradas para este mes.</p>}</div>
+    <div className="buho-calendar-events">{monthEvents.length ? monthEvents.map((event) => <div className="summary-calendar-item" key={event.key ?? `${event.date}-${event.match}`}><button onClick={() => onMatch(event.match)} type="button"><span>{event.date.slice(-2)} {monthName.slice(0, 3).toUpperCase()}</span><Tone tone={event.level.toLowerCase()}>{event.badge ?? levelLabel(event.level)}</Tone><strong>{event.copy}</strong></button>{event.onDelete && <button type="button" className="summary-calendar-remove" aria-label={`Eliminar tarea ${event.copy}`} disabled={!!removing} onClick={()=>void remove(event)} title="Eliminar tarea"><X size={19} weight="bold" aria-hidden/></button>}</div>) : <p>No hay fechas registradas para este mes.</p>}</div>
     {error && <p role="alert" className="task-error">{error}</p>}<small className="buho-calendar-note">{note ?? `${matches.length} vigilancias registradas en la demo.`}</small>
   </aside>;
 }

@@ -4,7 +4,7 @@ Esta decisión reemplaza la generación exclusivamente determinista y el logo ge
 
 ## Datos del estudio
 
-«Agrega la información de tu estudio» abre un formulario encima de los criterios de búsqueda. Nombre del estudio, dirección, abogado, texto adicional del encabezado, correo, teléfono, web y logo son opcionales. Se guardan en la organización, se reutilizan al recargar y se pueden editar. El formulario detecta ediciones concurrentes y no descarta el borrador ante un conflicto.
+«Agregar la información de tu estudio» abre su editor desde una tarjeta a la derecha, encima del logo de la marca propuesta. La ubicación se actualizó en el [pulido del 4 de octubre](UX_PULIDO_2026-10-04.md). Nombre del estudio, dirección, abogado, texto adicional del encabezado, correo, teléfono, web y logo son opcionales. Se guardan en la organización, se reutilizan al recargar y se pueden editar. El formulario detecta ediciones concurrentes y no descarta el borrador ante un conflicto.
 
 La precarga inicial en Dev conserva cualquier edición o eliminación posterior. No crea cuentas ni cambia credenciales. Identidades preparadas:
 

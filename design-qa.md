@@ -205,3 +205,17 @@ Artefactos locales reproducibles en `work/report-qa/` (ignorados por Git): seis 
 Compilación/TypeScript y ESLint de componentes modificados aprobados. Las pruebas dirigidas y el piloto descartable verificaron el contexto completo, respuesta válida/error del proveedor, decisión del autor, fallback, persistencia, costo/uso, generación concurrente única, aislamiento, control de versiones del perfil y precarga sin sobrescribir ediciones. Se comprobó descargar PDF y Word con la misma conclusión preparada.
 
 Dev `f02635e3-bd50-4342-9931-710d648b36a4`: `SUCCESS`, migraciones aplicadas, perfil de los tres estudios precargado, salud 200 con base conectada, logos 200 y perfil anónimo 401. No se verificó un llamado OpenRouter con credencial real. Resultado: aprobado para el alcance implementado; activar el proveedor real sigue pendiente de clave.
+
+## Pulido visual y notificaciones · 4 de octubre de 2026
+
+Ronda descrita en [Pulido de octubre](docs/UX_PULIDO_2026-10-04.md). Referencia de bandeja: documentación oficial de [Linear Inbox](https://linear.app/docs/inbox), adaptada a Buho Marc.
+
+- Navegador: escritorio de 1280 × 720, escritorio angosto de 1024 × 900 y móvil de 390 × 844. Revisor y bandeja sin desborde horizontal. En móvil se apilan campos y tarjetas; los controles permanecen legibles.
+- Revisor: datos del estudio a la derecha sobre el logo; agrupación junto al selector Niza y seleccionada inicialmente; seis modos textuales; ausencia del selector de modelo alternativo; letras ampliadas en clases, fechas, estados y criterios adicionales. Apertura y cierre del editor comprobados.
+- Tareas: eliminación en su columna derecha y títulos/contexto mayores. Calendario de resumen y agenda completa usan X SVG centradas. Diferencia medida entre el centro del SVG y del botón: menos de 0,005 px en escritorio y 0 px en móvil para notificaciones.
+- Todas: bandeja con filas, búsqueda y filtro de revisión; cada aviso abre un panel lateral. Se verificaron cierre exterior y Escape. Páginas de 50 y 17 avisos para un historial de 67, sin perder avisos al navegar. La búsqueda de representante devolvió diez filas y el filtro Revisadas once en la cuenta descartable.
+- Limpiar prioritarias: el indicador lateral pasó de 27 a vacío, conservando los 67 avisos. Los cambios administrativos permanecieron pendientes y el historial siguió accesible.
+- Compilación de producción/TypeScript y ESLint de todos los componentes modificados aprobados. Quince pruebas dirigidas de tareas, cronología y paginación aprobadas. Piloto PostgreSQL y pruebas UX aisladas verificaron limpieza sin retirada, repetición idempotente, aislamiento, aviso futuro pendiente, cliente/rol, informes Excel/Word/PDF y eliminación de tareas.
+- No se usaron expedientes alojados para acciones de prueba. Consola del navegador sin errores ni advertencias en la compilación final.
+
+Capturas locales en `work/ui-qa-oct4/` (ignoradas por Git): `revisor-escritorio.png`, `notificaciones-todas.png` y `notificacion-detalle.png`. La cuenta y los avisos son descartables. Resultado de QA funcional y visual: aprobado. Destino de publicación: Railway Dev.

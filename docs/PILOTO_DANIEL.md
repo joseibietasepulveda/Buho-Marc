@@ -28,7 +28,7 @@ El motor de cruces ya está integrado. Los expedientes propios importados partic
 
 ## Informe y datos de De Las Heras · 2 de octubre
 
-En Dev se cargó el perfil De Las Heras Abogados para Daniel Morales Sorondo a partir de `Informe Factibilidad SEMASK (rev dms).pdf`: logo, nombres del encabezado, direcciones, teléfonos y web. Se dejó vacío el correo no informado. El formulario **Agrega la información de tu estudio** aparece encima de los criterios de factibilidad; todos los campos son opcionales, persistentes y editables.
+En Dev se cargó el perfil De Las Heras Abogados para Daniel Morales Sorondo a partir de `Informe Factibilidad SEMASK (rev dms).pdf`: logo, nombres del encabezado, direcciones, teléfonos y web. Se dejó vacío el correo no informado. El editor **Agregar la información de tu estudio** se abre desde la tarjeta derecha, sobre el logo de la marca en factibilidad; todos los campos son opcionales, persistentes y editables.
 
 PDF y Word siguen la estructura del ejemplo, con coberturas completas, conclusión y firma al final. La conclusión toma la búsqueda actual completa; no copia los resultados ni el análisis jurídico de SEMASK a otras marcas. OpenRouter está preparado y conserva un respaldo determinista cuando falta la clave o falla. [Configuración y pruebas](INFORMES_FACTIBILIDAD_2026-10-02.md).
 
