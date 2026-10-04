@@ -1,6 +1,6 @@
 # Documentación de Buho Marc
 
-Actualizada el 4 de octubre de 2026. Las guías de octubre describen las funciones implementadas y sus comprobaciones. El pulido más reciente reorganiza el revisor y las notificaciones, amplía letras y centra las acciones de eliminación. Destino: Railway Dev. La entrega de informes del día 2 terminó en `SUCCESS` y cargó los perfiles de los tres estudios.
+Actualizada el 4 de octubre de 2026. Las guías de octubre describen las funciones implementadas y sus comprobaciones. El pulido más reciente reorganiza el revisor y las notificaciones, amplía letras y centra las acciones de eliminación. Entrega funcional `83386dc`, publicada en Railway Dev con estado `SUCCESS` y salud 200/base conectada. La entrega de informes del día 2 terminó en `SUCCESS` y cargó los perfiles de los tres estudios.
 
 ## Guías vigentes
 

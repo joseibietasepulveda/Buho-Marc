@@ -81,3 +81,7 @@ La CLI de Railway advirtió durante esta entrega que `railway.json`/`railway.tom
 ## Antecedentes
 
 Los despliegues y comprobaciones anteriores están en [UX_RELEASE_PLAN](UX_RELEASE_PLAN.md), [v0.4](V0_4_RELEASE.md), [v0.5](V0_5_RELEASE.md), [v1.0 inicial](V1_0_RELEASE.md) y [piloto FA](PILOTO_FA_Y_PRESENTACION_2026-10-01.md). Sus recorridos simulados y commits no sustituyen la verificación de una entrega actual.
+
+## Pulido visual · 4 de octubre de 2026
+
+La entrega funcional `83386dc` se publicó únicamente en Dev. Despliegue `dc2db98a-0f70-486b-8ab8-2d020a41bfab`: `SUCCESS`, compilación/TypeScript correctos y salud 200/base conectada con `engine: dequienes`. La acción `PATCH /api/notifications` necesita sesión; la limpieza de Prioritarias utiliza campos existentes y no agrega migraciones. Detalle de cambios, contratos y QA en [Pulido del 4 de octubre](UX_PULIDO_2026-10-04.md).

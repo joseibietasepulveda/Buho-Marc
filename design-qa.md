@@ -219,3 +219,5 @@ Ronda descrita en [Pulido de octubre](docs/UX_PULIDO_2026-10-04.md). Referencia 
 - No se usaron expedientes alojados para acciones de prueba. Consola del navegador sin errores ni advertencias en la compilación final.
 
 Capturas locales en `work/ui-qa-oct4/` (ignoradas por Git): `revisor-escritorio.png`, `notificaciones-todas.png` y `notificacion-detalle.png`. La cuenta y los avisos son descartables. Resultado de QA funcional y visual: aprobado. Destino de publicación: Railway Dev.
+
+Publicación de esta ronda comprobada: entrega funcional `83386dc`, Dev `dc2db98a-0f70-486b-8ab8-2d020a41bfab`, estado `SUCCESS`; salud HTTP 200/base conectada y PATCH anónimo 401. La verificación de interfaz e interacción se realizó en el entorno local aislado; el control de Dev confirmó commit, compilación, arranque y salud del servicio.
