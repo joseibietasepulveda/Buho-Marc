@@ -1,3 +1,4 @@
+import { reportCoverage } from './report-coverage';
 import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, PageNumber, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from 'docx';
 import type { FeasibilityReportInput } from './feasibility-report';
 import { selectReportHits } from './report-selection';
@@ -19,11 +20,11 @@ export async function createFeasibilityDocx(input:FeasibilityReportInput):Promis
   const picture=(bytes:Uint8Array,width:number,height:number,keepNext=false)=>new Paragraph({children:[new ImageRun({type:'png',data:bytes,transformation:pngSize(bytes,width,height),altText:{name:'Etiqueta de la marca',title:'Etiqueta de la marca',description:'Imagen de los antecedentes examinados'}})],spacing:{after:140},keepNext});
   const name=proposal.name.trim()||'Marca sin nombre',classes=[...new Set(proposal.coverage.map(c=>c.nice_class))];
   body.push(paragraph(name,{bold:true,align:AlignmentType.RIGHT,after:80,keepNext:true}));
-  if(classes.length)body.push(paragraph(`Clase${classes.length===1?'':'s'} ${classes.join(' y ')}`,{bold:true,align:AlignmentType.RIGHT,after:380,keepNext:true}));
+  if(classes.length)body.push(paragraph(`Clase${classes.length===1?'':'s'} ${classes.join(', ')}`,{bold:true,align:AlignmentType.RIGHT,after:380,keepNext:true}));
   body.push(paragraph('INFORME DE FACTIBILIDAD',{bold:true,underline:true,align:AlignmentType.CENTER,after:120,keepNext:true}));
   if(input.client?.trim())body.push(paragraph(`Para: ${input.client.trim()}`,{small:true}));
   body.push(heading('I.     Marca objeto del análisis.'));
-  body.push(paragraph(`La marca objeto del análisis es “${name}”${classes.length?`, para distinguir productos y/o servicios en las clases ${classes.join(' y ')} del Clasificador Internacional de Niza.`:'. Los productos o servicios todavía no están definidos.'}`));
+  body.push(paragraph(`La marca objeto del análisis es “${name}”${classes.length?`, para distinguir productos y/o servicios en las clases ${classes.join(', ')} del Clasificador Internacional de Niza.`:'. Los productos o servicios todavía no están definidos.'}`));
   for(const c of proposal.coverage)if(c.text.trim())body.push(field(`Cobertura propuesta · Clase ${c.nice_class}`,c.text.trim()));
   if(input.image)body.push(picture(input.image,210,140));
   body.push(heading('II.    Antecedentes registrales relevantes.'));
@@ -41,12 +42,11 @@ export async function createFeasibilityDocx(input:FeasibilityReportInput):Promis
     const bytes=input.resultImages?.[hit.applicationId];
     if(bytes){body.push(paragraph('Etiqueta:',{bold:true,after:50,keepNext:true}));body.push(picture(bytes,180,115,true));}
     else body.push(field('Etiqueta',hit.image?'Imagen no disponible':'No registra imagen en los antecedentes recuperados',true));
-    if(hit.classes.length)for(const c of hit.classes)body.push(field(`Cobertura · Clase ${c.nice_class}`,c.coverage_text?.trim()||'Productos o servicios no informados'));
-    else body.push(field('Cobertura','Clase y productos o servicios no informados'));
+    for(const row of reportCoverage(hit.classes))body.push(field(row.label,row.value));
     if(hit.officialDecision)body.push(paragraph(`Decisión firme desde el ${date(hit.officialDecision.firmAt)}.`,{small:true}));
     else if(uncertainState(hit.status)||hit.dataWarnings?.length)body.push(paragraph('Hay datos de esta solicitud que deben confirmarse.',{small:true}));
   }
-  if(input.includeAppendix){body.push(heading('Anexo de resultados.'));for(const hit of allHits){body.push(paragraph(`${hit.name} · Solicitud ${hit.applicationId} · ${Math.round(hit.score*100)}% · ${hit.status}`,{keepNext:!!hit.classes.length}));for(const c of hit.classes)body.push(field(`Clase ${c.nice_class}`,c.coverage_text||'Productos o servicios no informados'));}}
+  if(input.includeAppendix){body.push(heading('Anexo de resultados.'));for(const hit of allHits){body.push(paragraph(`${hit.name} · Solicitud ${hit.applicationId} · ${Math.round(hit.score*100)}% · ${hit.status}`,{keepNext:!!hit.classes.length}));for(const row of reportCoverage(hit.classes))body.push(field(row.label,row.value));}}
   body.push(heading('IV.    Conclusión.'));
   body.push(paragraph(input.conclusion?.title||recommendation.title,{bold:true,keepNext:true}));
   const conclusionParagraphs=input.conclusion?.paragraphs??[recommendation.explanation],shortConclusion=conclusionParagraphs.join(' ').length<1600;

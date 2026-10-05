@@ -95,6 +95,7 @@ test('Word retains the supplied conclusion, full coverages and optional study de
  const zip=await JSZip.loadAsync(await blob.arrayBuffer());const xml=await zip.file('word/document.xml').async('string');
  const allXml=(await Promise.all(Object.keys(zip.files).filter(name=>/^word\/.*\.xml$/.test(name)).map(name=>zip.file(name).async('string')))).join(' ');
  for(const value of [conclusion.title,...conclusion.paragraphs,'Estudio personalizado','Abogada personalizada','Dirección personalizada',fullCoverage,'Servicios relacionados de otra clase.','IV.    Conclusión.'])assert.ok(allXml.includes(value),value);
+ assert.match(xml,/30, 35/);assert.ok(xml.includes('Clases de Niza: '));
  assert.match(xml,/w:keepNext/);assert.match(xml,/w:ascii="Arial"/);
  assert.equal(Object.keys(zip.files).some(name=>name.startsWith('word/media/')),false,'no logo or placeholder should be inserted when the profile has no logo');
  const pdf=await createFeasibilityReport({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',conclusion});

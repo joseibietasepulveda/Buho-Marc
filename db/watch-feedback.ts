@@ -18,9 +18,8 @@ export async function saveWatchFeedback(input:z.infer<typeof watchFeedbackInput>
   await tx`INSERT INTO audit_events(organization_id,actor_user_id,entity_type,entity_id,action,before_data,after_data) VALUES(${org},${actor},'match',${match.id},'watch.feedback',${previous?tx.json({vote:previous.vote,rationale:previous.rationale}):null},${tx.json({vote:input.vote,rationale,ownApplicationId:own,offeredApplicationId:offered,score})})`;
   return saved;
  });
- await deliverWatchFeedback(row.id);
- const [updated]=await sql`SELECT vote,rationale,delivery FROM watch_feedback WHERE id=${row.id} AND organization_id=${org} AND actor_user_id=${actor}`;
- return updated as WatchFeedbackValue;
+ // The transaction is durable. External delivery must never delay the response.
+ return {id:String(row.id),feedback:{vote:row.vote,rationale:row.rationale,delivery:row.delivery} as WatchFeedbackValue};
 }
 export async function deliverWatchFeedback(id?:string){
  if(!similarityConfigured())return {skipped:true};

@@ -3,6 +3,7 @@ import { readFileSync, appendFileSync } from "node:fs";
 const originalFetch = globalThis.fetch;
 if (process.env.PILOT_FIXTURE_FILE) globalThis.fetch = async (input, init) => {
   const url = String(input);
+  if(url.startsWith("https://buscadormarcas.inapi.cl/etiqueta/?s="))return new Response(readFileSync("public/reports/studio-logo.png"),{headers:{"content-type":"image/png"}});
   if (url === "https://openrouter.ai/api/v1/chat/completions") {
     const fixture=JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,"utf8"));
     const body=JSON.parse(init.body), context=JSON.parse(body.messages[1].content);
@@ -13,6 +14,7 @@ if (process.env.PILOT_FIXTURE_FILE) globalThis.fetch = async (input, init) => {
   }
   if(url==='https://dequienes.cl/inapi/trademarks/search/feedback'){
     const body=JSON.parse(init.body),fixture=JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,'utf8'));
+    if(fixture.feedbackDelayMs)await new Promise(resolve=>setTimeout(resolve,fixture.feedbackDelayMs));
     appendFileSync(process.env.PILOT_FIXTURE_FILE+'.feedback.jsonl',JSON.stringify(body)+'\n');
     return fixture.feedbackFail?new Response('fixture feedback outage',{status:503}):Response.json({search_id:body.search_id,accepted:body.judgments});
   }
@@ -31,7 +33,7 @@ if (process.env.PILOT_FIXTURE_FILE) globalThis.fetch = async (input, init) => {
   }
   if (url.endsWith("/search")) {
     const rows=Object.values(fixture.documents).filter(doc=>!query.name || normalize(doc.name).includes(normalize(query.name))).slice(0,query.limit ?? 100);
-    const mark=doc=>({application_id:doc.application_id,registration_id:doc.registration_id ?? doc.registration_number ?? null,name:doc.name,sign_type:doc.trademark.sign_type,dates:doc.dates,holders:doc.holders,classes:doc.classes,score:.85,channels:{name:{rank:1,score:.85}}});
+    const mark=doc=>({application_id:doc.application_id,registration_id:doc.registration_id ?? doc.registration_number ?? null,name:doc.name,sign_type:doc.trademark.sign_type,image_url:doc.image_url??null,dates:doc.dates,holders:doc.holders,classes:doc.classes,score:.85,channels:{name:{rank:1,score:.85}}});
     return Response.json({search_id:'123e4567-e89b-12d3-a456-426614174000',query:{name:query.name ?? "",dates:{filed_at:null,published_at:null,registered_at:null},holders:[],classes:query.coverage ?? []},results:rows.map(mark),groups:query.grouped?Object.values(rows.reduce((groups,doc)=>{const key=doc.holders.map(h=>h.name).sort().join('|');(groups[key]??={representative_id:doc.application_id,member_ids:[],holder_names:doc.holders.map(h=>h.name)}).member_ids.push(doc.application_id);return groups;},{})):[],warnings:[],candidate_count:rows.length,elapsed_seconds:.01});
   }
   const ids = query.application_ids;

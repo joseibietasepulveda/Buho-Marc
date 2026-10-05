@@ -297,15 +297,6 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .watch-rating-controls>span { font-size:12px; color:#72697d; margin-left:5px; }
 .buho-app .watch-rating button.is-positive { background:#eaf5ee; color:#28764b; border-color:#83c3a0; animation:watch-vote-pop .28s ease-out; }
 .buho-app .watch-rating button.is-negative { background:#fbe8ec; color:#a83d56; border-color:#e4a8b5; animation:watch-vote-pop .28s ease-out; }
-.watch-rating-note { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:7px; font-size:11px; }
-.buho-app .watch-rating-note button { display:block; height:auto; width:auto; border:0; background:transparent; color:#6d3e94; font-size:11px; padding:0; }
-.watch-rating-note small { color:#72697d; font-size:11px; }
-.watch-rating .is-error { color:#a83d56; display:block; font-size:12px; margin-top:6px; }
-.watch-rating-dialog { width:min(520px,calc(100vw - 32px)); font:15px/1.6 Arial,sans-serif; }
-.watch-rating-dialog form { padding:24px; }
-.watch-rating-dialog label { display:block; }
-.watch-rating-dialog textarea { width:100%; font:inherit; margin-top:7px; border:1px solid #ddd5e5; border-radius:8px; padding:12px; }
-.watch-rating-dialog footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
 .buho-app .buho-side-by-side .buho-mark-card:has(.similarity-image>span),.buho-app .similarity-comparison .similarity-image:has(>span) { min-height:76px; height:76px; }
 @keyframes watch-vote-pop { 0% { transform:scale(1); } 50% { transform:scale(1.16); } 100% { transform:scale(1); } }
 /* Notifications: select on the left, read its evidence beside the list. */
@@ -405,16 +396,7 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .feasibility-family-toggle { display:flex; align-items:center; gap:10px; width:100%; background:none; border:0; padding:4px 0; color:#51455f; text-align:left; cursor:pointer; }
 .feasibility-family-toggle[aria-expanded=true] svg { transform:rotate(180deg); }
 .feasibility-family-toggle span { margin-left:auto; font-size:12px; color:#72697d; }
-.feasibility-inline-comparison { padding:20px; margin:16px 0; background:#fffaf0; border:1px solid #eee1ce; border-radius:12px; }
-.feasibility-inline-comparison header,.feasibility-inline-comparison footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.feasibility-inline-comparison h3 { margin:0; font-size:16px; }
-.feasibility-inline-comparison>div { display:grid; grid-template-columns:130px 1fr 1fr; gap:12px; font-size:13px; margin-top:12px; }
-.feasibility-inline-comparison>div>span { color:#72697d; }
-.feasibility-inline-comparison p { margin:0; overflow-wrap:anywhere; }
-.feasibility-inline-comparison img { object-fit:contain; }
-.feasibility-inline-comparison footer { margin-top:14px; }
-.feasibility-inline-comparison small { color:#72697d; font-size:12px; }
-@media(max-width:620px) { .feasibility-inline-comparison>div { grid-template-columns:1fr; } .feasibility-inline-comparison header,.feasibility-inline-comparison footer,.feasibility-family-toggle { flex-wrap:wrap; } }
+@media(max-width:620px) { .feasibility-family-toggle { flex-wrap:wrap; } }
 
 .feasibility-paper-preview { border-top:1px solid #eee9f2; margin-top:18px; padding-top:16px; }
 .feasibility-paper-preview>h3 { font-size:16px; margin:0 0 14px; }
@@ -528,7 +510,6 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .buho-app .registration-summary-context summary { color:#6d3e94; cursor:pointer; }
 @media(max-width:620px){ .buho-app .watch-view .watch-relevance { flex-direction:column; align-items:stretch; } .buho-app .watch-relevance select { width:100%; } }
 
-.buho-app .similarity-actions .watch-rating .watch-rating-note button { display:inline; width:auto; height:auto; min-height:0; border:0; background:none; padding:0; color:#6d3e94; white-space:nowrap; }
 .buho-app .buho-table-top-scroll[hidden] { display:none; }
 .buho-app .tasks-view { gap:0; }
 .buho-app .tasks-view .tasks-toolbar { margin-bottom:12px; }
@@ -592,4 +573,28 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .buho-app .tasks-view select.task-inline-priority.task-priority-baja { background-color:#eaf5ee; color:#28764b; }
 @media(max-width:620px) {
   .buho-app .buho-brand-filters .buho-brand-filter-fields { grid-template-columns:1fr; }
+}
+
+/* Immediate, inline feedback: the form remains usable while persistence completes. */
+.buho-app .watch-rating-comment { display:grid; gap:10px; margin-top:18px; }
+.buho-app .watch-rating-comment > label { display:block; font-size:17px; font-weight:750; line-height:1.4; color:#33253d; }
+.buho-app .watch-rating-comment > label span { display:inline; font-size:13px; font-weight:400; color:#75697d; }
+.buho-app .watch-rating-comment textarea { display:block; width:100%; min-height:88px; resize:vertical; padding:12px 14px; border:1px solid #d8cbe2; border-radius:10px; background:white; color:#33253d; font:inherit; font-size:15px; line-height:1.5; }
+.buho-app .watch-rating-comment textarea:focus { outline:2px solid #8753ab; outline-offset:2px; }
+.buho-app .watch-rating-comment-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.buho-app .watch-rating-comment-actions small { font-size:13px; color:#75697d; }
+.buho-app .similarity-actions .watch-rating-comment button,.buho-app .similarity-actions .watch-rating-error button { width:auto; height:auto; min-height:40px; padding:9px 20px; font-size:14px; border-radius:8px; }
+.buho-app .watch-rating-error p { font-size:14px; color:#a42e4d; }
+.buho-app .watch-rating-controls button.is-positive:disabled,.buho-app .watch-rating-controls button.is-negative:disabled { opacity:1; }
+.feasibility-result-logo { width:88px; min-width:88px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image { width:68px; height:60px; min-width:0; min-height:0; border-radius:8px; background:#fff; }
+.feasibility-results-table .feasibility-result-logo .similarity-image img { width:100%; height:100%; object-fit:contain; padding:4px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image > span { min-height:0; padding:4px; gap:2px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image b { font-size:18px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image small { font-size:10px; }
+
+@media(max-width:620px) {
+ .buho-drawer .buho-match-summary { grid-template-columns:auto minmax(0,1fr); }
+ .buho-drawer .buho-match-summary > a { grid-column:1/-1; justify-self:start; }
+ .buho-drawer .buho-match-summary > div strong { font-size:20px; }
 }

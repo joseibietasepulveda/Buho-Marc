@@ -1,3 +1,4 @@
+import { reportCoverage } from './report-coverage';
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
 import { selectReportHits } from './report-selection';
 import type { SimilarityResult } from './similarity-contract';
@@ -80,11 +81,11 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const name=proposal.name.trim() || 'Marca sin nombre';
   text(name,12,{strong:true,align:'right',gap:4});
   const classes=[...new Set(proposal.coverage.map(c=>c.nice_class))];
-  if(classes.length)text(`Clase${classes.length===1?'':'s'} ${classes.join(' y ')}`,11,{strong:true,align:'right',gap:22});
+  if(classes.length)text(`Clase${classes.length===1?'':'s'} ${classes.join(', ')}`,11,{strong:true,align:'right',gap:22});
   text('INFORME DE FACTIBILIDAD',12,{strong:true,align:'center',underline:true,gap:10});
   if(input.client?.trim())text(`Para: ${input.client.trim()}`,10,{gap:4});
   heading('I.     Marca objeto del análisis.');
-  text(`La marca objeto del análisis es “${name}”${classes.length?`, para distinguir productos y/o servicios en las clases ${classes.join(' y ')} del Clasificador Internacional de Niza.`:'. Los productos o servicios todavía no están definidos.'}`);
+  text(`La marca objeto del análisis es “${name}”${classes.length?`, para distinguir productos y/o servicios en las clases ${classes.join(', ')} del Clasificador Internacional de Niza.`:'. Los productos o servicios todavía no están definidos.'}`);
   for(const coverage of proposal.coverage)if(coverage.text.trim())field(`Cobertura propuesta · Clase ${coverage.nice_class}`,coverage.text.trim());
   if(input.image){const image=input.imageType==='jpeg'?await pdf.embedJpg(input.image):await pdf.embedPng(input.image);const size=image.scaleToFit(180,110);ensure(size.height+22);page.drawImage(image,{x:left,y:y-size.height,...size});y-=size.height+18;}
   heading('II.    Antecedentes registrales relevantes.');
@@ -109,12 +110,11 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
     const image=images.get(hit.applicationId);
     if(image){const size=image.scaleToFit(140,75);ensure(size.height+32);text('Etiqueta:',10.5,{strong:true,gap:5});page.drawImage(image,{x:left,y:y-size.height,...size});y-=size.height+10;}
     else field('Etiqueta',hit.image?'Imagen no disponible':'No registra imagen en los antecedentes recuperados');
-    if(hit.classes.length)for(const c of hit.classes)field(`Cobertura · Clase ${c.nice_class}`,c.coverage_text?.trim()||'Productos o servicios no informados');
-    else field('Cobertura','Clase y productos o servicios no informados');
+    for(const row of reportCoverage(hit.classes))field(row.label,row.value);
     if(hit.officialDecision)text(`Decisión firme desde el ${date(hit.officialDecision.firmAt)}.`,9,{color:muted});
     else if(uncertainState(hit.status)||hit.dataWarnings?.length)text('Hay datos de esta solicitud que deben confirmarse.',9,{color:muted});
   }
-  if(input.includeAppendix){heading('Anexo de resultados.');for(const hit of allHits){ensure(48);text(`${hit.name} · Solicitud ${hit.applicationId} · ${Math.round(hit.score*100)}% · ${hit.status}`,10);for(const c of hit.classes)field(`Clase ${c.nice_class}`,c.coverage_text||'Productos o servicios no informados');}}
+  if(input.includeAppendix){heading('Anexo de resultados.');for(const hit of allHits){ensure(48);text(`${hit.name} · Solicitud ${hit.applicationId} · ${Math.round(hit.score*100)}% · ${hit.status}`,10);for(const row of reportCoverage(hit.classes))field(row.label,row.value);}}
   const paragraphs=input.conclusion?.paragraphs??[recommendation.explanation];
   const note=`Nota: el análisis se basa en los antecedentes de INAPI entregados por DeQuiénEs, consultados el ${date(result.fetchedAt)}, y en hasta ${result.searchScope?.limit??50} candidatos recuperados. No garantiza el resultado del examen de INAPI ni excluye oposiciones de terceros. Los índices expresan semejanza, no probabilidad de registro.`;
   const hasWarnings=!!(result.warnings.length||hits.some(h=>h.dataWarnings?.length));
