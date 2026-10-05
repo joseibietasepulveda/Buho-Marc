@@ -1,6 +1,6 @@
 # Documentación de Buho Marc
 
-Actualizada el 5 de octubre de 2026. La ronda más reciente implementa las maquetas aprobadas, los tres pasos de factibilidad, .xls antiguo, feedback de vigilancia, Clientes, Usuarios y Bitácora. Está comprobada **localmente y no publicada**. El pulido anterior, entrega `83386dc`, sí se publicó en Railway Dev con estado `SUCCESS` y salud 200/base conectada. La entrega de informes del día 2 cargó los perfiles de los tres estudios. La investigación de protección de bases del día 5 documenta configuración y trabajo pendiente; no activó respaldos ni modificó servicios.
+Actualizada el 5 de octubre de 2026. La ronda más reciente implementa las maquetas aprobadas, los tres pasos de factibilidad, .xls antiguo, feedback de vigilancia, Clientes, Usuarios y Bitácora. Se publicó **únicamente en Railway Dev**: despliegue `3857245e-4072-4785-b9f0-698bb3c8cd90`, estado `SUCCESS`, migraciones correctas y salud 200/base conectada. Producción conserva su despliegue anterior. La entrega de informes del día 2 cargó los perfiles de los tres estudios. El informe de protección registra ahora una copia puntual cifrada de Dev, creada y comprobada antes de publicar con acceso SSH temporal ya retirado; automatización, restauración de ensayo y protección de producción siguen pendientes.
 
 ## Guías vigentes
 

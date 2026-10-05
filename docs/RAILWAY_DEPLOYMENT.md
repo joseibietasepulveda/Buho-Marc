@@ -1,6 +1,18 @@
 # Despliegue y operación en Railway
 
-Actualizado el 2 de octubre de 2026. Las mejoras de UI e informes de esta ronda se publican únicamente en **Dev** desde la rama `dev`. Production sigue `main` y requiere autorización expresa para una promoción posterior.
+Actualizado el 5 de octubre de 2026. Las mejoras de UI e informes de esta ronda se publican únicamente en **Dev** desde la rama `dev`. Production sigue `main` y requiere autorización expresa para una promoción posterior.
+
+## Implementación de las maquetas aprobadas · 5 de octubre
+
+- Commit funcional de UI/UX: `865f535e6699192af6e2ac3699e7c8af96b87c2b`; publicado junto con la documentación de protección en `d6fb8182ddcd4452996ad516a7adcf9f0ccfac4c`.
+- Despliegue de la entrega funcional: `3857245e-4072-4785-b9f0-698bb3c8cd90`, **SUCCESS**, desde GitHub y rama `dev`. Railway procesó esta entrega durante el incidente de retrasos de GitHub; no fue necesario cambiar de vía ni duplicar despliegues para sortearlo.
+- Compilación y TypeScript aprobados. Los registros del arranque confirman migraciones correctas, cuenta existente conservada, perfiles sin sobrescribir, importación inicial ya realizada y servidor listo. La entrega incluye `0013_watch_feedback.sql`.
+- `/api/health`: 200, `ok: true`, `database: connected`, `engine: dequienes`, fuente configurada y programación activa.
+- Auditoría, feedback y perfil del estudio: 401 sin sesión. `/app` redirige al ingreso. `/ui/caret-down.svg`: 200 y hash idéntico al archivo de esta entrega.
+- Respaldo previo: copia lógica cifrada de Dev de 109.679.639 bytes sin cifrar, lectura completa y transferencia/descifrado comprobados; acceso SSH temporal retirado. No se probó una restauración en una base ni se automatizaron respaldos.
+- Producción conserva el despliegue `ec692224-cb76-4180-8db1-db78e60fd82d`, de `main`, commit `3e04265`. No hubo promoción de esta UI/UX.
+
+La revisión autenticada de los flujos y la QA visual permanecen en el piloto local aislado. La comprobación de esta publicación no hizo operaciones sobre carteras reales ni consultas nuevas de INAPI. Véase [implementación y límites](UX_IMPLEMENTACION_OCTUBRE_2026.md); comprobaciones HTTP y capturas se conservan en `output/deploy-dev-2026-10-05/`. El commit posterior que actualiza estos registros solo cambia documentación.
 
 ## Entrega funcional verificada · 2 de octubre
 

@@ -1,6 +1,6 @@
 # Buho Marc · v1.0
 
-Vigilancia, búsqueda de cartera e informes de factibilidad conectados a INAPI / DeQuiénEs. Las entregas anteriores de octubre están publicadas en **Railway Dev**. La nueva [implementación de las maquetas aprobadas](docs/UX_IMPLEMENTACION_OCTUBRE_2026.md) está verificada localmente y **aún no se ha publicado**. El [índice de documentación](docs/README.md) distingue comportamiento actual, pruebas y antecedentes históricos.
+Vigilancia, búsqueda de cartera e informes de factibilidad conectados a INAPI / DeQuiénEs. La nueva [implementación de las maquetas aprobadas](docs/UX_IMPLEMENTACION_OCTUBRE_2026.md) se publicó en **Railway Dev el 5 de octubre de 2026**, con despliegue exitoso, migraciones y conexión a la base comprobadas. Producción conserva su entrega anterior. El [registro de Railway](docs/RAILWAY_DEPLOYMENT.md) y el [índice de documentación](docs/README.md) distinguen publicación, pruebas y antecedentes históricos.
 
 La ronda nueva incluye nueve secciones, Clientes, Usuarios y Bitácora; factibilidad en tres pasos, Excel antiguo y valoraciones de vigilancia persistentes. El [comparador e informe UI/UX](output/implementacion-ux-2026-10-04/comparador-ui-ux.html) permite alternar propuesta original, implementación ajustada y pantalla anterior, con capturas de escritorio/móvil y ejemplos realmente exportados. Su [guía de evidencia](output/implementacion-ux-2026-10-04/README.md) describe las comprobaciones y sus límites.
 

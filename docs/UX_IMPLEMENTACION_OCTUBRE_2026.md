@@ -1,6 +1,6 @@
 # Implementación de la revisión visual de octubre
 
-Estado: implementación comprobada localmente, **sin publicación nueva**. Los despliegues de las guías anteriores describen aquellas entregas; no certifican que esta ronda esté publicada.
+Estado: implementación comprobada localmente y **publicada únicamente en Dev el 5 de octubre de 2026**. Commit funcional `865f535`, publicado junto con documentación en `d6fb818`; despliegue `3857245e-4072-4785-b9f0-698bb3c8cd90`, estado `SUCCESS`. El [registro operativo](RAILWAY_DEPLOYMENT.md) contiene comprobaciones y límites. Producción conserva su entrega anterior.
 
 ## Alcance aprobado
 
@@ -74,4 +74,6 @@ Clientes ofrece ficha con teléfono, cartera solicitud/imagen/nombre/estado e in
 - Comparador probado: versiones, imágenes ampliadas y navegación; selección/revisión y PDF/Word reales desde la interfaz.
 - Cierre exterior/Escape, controles con margen, X centradas y textos singular/plural; formatos originales de Casos Lista/Calendario y Solicitudes conservados.
 
-La base y cuentas de prueba son descartables. No hubo llamadas nuevas con credenciales reales ni acciones en carteras alojadas. No se valida exhaustividad/calibración del motor, carga a escala, análisis jurídico ni cumplimiento integral de accesibilidad. La migración 0013 se aplicó solo en el piloto. Un despliegue futuro debe aplicar migraciones y verificar la integración real; **esta ronda no se desplegó**.
+La base y cuentas del piloto son descartables. La QA local no hizo llamadas nuevas con credenciales reales ni acciones en carteras alojadas. No se valida exhaustividad/calibración del motor, carga a escala, análisis jurídico ni cumplimiento integral de accesibilidad.
+
+La publicación del 5 de octubre confirmó compilación/TypeScript, migraciones y arranque en Railway Dev; salud 200 con base conectada y motor DeQuiénEs; 401 sin sesión en auditoría, feedback y perfil del estudio; y coincidencia del recurso visual publicado con el archivo revisado. La migración 0013 está incluida en la entrega. La sesión de Chrome disponible abrió el ingreso: no se repitieron los flujos autenticados sobre carteras reales ni se dispararon búsquedas de INAPI para comprobar esta publicación. La evidencia está en `output/deploy-dev-2026-10-05/`. El respaldo previo fue una copia lógica puntual de Dev, no una prueba de restauración ni protección permanente de producción.
