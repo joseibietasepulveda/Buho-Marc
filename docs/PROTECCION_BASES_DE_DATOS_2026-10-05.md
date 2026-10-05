@@ -32,6 +32,14 @@ Se verificó que la ruta configurada para los datos queda dentro del volumen mon
 
 Las listas vacías corresponden a los respaldos nativos consultados en Railway. No demuestran que nadie haya generado antes una copia externa o local: eso no fue inventariado. No se ha verificado una restauración de estas bases alojadas en Railway.
 
+### Restricción del plan comprobada al preparar la publicación de Dev
+
+El 5 de octubre, después de renovar correctamente el acceso de la CLI con la cuenta del propietario, crear un respaldo manual de Dev siguió devolviendo `OAUTH_INSUFFICIENT_GRANT`. La revisión del panel **Postgres → Backups**, con Dev seleccionado, mostró la causa: **crear respaldos nativos y habilitar PITR requiere el plan Pro**. El panel permite restaurar respaldos previos, si existen, aunque no permita crear otros con el plan actual. No asumir que volver a iniciar sesión resuelve esta limitación ni que el error de la CLI identifica por sí solo la causa.
+
+El chat que implemente la protección debe comprobar el plan vigente y presentar el costo antes de contratar o ampliar servicios. Si se mantiene el plan actual, una exportación lógica con `pg_dump`, almacenamiento independiente y pruebas de restauración puede proporcionar una primera copia; no habilita por sí sola PITR ni cumple el objetivo propuesto de 15 minutos. La copia puntual previa a la publicación de Dev, si se realiza en este chat, debe documentarse por separado: no sustituye la automatización ni la protección de producción solicitadas aquí.
+
+La captura de esta comprobación se conserva localmente en `output/deploy-dev-2026-10-05/railway-respaldo-plan.png`. Esta observación del panel autenticado complementa las [guías oficiales de respaldos](https://docs.railway.com/volumes/backups), que deben revalidarse junto al plan contratado.
+
 También se revisaron las variables temporales del servicio web. No se observaron valores activos para DANIEL_INITIAL_PASSWORD, BUHO_INITIAL_PASSWORD, FA_INITIAL_PASSWORD, FA_PRODUCTION_PASSWORD ni FA_REPAIR_PARTY_ORDER_RUN en ninguno de los dos ambientes. Repetir esta comprobación mostrando únicamente presencia o ausencia; nunca imprimir las contraseñas.
 
 La revisión local encontró una migración nueva, drizzle/0013_watch_feedback.sql, que crea la tabla watch_feedback, índices y un disparador. No contiene una orden para vaciar o eliminar tablas existentes. Sus relaciones con eliminación en cascada definen el comportamiento ante futuras eliminaciones de registros padres; crear esas relaciones no borra la cartera. La revisión de esta migración no reemplaza revisar todas las que estén pendientes en cada base al momento de publicar.

@@ -74,6 +74,8 @@ No disparar búsquedas remotas, revisiones de cartera ni llamadas facturables so
 
 La consulta de lectura del 5 de octubre de 2026 confirmó volúmenes persistentes y PGDATA dentro del montaje en Dev y producción, pero listas vacías de respaldos y programaciones nativas, y PITR desactivado en ambos. La protección y sus pruebas **siguen pendientes**. El [informe de protección de bases](PROTECCION_BASES_DE_DATOS_2026-10-05.md) contiene los identificadores, la evidencia y la secuencia para implementarla en otro chat. No se modificaron servicios durante esa investigación.
 
+Al preparar la nueva publicación de Dev, el panel autenticado de Postgres confirmó que **crear respaldos nativos y habilitar PITR requiere Pro** con el plan actual. Renovar la autorización de la CLI no resolvió su error `OAUTH_INSUFFICIENT_GRANT`. Revalidar el plan antes de intentar configurar estas protecciones; no ampliar la suscripción sin aprobación. Una copia lógica puntual de Dev, si se registra antes de publicar, no acredita la automatización ni la protección de producción.
+
 Daniel conserva la revisión diaria a las 12:30 de `America/Santiago`; `estudio-ibieta-ip` permanece a pedido. Consultar [control de consumo](COST_CONTROL.md) y la cola para conocer el progreso. Un health check exitoso no acredita la finalización de trabajos.
 
 Quedan pendientes activar OpenRouter con una credencial real y comprobar ese llamado; permisos/invitaciones avanzados, almacenamiento general de adjuntos y estudios completos, envío de correos, métricas, respaldos con restauración probada y capacidad a escala. Autenticación piloto, aislamiento, motor de similitud e informes PDF/Word ya están implementados.
