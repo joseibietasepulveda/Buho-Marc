@@ -264,3 +264,12 @@ export const snapshotRevisions = pgTable("snapshot_revisions", {
   scope: varchar("scope", { length: 30 }).notNull(),
   revision: bigint("revision", { mode: "bigint" }).default(BigInt(0)).notNull(),
 }, table => [primaryKey({ columns: [table.organizationId, table.scope] })]);
+
+export const watchFeedback = pgTable("watch_feedback", {
+  id:uuid("id").defaultRandom().primaryKey(),organizationId:uuid("organization_id").notNull().references(()=>organizations.id,{onDelete:"cascade"}),
+  matchId:uuid("match_id").notNull().references(()=>matches.id,{onDelete:"cascade"}),actorUserId:uuid("actor_user_id").notNull().references(()=>users.id),
+  ownApplicationId:varchar("own_application_id",{length:30}).notNull(),offeredApplicationId:varchar("offered_application_id",{length:30}).notNull(),score:real("score").notNull(),
+  searchId:uuid("search_id"),vote:varchar("vote",{length:4}).notNull(),rationale:text("rationale").default("").notNull(),delivery:varchar("delivery",{length:20}).default("pending").notNull(),
+  version:integer("version").default(1).notNull(),attempts:integer("attempts").default(0).notNull(),leaseToken:uuid("lease_token"),leaseUntil:timestamp("lease_until",{withTimezone:true}),
+  availableAt:timestamp("available_at",{withTimezone:true}).defaultNow().notNull(),sentAt:timestamp("sent_at",{withTimezone:true}),...timestamps,
+},table=>[uniqueIndex("watch_feedback_judge_uq").on(table.organizationId,table.matchId,table.actorUserId),index("watch_feedback_delivery_idx").on(table.delivery,table.availableAt),check("watch_feedback_vote_ck",sql`${table.vote} in ('up','down')`),check("watch_feedback_score_ck",sql`${table.score} between 0 and 1`)]);

@@ -11,6 +11,12 @@ Las secciones siguientes conservan convenciones de diseño iniciales; para colum
 
 ## Convenciones
 
+### Valoraciones de vigilancia · implementación local de octubre
+
+`0013_watch_feedback.sql` crea `watch_feedback`: organización, hallazgo, actor, solicitud propia/ofrecida, índice confiable, `search_id`, voto y motivo. La identidad única es organización/hallazgo/actor. La entrega conserva estado, versión, intentos, próxima disponibilidad, reclamación temporal y fecha de confirmación. El trigger incrementa la revisión del snapshot de Vigilancia. La mutación registra `watch.feedback` en `audit_events`, con antes/después cuando existe una valoración previa. La migración se probó en PostgreSQL aislado; no está publicada por esta ronda.
+
+La Bitácora consulta `audit_events` paginados por organización; no introduce un segundo historial ni inventa cambios ausentes. El detalle solo presenta el antes/después almacenado y referencias resolubles al expediente o cliente.
+
 - Identificadores UUIDv7: únicos, ordenables por tiempo y seguros fuera de la base.
 - Todas las tablas de negocio incluyen `organization_id`, `created_at` y `updated_at`.
 - Borrado lógico para marcas, coincidencias y casos; archivos físicos se eliminan mediante una política de retención.

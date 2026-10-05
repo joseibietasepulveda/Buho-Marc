@@ -38,6 +38,14 @@ El Revisor de factibilidad envía la propuesta a `/api/similarity`, que valida e
 
 ## Capas recomendadas
 
+### Ronda visual posterior · comprobada localmente
+
+`design-refresh.css` define el sistema común y sus ajustes adaptables; `feasibility-review.tsx` organiza Buscar/Revisar resultados/Preparar informe sin reemplazar los generadores PDF/Word. La búsqueda ejecutada y el borrador se conservan como contextos distintos, y una edición relevante invalida la revisión del informe.
+
+`POST /api/watch/feedback` valida hallazgo/voto/motivo y deriva organización, actor, pareja de solicitudes e índice desde sesión/evidencia. `db/watch-feedback.ts` persiste y entrega al proveedor con ACK concordante, versión/reclamación y reintento duradero; el worker procesa pendientes. `GET /api/audit` consulta el historial completo de la organización con filtros y páginas de 25. `lib/import-workbook.ts` añade BIFF/OLE .xls mediante SheetJS oficial, manteniendo validaciones y límites. La guía simple reconoce encabezado libre por contenido, incluidos números como texto.
+
+Las vistas Usuarios/Clientes utilizan entidades y permisos existentes. La importación no sobrescribe un cliente ya asignado; los informes usan los datos guardados del cliente. Alcance y registros en [Implementación de maquetas](UX_IMPLEMENTACION_OCTUBRE_2026.md). Esta ronda no está desplegada.
+
 ### Frontend
 
 - Next.js 16 con App Router y TypeScript.
@@ -64,7 +72,7 @@ El Revisor de factibilidad envía la propuesta a `/api/similarity`, que valida e
 - Toda consulta y mutación exige `organization_id` validado en servidor.
 - Nunca se acepta un `organization_id` del cliente sin contrastarlo con la sesión.
 - Políticas de base de datos o repositorios que obliguen a incluir el contexto organizacional.
-- Todos los usuarios comparten permisos en el MVP, pero las operaciones quedan preparadas para roles futuros.
+- El producto distingue administrador y miembro; el alta de usuarios exige administrador. Los permisos granulares adicionales siguen siendo una propuesta futura.
 
 ## Flujo implementado de incorporación de cartera
 

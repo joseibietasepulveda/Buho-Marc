@@ -221,3 +221,76 @@ Ronda descrita en [Pulido de octubre](docs/UX_PULIDO_2026-10-04.md). Referencia 
 Capturas locales en `work/ui-qa-oct4/` (ignoradas por Git): `revisor-escritorio.png`, `notificaciones-todas.png` y `notificacion-detalle.png`. La cuenta y los avisos son descartables. Resultado de QA funcional y visual: aprobado. Destino de publicación: Railway Dev.
 
 Publicación de esta ronda comprobada: entrega funcional `83386dc`, Dev `dc2db98a-0f70-486b-8ab8-2d020a41bfab`, estado `SUCCESS`; salud HTTP 200/base conectada y PATCH anónimo 401. La verificación de interfaz e interacción se realizó en el entorno local aislado; el control de Dev confirmó commit, compilación, arranque y salud del servicio.
+
+---
+
+## Implementación de maquetas y directorios · ronda posterior del 4 de octubre de 2026
+
+Resultado local para el alcance aprobado. **Sin publicación nueva.** Los resultados de despliegue anteriores no corresponden a esta implementación. Fuentes, capturas, comparaciones, registros y exportaciones se conservan en [Implementación UX](output/implementacion-ux-2026-10-04/README.md); el [comparador](output/implementacion-ux-2026-10-04/comparador-ui-ux.html) distingue referencia, aplicación y pantalla anterior.
+
+### Fuentes, normalización y estados
+
+Fuente visual: `output/auditoria-ui-ux-2026-10-04/propuestas/`, once PNG y HTML originales: 01-resumen, 02-marcas, 03-vigilancia, 04-casos, 05-tareas, 06-registros, 07-busqueda, 07-resultados, 07-informe, 08-solicitudes y 09-notificaciones. Las decisiones expresas del usuario reemplazan la lista plana propuesta de Vigilancia y Solicitudes, preservan Casos Lista/Calendario, amplían columnas y restauran el selector Niza. La fuente para esas desviaciones es la decisión aprobada, no una coincidencia literal con la maqueta rechazada.
+
+Implementación: `http://127.0.0.1:50746/app`, sesión del piloto aislado. Capturas reales en `output/implementacion-ux-2026-10-04/capturas/`: principales 01/02/03/04/05/06/08/09 y los tres estados 07-busqueda, 07-resultados-agrupados y 07-informe-final. Estados adicionales: filtros abiertos, Excel .xls, comparación/historial, feedback/motivo, seguimiento/conversión, casos detallado/lista/calendario/ficha, tarea completada, actuación, error de consulta, informe sin revisar, solicitudes Lista/Calendario, lector/limpieza/paginación y directorios/fichas.
+
+Las fuentes originales miden 1280 px de ancho y mayor alto según maqueta. Se recorta **solo el tramo superior a 1280 × 720**, sin escalar ni cambiar contenido. Las capturas de escritorio miden 1280 × 720 píxeles y CSS, densidad 1:1. Se verifican dimensiones antes de guardar. Las comparaciones `comparaciones/01-resumen.png` hasta `09-notificaciones.png`, incluidos los tres archivos 07, juntan ambas imágenes en un lienzo 2560 × 752 (32 px de etiquetas y dos vistas de 1280 × 720). Se abrieron e inspeccionaron esas imágenes combinadas; no se emitió el juicio a partir de dos vistas separadas.
+
+Recortes adicionales inspeccionados: `comparaciones/05-tareas-controles.png`, `07-busqueda-controles.png` y `09-notificaciones-controles.png`. Permiten leer controles, prioridades, radios, Niza/agrupación y títulos/fechas del lector. En la tabla inferior de registros se usó `capturas/06-registros-tabla.png` porque queda fuera de la primera pantalla. Las páginas exportadas se inspeccionaron individualmente.
+
+Contenido y estado: las maquetas usan datos ilustrativos y una navegación de nueve secciones; la aplicación conserva directorios, buscador general, roles, etapas y datos reales del piloto. No se pretende precisión de píxeles con nombres, cantidades o etapas diferentes. Algunas capturas pertenecen al recorrido que crea temporalmente un caso o completa una tarea; sus cantidades reflejan ese estado. La consulta de factibilidad es MISTRAL y los dos antecedentes elegidos permanecen identificados hasta la exportación.
+
+### Cinco superficies de fidelidad
+
+| Superficie | Evaluación de fuente y aplicación |
+| --- | --- |
+| Tipografía | Arial en fuente y aplicación; títulos de 31 px, peso 700 y jerarquía coherente. Se midieron las nueve secciones: `mediciones-ui.json`. Avisos con título 16 px y fecha 14 px. Texto de tareas compacto y legible; en móvil el título ocupa la columna disponible y la prioridad pasa a una segunda línea. Nombres largos ajustan altura de tarjeta en vez de cortarse. |
+| Espaciado y composición | Encabezado compacto, márgenes/paneles consistentes y radios de 12 px. Resumen y Registros recuperan indicadores + dos áreas de trabajo; Factibilidad conserva principal/lateral y tres pasos. Niza/agrupación: centros verticales separados 0,148 px. Las tablas tienen desplazamiento propio; la página no se ensancha. Lista/Calendario y tarjetas de Solicitudes son desviaciones expresamente aprobadas. |
+| Color y estados | Fondo `#f6f5f8`, panel blanco, borde `#e1dce8`, púrpura `#6d3e94`, texto oscuro y secundarios sobrios. Prioridades Alta/Media/Baja usan rosa/amarillo/verde y texto. Selección, revisión, deshabilitado y voto tienen estados visibles. Se corrigieron reglas genéricas que anulaban colores o duplicaban bordes. |
+| Imágenes, iconos y definición | Las marcas sin imagen se identifican como Denominativa/Sin imagen; no se fabrican logos. Los informes utilizan los assets del perfil existente, conservando proporción y formato institucional. Iconos de acciones pertenecen a la familia ya usada; X centradas y caret a 12 px del borde derecho, con 38 px reservados para no chocar con el texto. Los renders de PDF/Word se abrieron al tamaño suficiente para revisar texto y cierre. No se sustituyeron assets institucionales por dibujos de código. |
+| Texto y comprensión | «Tareas - Agenda próxima», «Fecha de la actuación», prioridad sin «del caso» y títulos compartidos. La guía explica .xls y encabezado/hoja libres. Los seis modos, alcance recuperado y separación de consulta/borrador se explican en la propia pantalla. Agrupar, valorar, seguir, convertir, revisar avisos y eliminar no se presentan como la misma acción. Se revisaron singular/plural de los contadores modificados. |
+
+### Iteraciones y hallazgos corregidos
+
+La primera comparación quedó bloqueada por diferencias visuales P2. Después de aplicar ajustes se recapturó y volvió a abrir cada par fuente/implementación. No quedan diferencias P0/P1/P2 accionables dentro del alcance acordado.
+
+| Hallazgo inicial | Impacto y corrección | Evidencia posterior inspeccionada |
+| --- | --- | --- |
+| P2 · Resumen: calendario grande/desproporción de zonas | Desplazaba la agenda y alteraba la composición. Se restauraron cuatro indicadores, atención y agenda próxima compacta. | `comparaciones/01-resumen.png` |
+| P2 · Mis marcas: tabla excesiva y filtros colisionando | Dificultaba escanear y empujaba controles. Se ajustaron columnas, etiquetas y ancho; filtros de estado/tipo/Niza apilados en móvil. | `comparaciones/02-marcas.png`, `movil/02-marcas.png`; los tres selects móviles miden 304 px y muestran la opción completa. |
+| P2 · Vigilancia: filtros abiertos ocupaban demasiadas filas | Aumentaba densidad antes de los hallazgos. Se dejaron controles de búsqueda/relevancia y disclosures de publicación/umbrales en la cabecera. | `comparaciones/03-vigilancia.png`, `capturas/03-vigilancia-filtros.png`, `movil/03-vigilancia.png` cargada. |
+| P2 · Botón de explicación heredaba dimensiones incorrectas | Deformaba el área de valoración. Se corrigió su alcance de estilo y se verificó el diálogo abierto. | `capturas/03-vigilancia-tarjeta.png`, `capturas/03-explicacion.png` |
+| P2 · Casos simple todavía mostraba campos detallados | Mantenía el problema de sobrecarga. Se conservaron prioridad, identidad, marca/solicitud y contexto; tareas en Detallado/ficha. | `comparaciones/04-casos.png`, `capturas/04-casos-detallado.png` |
+| P2 · Tareas: prioridad sin color/título móvil estrecho | La prioridad heredaba estilos genéricos y el título se comprimía. Se corrigió especificidad y distribución móvil; eliminación derecha. | `comparaciones/05-tareas.png`, `05-tareas-controles.png`, `movil/05-tareas.png` |
+| P2 · Registros: pie global invadía panel | Fondo/columnas del footer alteraban la lectura. Se aisló el estilo del pie de atención. | `comparaciones/06-registros.png`, `capturas/06-registros-tabla.png` |
+| P2 · Factibilidad: referencia capturada con desplazamiento incorrecto | No permitía juzgar composición. Se repitió la captura al inicio de cada paso y normalizó el par. | `comparaciones/07-busqueda.png`, `07-resultados.png`, `07-informe.png`, `07-busqueda-controles.png` |
+| P2 · Solicitudes: doble borde del buscador | El input interno parecía un segundo campo. Se corrigió la regla del selector real y se comprobó borde computado 0. | `comparaciones/08-solicitudes.png`, `movil/08-solicitudes.png` |
+| P2 · Notificaciones: carga diferida anulaba pestañas/bordes | Aparecía otro sistema visual y borde doble. Se reforzó el alcance de estilos. Antes conservado en `iteraciones/09-borde-buscador-antes.png`. | `comparaciones/09-notificaciones.png`, `09-notificaciones-controles.png`, `movil/09-notificaciones.png` |
+| P2 · Lector de notificaciones: acciones inferiores inaccesibles | El cuerpo completo se desplazaba fuera de la vista. Se separaron cabecera/cuerpo desplazable/pie fijo. | `capturas/09-notificacion-lector.png`, `movil/09-notificacion-lector.png` |
+| P2 · Móvil: altura sobrante y buscador de Casos reducido | Generaba desplazamiento externo y filtro angosto. Se corrigió altura del contenedor y buscador de fila completa. | `comparaciones/movil-1.png`, `movil-2.png`, `movil-3.png`; raíz 390 × 844 y cuerpo de 390 px. |
+
+Los estados intermedios no conservados como captura independiente se registran como hallazgos del recorrido, sin inventar una imagen anterior. La evidencia final combinada se conserva para cada corrección.
+
+### Interacciones y comprobaciones
+
+- Búsqueda/carga asistida con candidatos, confirmación de cliente/rol, .xls real, encabezado libre, números como texto y deduplicación. La asignación existente se conserva; tenant ajeno no accede.
+- Vigilancia: voto persistido, motivo, ACK concordante, caída/reintento y aislamiento; pareja/índice/actor derivados del servidor. Tarjeta → seguimiento → convertir → caso conservando referencia.
+- Casos: simple/detallado, Lista/Calendario conservados, ficha/expediente y prioridad persistente. Tareas: prioridad exterior, finalización y eliminación persistente.
+- Factibilidad: seis radios, Niza, grupos/resultados, comparación, consulta ejecutada conservada ante error, selección explícita y revisión invalidada al editar; PDF/Word con misma selección y conclusión.
+- Notificaciones: limpiar prioritarias dejó el indicador en 0 y mantuvo 68 avisos, con 38 revisados; historial página 2 muestra 51–68. Retirada individual/total persistente y tenant verificados por API.
+- Clientes: ficha/edición, marcas vinculadas, selector de campos y formatos; Excel real de tres columnas. Usuarios: organización/roles y formulario. Auditoría: paginación de 25, texto/actor/acción/fechas, detalle con evidencia existente y referencias, tenant.
+- Cierre exterior y Escape de paneles/diálogos, focos/etiquetas y controles semánticos durante los recorridos. No se certifica accesibilidad integral ni todos los lectores de pantalla.
+- Comparador: A/B/Anterior funcionan; ArrowRight cambia pestaña y foco; imagen ampliable/cierre; imágenes visibles cargadas sin fallos. Captura `vista-comparador.png`.
+- Compilación/TypeScript aprobados tras la última corrección CSS; ESLint 37 archivos, 39 pruebas dirigidas, cinco contratos estructurales, pilotos UX y feedback/auditoría/.xls aprobados. Registros en el paquete.
+
+### Informes y límites
+
+PDF y Word se descargaron desde la UI nueva y se renderizaron. `informes/pdf-pagina-1.png`, `pdf-pagina-2.png`, `word-render/page-1.png` y `page-2.png` se inspeccionaron **individualmente**: encabezado institucional, antecedentes seleccionados, conclusión y cierre íntegros. Dos páginas en cada formato; misma consulta MISTRAL, solicitudes 1800000/1800001 y conclusión. No se incluyó 1800002 ni el borrador NOVA. No se compara paginación del generador con el recuadro ilustrativo de vista previa.
+
+Datos de piloto y proveedores controlados. No hubo llamadas nuevas con credenciales reales ni pruebas en carteras alojadas. La migración 0013 se aplicó solo al piloto. Exhaustividad/calibración, escala, producción y accesibilidad integral permanecen fuera de esta aceptación. La revisión visual no equivale a validar un análisis jurídico. Esta ronda no presenta una nueva comprobación completa de la consola del navegador; compilación, rutas reales y pantallas renderizadas constituyen la evidencia disponible. No se observaron pantallas de error del runtime en los recorridos finales.
+
+Seguimiento P3: observar búsquedas habituales con abogados acostumbrados a INAPI y comprobar comprensión de grupos/selección antes de un informe. No es una discrepancia visual bloqueante frente a lo aprobado.
+
+Checklist de entrega: fuentes/capturas normalizadas ✓; pares combinados y controles inspeccionados ✓; nueve vistas móviles ✓; recorridos persistentes ✓; cuatro páginas exportadas ✓; comparador probado ✓; guías y READMEs actualizados ✓. No quedan reparaciones necesarias para el alcance local.
+
+final result: passed

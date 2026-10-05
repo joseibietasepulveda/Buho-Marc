@@ -102,6 +102,7 @@ export async function persistWatch(job: { id: string; organization_id: string; b
         VALUES (${job.organization_id}, ${code('CO-', `${brand.id}:${hit.applicationId}`)}, ${brand.id}, ${job.id}, 'DeQuiénEs', ${hit.applicationId}, ${hit.publishedAt}, ${hit.name.slice(0,180)}, ${(hit.holders.map(h => h.name).join('; ') || 'No informado').slice(0,180)}, ${hit.applicationId}, 'Sin clasificar', 0, ${similarityExplanation(hit)}, 'Detectada', ${tx.json(json(evidence))})
         ON CONFLICT (organization_id, brand_id, source, source_record_id) DO UPDATE SET published_at = EXCLUDED.published_at, found_name = EXCLUDED.found_name, applicant = EXCLUDED.applicant, explanation = EXCLUDED.explanation, evidence = EXCLUDED.evidence, monitoring_job_id = EXCLUDED.monitoring_job_id, updated_at = now() RETURNING id, public_code`;
       if (responses.some(r => r.results.some(h => h.applicationId === hit.applicationId))) resultIds.push(saved.public_code);
+      if(hit.searchId)await tx`UPDATE watch_feedback SET search_id=${hit.searchId},delivery='pending',available_at=now(),updated_at=now() WHERE organization_id=${job.organization_id} AND match_id=${saved.id} AND delivery='waiting_search'`;
       // A search result alone never opts a person into notifications. Conversion
       // to a case retains an earlier follow choice, but does not create one.
       const followed = old?.evidence?.followedAt && ["En seguimiento", "Convertida en caso"].includes(old.review_status);
@@ -191,6 +192,7 @@ export async function watchSnapshot(compact = false) {
   const sql = getSql();
   const [org] = await sql`SELECT watch_settings FROM organizations WHERE id = ${organizationId()}`;
   const targets = await sql`SELECT b.id, b.public_code, b.name, b.status, b.monitoring_config,
+    (SELECT array_agg(nice_class ORDER BY nice_class) FROM brand_classes WHERE brand_id=b.id) AS own_classes,
     j.status AS job_status, j.error_code, j.created_at AS requested_at, j.started_at,
     s.completed_at, s.result->'resultIds' AS result_ids, s.result->'responses'->0->'query'->>'image' AS query_image,
     (SELECT jsonb_agg(jsonb_build_object('nice_class', c->'nice_class')) FROM jsonb_array_elements(s.result->'responses'->0->'query'->'classes') c) AS query_classes,
@@ -198,11 +200,11 @@ export async function watchSnapshot(compact = false) {
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) s ON true
     WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled' ORDER BY b.name`;
-  const matches = await sql`SELECT public_code, brand_id, evidence, review_status, level, created_at FROM matches WHERE organization_id = ${organizationId()} AND source = 'DeQuiénEs'`;
+  const matches = await sql`SELECT m.public_code,m.brand_id,m.evidence,m.review_status,m.level,m.created_at,f.vote,f.rationale,f.delivery FROM matches m LEFT JOIN watch_feedback f ON f.match_id=m.id AND f.organization_id=m.organization_id AND f.actor_user_id=${actorId()} WHERE m.organization_id=${organizationId()} AND m.source='DeQuiénEs'`;
   const ownApplications = new Map(targets.map(t => [t.id, String(t.monitoring_config.applicationNumber)]));
   const present = (m: typeof matches[number]) => {
     const hit = applyVerifiedDecision(m.evidence.hit as SimilarityHit);
-    return { ...hit, history: [], classes: compact ? hit.classes.map(c => ({ nice_class: c.nice_class })) : hit.classes,
+    return { ...hit, feedback:m.vote?{vote:m.vote,rationale:m.rationale,delivery:m.delivery}:undefined, history: [], classes: compact ? hit.classes.map(c => ({ nice_class: c.nice_class })) : hit.classes,
       featuredRank: isDemoOrganization() ? featuredWatchRank(ownApplications.get(m.brand_id) ?? "", hit.applicationId) : undefined,
       discoveryKind: m.evidence.discoveryKind ?? 'baseline', commercialRelevance: commercialRelevance(m.evidence.query?.classes ?? [], hit.classes),
       watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at };
@@ -220,7 +222,7 @@ export async function watchSnapshot(compact = false) {
       presentationExample: t.monitoring_config.presentationExample === true,
       image: t.query_image || t.monitoring_config.logo || "",
       ownStatus: t.monitoring_config.sourceStatus || t.monitoring_config.registrationState,
-      classes: t.query_classes?.map((c: { nice_class:number })=>c.nice_class) ?? [], type: t.monitoring_config.type,
+      classes: t.query_classes?.map((c: { nice_class:number })=>c.nice_class) ?? t.own_classes ?? [], type: t.monitoring_config.type,
       paused: t.status === 'Pausada', status: t.job_status ?? 'pending', error: t.error_code, reviewedAt: t.completed_at,
       nextReviewAt: t.completed_at && t.status !== 'Pausada' ? nextSourceReview(new Date(t.completed_at), automaticEnabled) : null,
       warnings: t.warnings ?? [],

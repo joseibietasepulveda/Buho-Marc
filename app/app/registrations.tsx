@@ -123,7 +123,8 @@ export function TrademarkRegistrationCanvas({ allowExamples = false, initialSele
   }
 
   return <section className="trademark-registration-view">
-    <section className="procedure-view-switch" aria-label="Origen de las solicitudes"><div><h2>{examples ? "Ejemplos del procedimiento" : "Solicitudes en seguimiento"}</h2><p>{examples ? `Casos ficticios · fecha de referencia ${formatDate(PROCESS_DEMO_DATE)}. No forman parte de la cartera ni generan avisos.` : "Cada plazo corresponde a una gestión y a la actuación que lo activa."}</p></div>{allowExamples && <button type="button" onClick={() => { setExamples(value => !value); setSelectedId(null); setDemoState("canvas"); resetFilters(); }}>{examples ? "Volver a mis solicitudes" : "Explorar ejemplos del proceso"}</button>}</section>
+    {allowExamples && <div className="registration-examples-corner"><button type="button" onClick={() => { setExamples(value => !value); setSelectedId(null); setDemoState("canvas"); resetFilters(); }}>{examples ? "Volver a mis solicitudes" : "Explorar ejemplos"} · Solo interno, no visible para clientes</button></div>}
+    {examples && <p className="directory-note">Ejemplos ficticios del procedimiento · fecha de referencia {formatDate(PROCESS_DEMO_DATE)}.</p>}
     {examples && <section className="procedure-route" aria-label="Etapas del procedimiento"><span>Presentación y examen de forma</span><span>Requerimiento y publicación</span><span>Oposición y examen de fondo</span><span>Resolución y recursos</span><span>Ejecutoria, pago y registro</span><p>La oposición y la observación de fondo pueden coexistir. La prueba, la apelación y los desenlaces dependen de las actuaciones del expediente.</p></section>}
     {viewMode !== "oppositions" && <section className="trademark-toolbar" aria-label="Buscar y filtrar solicitudes">
       <label className="trademark-search"><MagnifyingGlass aria-hidden size={18} /><span>Buscar</span><input aria-label="Buscar solicitudes" onChange={(event) => setQuery(event.target.value)} placeholder="Marca, solicitud, titular o cliente" type="search" value={query} /></label>
@@ -260,7 +261,7 @@ function RegistrationDrawer({ application, onClose, children, onEvidenceSaved }:
         </dl>
 
         <section className="trademark-history">
-          <header><span>HISTORIAL DE ACTIVIDAD</span><h3>Actividad del expediente</h3><p>De más antiguo a más reciente · {application.history.length} movimientos</p></header>
+          <header><span>HISTORIAL DE ACTIVIDAD</span><h3>Actividad del expediente</h3><p>De más antiguo a más reciente · {application.history.length} {application.history.length===1?"movimiento":"movimientos"}</p></header>
           {application.history.length ? <ol>{oldestActivityFirst(application.history).map((event, index) => {
             const activity = activityContent(event);
             const date = activityDate(event.date);

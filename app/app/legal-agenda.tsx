@@ -50,7 +50,7 @@ export function LegalAgenda({ events, members = [], onOpen, onAddTask, onDelete,
         const entries = visible.filter(event => event.date === date);
         return <section key={date} aria-label={displayWorkDate(date)} className={`agenda-day${inPeriod ? "" : " outside-period"}${date === today ? " is-today" : ""}${date === dayFilter ? " is-selected" : ""}`}>
           <header><button type="button" aria-pressed={date === dayFilter} aria-label={`Ver agenda del ${displayWorkDate(date)}`} onClick={() => { setDayFilter(current => current === date ? null : date); if (!inPeriod) setCursor(date); const first = entries.find(event => event.category === listCategory) ?? entries[0]; if (first) setListCategory(first.category); }}>{Number(date.slice(-2))}<span className="sr-only">{date === today ? " · Hoy" : ""}</span></button>{onAddTask && <button type="button" className="agenda-day-add" aria-label={`Agregar tarea para el ${displayWorkDate(date)}`} onClick={() => onAddTask(date)}>+</button>}</header>
-          {!detailed && entries.some(event => event.category === "task") && <span className="agenda-simple-count">{entries.filter(event => event.category === "task").length} tareas</span>}
+          {!detailed && entries.some(event => event.category === "task") && <span className="agenda-simple-count">{entries.filter(event => event.category === "task").length} {entries.filter(event => event.category === "task").length===1?"tarea":"tareas"}</span>}
           {entries.filter(event => detailed || event.category !== "task").map(event => {
             const due = workDeadline(event.date ?? undefined, false, today);
             const urgent = !event.institutional && !event.informational && (event.fatal || due.tone === "soon" || due.tone === "overdue");

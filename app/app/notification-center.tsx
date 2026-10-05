@@ -18,6 +18,8 @@ const emptyBrands: TimelineBrand[] = [];
 const countFormat = new Intl.NumberFormat("es-CL");
 
 export function NotificationCenter({ notices, applications = emptyApplications, brands = emptyBrands, onManage, onDismiss, onClear, onOpenMatch, onOpenCase }: { onDismiss: (id: string) => Promise<boolean>; onClear: (scope: "priority" | "all") => Promise<boolean>; notices: Notice[]; applications?: RegistrationApplication[]; brands?: TimelineBrand[]; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
+  const [wide,setWide]=useState(false);
+  useEffect(()=>{const media=window.matchMedia('(min-width:1050px)');const update=()=>setWide(media.matches);update();media.addEventListener('change',update);return()=>media.removeEventListener('change',update);},[]);
   const [tab, setTab] = useState<"priority" | "all">("priority");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(0), [query, setQuery] = useState(""), [status, setStatus] = useState("all");
@@ -55,13 +57,13 @@ export function NotificationCenter({ notices, applications = emptyApplications, 
       <label className="notice-search"><MagnifyingGlass size={21} aria-hidden/><input aria-label="Buscar notificaciones" type="search" placeholder="Buscar por marca, aviso o solicitud" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }}/></label>
       <label className="notice-status-filter">Mostrar<select aria-label="Estado de las notificaciones" value={status} onChange={event => { setStatus(event.target.value); setPage(0); }}><option value="all">Todos los avisos</option><option value="Pendiente">Por revisar</option><option value="Gestionada">Revisadas</option></select></label>
     </div>
-    {visible.length > 0 && <NoticePagination {...paginated} onPage={setPage}/>}
+    <div className="notice-content-layout"><div className="notice-list-column">{visible.length > 0 && <NoticePagination {...paginated} onPage={setPage}/>}
     <div className="notice-inbox-list">{paginated.items.map(notice => {
       const display = noticePresentation(notice, notice.deadline);
       const unread = notice.status === "Pendiente";
       const title = display.kind === "deadline" ? conciseNoticeTitle(display.title, notice.brand) : tab === "priority" ? priorityNoticeSummary(notice) : conciseNoticeTitle(legalText(display.title), notice.brand);
-      return <article className={`notice-inbox-item ${unread ? "is-unread" : ""}`} key={notice.id}>
-        <button type="button" className="notice-inbox-row" onClick={() => setSelectedId(notice.id)} aria-haspopup="dialog">
+      return <article className={`notice-inbox-item ${unread ? "is-unread" : ""} ${selectedId===notice.id?"is-selected":""}`} key={notice.id}>
+        <button type="button" className="notice-inbox-row" onClick={() => setSelectedId(notice.id)} aria-haspopup={wide?undefined:"dialog"} aria-pressed={selectedId===notice.id}>
           <span className="notice-inbox-icon" aria-hidden><Bell size={22}/>{unread && <i/>}</span>
           <span className="notice-inbox-copy"><span className="notice-inbox-meta"><strong>{notice.brand}</strong><span>{notice.date}</span><span className="notice-inbox-source">{noticeSource(notice)}</span></span><strong className="notice-inbox-title">{title}</strong>{display.kind === "deadline" && <span className="notice-inbox-deadline">{display.label}</span>}</span>
           <span className={`notice-inbox-status ${unread ? "is-pending" : ""}`}>{unread ? "Por revisar" : "Revisada"}</span>
@@ -72,12 +74,12 @@ export function NotificationCenter({ notices, applications = emptyApplications, 
     })}</div>
     {visible.length > 50 && <NoticePagination {...paginated} onPage={setPage}/>}
     {!visible.length && <div className="notice-empty"><Bell size={32} aria-hidden/><h3>{query || status !== "all" ? "No encontramos avisos con estos filtros" : tab === "priority" ? "No hay novedades prioritarias" : "Todavía no hay notificaciones"}</h3><p>{query || status !== "all" ? "Prueba con otra búsqueda o muestra todos los estados." : "Los nuevos hitos aparecerán aquí cuando se detecten en tus expedientes."}</p>{tab === "priority" && notices.length > 0 && <button type="button" onClick={() => { setTab("all"); setPage(0); setStatus("all"); setQuery(""); }}>Ver todas las notificaciones</button>}</div>}
-    {selected && <PriorityNoticeDrawer key={selected.id} notice={selected} notices={notices} applications={applications} brands={brands} onClose={() => setSelectedId(null)} onManage={onManage} onDismiss={async () => { await dismiss(selected.id); }} busy={busy} onOpenMatch={onOpenMatch} onOpenCase={onOpenCase}/>}
+    </div>{selected ? <PriorityNoticeDrawer inline={wide} key={selected.id} notice={selected} notices={notices} applications={applications} brands={brands} onClose={() => setSelectedId(null)} onManage={onManage} onDismiss={async () => { await dismiss(selected.id); }} busy={busy} onOpenMatch={onOpenMatch} onOpenCase={onOpenCase}/>:wide&&<aside className="notice-reader-empty"><Bell size={28} aria-hidden/><h3>Selecciona una notificación</h3><p>Aquí verás el aviso y la historia de su expediente.</p></aside>}</div>
   </section>;
 }
 
 function NoticePagination({ page, pages, total, from, to, onPage }: { page: number; pages: number; total: number; from: number; to: number; onPage: (page: number) => void }) {
-  return <div className="notice-pagination" role="group" aria-label="Paginación de notificaciones"><span>{countFormat.format(from)}–{countFormat.format(to)} de {countFormat.format(total)} avisos</span>{pages > 1 && <div><button type="button" aria-label="Página anterior de notificaciones" disabled={page === 0} onClick={() => onPage(page - 1)}>Anterior</button><span>{page + 1} / {countFormat.format(pages)}</span><button type="button" aria-label="Página siguiente de notificaciones" disabled={page + 1 >= pages} onClick={() => onPage(page + 1)}>Siguiente</button></div>}</div>;
+  return <div className="notice-pagination" role="group" aria-label="Paginación de notificaciones"><span>{countFormat.format(from)}–{countFormat.format(to)} de {countFormat.format(total)} {total===1?"aviso":"avisos"}</span>{pages > 1 && <div><button type="button" aria-label="Página anterior de notificaciones" disabled={page === 0} onClick={() => onPage(page - 1)}>Anterior</button><span>{page + 1} / {countFormat.format(pages)}</span><button type="button" aria-label="Página siguiente de notificaciones" disabled={page + 1 >= pages} onClick={() => onPage(page + 1)}>Siguiente</button></div>}</div>;
 }
 
 function noticeSource(notice: Notice) {
@@ -105,7 +107,7 @@ function timelineDate(date: string) {
   return date ? new Intl.DateTimeFormat("es-CL", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00Z`)) : "Fecha no informada";
 }
 
-function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, onManage, onDismiss, busy, onOpenMatch, onOpenCase }: { onDismiss: () => Promise<void>; busy: boolean; notice: Notice; notices: Notice[]; applications: RegistrationApplication[]; brands: TimelineBrand[]; onClose: () => void; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
+function PriorityNoticeDrawer({ inline=false, notice, notices, applications, brands, onClose, onManage, onDismiss, busy, onOpenMatch, onOpenCase }: { inline?:boolean; onDismiss: () => Promise<void>; busy: boolean; notice: Notice; notices: Notice[]; applications: RegistrationApplication[]; brands: TimelineBrand[]; onClose: () => void; onManage: (id: string) => void; onOpenMatch: (id: string) => void; onOpenCase?: (id: string) => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const timeline = useMemo(() => buildNotificationTimeline(notice, notices, applications, brands), [notice, notices, applications, brands]);
@@ -113,16 +115,16 @@ function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, 
   const changes = notice.changeDetail?.changes ?? [];
   const title = display.kind === "deadline" ? conciseNoticeTitle(display.title, notice.brand) : isPriorityNotice(notice) ? priorityNoticeSummary(notice) : conciseNoticeTitle(legalText(display.title), notice.brand);
   useEffect(() => {
+    if(inline)return;
     const element = dialog.current;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     element?.showModal();
     document.body.style.overflow = "hidden";
     return () => { element?.close(); document.body.style.overflow = previousOverflow; if (opener?.isConnected) opener.focus(); };
-  }, []);
+  }, [inline]);
   // Native dialog provides keyboard dismissal through Escape; clicks dismiss only its backdrop.
-  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
-  return createPortal(<dialog ref={dialog} onClick={event => dismissDialogBackdrop(event, onClose)} className="priority-notice-drawer" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); onClose(); }}>
+  const content=<>
     <header><div><span>NOTIFICACIÓN · {noticeSource(notice)}</span><h2 id={titleId}>{notice.brand}</h2></div><button type="button" aria-label="Cerrar notificación" onClick={onClose}><X size={22} aria-hidden/></button></header>
     <div className="priority-notice-scroll">
       <section className="priority-notice-highlight"><small>Aviso detectado: {notice.date}</small><h3>{title}</h3><p>{notice.status === "Pendiente" ? "Pendiente de revisión" : "Notificación revisada"}</p>{display.kind === "deadline" && <p>{display.label}. Confirma el vencimiento y su antecedente en el expediente.</p>}{isTitleIssued(title) && <p>Revisa el título emitido para completar la entrega al cliente.</p>}{notice.changeDetail ? <p>{legalText(notice.changeDetail.summary.split("\n\nAntecedentes detectados:")[0])}</p> : <p>{legalText(notice.body)}</p>}</section>
@@ -135,5 +137,9 @@ function PriorityNoticeDrawer({ notice, notices, applications, brands, onClose, 
       <details className="priority-notice-reference"><summary>Referencia de la notificación <span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ "ID del aviso": notice.id, "Título del aviso": legalText(notice.title), "Fecha de detección": notice.date, ...(notice.matchId ? { "Vigilancia relacionada": notice.matchId } : {}) }]} /></details>
     </div>
     <footer><button type="button" className="is-danger" disabled={busy} onClick={() => void onDismiss()}>Eliminar notificación</button>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => { onClose(); onOpenCase(notice.changeDetail!.caseId!); }}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => { onClose(); onOpenMatch(notice.matchId!); }}>Ver vigilancia →</button>}<button type="button" className="priority-review-action" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
-  </dialog>, document.body);
+  </>;
+  if(inline)return <aside className="priority-notice-reader" aria-labelledby={titleId}>{content}</aside>;
+  // Escape and the close button provide keyboard equivalents to backdrop dismissal.
+  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+  return createPortal(<dialog ref={dialog} onClick={event=>dismissDialogBackdrop(event,onClose)} className="priority-notice-drawer" aria-labelledby={titleId} onCancel={event=>{event.preventDefault();onClose();}}>{content}</dialog>,document.body);
 }

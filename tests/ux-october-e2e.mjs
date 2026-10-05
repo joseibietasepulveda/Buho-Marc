@@ -39,16 +39,19 @@ if(process.env.UX_FIXTURE_FILE){
 }
 const imported=await call('/api/portfolio/import',{action:'import',ids:['1234567','2345678'],ownPortfolioConfirmed:true,assignments:{1234567:{clientId,clientRole:'representative'},2345678:{clientId,clientRole:'holder'}}});assert.equal(imported.status,200,JSON.stringify(imported.data));
 snapshot=(await call('/api/demo')).data.data;const brand=snapshot.brands.find(b=>b.applicationNumber==='1234567');assert.ok(brand); // Assignment of a pre-existing record is intentionally unchanged.
-const assignment=await call('/api/clients',{brandId:brand.id,clientId},alice,'PUT');assert.equal(assignment.status,200,JSON.stringify(assignment.data));
-const metadata=await call('/api/clients/report?clientId='+clientId);assert.equal(metadata.status,200,JSON.stringify(metadata.data));assert.ok(metadata.data.count>=1);assert.ok(metadata.data.fields.some(f=>f.key.startsWith('source.')));
+const assignment=await call('/api/clients',{brandId:brand.id,clientId},alice,'PUT');assert.equal(assignment.status,brand.clientId ? 409 : 200,JSON.stringify(assignment.data));
+const reportClientId=brand.clientId||clientId;
+assert.equal((await call('/api/demo')).data.data.brands.find(b=>b.id===brand.id).clientId,reportClientId);
+console.log('PASS: an existing client assignment is preserved');
+const metadata=await call('/api/clients/report?clientId='+reportClientId);assert.equal(metadata.status,200,JSON.stringify(metadata.data));assert.ok(metadata.data.count>=1);assert.ok(metadata.data.fields.some(f=>f.key.startsWith('source.')));
 const columns=['applicationNumber','name','status'];
 for(const format of ['xlsx','docx','pdf']){
- const report=await call('/api/clients/report',{clientId,fields:columns,format});assert.equal(report.status,200,JSON.stringify(report.data));
+ const report=await call('/api/clients/report',{clientId:reportClientId,fields:columns,format});assert.equal(report.status,200,JSON.stringify(report.data));
  if(format==='xlsx'){const wb=new ExcelJS.Workbook();await wb.xlsx.load(Buffer.from(report.data));assert.equal(wb.worksheets[0].columnCount,3);assert.equal(wb.worksheets[0].getRow(2).getCell(1).value,'1234567');}
  else if(format==='pdf')assert.ok((await PDFDocument.load(report.data)).getPageCount());else assert.equal(Buffer.from(report.data).subarray(0,2).toString(),'PK');
 }
-const otherMetadata=await call('/api/clients/report?clientId='+clientId,undefined,bob);assert.equal(otherMetadata.status,200);assert.equal(otherMetadata.data.count,0);
-assert.equal((await call('/api/clients/report',{clientId,fields:['private-field'],format:'xlsx'})).status,422);
+const otherMetadata=await call('/api/clients/report?clientId='+reportClientId,undefined,bob);assert.equal(otherMetadata.status,404); // Client directory is isolated by organization.
+assert.equal((await call('/api/clients/report',{clientId:reportClientId,fields:['private-field'],format:'xlsx'})).status,422);
 console.log('PASS: client report columns, Excel/Word/PDF and tenant isolation');
 snapshot=(await call('/api/demo')).data.data;
 const notice=snapshot.notices[0];assert.ok(notice);

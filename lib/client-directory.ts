@@ -28,7 +28,7 @@ export function mockClientId(brand: string) {
   return demoClients[Array.from(key).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % demoClients.length].id;
 }
 
-export type ClientBrand = { entityType?: "brand" | "application"; id: string; name: string; provider?: string; clientId?: string };
+export type ClientBrand = { entityType?: "brand" | "application"; id: string; name: string; provider?: string; clientId?: string; applicationNumber?: string; logo?: string; sourceStatus?: string; registrationState?: string };
 export function associatedClientId(brand: ClientBrand) {
   return brand.clientId || (brand.provider === "inapi" ? undefined : mockClientId(brand.name));
 }

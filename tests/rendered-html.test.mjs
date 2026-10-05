@@ -18,15 +18,19 @@ test("the navigable demo exposes its main product modules", async () => {
   assert.doesNotMatch(page, /Configuración/);
 });
 
-test("the enhanced demo includes RUT import, full calendar and interactive case views", async () => {
-  const [page, demo, api] = await Promise.all([
+test("the workspace keeps portfolio import, legal agenda and interactive case views", async () => {
+  const [page, demo, api, agenda] = await Promise.all([
     source("app/app/page.tsx"),
     source("db/demo.ts"),
     source("app/api/demo/route.ts"),
+    source("app/app/legal-agenda.tsx"),
   ]);
-  for (const copy of ["MIS MARCAS", "OPOSICIONES EN CURSO", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Mes anterior", "Mes siguiente", "Suelta aquí para mover", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial", "Subir desde Excel", "Próximas versiones", "Contactar cliente", "Informe técnico · uso interno del abogado"]) {
+  for (const copy of ["Mis marcas", "Casos", "Agregar marcas según RUT", "Clases de Niza", "Ver en INAPI", "Suelta aquí para mover", "@dnd-kit/core", "En monitoreo", "Publicado en Diario Oficial", "Subir desde Excel", "Próximas versiones", "Contactar cliente", "Informe técnico · uso interno del abogado"]) {
     assert.match(page, new RegExp(copy));
   }
+  assert.match(page, /LegalAgenda/);
+  assert.match(agenda, /Mes anterior/);
+  assert.match(agenda, /Mes siguiente/);
   assert.match(page, /bulkCreateBrands/);
   assert.match(api, /bulkCreateBrands/);
   for (const behavior of ["N.º de registro", "Sin monitoreo", "Pausar seguimiento", "Reactivar seguimiento", "Concluido", "Visual", "Fonético", "Conceptual"]) {

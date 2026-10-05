@@ -1,5 +1,7 @@
 # Mejoras de UI y UX · 2 de octubre de 2026
 
+Actualización posterior: la [implementación de maquetas del 4 de octubre](UX_IMPLEMENTACION_OCTUBRE_2026.md) agrega .xls antiguo y encabezado libre, tres pasos de factibilidad, feedback, Clientes, Usuarios y Bitácora. Conserva las estructuras originales de Lista/Calendario en Casos y las vistas de Solicitudes por decisión del usuario. Esa ronda permanece local; los despliegues descritos abajo corresponden a esta entrega histórica.
+
 La [ronda del 4 de octubre](UX_PULIDO_2026-10-04.md) actualiza la distribución del revisor, el tamaño de las letras y el comportamiento de notificaciones descritos aquí.
 
 Esta ronda actualiza las decisiones de septiembre sobre las columnas de Mis marcas, el alta de cartera, los informes de clientes y la presentación de Casos. El resto de las reglas de vigilancia, clasificación jurídica y operación se conserva. Destino autorizado: Railway Dev.
