@@ -1,9 +1,17 @@
 // Loaded only by the isolated pilot test process, never by application startup.
 import { readFileSync, appendFileSync } from "node:fs";
 const originalFetch = globalThis.fetch;
+const logoAttempts = new Map();
 if (process.env.PILOT_FIXTURE_FILE) globalThis.fetch = async (input, init) => {
   const url = String(input);
-  if(url.startsWith("https://buscadormarcas.inapi.cl/etiqueta/?s="))return new Response(readFileSync("public/reports/studio-logo.png"),{headers:{"content-type":"image/png"}});
+  if(url.startsWith("https://buscadormarcas.inapi.cl/etiqueta/?s=")) {
+    const fixture = JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,"utf8"));
+    const id = new URL(url).searchParams.get("s"), attempt = (logoAttempts.get(id) ?? 0) + 1;
+    logoAttempts.set(id, attempt);
+    appendFileSync(process.env.PILOT_FIXTURE_FILE+".logos.jsonl",JSON.stringify({id,attempt})+"\n");
+    if(fixture.logoFailures?.[id] === "always" || attempt <= (fixture.logoFailures?.[id] ?? 0)) return new Response("fixture image outage",{status:503});
+    return new Response(readFileSync("public/reports/studio-logo.png"),{headers:{"content-type":"image/png"}});
+  }
   if (url === "https://openrouter.ai/api/v1/chat/completions") {
     const fixture=JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,"utf8"));
     const body=JSON.parse(init.body), context=JSON.parse(body.messages[1].content);

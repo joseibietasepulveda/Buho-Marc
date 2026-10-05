@@ -226,3 +226,5 @@ La última ronda se comprobó en una base PostgreSQL descartable, con proveedore
 La compilación, TypeScript y los componentes modificados pasaron las comprobaciones. Las pruebas dirigidas y el piloto aislado con PostgreSQL verificaron importaciones, duplicados, cliente/rol, informes, persistencia, aislamiento, retirada de avisos, eliminación de tareas y conclusión asistida con sus fallos. PDF y Word se renderizaron y se revisaron completos en seis variantes: sin estudio, estudio de ejemplo, texto largo y los tres perfiles preparados. Los resultados y límites están en [QA visual](design-qa.md), [UX de octubre](docs/UX_OCTUBRE_2026.md) e [Informes de factibilidad](docs/INFORMES_FACTIBILIDAD_2026-10-02.md).
 
 Actualizar esta documentación no ejecuta búsquedas de vigilancia ni vuelve a certificar funciones ajenas a la ronda.
+
+Mis marcas recupera automáticamente cargas fallidas de su parte figurativa, sin botón adicional. Las miniaturas conservan sus proporciones y los errores no deforman la tabla; una imagen no disponible se distingue de una marca denominativa. [Detalle y validación](docs/UX_VALORACIONES_COMPARACION_2026-10-05.md#parte-figurativa-en-mis-marcas).
