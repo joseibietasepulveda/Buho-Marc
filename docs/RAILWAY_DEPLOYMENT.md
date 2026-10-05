@@ -76,6 +76,8 @@ La consulta de lectura del 5 de octubre de 2026 confirmó volúmenes persistente
 
 Al preparar la nueva publicación de Dev, el panel autenticado de Postgres confirmó que **crear respaldos nativos y habilitar PITR requiere Pro** con el plan actual. Renovar la autorización de la CLI no resolvió su error `OAUTH_INSUFFICIENT_GRANT`. Revalidar el plan antes de intentar configurar estas protecciones; no ampliar la suscripción sin aprobación. Una copia lógica puntual de Dev, si se registra antes de publicar, no acredita la automatización ni la protección de producción.
 
+El usuario autorizó un acceso SSH temporal para una primera copia lógica de Dev. El 5 de octubre, a las 16:10 UTC, se comprobó el archivo de `pg_dump 18.6` (109.679.639 bytes, 35 entradas de datos de tablas), su transferencia y su cifrado/descifrado. La clave SSH y los archivos temporales se retiraron. La copia privada, sus límites y el procedimiento están registrados en el [informe de protección](PROTECCION_BASES_DE_DATOS_2026-10-05.md). No hubo restauración sobre una base de ensayo ni protección de producción en esta operación.
+
 Daniel conserva la revisión diaria a las 12:30 de `America/Santiago`; `estudio-ibieta-ip` permanece a pedido. Consultar [control de consumo](COST_CONTROL.md) y la cola para conocer el progreso. Un health check exitoso no acredita la finalización de trabajos.
 
 Quedan pendientes activar OpenRouter con una credencial real y comprobar ese llamado; permisos/invitaciones avanzados, almacenamiento general de adjuntos y estudios completos, envío de correos, métricas, respaldos con restauración probada y capacidad a escala. Autenticación piloto, aislamiento, motor de similitud e informes PDF/Word ya están implementados.

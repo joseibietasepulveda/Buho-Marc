@@ -40,6 +40,14 @@ El chat que implemente la protección debe comprobar el plan vigente y presentar
 
 La captura de esta comprobación se conserva localmente en `output/deploy-dev-2026-10-05/railway-respaldo-plan.png`. Esta observación del panel autenticado complementa las [guías oficiales de respaldos](https://docs.railway.com/volumes/backups), que deben revalidarse junto al plan contratado.
 
+### Primera copia puntual de Dev antes de la publicación visual
+
+Con autorización expresa del usuario se creó una copia lógica de Dev mediante acceso SSH temporal. El archivo se descargó, se cifró y se comprobó a las **16:10 UTC del 5 de octubre** (13:10 de Santiago). Se utilizó `pg_dump 18.6`; el archivo sin cifrar tenía 109.679.639 bytes e incluía 35 entradas de datos de tablas. La huella SHA-256 fue `dbd2d5020f04d76b28cca9fc62f1dfbbafeaff23a9ccc4691c09b5fc97993c54`.
+
+Ubicación privada en este Mac: `/Users/rosariovial/.codex/private-backups/buho-marc/dev/2026-10-05-ui-ux/`. Su `README.md` describe recuperación y archivos; `metadata.json` registra hashes y comprobaciones. El archivo cifrado y la contraseña de recuperación están fuera del repositorio y tienen permisos restringidos. No publicar su contenido ni incluir la contraseña en este informe.
+
+Comprobaciones: índice y lectura completa mediante `pg_restore 18.6` a `/dev/null`, coincidencia de hash entre origen y descarga, y descifrado que reproduce la misma huella. **No se restauró en una base de ensayo**: esa prueba sigue pendiente. Se retiraron la clave registrada en Railway, sus archivos locales y los archivos temporales del contenedor. No se creó una copia de producción, no se configuró una programación y no se abrió un puerto público de Postgres. Esta copia puntual no da por terminado el encargo de protección permanente.
+
 También se revisaron las variables temporales del servicio web. No se observaron valores activos para DANIEL_INITIAL_PASSWORD, BUHO_INITIAL_PASSWORD, FA_INITIAL_PASSWORD, FA_PRODUCTION_PASSWORD ni FA_REPAIR_PARTY_ORDER_RUN en ninguno de los dos ambientes. Repetir esta comprobación mostrando únicamente presencia o ausencia; nunca imprimir las contraseñas.
 
 La revisión local encontró una migración nueva, drizzle/0013_watch_feedback.sql, que crea la tabla watch_feedback, índices y un disparador. No contiene una orden para vaciar o eliminar tablas existentes. Sus relaciones con eliminación en cascada definen el comportamiento ante futuras eliminaciones de registros padres; crear esas relaciones no borra la cartera. La revisión de esta migración no reemplaza revisar todas las que estén pendientes en cada base al momento de publicar.
