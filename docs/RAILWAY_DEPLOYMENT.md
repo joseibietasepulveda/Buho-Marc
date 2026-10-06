@@ -2,6 +2,12 @@
 
 Actualizado el 5 de octubre de 2026. Las mejoras de UI e informes de esta ronda se publican únicamente en **Dev** desde la rama `dev`. Production sigue `main` y requiere autorización expresa para una promoción posterior.
 
+## Referencias internas de la interfaz · 6 de octubre
+
+- PR [#4](https://github.com/joseibietasepulveda/Buho-Marc/pull/4), integrado en `dev`: `ec7ecbdc0aab09375781b8e13c2e189e2d3d6b8b`.
+- Despliegue Dev `ccd33df2-583a-4ae4-8fdb-cabe57f6a226`: exitoso el 6 de octubre a las 20:19:43 America/Santiago; SHA y ambiente confirmados mediante GitHub deployment `6897542363`. Compilación remota aprobada. Salud HTTP 200, base conectada y `engine: dequienes`.
+- Cabeceras, notificaciones y correo al cliente sin referencias internas; relaciones e identificadores oficiales conservados. Sin migraciones ni cambios de API. 19 pruebas dirigidas, lint, compilación local y revisión visual con fixtures aprobados. [Alcance y traspaso](handoffs/2026-10-06-ux-sin-referencias-internas.md).
+
 ## Implementación de las maquetas aprobadas · 5 de octubre
 
 - Commit funcional de UI/UX: `865f535e6699192af6e2ac3699e7c8af96b87c2b`; publicado junto con la documentación de protección en `d6fb8182ddcd4452996ad516a7adcf9f0ccfac4c`.

@@ -1,9 +1,9 @@
 # Traspaso: referencias internas fuera de la interfaz
 
-- Actualizado: 2026-10-06 20:16, America/Santiago.
-- Estado: listo para integración en `dev`.
+- Actualizado: 2026-10-06 20:20, America/Santiago.
+- Estado: integrado y desplegado en Railway Dev.
 - Rama y base: `codex/ux-sin-referencias-internas`, desde `dev` en `a11218e43f0c14a0e7719e75513ceddcdc68a951`.
-- PR: [#4](https://github.com/joseibietasepulveda/Buho-Marc/pull/4). Commit funcional: `b2b3d628b8b15afb13e1fdef0cab872d2545e4e2`. Integración pendiente.
+- PR: [#4](https://github.com/joseibietasepulveda/Buho-Marc/pull/4). Commit funcional: `b2b3d628b8b15afb13e1fdef0cab872d2545e4e2`. Integración en `dev`: `ec7ecbdc0aab09375781b8e13c2e189e2d3d6b8b`, PR integrado el 6 de octubre a las 20:17 America/Santiago.
 
 ## Objetivo y alcance
 
@@ -39,6 +39,10 @@ Revisión visual y funcional con `npm run dev:local`, `BUHO_LOCAL_PORT=4331`, `B
 
 Pasos comprobados en navegador real: abrir NOVA FUDS desde Vigilancia, verificar ficha sin código y solicitud oficial 1570234 conservada; abrir contacto, revisar vista previa y descargar HTML sin «Referencia:»; abrir caso vinculado, comprobar todo el contenido sin CO-/BM-, mover etapa (POST `/api/demo`, HTTP 200 y mensaje con nombre); abrir notificación y expandir detalles sin IDs internos. Sin errores JavaScript. Se sustituyó el código de una vigilancia local por el ejemplo exacto del usuario para detectar filtraciones; la primera revisión visual detectó el campo «Vigilancia de origen», que se corrigió y volvió a comprobar. Capturas locales en `output/ux-sin-referencias-internas/` (no versionadas).
 
+## Integración y despliegue
+
+PR #4 publicado, adjunto al chat e integrado en `dev` mediante `ec7ecbdc0aab09375781b8e13c2e189e2d3d6b8b`. Railway Dev: despliegue `ccd33df2-583a-4ae4-8fdb-cabe57f6a226`, estado exitoso confirmado el 6 de octubre a las 20:19:43 America/Santiago. GitHub deployment `6897542363` acredita SHA exacto, ambiente `heartfelt-magic / Dev` y estado `success`. Compilación remota aprobada. Comprobación en navegador autenticado de Dev, solo lectura: comparador desde una vigilancia guardada con encabezado sin CO-, números oficiales conservados y contacto al cliente con vista previa sin «Referencia:» ni CO-. No se enviaron correos ni se cambiaron valoraciones. `/api/health`: HTTP 200, base conectada, fuente configurada y `engine: dequienes`.
+
 ## Pendientes y siguiente paso
 
-Publicar y adjuntar el PR, integrar en `dev` y registrar el commit resultante. La verificación de Railway Dev se registra por separado: una compilación local y un push no acreditan despliegue. Sin promoción a `main` ni cambios de datos reales.
+Continuar las próximas mejoras de UX desde `dev` actualizado. No hay pendientes de código para esta retirada. La prueba exhaustiva de fichas/correos se realizó con fixtures locales; la salud, publicación y una ficha/correo guardados se comprobaron en Railway Dev. Sin promoción a `main` ni cambios de datos reales.
