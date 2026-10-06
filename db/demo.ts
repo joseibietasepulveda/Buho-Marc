@@ -132,7 +132,7 @@ async function seedDemo() {
 }
 
 const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-const displayPersonName = (name: string) => name === "Rosario Vial" ? "José Ignacio Ibieta" : name;
+export const displayPersonName = (name: string) => name === "Rosario Vial" ? "José Ignacio Ibieta" : name;
 function shortDate(value: string | Date | null, includeYear = false) {
   if (!value) return "Por definir";
   const date = new Date(typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00Z` : value);
@@ -165,16 +165,16 @@ export async function getDemoSnapshot() {
   const watch = await watchSnapshot(true);
   const brandIds = new Map(brandRows.map(b => [b.public_code, String(b.id)]));
   const regularFindings = discoveryGroups(watch.targets, '', watch.settings).flatMap(group => group.rows.flatMap(({ target, hits }) => hits.map(hit => ({
-    brand_id: brandIds.get(target.id) ?? '', brand: target.name, id: hit.matchId!, hit, level: group.level,
+    brand_id: brandIds.get(target.id) ?? '', brand: target.name, brandImage: target.image, brandClasses: target.classes, id: hit.matchId!, hit, level: group.level,
   })))).sort((a,b) => b.hit.score - a.hit.score);
   const highlightedFindings = featuredGroups(watch.targets, '').flatMap(({ target, hits }) => hits.map(hit => ({
-    brand_id: brandIds.get(target.id) ?? '', brand: target.name, id: hit.matchId!, hit, level: discoveryLevel(hit, watch.settings) ?? 'Baja',
+    brand_id: brandIds.get(target.id) ?? '', brand: target.name, brandImage: target.image, brandClasses: target.classes, id: hit.matchId!, hit, level: discoveryLevel(hit, watch.settings) ?? 'Baja',
   })));
   const eligibleFindings = [...highlightedFindings, ...regularFindings];
   const visibleFindingCounts = new Map<string,number>();
   for (const row of eligibleFindings) visibleFindingCounts.set(row.brand_id,(visibleFindingCounts.get(row.brand_id)??0)+1);
   const watchSummary = {targets:brandRows.filter(row=>row.status!=="Pausada" && row.monitoring_config?.monitoringEnabled).length,detected:eligibleFindings.length};
-  const watchPreview = eligibleFindings.slice(0,3).map(row=>({id:row.id,brand:row.brand,found:row.hit.name,image:row.hit.image,application:row.hit.applicationId,level:row.level,score:row.hit.score,publishedAt:row.hit.publishedAt}));
+  const watchPreview = eligibleFindings.slice(0,3).map(row=>({id:row.id,brand:row.brand,found:row.hit.name,image:row.hit.image,brandImage:row.brandImage,brandClasses:row.brandClasses,foundClasses:row.hit.classes.map(c=>c.nice_class),application:row.hit.applicationId,level:row.level,score:row.hit.score,publishedAt:row.hit.publishedAt}));
   const [watchReview] = await sql`SELECT max(j.completed_at) AS updated_at FROM monitoring_jobs j JOIN brands b ON b.id = j.brand_id WHERE j.organization_id = ${organizationId()} AND b.archived_at IS NULL AND j.status = 'success' AND COALESCE(b.monitoring_config->>'presentationExample', 'false') <> 'true'`;
   return {
     watchSummary: { ...watchSummary, preview: watchPreview, updatedAt: watchReview?.updated_at ?? null, automaticEnabled: await automaticMonitoringEnabled() },

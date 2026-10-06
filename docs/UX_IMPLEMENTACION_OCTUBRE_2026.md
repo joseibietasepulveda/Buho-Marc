@@ -1,5 +1,7 @@
 # Implementación de la revisión visual de octubre
 
+Actualización del 6 de octubre: [resúmenes, selectores y respuestas inmediatas](UX_RESPUESTA_INMEDIATA_2026-10-06.md), según los pedidos posteriores del usuario. Sustituye las columnas de cliente, la presentación de atención y el editor de respaldo indicados en versiones anteriores.
+
 Estado: implementación comprobada localmente y **publicada únicamente en Dev el 5 de octubre de 2026**. Commit funcional `865f535`, publicado junto con documentación en `d6fb818`; despliegue `3857245e-4072-4785-b9f0-698bb3c8cd90`, estado `SUCCESS`. El [registro operativo](RAILWAY_DEPLOYMENT.md) contiene comprobaciones y límites. Producción conserva su entrega anterior.
 
 ## Alcance aprobado
