@@ -8,10 +8,10 @@ import { channelNames, safeImage, similarityExplanation, type SimilarityHit } fr
 import { displayWorkDate } from "@/lib/work-priorities";
 import { oppositionWindow } from "@/lib/opposition-window";
 
-export function SimilarityImage({ src, name }: { src: string; name: string }) {
+export function SimilarityImage({ src, name, zoomable = true }: { src: string; name: string; zoomable?: boolean }) {
   const [failed, setFailed] = useState(false);
   const image = src.startsWith("blob:") ? src : safeImage(src);
-  return <div className="similarity-image">{image && !failed ? <Image unoptimized src={image} alt={`Marca ${name}`} width={160} height={100} tabIndex={0} role="button" aria-label={`Ampliar imagen de ${name}`} title="Ampliar imagen" onError={() => setFailed(true)} /> : <span aria-label={`${name}: sin imagen`}><b aria-hidden>Aa</b><small>Sin imagen</small></span>}</div>;
+  return <div className="similarity-image" data-no-zoom={!zoomable || undefined}>{image && !failed ? <Image unoptimized src={image} alt={`Marca ${name}`} width={160} height={100} tabIndex={zoomable ? 0 : undefined} role={zoomable ? "button" : undefined} aria-label={zoomable ? `Ampliar imagen de ${name}` : undefined} title={zoomable ? "Ampliar imagen" : undefined} onError={() => setFailed(true)} /> : <span aria-label={`${name}: sin imagen`}><b aria-hidden>Aa</b><small>Sin imagen</small></span>}</div>;
 }
 export function SimilarityStatusNotice({hit}:{hit:SimilarityHit}) {
   if (hit.officialDecision) return <div className="similarity-official-decision"><strong>{hit.status} · decisión firme desde {displayWorkDate(hit.officialDecision.firmAt)}</strong><p>Corrección respaldada por documentos oficiales. La fuente de consulta informa «{hit.officialDecision.sourceStatus}» y puede estar desactualizada.</p>{hit.officialDecision.sources.map(source => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title} · {displayWorkDate(source.date)} · pág. {source.page} ↗</a>)}</div>;

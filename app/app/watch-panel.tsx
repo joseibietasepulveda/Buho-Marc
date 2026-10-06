@@ -10,16 +10,25 @@ import { SimilarityRange } from "./similarity-range";
 import { displayWorkDate } from "@/lib/work-priorities";
 import "./similarity.css";
 import type { WatchPage } from "@/lib/watch-page";
+import type { CaseTask } from "@/lib/case-tasks";
+import { updateWatchPage, retainConvertedFindings } from "@/lib/watch-view-state";
 import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
 
 type Snapshot = WatchPage;
-type Props = { onOpen: (id: string) => void; onRefresh: () => Promise<void>; onCases: () => void; initialQuery?: string };
-export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Props) {
+export type WatchLinkedCase = { id: string; title: string; brand: string; client: string; stage: "Esperando confirmación de cliente" | "En seguimiento" | "Concluido"; priority: "Alta" | "Media" | "Baja"; deadline: string; deadlineDescription: string; owner: string; sourceMatch?: string; tasks?: CaseTask[] };
+type OpenCase = (matchId: string, linkedCase?: WatchLinkedCase) => void;
+type Props = { active: boolean; onOpen: (id: string) => void; onRefresh: () => Promise<void>; onCases: OpenCase; initialQuery?: string };
+export function WatchPanel({ active, onOpen, onRefresh, onCases, initialQuery = "" }: Props) {
   const [data, setData] = useState<Snapshot | null>(null), [error, setError] = useState(""), [busy, setBusy] = useState("");
   const [query, setQuery] = useState(initialQuery), [tab, setTab] = useState<'discover' | 'baseline' | 'follow'>('discover');
   const [settings, setSettings] = useState<WatchSettings>(DEFAULT_WATCH_SETTINGS), [notice, setNotice] = useState("");
   const [levels,setLevels] = useState(["Alta","Media"]); const [followState,setFollowState] = useState("all");
   const acting = useRef(false);
+  const [busyAction, setBusyAction] = useState("");
+  const linkedCases = useRef(new Map<string, WatchLinkedCase>());
+  const lastLoadedUrl = useRef("");
+  const [requestedQuery, setRequestedQuery] = useState(initialQuery);
+  if (requestedQuery !== initialQuery) { setRequestedQuery(initialQuery); if (initialQuery) setQuery(initialQuery); }
   const [publication, setPublication] = useState<PublicationFilter>(DEFAULT_PUBLICATION_FILTER);
   function publicationDate(field: "from" | "to", value: string) { setPublication(current => ({ ...current, [field]: value, source: value ? "official" : current.source })); }
   const [relevance, setRelevance] = useState<"related" | "all">("related");
@@ -33,47 +42,60 @@ export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Pr
     return `/api/watch?${params}`;
   }, [query, publication, groupLimit, followState, settings, settingsLoaded, limits, tab, relevance]);
   const load = useCallback(async () => {
+    if (acting.current) return;
     const version = ++requestVersion.current;
     const payload = await reader.current(url);
     if (version === requestVersion.current) {
       setError("");
-      if (payload) { setData(payload); if (!settingsLoaded) { setSettings(payload.settings); setSettingsLoaded(true); } }
+      if (!payload) lastLoadedUrl.current = url;
+      if (payload) { const sameQuery = lastLoadedUrl.current === url; setData(current => sameQuery && current ? retainConvertedFindings(payload, current) : payload); lastLoadedUrl.current = url; if (!settingsLoaded) { setSettings(payload.settings); setSettingsLoaded(true); } }
     }
   }, [url, settingsLoaded]);
   useEffect(() => {
+    if (!active) return;
     let mounted = true;
-    const versionRef = requestVersion;
-    const stop = pollWhileVisible(async () => { try { await load(); } catch (e) { if (mounted) setError(e instanceof Error ? e.message : "No se pudo actualizar la vigilancia."); } }, 30000);
-    return () => { mounted = false; versionRef.current++; stop(); };
-  }, [load]);
+    const stop = pollWhileVisible(async () => { try { await load(); } catch (e) { if (mounted) setError(e instanceof Error ? e.message : "No se pudo actualizar la vigilancia."); } }, 30000, "buho-watch-poll", lastLoadedUrl.current !== url);
+    return () => { mounted = false; stop(); };
+  }, [active, load, url]);
+  useEffect(() => {
+    const invalidate = () => {
+      lastLoadedUrl.current = ""; requestVersion.current++; linkedCases.current.clear();
+      if (active) void load().catch(() => setError("No se pudo actualizar la vigilancia."));
+    };
+    window.addEventListener("buho-source-reviewed", invalidate);
+    window.addEventListener("buho-watch-invalidated", invalidate);
+    return () => { window.removeEventListener("buho-source-reviewed", invalidate); window.removeEventListener("buho-watch-invalidated", invalidate); };
+  }, [active, load]);
   const more = (band: string, id: string, loaded: number) => setLimits(current => ({...current, [`${band}:${id}`]: loaded + WATCH_PAGE_SIZE}));
   async function action(input: Record<string, unknown>) {
     if (acting.current) return; acting.current = true;
-    setBusy(String(input.id ?? "all")); setError(""); setNotice(""); requestVersion.current++;
+    setBusy(String(input.id ?? "all")); setBusyAction(input.publicationOnly ? "publication" : String(input.action)); setError(""); setNotice(""); requestVersion.current++;
     try {
       const response = await fetch("/api/watch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input) }); const payload = await response.json();
       if (!response.ok) throw new Error(payload.message || "No se pudo guardar el cambio.");
-      await load();
+      if (input.action === "follow") setData(current => current ? updateWatchPage(current, String(input.id), { reviewStatus: "En seguimiento", ...(input.publicationOnly ? { watchPublication: true } : {}) }) : current);
       if (input.action === "follow") { setNotice(input.publicationOnly ? (data?.automaticEnabled ? "En seguimiento. Te avisaremos en Notificaciones cuando la fuente informe su publicación." : "En seguimiento. Comprobaremos su publicación cuando solicites una revisión.") : "Coincidencia añadida a En seguimiento."); void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); }
       if (input.action === "settings") { setNotice("Límites guardados para esta cartera."); void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); }
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo completar la acción."); }
-    finally { acting.current = false; setBusy(""); }
+    finally { acting.current = false; setBusy(""); setBusyAction(""); if(input.action === "settings") void load().catch(() => setError("No se pudo actualizar la lista.")); }
   }
   async function review(id: string, status: string) {
     if (acting.current) return; acting.current = true;
-    setBusy(id); setError(""); setNotice(""); requestVersion.current++;
+    setBusy(id); setBusyAction(status); setError(""); setNotice(""); requestVersion.current++;
     try {
       const response = await fetch("/api/demo", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "reviewMatch", id, status, compact: true }) });
       const payload = await response.json(); if (!response.ok) throw new Error(payload.message || "No se pudo guardar la revisión.");
-      void load().catch(()=>setError("El cambio se guardó; no pudimos actualizar la lista. Reintentaremos automáticamente.")); void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); setNotice(status === "Convertida en caso" ? "Caso creado y vinculado a esta coincidencia." : "Revisión guardada.");
+      if (payload.case) linkedCases.current.set(id, payload.case);
+      setData(current => current ? updateWatchPage(current, id, { reviewStatus: status }) : current);
+      void onRefresh().catch(() => setError("El cambio se guardó. No se pudo actualizar el resumen; vuelve a intentarlo.")); setNotice(status === "Convertida en caso" ? "Caso creado y vinculado a esta coincidencia." : "Revisión guardada.");
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo guardar la revisión."); }
-    finally { acting.current = false; setBusy(""); }
+    finally { acting.current = false; setBusy(""); setBusyAction(""); }
   }
   const valid = watchSettingsSchema.safeParse(settings).success;
   const groups = data?.groups ?? [], followed = data?.followed ?? [];
   const count = data?.count ?? 0, followedCount = data?.followedCount ?? 0;
   const reviewed = data?.reviewed ?? 0, pending = data?.pending ?? 0;
-  const groupProps = {busy, action, review, onOpen, onCases};
+  const groupProps = {busy, busyAction, action, review, onOpen, onCases: (id: string) => onCases(id, linkedCases.current.get(id))};
   return <section className="watch-view">
     {!data && !error && <div className="watch-loading" role="status"><span className="loading-spinner" aria-hidden/>Cargando vigilancia…</div>}
     <div className="buho-tabs watch-tabs" aria-label="Vistas de vigilancia"><button type="button" aria-pressed={tab === 'discover'} className={tab === 'discover' ? 'is-active' : ''} onClick={() => setTab('discover')}>Novedades por revisar <b>{count}</b></button><button type="button" aria-pressed={tab === 'baseline'} className={tab === 'baseline' ? 'is-active' : ''} onClick={() => setTab('baseline')}>Antecedentes <b>{data?.baselineCount ?? 0}</b></button><button type="button" aria-pressed={tab === 'follow'} className={tab === 'follow' ? 'is-active' : ''} onClick={() => setTab('follow')}>En seguimiento <b>{followedCount}</b></button></div>
@@ -97,7 +119,7 @@ export function WatchPanel({ onOpen, onRefresh, onCases, initialQuery = "" }: Pr
     </>}
   </section>;
 }
-function FindingGroup({target,hits,total,onMore,busy,following,action,review,onOpen,onCases}:{target:WatchTarget;hits:WatchHit[];total:number;onMore:()=>void;busy:string;following?:boolean;action:(input:Record<string,unknown>)=>Promise<void>;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:()=>void}) {
+function FindingGroup({target,hits,total,onMore,busy,busyAction,following,action,review,onOpen,onCases}:{target:WatchTarget;hits:WatchHit[];total:number;onMore:()=>void;busy:string;busyAction:string;following?:boolean;action:(input:Record<string,unknown>)=>Promise<void>;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:(id:string)=>void}) {
   return <section className="watch-family"><header><SimilarityImage src={target.image} name={target.name}/><div><h3>{target.name}</h3><p>{target.presentationExample ? 'Ejemplo de prueba' : 'Tu marca'} · Solicitud {target.applicationId} · {target.ownStatus}{!!target.classes?.length && ` - Niza ${target.classes.join(", ")}`}</p></div><span>{total} {total === 1 ? 'coincidencia' : 'coincidencias'}</span></header><div className="watch-children">{hits.map(hit => <SimilarityCard key={hit.applicationId} hit={hit} onDetails={() => onOpen(hit.matchId!)}>
     {hit.matchId && <WatchFeedback key={`${hit.matchId}:${hit.feedback?.vote||""}:${hit.feedback?.rationale||""}:${hit.feedback?.delivery||""}`} matchId={hit.matchId} initial={hit.feedback}/>}
     <span className="watch-publication">{discoveryLabels[hit.discoveryKind ?? "baseline"]}</span>
@@ -105,14 +127,14 @@ function FindingGroup({target,hits,total,onMore,busy,following,action,review,onO
     {hit.commercialRelevance === "unrelated" && <span className="watch-publication">Sin relación comercial identificada</span>}
     {hit.watchPublication && <span className="watch-publication">{hit.publishedAt ? 'Publicación informada' : 'Esperando publicación en el Diario Oficial'}</span>}
     <button type="button" onClick={() => onOpen(hit.matchId!)}>Comparar marcas y ver historial</button>
-    {!following && <button type="button" disabled={!!busy} onClick={() => void action({action:'follow',id:hit.matchId})}>Pasar a seguimiento</button>}
-    {canWatchPublication(hit) && !hit.watchPublication && hit.reviewStatus !== 'Convertida en caso' && <button type="button" disabled={!!busy} onClick={() => void action({action:'follow',id:hit.matchId,publicationOnly:true})}>Avísame si se publica en el Diario Oficial</button>}
-    {hit.reviewStatus === 'Convertida en caso' ? <button type="button" onClick={onCases}>Ver casos</button> : <button type="button" className="buho-primary" disabled={!!busy} onClick={() => void review(hit.matchId!,'Convertida en caso')}>{busy === hit.matchId ? "Guardando…" : "Convertir en caso"}</button>}
+    {!following && hit.reviewStatus !== "Convertida en caso" && <button type="button" className={hit.reviewStatus === "En seguimiento" ? "watch-action-confirmed" : ""} disabled={!!busy || hit.reviewStatus === "En seguimiento"} onClick={() => void action({action:'follow',id:hit.matchId})}>{busy === hit.matchId && busyAction === "follow" ? "Pasando a seguimiento…" : hit.reviewStatus === "En seguimiento" ? "En seguimiento ✓" : "Pasar a seguimiento"}</button>}
+    {(canWatchPublication(hit) || hit.watchPublication) && hit.reviewStatus !== 'Convertida en caso' && <button type="button" className={hit.watchPublication ? "watch-action-confirmed" : ""} disabled={!!busy || hit.watchPublication} onClick={() => void action({action:'follow',id:hit.matchId,publicationOnly:true})}>{busy === hit.matchId && busyAction === "publication" ? "Activando aviso…" : hit.watchPublication ? "Aviso de publicación activado ✓" : "Avísame si se publica en el Diario Oficial"}</button>}
+    {hit.reviewStatus === 'Convertida en caso' ? <button type="button" className="watch-action-confirmed" onClick={() => onCases(hit.matchId!)}>Ir al caso →</button> : <button type="button" className="buho-primary" disabled={!!busy} onClick={() => void review(hit.matchId!,'Convertida en caso')}>{busy === hit.matchId && busyAction === "Convertida en caso" ? "Creando caso…" : "Convertir en caso"}</button>}
     {hit.reviewStatus !== 'Convertida en caso' && <button type="button" disabled={!!busy} onClick={() => void review(hit.matchId!,'Descartada')}>Descartar</button>}
   </SimilarityCard>)}{hits.length < total && <button className="similarity-more" type="button" onClick={onMore}>Buscar más · {Math.min(WATCH_PAGE_SIZE,total-hits.length)} más</button>}</div></section>;
 }
 
-function FollowedTable({rows,busy,review,onOpen,onCases}:{rows:{target:WatchTarget;hits:WatchHit[]}[];busy:string;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:()=>void}) {
+function FollowedTable({rows,busy,busyAction,review,onOpen,onCases}:{rows:{target:WatchTarget;hits:WatchHit[]}[];busy:string;busyAction:string;review:(id:string,status:string)=>Promise<void>;onOpen:(id:string)=>void;onCases:(id:string)=>void}) {
   // Keyboard focus lets users scroll the overflow table without a pointer.
   // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
   return <section className="watch-band"><header><h2>Marcas en seguimiento</h2><span>Expedientes que elegiste seguir, incluso si su estado cambia.</span></header>{!rows.length ? <p className="watch-empty">No hay coincidencias en seguimiento con estos filtros.</p> : <div role="region" className="watch-table-scroll" tabIndex={0} aria-label="Tabla de marcas en seguimiento"><table className="watch-follow-table"><thead><tr><th>Tu marca</th><th>Marca seguida</th><th>Estado</th><th>Publicación y oposición</th><th>Acciones</th></tr></thead><tbody>{rows.flatMap(({target,hits})=>hits.map(hit=><tr key={hit.matchId}>
@@ -120,6 +142,6 @@ function FollowedTable({rows,busy,review,onOpen,onCases}:{rows:{target:WatchTarg
     <td><div className="watch-follow-brand"><SimilarityImage src={hit.image} name={hit.name}/><div><strong>{hit.name}</strong><small>Solicitud {hit.applicationId}</small><small>Clases {hit.classes.map(c=>c.nice_class).join(", ") || "no informadas"}</small><small>{hit.holders.map(h=>h.name).join("; ")}</small></div></div></td>
     <td><strong>{hit.reviewStatus}</strong><small>{hit.status}</small></td>
     <td>{hit.publishedAt && <small>Publicada el {displayWorkDate(hit.publishedAt)}</small>}<OppositionWindow hit={hit}/></td>
-    <td><div className="watch-follow-actions"><button type="button" onClick={()=>onOpen(hit.matchId!)}>Comparar y ver historial</button>{hit.reviewStatus === "Convertida en caso" ? <button type="button" onClick={onCases}>Ver caso</button> : <><button type="button" disabled={!!busy} onClick={()=>void review(hit.matchId!,"Convertida en caso")}>{busy === hit.matchId ? "Guardando…" : "Convertir en caso"}</button><button type="button" disabled={!!busy} onClick={()=>void review(hit.matchId!,"Descartada")}>Dejar de seguir</button></>}</div></td>
+    <td><div className="watch-follow-actions"><button type="button" onClick={()=>onOpen(hit.matchId!)}>Comparar y ver historial</button>{hit.reviewStatus === "Convertida en caso" ? <button type="button" className="watch-action-confirmed" onClick={() => onCases(hit.matchId!)}>Ir al caso →</button> : <><button type="button" disabled={!!busy} onClick={()=>void review(hit.matchId!,"Convertida en caso")}>{busy === hit.matchId && busyAction === "Convertida en caso" ? "Creando caso…" : "Convertir en caso"}</button><button type="button" disabled={!!busy} onClick={()=>void review(hit.matchId!,"Descartada")}>Dejar de seguir</button></>}</div></td>
   </tr>))}</tbody></table></div>}</section>;
 }

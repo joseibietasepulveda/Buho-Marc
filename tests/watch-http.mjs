@@ -1,5 +1,6 @@
 // Isolated PostgreSQL, credentials and API replay. Never mutates a hosted environment.
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import ExcelJS from 'exceljs';
 import { createProceeding } from '../db/proceedings.ts';
 import { proceedingInput } from '../lib/proceeding-input.ts';
@@ -52,10 +53,10 @@ try{
  delete env.RAILWAY_ENVIRONMENT_ID;delete env.RAILWAY_PUBLIC_DOMAIN;delete env.NODE_OPTIONS;
  server=spawn(process.execPath,['--import','./tests/watch-fixture-hook.mjs','node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port',String(appPort)],{env,stdio:['ignore','pipe','pipe']});server.stdout.on('data',d=>output=(output+d).slice(-16000));server.stderr.on('data',d=>output=(output+d).slice(-16000));
  async function http(route,{cookie,body,authorization,origin=base,method}={}){const r=await fetch(base+route,{method:method ?? (body?'POST':'GET'),headers:{origin,...(cookie?{cookie}:{}),...(authorization?{authorization}:{}),...(body?{'content-type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});return {status:r.status,headers:r.headers,body:await r.json()};}
- for(let i=0;i<80;i++){try{if((await http('/api/health')).status===200)break;}catch{}await new Promise(r=>setTimeout(r,250));}
+ for(let i=0;i<80;i++){try{if((await http('/api/health')).status===200)break;}catch{/* The local server may still be starting. */}await new Promise(r=>setTimeout(r,250));}
  assert.equal((await http('/api/watch')).status,401);
  const login=await http('/api/auth/login',{body:{username:'qa_vigilancia',password:'vigilancia-local-1'}});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];
- const fa=await provisionFaWorkspace(sql,'fa-isolated-test-password');
+ await provisionFaWorkspace(sql,'fa-isolated-test-password');
  const faLogin=await http('/api/auth/login',{body:{username:'FA_abogados',password:'fa-isolated-test-password'}});assert.equal(faLogin.status,200);assert.equal(faLogin.body.redirect,'/app');
  const faCookie=faLogin.headers.get('set-cookie').split(';')[0];
  const faSnapshot=(await http('/api/demo',{cookie:faCookie})).body.data;
@@ -91,7 +92,18 @@ try{
   assert.equal((await http('/api/watch',{cookie,body:{action:'follow',id:match}})).status,200);
   const demo=await http('/api/demo',{cookie});assert.ok(demo.body.data.matches.some(m=>m.id===match&&m.evidence));assert.equal(demo.body.data.brands.length,Object.keys(fixture.searches).length);
   await sql`INSERT INTO cases (organization_id,public_code,title,stage,priority,status,client_name) VALUES (${org.id},'OP-123456789012345','Oposición con código no correlativo','En seguimiento','Media','active','Cliente QA')`;
-  for(let i=0;i<2;i++){const converted=await http('/api/demo',{cookie,body:{action:'reviewMatch',id:match,status:'Convertida en caso',compact:true}});assert.equal(converted.status,200);assert.equal(converted.body.saved,true);assert.match(converted.body.caseId,/^BM-/);assert.equal(converted.body.data,undefined);}
+  for(let i=0;i<2;i++){const converted=await http('/api/demo',{cookie,body:{action:'reviewMatch',id:match,status:'Convertida en caso',compact:true}});assert.equal(converted.status,200);assert.equal(converted.body.saved,true);assert.match(converted.body.caseId,/^BM-/);assert.equal(converted.body.data,undefined);assert.equal(converted.body.case.id,converted.body.caseId);assert.equal(converted.body.case.sourceMatch,match);assert.equal(converted.body.case.stage,'Esperando confirmación de cliente');assert.ok(Array.isArray(converted.body.case.tasks));}
+  const linked=(await http('/api/demo',{cookie})).body.data.cases.find(item=>item.sourceMatch===match);
+  const task={id:randomUUID(),title:'QA guardado compacto',status:'pending',priority:'Media',dueDate:null,assigneeId:user.id};
+  assert.equal((await http('/api/demo',{body:{action:'saveCaseTask',id:linked.id,task,compact:true}})).status,401);
+  const compactTask=await http('/api/demo',{cookie,body:{action:'saveCaseTask',id:linked.id,task,compact:true}});assert.equal(compactTask.status,200);assert.deepEqual(compactTask.body,{saved:true});
+  assert.ok((await http('/api/demo',{cookie})).body.data.cases.find(item=>item.id===linked.id).tasks.some(entry=>entry.id===task.id&&entry.title===task.title));
+  assert.notEqual((await http('/api/demo',{cookie:faCookie,body:{action:'saveCaseTask',id:linked.id,task,compact:true}})).status,200);
+  assert.equal((await http('/api/tasks',{cookie,body:{action:'delete',entityType:'case',entityId:linked.id,taskId:task.id}})).status,200);
+  const ownBrand=beforeFollow.body.data.brands[0];
+  const manualInput={action:'createCase',title:'QA caso manual',brand:ownBrand.name,brandCode:ownBrand.id,client:'Cliente QA',priority:'Media',deadline:'2026-10-15',deadlineDescription:'Revisión de antecedentes',owner:beforeFollow.body.data.users[0].name};
+  const manual=await http('/api/demo',{cookie,body:manualInput});assert.equal(manual.status,200,JSON.stringify(manual.body));assert.ok(manual.body.data.cases.some(item=>item.title===manualInput.title&&item.brand===ownBrand.name));
+  assert.notEqual((await http('/api/demo',{cookie:faCookie,body:manualInput})).status,200);
   assert.equal((await sql`SELECT count(*)::int AS n FROM cases WHERE source_match_id IS NOT NULL`)[0].n,1);
  }
  assert.equal((await fetch(base+'/api/similarity/image?url='+encodeURIComponent('https://untrusted.test/logo.png'),{headers:{cookie}})).status,400);
