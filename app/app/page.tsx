@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "@phosphor-icons/react";
+import StartupLoading from "../components/startup-loading";
 import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
 import { WorkspaceSearch } from "./workspace-search";
 import { WatchPanel } from "./watch-panel";
@@ -338,7 +339,10 @@ function BuhoWorkspace() {
   }
   async function copyText(text: string, label: string) { try { await navigator.clipboard.writeText(text); setToast(`${label} copiado`); } catch { setToast("Selecciona el texto y cópialo manualmente"); } }
   const pageHeadings: Record<View, [string, string]> = { tasks: ["Tareas", "Gestiona las tareas de tus casos y solicitudes"], sourceAdmin: ["Administrador de la fuente", "Expedientes e historial de revisiones"], dashboard: ["Resumen de vigilancia", "Tu cartera, por orden de atención"], registrationsSummary: ["Resumen de registros", "Aquí tienes un resumen de tus solicitudes y próximas gestiones."], feasibility: [feasibilityStep===1?"Revisor de factibilidad":feasibilityStep===2?"Resultados de factibilidad":"Preparar informe de factibilidad", feasibilityStep===1?"Busca antecedentes, compara marcas y prepara tu informe.":feasibilityStep===2?"Revisa los antecedentes y selecciona los que explicarás en tu informe.":"Personaliza y revisa tu conclusión antes de descargar."], brands: ["Mis marcas", "Tu cartera de marcas registradas y solicitudes en trámite"], registrations: ["Solicitudes de registro", "Sigue cada solicitud, estado y plazo legal desde su ingreso hasta la resolución"], matches: ["Vigilancia", "Revisa y clasifica los hallazgos de tu cartera"], cases: ["Casos", "Gestiona cada causa sin perder el contexto original"], notifications: ["Notificaciones", "Novedades y plazos de tu cartera"], clients: ["Clientes", "Marcas, empresas y personas de contacto de tu cartera"], users: ["Usuarios", "Personas con acceso a la organización"], audit: ["Bitácora de auditoría", "Registro inalterable de las acciones realizadas en la plataforma"], about: [`Acerca de esta versión (v${APP_VERSION})`, "Funcionalidades incluidas y próximos pasos del producto"] };
-  if (!databaseReady) return <main className="source-standalone"><h1>BUHO MARC</h1><p role={loadError ? "alert" : "status"}>{loadError || "Cargando cartera…"}</p>{loadError && <button onClick={() => window.location.reload()}>Reintentar</button>}</main>;
+  if (!databaseReady) {
+    if (!loadError) return <StartupLoading />;
+    return <main className="source-standalone"><h1>BUHO MARC</h1><p role="alert">{loadError}</p><button onClick={() => window.location.reload()}>Reintentar</button></main>;
+  }
   return <ClientDirectoryProvider brands={[...brands,...registrationApplications.map(a => ({id:a.id,name:a.name,provider:a.provider,clientId:a.clientId,applicationNumber:a.applicationNumber,logo:a.logo,sourceStatus:a.sourceStatus||a.recentEvent,entityType:"application" as const}))]} onOpenBrand={id => registrationApplications.some(a=>a.id===id) ? openRegistration({id}) : setSelectedBrand(id)} onAssigned={refreshPortfolio}><main className="buho-app"><ImageLightbox/>
     {importOpen && <PortfolioImport onClose={() => setImportOpen(false)} onSaved={refreshPortfolio} />}{proceedingImportOpen && <ProceedingImport onClose={() => setProceedingImportOpen(false)} onSaved={refreshPortfolio}/>} {oppositionOpen && <OppositionForm ownRecords={[...brands, ...registrationApplications]} onClose={() => setOppositionOpen(false)} onSaved={refreshPortfolio} />}{enrollOpen && <EnrollInapi onClose={() => setEnrollOpen(false)} onSaved={async () => { const r = await fetch("/api/demo", { cache: "no-store" }); if (!r.ok) throw new Error("No se pudo actualizar la cartera"); applySnapshot((await r.json()).data); window.dispatchEvent(new Event("buho-source-reviewed")); }} />}
     <aside className="buho-sidebar">
