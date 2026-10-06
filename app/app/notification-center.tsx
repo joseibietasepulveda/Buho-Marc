@@ -93,7 +93,7 @@ const detailLabels: Record<string, string> = { event_id: "ID de la actuación", 
 function EvidenceDetails({ entries }: { entries: Record<string, unknown>[] }) {
   const fields = new Map<string, { label: string; value: string }>();
   for (const entry of entries) for (const [key, value] of Object.entries(entry)) {
-    if (value === undefined || value === null || value === "") continue;
+    if (value === undefined || value === null || value === "" || key === "Referencia del aviso") continue;
     const label = detailLabels[key] ?? legalFieldLabel(key);
     const text = typeof value === "object" ? displayValue(value) : String(value);
     // Projections and raw acts may repeat the same date/title/ID. Display each
@@ -134,7 +134,7 @@ function PriorityNoticeDrawer({ inline=false, notice, notices, applications, bra
         <ol className="priority-timeline">{timeline.entries.map(entry => <li key={entry.key} className={entry.current ? "is-current" : ""}><span className="priority-timeline-dot" aria-hidden /><div><small>{entry.kind === "act" ? "Actuación" : "Aviso"} · {timelineDate(entry.date)}</small><h4>{entry.title}</h4>{entry.current && <span className="priority-timeline-tag">Incluido en este aviso</span>}{entry.previous && <p className="priority-history-warning">Antecedente anterior al cambio. No se presenta como una actuación vigente.</p>}<details><summary>Ver detalle y referencias <span aria-hidden>⌄</span></summary><EvidenceDetails entries={entry.details} /></details></div></li>)}</ol>
       </section>
       {changes.length > 0 && <section className="priority-other-changes"><h3>Otros antecedentes del aviso</h3>{changes.map((change, index) => <details key={`${change.field}-${index}`}><summary>{legalText(change.label)}<span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ Antes: change.field === "status" ? statusLabel(String(change.before)) : change.before, Ahora: change.field === "status" ? statusLabel(String(change.after)) : change.after }]} /></details>)}</section>}
-      <details className="priority-notice-reference"><summary>Referencia de la notificación <span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ "ID del aviso": notice.id, "Título del aviso": legalText(notice.title), "Fecha de detección": notice.date, ...(notice.matchId ? { "Vigilancia relacionada": notice.matchId } : {}) }]} /></details>
+      <details className="priority-notice-reference"><summary>Datos de la notificación <span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ "Título del aviso": legalText(notice.title), "Fecha de detección": notice.date }]} /></details>
     </div>
     <footer><button type="button" className="is-danger" disabled={busy} onClick={() => void onDismiss()}>Eliminar notificación</button>{notice.changeDetail?.caseId && onOpenCase && <button type="button" onClick={() => { onClose(); onOpenCase(notice.changeDetail!.caseId!); }}>Ver caso de oposición →</button>}{notice.matchId && <button type="button" onClick={() => { onClose(); onOpenMatch(notice.matchId!); }}>Ver vigilancia →</button>}<button type="button" className="priority-review-action" disabled={notice.status === "Gestionada"} onClick={() => onManage(notice.id)}>{notice.status === "Gestionada" ? "Revisada" : "Marcar como revisada"}</button></footer>
   </>;

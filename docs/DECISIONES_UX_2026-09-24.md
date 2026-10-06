@@ -53,6 +53,12 @@ Casos inicia en modo simple, con modo detallado disponible en tablero, lista y c
 
 El buscador general consulta datos guardados por marca, cliente, RUT, solicitud, registro, representante y contraparte, con acceso a las fichas. Es una búsqueda local, no una consulta remota al escribir.
 
+## Referencias internas · actualización del 6 de octubre
+
+Se retiran los códigos internos de marcas, vigilancias, casos y avisos de las cabeceras y mensajes de la interfaz. El contacto al cliente y las plantillas copiadas/descargadas omiten «Referencia: CO-…». Los detalles de las notificaciones muestran datos legibles sin IDs internos del aviso o de su vigilancia. Los números oficiales de solicitud, registro, resolución y actuaciones de INAPI siguen disponibles. Las claves internas se conservan para navegar, guardar decisiones y mantener la trazabilidad.
+
+Alcance y verificaciones: [traspaso de referencias internas](handoffs/2026-10-06-ux-sin-referencias-internas.md).
+
 ## LOLA y límites de la fuente
 
 La solicitud 1367215 LOLA tiene corrección documentada en `lib/verified-decisions.ts`: fallo de rechazo del 14/02/2024 y decisión firme por no recurso del 13/03/2024. Se conservan enlaces y datos originales de la fuente. Esa evidencia sustenta «Rechazada definitivamente»; la etiqueta `VER INSTANCIA` no lo demuestra por sí sola.
