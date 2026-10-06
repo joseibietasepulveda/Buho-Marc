@@ -3,7 +3,7 @@
 - Actualizado: 2026-10-06 20:16, America/Santiago.
 - Estado: listo para integración en `dev`.
 - Rama y base: `codex/ux-sin-referencias-internas`, desde `dev` en `a11218e43f0c14a0e7719e75513ceddcdc68a951`.
-- PR y commit de entrega: pendientes de publicación.
+- PR: [#4](https://github.com/joseibietasepulveda/Buho-Marc/pull/4). Commit funcional: `b2b3d628b8b15afb13e1fdef0cab872d2545e4e2`. Integración pendiente.
 
 ## Objetivo y alcance
 
