@@ -2,6 +2,15 @@
 
 Actualizado el 5 de octubre de 2026. Las mejoras de UI e informes de esta ronda se publican únicamente en **Dev** desde la rama `dev`. Production sigue `main` y requiere autorización expresa para una promoción posterior.
 
+## Resúmenes y respuesta inmediata · 6 de octubre
+
+- [PR #5](https://github.com/joseibietasepulveda/Buho-Marc/pull/5), integrado en `dev`: `2cad7ab674c4e135dfe003f8838efb9f09d9305c`; commit funcional `238a98a12df708d4068be874f1759791a3d6189e`.
+- GitHub deployment `6897977391`, ambiente `heartfelt-magic / Dev`, SHA exacto de integración; estado `success` el 6 de octubre a las 20:49:29 America/Santiago.
+- Salud posterior HTTP 200, base conectada, `engine: dequienes`; Vigilancia y cartera responden 401 sin sesión. No se hicieron acciones sobre datos remotos ni consultas nuevas a INAPI.
+- Tabla comparativa y titular; loading y selectores buscables; Vigilancia conservada entre visitas, feedback inmediato y apertura del caso exacto; tareas optimistas con recuperación; registros simplificados y corrección del contador de casos. Sin dependencias ni migraciones nuevas.
+- Compilación/TypeScript, 21 pruebas dirigidas, integración HTTP/PostgreSQL y recorrido Chromium con latencia/fallo/lectura antigua aprobados. ESLint de archivos modificados aprobado; lint global conserva problemas ajenos documentados. [Comportamiento vigente](UX_RESPUESTA_INMEDIATA_2026-10-06.md) y [traspaso con límites y evidencia](handoffs/2026-10-06-ux-respuesta-inmediata.md).
+- `main` permanece en `3e0426526079188626682956a53bff9fdb3a8332`; sin promoción a producción. El registro posterior solo modifica documentación.
+
 ## Referencias internas de la interfaz · 6 de octubre
 
 - PR [#4](https://github.com/joseibietasepulveda/Buho-Marc/pull/4), integrado en `dev`: `ec7ecbdc0aab09375781b8e13c2e189e2d3d6b8b`.

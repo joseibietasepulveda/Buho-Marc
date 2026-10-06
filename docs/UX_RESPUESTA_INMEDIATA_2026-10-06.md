@@ -1,6 +1,6 @@
 # Resúmenes y respuesta inmediata · 6 de octubre de 2026
 
-Estado: implementado y comprobado localmente; integración y publicación en Dev pendientes. Esta decisión explícita del usuario actualiza la presentación descrita en [implementación de octubre](UX_IMPLEMENTACION_OCTUBRE_2026.md). El alcance y la evidencia de entrega se mantienen en el [traspaso](handoffs/2026-10-06-ux-respuesta-inmediata.md).
+Estado: integrado mediante [PR #5](https://github.com/joseibietasepulveda/Buho-Marc/pull/5) y publicado únicamente en Railway Dev el 6 de octubre de 2026. SHA funcional `2cad7ab674c4e135dfe003f8838efb9f09d9305c`; despliegue confirmado como `success` y salud HTTP 200. Véase el [registro operativo](RAILWAY_DEPLOYMENT.md). Esta decisión explícita del usuario actualiza la presentación descrita en [implementación de octubre](UX_IMPLEMENTACION_OCTUBRE_2026.md). El alcance y la evidencia de entrega se mantienen en el [traspaso](handoffs/2026-10-06-ux-respuesta-inmediata.md).
 
 ## Comportamiento vigente
 

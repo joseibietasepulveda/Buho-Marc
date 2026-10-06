@@ -1,9 +1,9 @@
 # Traspaso: resúmenes, respuestas inmediatas y navegación de casos
 
-- Actualizado: 2026-10-06 20:47, America/Santiago; ver registro final de integración abajo.
-- Estado: listo para revisión; implementación y pruebas locales aprobadas, integración/publicación pendientes.
+- Actualizado: 2026-10-06 20:50, America/Santiago.
+- Estado: integrado y publicado en Railway Dev.
 - Rama y base: `codex/ux-respuesta-inmediata`; `dev` en `8906e949eb7470c584d5f06f7b1c5f158639fc54`.
-- PR y commit de entrega: pendientes.
+- PR: [#5](https://github.com/joseibietasepulveda/Buho-Marc/pull/5). Entrega: `238a98a12df708d4068be874f1759791a3d6189e`; integración en `dev`: `2cad7ab674c4e135dfe003f8838efb9f09d9305c`, 2026-10-06 20:47:40 America/Santiago.
 
 ## Objetivo y alcance
 Pedido del usuario: resumen comparativo de vigilancias con enlace morado; loading de búsqueda y titular en Mis marcas; conservar carga de Vigilancia entre visitas y respuesta inmediata de seguir/avisar/convertir; acceso al caso vinculado; estilo claro y selector buscable al agregar casos; tareas con guardado/eliminación ágiles; retirar completar antecedentes y respaldo de plazos de la presentación de registros. Publicar en Railway Dev, sin producción. Los cambios anteriores de animación inicial y referencias internas ya están en la base y se conservan.
@@ -41,5 +41,12 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, PostgreSQL desechable, fixture de fu
 - `npm run lint`: no aprobado por 5 errores y 4 advertencias previos en archivos sin cambios: `.qa-registration/main.tsx`, `app/app/registration-logo.tsx`, `tests/inapi-procedure.test.mjs`, `tests/pilot-e2e.mjs`; advertencias de imágenes también en landing-mixta/portada-3. No se amplió el encargo para corregirlos.
 - Recorrido Chromium final: aprobado sin errores de página a 1440×1000, 820×1100 y 390×844. Confirmó filtros y pestaña sin recarga al volver, feedback inmediato y color verde, ficha del caso exacto, tareas de caso/solicitud antes de la respuesta, rollback de eliminación, borrador preservado al fallar edición, protección contra una lectura antigua, pie claro, selección buscable por teclado y alta real del caso manual, spinner, simplificación de registros, invalidación oculta tras descartar el caso y desaparición inmediata del hallazgo descartado. Capturas inspeccionadas visualmente. Servidor aislado propio en `3411`, mantenido con `WATCH_QA_KEEP=true WATCH_QA_PORT=3411 node --import ./tests/ts-loader.mjs tests/watch-http.mjs`. Comando del navegador y variables de runtime en el documento funcional. Capturas locales: `output/ux-response-2026-10-06/`; no contienen clientes reales.
 
+## Integración y publicación verificadas
+- `dev` no había avanzado desde la base al preparar el PR. PR #5 integrado con el SHA de entrega comprobado; sin conflictos. La comparación entre el commit funcional y el merge no introduce otro cambio de código.
+- Railway Dev: GitHub deployment `6897977391`, ambiente `heartfelt-magic / Dev`, SHA `2cad7ab674c4e135dfe003f8838efb9f09d9305c`; estado `success` el 6 de octubre a las 20:49:29 America/Santiago. Este SHA es la integración funcional verificada.
+- Comprobación posterior: `/api/health` HTTP 200, `ok: true`, base conectada, `engine: dequienes`. `/api/watch` y `/api/demo`: HTTP 401 sin sesión; se conservó el acceso privado. No se alteraron datos remotos para probar la entrega.
+- `main` continúa en `3e0426526079188626682956a53bff9fdb3a8332`; no se promovió a producción. El commit posterior de registro solo cambia documentación.
+- Servidores y PostgreSQL de pruebas propios detenidos; carpeta principal y trabajo ajeno intactos. Se conserva el worktree de este chat para las capturas locales y eventuales ajustes del usuario.
+
 ## Pendientes y siguiente paso
-Publicar el PR a `dev`, integrar bajo autorización «súbelos a dev» y comprobar Railway Dev para el SHA exacto. Registrar abajo PR/commit y despliegue. Mantener pendientes de lint separados; no promover a `main` ni producción.
+No queda trabajo requerido de esta ronda. Revisar los errores globales de lint existentes en un encargo separado. Los recorridos autenticados de esta funcionalidad se verificaron con fixtures locales; el smoke de Railway se limitó a salud y privacidad de endpoints. Ajustes posteriores deben partir de `dev` actualizado y conservar las reglas de fuente y evidencia descritas en el documento funcional.
