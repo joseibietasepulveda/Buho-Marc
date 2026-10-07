@@ -1,6 +1,6 @@
 # Revisión del procedimiento de registro de marcas
 
-Fecha de revisión: 7 de septiembre de 2026.
+Reglas jurídicas revisadas el 7 de septiembre de 2026; interpretación y recuperación ampliadas el 7 de octubre de 2026. Véase [comportamiento vigente y contrato de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md).
 
 Este documento registra las reglas contrastadas con fuentes oficiales y el alcance de la corrección del seguimiento de inscripciones. El bosquejo aportado por el usuario sirve de referencia funcional; las reglas se contrastaron con las Directrices de Marcas INAPI 2026 y la Ley 19.039, cuyo texto refundido está contenido en el DFL 4 de 2022.
 
@@ -53,7 +53,7 @@ Las fechas, actuaciones, titulares y números de estos ejemplos son simulados. L
 
 ## Límites actuales y pendientes
 
-1. **Calendario acotado a 2026.** El calendario `CL-LPI-2026` calcula las reglas de días de LPI/RLPI, excluyendo fines de semana y los feriados nacionales incluidos. Si el cálculo cruza a un año no cubierto, no estima el vencimiento. Un vencimiento explícito de la fuente puede mostrarse sin simular el calendario faltante. Quedan pendientes el calendario plurianual, feriados regionales y reglas excepcionales.
+1. **Calendario nacional acotado a 2023–2027.** El calendario `CL-LPI-LBPA-NATIONAL-2023-2027-v2` calcula las reglas de días de LPI/RLPI, excluyendo fines de semana y los feriados nacionales incluidos. Si el cálculo cruza a un año no cubierto, no estima el vencimiento. Un vencimiento explícito de la fuente puede mostrarse sin simular el calendario faltante. Quedan pendientes el calendario plurianual, feriados regionales y reglas excepcionales.
 2. **No es un motor general del CPC.** Los plazos supletorios contenciosos pueden incluir sábados, mientras los de la LPI los excluyen. Reposición, apelación subsidiaria y otras incidencias necesitan reglas específicas antes de automatizarse. [Plazos][plazos] y [apelación][apelacion].
 3. **La fuente todavía necesita antecedentes jurídicos estructurados.** La proyección reconoce actuaciones por su descripción y conserva su procedencia; no garantiza que cada denominación posible quede clasificada. Falta automatizar la obtención y validación de constancias de notificación, depósito en casilla, ejecutoria, cumplimiento y documentación de respaldo. No se debe convertir una fecha de resolución o un correo de cortesía en fecha jurídica confirmada. [Examen de fondo, notificación electrónica][fondo].
 4. **Prórroga probatoria.** El modelo admite días adicionales expresamente informados, entre 0 y 30. La demostración incluye una prórroga concedida; falta extracción y validación automatizada de la resolución que la concede y de la oportunidad de la petición. El campo no reemplaza esa comprobación documental. [Oposición][oposicion].

@@ -5,6 +5,8 @@ import { updatedApplication } from "./source";
 import type { RegistrationApplication } from "../lib/registration-data";
 import { syncReceivedOpposition } from "./received-oppositions";
 import { isFiledOpposition } from "./opposition-role";
+import { enqueueInapiRecovery } from "./inapi-recovery";
+import { retainOfficialEvidence } from "../lib/inapi-official";
 
 
 export function realBrandConfig(record: SourceRecord) {
@@ -16,6 +18,8 @@ export async function importRealRecord(tx: TransactionSql, record: SourceRecord,
   await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
   if (await isFiledOpposition(tx, record.applicationNumber)) throw new Error("Este expediente corresponde a una oposición presentada; se sigue en Casos, no como marca propia.");
   const code = `${kind === "brand" ? "BM" : "IM"}-R-${record.applicationNumber}`;
+  const [saved] = await tx`SELECT data FROM source_records WHERE application_number = ${record.applicationNumber} FOR UPDATE`;
+  if (saved) record = retainOfficialEvidence(record, saved.data);
   const [source] = await tx`INSERT INTO source_records (application_number, registration_number, data) VALUES (${record.applicationNumber}, ${record.registrationNumber}, ${tx.json(record)}) ON CONFLICT (application_number) DO UPDATE SET data = EXCLUDED.data, registration_number = EXCLUDED.registration_number, updated_at = now() RETURNING id`;
   let entityId: string;
   if (kind === "brand") {
@@ -26,6 +30,7 @@ export async function importRealRecord(tx: TransactionSql, record: SourceRecord,
   } else {
     const initial: RegistrationApplication = { id: code, name: record.name, applicationNumber: record.applicationNumber, type: record.type, filedAt: record.filingDate ?? "", statusId: record.status, recentEvent: "Información inicial recibida de INAPI", niceClasses: record.classes.join(", "), holder: record.owner, holderRut: record.ownerRut, client: "Sin cliente asignado", history: [] };
     const data = updatedApplication(initial, record, initial.recentEvent);
+    await enqueueInapiRecovery(tx, source.id, record, data);
     const [application] = await tx`INSERT INTO registration_applications (organization_id, public_code, data) VALUES (${organizationId()}, ${code}, ${tx.json(data)}) ON CONFLICT (organization_id, public_code) DO UPDATE SET data = EXCLUDED.data, updated_at = now() RETURNING id`;
     entityId = application.id;
     await syncReceivedOpposition(tx, record);

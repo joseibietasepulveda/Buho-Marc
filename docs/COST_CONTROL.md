@@ -62,3 +62,11 @@ Antes de migrar, medir capacidad, memoria, costo fijo, respaldos, restauración 
 tiempos de cola; acordar con DeQuiénEs las cuotas y concurrencia. Más capacidad de
 servidor no elimina los límites de la fuente. No se contrata ni migra infraestructura
 con esta entrega.
+
+## Recuperación puntual de fechas · 7 de octubre
+
+La importación o revisión de un expediente con un antecedente jurídico faltante puede preparar la cola `inapi_recovery_jobs`. Es independiente de similitudes y conserva los modos diarios/a pedido de cada organización: visitar pantallas no la prepara. El supervisor consume un expediente por turno; cada una de sus hasta tres peticiones espera como mínimo tres segundos desde que terminó la anterior. PostgreSQL comparte el reloj y bloqueo entre réplicas y carteras. Nunca se verifica la interfaz con consultas masivas reales.
+
+Presupuesto global: 200 intentos de expediente por día de Santiago, incluidos fallos, actualizado por petición explícita del usuario el 07/10. `INAPI_DIRECT_RECOVERY_DAILY_LIMIT` admite cero y hasta 200; valor predeterminado 200. Son hasta 600 peticiones HTTP diarias para consultas completas, siempre serializadas y separadas por el intervalo mínimo de tres segundos. `INAPI_DIRECT_RECOVERY_ENABLED=false` desactiva. Un fallo pausa la cola una hora. Deduplicación permanente por solicitud/acto/antecedente: una fecha que siga faltando no provoca reintentos repetidos ni un ciclo de consultas por cada renderizado. Un reinicio conserva intentos, presupuesto y reloj. La carga inicial del historial guardado requiere la opción explícita `--apply --queue` del script de reproyección.
+
+[Contrato, evidencia y operación](INAPI_RECUPERACION_ANTECEDENTES.md) · [API pública](INAPI_API_PUBLICA.md) · [validación local](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
