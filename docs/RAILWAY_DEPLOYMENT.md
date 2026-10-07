@@ -14,6 +14,16 @@ Actualizado el 7 de octubre de 2026. Las mejoras se publican únicamente en **De
 - Node local 24.19, 91 pruebas dirigidas/integración PostgreSQL, lint del cambio, compilación y piloto completo aprobados. [Operación y contrato](INAPI_RECUPERACION_ANTECEDENTES.md) y [traspaso con verificaciones](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
 - `main` comprobado en `3e0426526079188626682956a53bff9fdb3a8332`; sin promoción ni cambios de variables en producción. El registro posterior de esta entrega solo cambia documentación.
 
+## Alta rápida y logos DeQuiénEs — 7 de octubre
+
+- [PR #8](https://github.com/joseibietasepulveda/Buho-Marc/pull/8), integrado en `dev`: `26dfd3551b7a6795f4ec731df406f00e0a9696f4`; último commit funcional `6240b34c05dedde8d01117a1172457455c302917`.
+- GitHub deployment `6918702406`, ambiente `heartfelt-magic / Dev`, SHA exacto de integración; estado `success` el 7 de octubre a las 16:21:45 America/Santiago.
+- Alta sin casilla ni aviso de confirmar clientes. Cada búsqueda, archivo y candidato nuevo comienza «Sin cliente asignado», sin heredar elecciones anteriores. Asignación explícita opcional; datos existentes conservados.
+- Logos de expedientes: DeQuiénEs primero en todas las pantallas y PDF/Word; etiqueta oficial INAPI solo como respaldo. Evidencia guardada reutilizada, proxies con sesión, fallos y respaldo sin caché. Sin migraciones.
+- Build/TypeScript, ESLint dirigido, 32 pruebas, PostgreSQL/HTTP y Chromium aprobados con datos/proveedores ficticios. Nuevo Excel y búsqueda repetida sin herencia de cliente; incorporación directa, aislamiento, recuperación de logos y móvil comprobados.
+- Salud posterior 200/base conectada/`engine: dequienes`; vigilancia, solicitudes y ambos proxies de imagen responden 401 sin sesión. No se hicieron operaciones sobre datos remotos ni búsquedas adicionales de INAPI. El panel de logs no se leyó por timeout del navegador; no se afirma disponibilidad de cada imagen real del CDN.
+- `main` conserva `3e0426526079188626682956a53bff9fdb3a8332`, sin promoción a producción. [Comportamiento](UX_OCTUBRE_2026.md) y [traspaso](handoffs/2026-10-07-marcas-importacion-logos.md).
+
 ## Resúmenes y respuesta inmediata · 6 de octubre
 
 - [PR #5](https://github.com/joseibietasepulveda/Buho-Marc/pull/5), integrado en `dev`: `2cad7ab674c4e135dfe003f8838efb9f09d9305c`; commit funcional `238a98a12df708d4068be874f1759791a3d6189e`.

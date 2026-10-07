@@ -1,7 +1,7 @@
 # Traspaso: incorporación de marcas sin confirmación adicional y logos resilientes
 
-- Actualizado: 2026-10-07 15:47, America/Santiago.
-- Estado actual: listo para integración; publicación en Dev autorizada por el usuario. La prohibición anterior queda reemplazada.
+- Actualizado: 2026-10-07 16:29, America/Santiago.
+- Estado actual: integrado y publicado en Dev; salud y protección de rutas comprobadas. La prohibición anterior queda reemplazada.
 - Rama y base: `codex/marcas-importacion-logos`; `origin/dev` en `18ffae9323a0eee081c1e6ff88d44d98a6600eb0`.
 - PR: no creado. Entrega inicial: `5dee504`. Entrega de prioridad DeQuiénEs: `1c1ee7c` (`fix: prefer DeQuiénEs logos across the workspace and reports`). Ambos locales; no publicar ni integrar sin nueva autorización.
 
@@ -80,4 +80,10 @@ La prioridad está implementada y verificada con fixtures; no se ha probado la d
 - Cambio adicional: `BrandSearch.search(false)` reinicia asignaciones y defaults; cada candidato nuevo/paginado usa `unassigned`, preservando ajustes explícitos de filas anteriores al cargar más. `PortfolioImport.read` reinicia defaults y `merge` inicializa cada candidato nuevo sin cliente. Seleccionar filas no aplica clientes de forma implícita. Retiradas instrucciones de progreso que exigían revisar clientes/roles antes de incorporar.
 - El error citado por el usuario ya no existe en estos cambios locales, pero sí en `origin/dev` anterior. Publicar también `5dee504` retira ese bloqueo y la casilla del frontend/API.
 - Verificación actual: build/TypeScript y 32 pruebas dirigidas aprobados tras incorporar `0958928`; ESLint dirigido aprobado y diff sin errores. Integración HTTP/PostgreSQL y navegador aprobados en el piloto desechable `3417`: nuevo Excel y búsqueda repetida empiezan sin cliente, se puede agregar inmediatamente, cliente explícito sigue guardándose, cliente ajeno se rechaza y logos mantienen prioridad/respaldo/recuperación. Captura de escritorio revisada; móvil sin desborde ni errores. Proveedores ficticios, sin consultas a carteras remotas.
-- PR, integración y despliegue: pendientes; completar con evidencia.
+- Entrega adicional: `6240b34c05dedde8d01117a1172457455c302917`. PR [#8](https://github.com/joseibietasepulveda/Buho-Marc/pull/8), integrado en `dev` mediante `26dfd3551b7a6795f4ec731df406f00e0a9696f4` el 7 de octubre a las 16:19 America/Santiago.
+- GitHub deployment `6918702406`, ambiente `heartfelt-magic / Dev`, SHA exacto de integración: `success` a las 16:21:45 America/Santiago. Comprobación posterior `/api/health`: HTTP 200, `ok: true`, base conectada y `engine: dequienes`. `/api/watch`, `/api/registrations` y ambos proxies de imágenes: 401 sin sesión, sin descargar logos ni consultar expedientes remotos.
+- `main` permanece en `3e0426526079188626682956a53bff9fdb3a8332`; no se promovió a producción. No se cambiaron cuentas, claves, carteras ni configuración del supervisor.
+- Las pruebas autenticadas y de imágenes son las del piloto local. La lectura del panel Railway mediante navegador falló por timeout de control CDP; no se examinaron logs privados de arranque en esa comprobación. La evidencia remota del despliegue proviene de GitHub/Railway para el SHA exacto y de salud/rutas HTTP; no acredita disponibilidad de cada logo real del CDN.
+- Git en Escritorio/iCloud presentó una lectura SIGBUS y demoras de varios minutos. Se conservaron archivos y commits; el commit y push funcional terminaron. El fetch terminó y se incorporó el SHA integrado mediante fast-forward. El cierre documental usa la misma rama; no se modificó Git interno ni worktrees de otros chats.
+
+Registro de cierre actualizado: 2026-10-07 16:28, America/Santiago. Servidor y base de prueba propios detenidos; capturas locales conservadas en `output/`.
