@@ -13,6 +13,7 @@ import { sourceError, } from "@/lib/source-api";
 import { statusLabel, type SourceRecord } from "@/lib/source-contract";
 export const runtime = "nodejs";
 export const maxDuration = 120;
+// ownPortfolioConfirmed remains optional for compatibility with older clients; selection is sufficient.
 const schema = z.object({ action: z.enum(["preview", "import"]), ids: z.array(z.string().regex(/^[1-9]\d{0,8}$/)).min(1).max(10), ownPortfolioConfirmed: z.boolean().optional(), assignments: z.record(z.string().regex(/^[1-9]\d{0,8}$/), z.object({ clientId: z.string().regex(/^CL-\d+$|^unassigned$/), clientRole: z.enum(["holder", "representative"]) }).strict()).optional() }).strict().refine(value => !value.assignments || Object.keys(value.assignments).every(id => value.ids.includes(id)), "La asignación debe corresponder a la selección.");
 export const POST = withSession(async request => {
   try {
@@ -23,7 +24,6 @@ export const POST = withSession(async request => {
       return NextResponse.json(await readAssistedImportFile(Buffer.from(await file.arrayBuffer()), file.name));
     }
     const input = schema.parse(await request.json());
-    if (input.action === "import" && !input.ownPortfolioConfirmed) return NextResponse.json({ message: "Confirma que los números corresponden a solicitudes propias o de tus clientes como solicitantes. Las oposiciones presentadas se cargan en Casos." }, { status: 400 });
     if (!isRealSource()) return NextResponse.json({ message: "La consulta real de INAPI no está configurada en este ambiente. Los IDs pueden leerse, pero aún no se pueden incorporar expedientes." }, { status: 409 });
     const ids = [...new Set(input.ids)];
     if (input.action === "import" && input.assignments) {

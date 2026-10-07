@@ -11,7 +11,18 @@ async function loadLogo(id: string) {
     const r = await fetch(`https://buscadormarcas.inapi.cl/etiqueta/?s=${id}`, { signal: AbortSignal.timeout(15000), redirect: "error", next: { revalidate: 86400 } });
     const type = r.headers.get("content-type") ?? "";
     if (!r.ok || !/^image\/(png|jpeg|gif|webp)(;|$)/i.test(type)) return null;
-    return { body: await r.arrayBuffer(), type };
+    const reader = r.body?.getReader();
+    if (!reader) return null;
+    const chunks: Uint8Array[] = []; let size = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > 8 * 1024 * 1024) { await reader.cancel(); return null; }
+      chunks.push(value);
+    }
+    if (!size) return null;
+    return { body: new Uint8Array(Buffer.concat(chunks)).buffer, type };
   } finally { const next = waiting.shift(); if (next) next(); else active--; }
 }
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -24,6 +35,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (!request) { request = loadLogo(id).finally(() => pending.delete(id)); pending.set(id, request); }
     const logo = await request;
     if (!logo) return new Response(null, { status: 503, headers: { "cache-control": "no-store", "retry-after": "2" } });
-    return new Response(logo.body, { headers: { "content-type": logo.type, "cache-control": "private, no-store", "x-content-type-options": "nosniff" } });
+    return new Response(logo.body, { headers: { "content-type": logo.type, "cache-control": "private, max-age=3600", "vary": "Cookie", "x-content-type-options": "nosniff" } });
   } catch { return new Response(null, { status: 503, headers: { "cache-control": "no-store", "retry-after": "2" } }); }
 }
