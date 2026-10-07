@@ -1,6 +1,18 @@
 # Despliegue y operación en Railway
 
-Actualizado el 5 de octubre de 2026. Las mejoras de UI e informes de esta ronda se publican únicamente en **Dev** desde la rama `dev`. Production sigue `main` y requiere autorización expresa para una promoción posterior.
+Actualizado el 7 de octubre de 2026. Las mejoras se publican únicamente en **Dev** desde la rama `dev`. Production sigue `main` y requiere autorización expresa para una promoción posterior.
+
+## Actuaciones y recuperación puntual INAPI · 7 de octubre
+
+- [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6), integrado en `dev`: `18ffae9323a0eee081c1e6ff88d44d98a6600eb0`; commit funcional `e0dd67b943b7ffeee5fa3fc8e32658c6cb658c4d`.
+- Despliegue `ad376c61-3bc6-4986-b406-0414966c7c8a`, **SUCCESS**, SHA exacto de integración y ambiente Dev `9e2891f0-7281-4872-a992-2c48866a782d` verificados mediante Railway CLI. Compilación y TypeScript remotos aprobados; arranque con migraciones correctas y servidor listo.
+- Migración `0014_inapi_recovery.sql` comprobada también en `drizzle.__drizzle_migrations`: SHA-256 `c6c0f60da593ee446e128135d635d0338d42f08582e5eab22bf94b1e7e7a08e9`, idéntico al archivo entregado.
+- `/api/health`: 200, base conectada, `engine: dequienes`, fuente configurada y programación activa. Solicitudes: 401 sin sesión. Recuperación: 403 sin secreto, sin efectuar llamadas oficiales desde esa comprobación.
+- Variables explícitas del servicio web **Dev**: `SOURCE_PROVIDER=inapi`, `INAPI_DIRECT_RECOVERY_ENABLED=true`, `INAPI_DIRECT_RECOVERY_DAILY_LIMIT=200`. Comprobación del runtime: habilitada, presupuesto 200 e intervalo 3000 ms. El reloj/bloqueo PostgreSQL compartido y la deduplicación persistente conservan sus reglas entre despliegues.
+- Operación autorizada sobre el historial existente: vista previa y `scripts/reproject-inapi-records.ts --apply --queue`, 222 registros reproyectados y 56 recuperaciones preparadas. Ambos comandos informaron `externalRequests: 0`; el supervisor atiende la cola posteriormente, dentro del presupuesto. La QA local usó datos ficticios y no consultó INAPI.
+- Límite operativo observado: primera consulta del supervisor fallida (`fetch failed`), 55 trabajos pendientes y pausa global hasta `2026-10-07T18:39:51.418Z` (15:39:51 Santiago). DNS resolvió `buscadormarcas.inapi.cl`; una comprobación TLS sin petición HTTP no completó la conexión en 20 segundos. La conexión local también falló (`ENETUNREACH`). No hubo una respuesta HTTP que permita atribuir rechazo al proveedor, ni se certifica recuperación de fechas nuevas. No se omitió la pausa ni se reintentó el expediente fallido.
+- Node local 24.19, 91 pruebas dirigidas/integración PostgreSQL, lint del cambio, compilación y piloto completo aprobados. [Operación y contrato](INAPI_RECUPERACION_ANTECEDENTES.md) y [traspaso con verificaciones](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+- `main` comprobado en `3e0426526079188626682956a53bff9fdb3a8332`; sin promoción ni cambios de variables en producción. El registro posterior de esta entrega solo cambia documentación.
 
 ## Resúmenes y respuesta inmediata · 6 de octubre
 
