@@ -21,7 +21,7 @@ export const sourceRecordSchema = z.object({
   filingDate: date, publicationDate: date, expirationDate: date, registrationDate: date, statusDate: date,
   owner: text, ownerRut: z.string().max(30), ownerCountry: text, representativeName: text, representativeCountry: text,
   classes: z.array(z.number().int().min(1).max(45)).transform(v => [...new Set(v)].sort((a, b) => a - b)),
-  logo: z.string().max(1500).refine(v => !v || /^\/[^/]/.test(v) || /^https:\/\//.test(v), "Usa una imagen local o HTTPS"),
+  logo: z.string().max(6000).refine(v => !v || /^\/[^/]/.test(v) || /^https:\/\//.test(v), "Usa una imagen local o HTTPS"),
   officialUrl: z.string().url().max(1500).refine(v => /^https:\/\//.test(v)),
 }).strict().superRefine((v, ctx) => {
   if (!v.provider && !v.classes.length) ctx.addIssue({ code: "custom", message: "Seleccione al menos una clase", path: ["classes"] });

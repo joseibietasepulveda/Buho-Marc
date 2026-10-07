@@ -1,3 +1,4 @@
+import { portfolioImage, dequienesImage } from "./trademark-image";
 import { z } from "zod";
 import { textMatches } from "./text-search";
 import { applyVerifiedDecision } from './verified-decisions';
@@ -20,7 +21,7 @@ export function withRecord(hit: SimilarityHit, record: SourceRecord): Similarity
   const events = (record.inapi?.events ?? []) as { event_date?: string; status_description?: string; observation?: string }[];
   const validation = sourceRecordSchema.safeParse(record);
   const dataWarnings = validation.success ? [] : [...new Set(validation.error.issues.map(issue => issue.message))];
-  return applyVerifiedDecision({ ...hit, sourceEvidence: { search: hit.sourceEvidence?.search ?? {}, dossier: record.inapi ?? {} }, officialDecision: undefined, sourceStatus: status?.description || "Estado no disponible", dataWarnings, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) });
+  return applyVerifiedDecision({ ...hit, image: dequienesImage(hit.sourceEvidence?.search?.image_url) ? portfolioImage(hit.applicationId, hit.sourceEvidence?.search?.image_url) : record.logo || safeImage(hit.image), sourceEvidence: { search: hit.sourceEvidence?.search ?? {}, dossier: record.inapi ?? {} }, officialDecision: undefined, sourceStatus: status?.description || "Estado no disponible", dataWarnings, status: status?.description || "Estado no disponible", statusCode: status?.code ?? null, publishedAt: record.publicationDate, filedAt: record.filingDate, registeredAt: record.registrationDate, registrationId: record.registrationNumber, history: events.map(e => ({ date: date(e.event_date) ?? "", title: e.status_description || "Actuación", detail: e.observation ?? undefined })) });
 }
 export async function searchSimilar(input: Record<string, unknown>, image?: File, fetcher: typeof fetch = fetch): Promise<SimilarityResult> {
   if (!similarityConfigured()) throw new SimilarityError("La búsqueda real aún no está configurada en este ambiente.", 503);

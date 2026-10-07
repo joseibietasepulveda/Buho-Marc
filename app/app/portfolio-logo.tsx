@@ -1,10 +1,11 @@
 "use client";
 
+import { trademarkImageSrc, retryTrademarkImage } from "@/lib/trademark-image";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import "./portfolio-logo.css";
 
-type Props = { name: string; src?: string; type: string; width?: number; height?: number };
+type Props = { name: string; src?: string; type: string; applicationId?: string; width?: number; height?: number };
 
 /** A changed source gets a fresh retry budget, including when switching dossiers. */
 export function PortfolioLogo(props: Props) {
@@ -12,7 +13,7 @@ export function PortfolioLogo(props: Props) {
   return <LoadedLogo key={props.src} {...props} src={props.src} />;
 }
 
-function LoadedLogo({ name, src, width = 96, height = 72 }: Props & { src: string }) {
+function LoadedLogo({ name, src, applicationId, width = 96, height = 72 }: Props & { src: string }) {
   const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
   useEffect(() => {
@@ -24,10 +25,7 @@ function LoadedLogo({ name, src, width = 96, height = 72 }: Props & { src: strin
     return () => clearTimeout(timer);
   }, [status, attempt]);
 
-  // Only our authenticated proxy receives a cache-busting parameter. External
-  // signed image URLs must remain intact; failed responses are not cached.
-  const imageSrc = /^\/api\/inapi\/logo\/\d+$/.test(src) && attempt
-    ? `${src}?retry=${attempt}` : src;
+  const imageSrc = retryTrademarkImage(trademarkImageSrc(src, applicationId) || src, attempt);
   const exhausted = status === "error" && attempt >= 2;
   return <span className="portfolio-logo" data-state={status} style={{ width, height }}>
     {!exhausted && <Image key={attempt} unoptimized src={imageSrc}

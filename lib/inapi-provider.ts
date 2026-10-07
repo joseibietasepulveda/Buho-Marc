@@ -1,3 +1,4 @@
+import { portfolioImage, dequienesImage } from "./trademark-image";
 import { z } from "zod";
 import { sourceRecordSchema, type SourceRecord, type Lookup } from "./source-contract";
 import type { RegistrationApplication, RegistrationStatusId } from "./registration-data";
@@ -11,7 +12,7 @@ export class InapiHttpError extends Error {
 const party = z.object({ name: z.string(), rut: z.string().nullable().optional(), dv: z.string().nullable().optional(), country: z.string().nullable().optional() }).passthrough();
 const event = z.object({ event_id: z.string().nullable().optional(), event_date: z.string().nullable(), due_date: z.string().nullable().optional(), status_code: z.string().nullable(), status_description: z.string().nullable(), observation: z.string().nullable().optional() }).passthrough();
 const documentSchema = z.object({
-  application_id: z.number().int().positive(), registration_number: z.number().int().nullable().optional(), registration_id: z.number().int().nullable().optional(), name: z.string().nullable(),
+  image_url: z.string().nullable().optional(), application_id: z.number().int().positive(), registration_number: z.number().int().nullable().optional(), registration_id: z.number().int().nullable().optional(), name: z.string().nullable(),
   status: z.object({ code: z.string().nullable(), description: z.string().nullable() }).passthrough(),
   dates: z.object({ filed_at: z.string().nullable(), published_at: z.string().nullable(), registered_at: z.string().nullable(), expires_at: z.string().nullable(), last_changed_at: z.string().nullable() }).passthrough(),
   trademark: z.object({ sign_type: z.string().nullable() }).passthrough(),
@@ -220,7 +221,7 @@ function normalizeDocument(input: unknown, evidenceOnly: boolean): SourceRecord 
     type: ["Denominativa", "Figurativa", "Mixta"].includes(d.trademark.sign_type ?? "") ? d.trademark.sign_type : "Otra",
     filingDate: day(d.dates.filed_at), publicationDate, expirationDate: day(d.dates.expires_at), registrationDate: registeredAt, statusDate,
     owner: parties(holders), ownerRut: rut, ownerCountry: country(holders[0]?.country), representativeName: parties(representatives), representativeCountry: country(representatives[0]?.country),
-    classes: d.classes.map(c => c.nice_class), logo: ["Mixta", "Figurativa"].includes(d.trademark.sign_type ?? "") ? `/api/inapi/logo/${d.application_id}` : "",
+    classes: d.classes.map(c => c.nice_class), logo: (dequienesImage(d.image_url) || ["Mixta", "Figurativa"].includes(d.trademark.sign_type ?? "")) ? portfolioImage(String(d.application_id), d.image_url) : "",
     officialUrl: `https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx`,
   });
 }

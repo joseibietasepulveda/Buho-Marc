@@ -93,3 +93,13 @@ El Administrador de fuente muestra una tabla resumida de expedientes y conserva 
 Las filas admiten clic, Enter y Espacio. El panel mantiene cabecera y cierre visibles, tiene desplazamiento interno y no desborda horizontalmente con resoluciones extensas. La fuente INAPI no se edita desde esta vista; las revisiones manuales se inician desde Marcas registradas y las automáticas conservan el horario configurado.
 
 Última interfaz Dev verificada en Railway: despliegue `24e72a29-3ece-4701-9859-623aa9f28aad`, commit `24300f9`, estado `SUCCESS`. Production permanece en `60ea09c`.
+
+## Prioridad de logos — 7 de octubre de 2026 (local, pendiente de publicación)
+
+Decisión del usuario: DeQuiénEs es la primera fuente de imágenes en todos los apartados, porque el equipo tiene control sobre este servicio. `image_url`, documentado en los documentos y lotes de `https://dequienes.cl/inapi/docs`, se conserva en el adaptador y en la evidencia original.
+
+`lib/trademark-image.ts` construye las rutas comunes para pantallas e informes. `lib/trademark-image-server.ts` intenta la URL de DeQuiénEs recibida o guardada; para URLs antiguas sin este campo, consulta un único expediente al batch de DeQuiénEs. INAPI `/etiqueta/?s=<solicitud>` es exclusivamente el respaldo. No se adivinan rutas del CDN ni se generan logos. La ruta histórica `/api/inapi/logo/[id]` conserva compatibilidad aunque su fuente principal ahora sea DeQuiénEs. `/api/similarity/image` comparte el cargador.
+
+Las rutas requieren sesión y usan evidencia de `source_snapshots` de la organización de esa sesión. Máximo cuatro cargas simultáneas, deduplicación en vuelo por organización/solicitud/URL, descargas limitadas a 8 MiB y decodificación hasta 20 megapíxeles. Solo HTTPS de `marcas.dequienes.cl` sin credenciales, puerto alternativo ni redirecciones; las claves del API nunca se envían al host de imágenes. URL firmada sin modificaciones. Caché privada de una hora para éxito DeQuiénEs; respaldo oficial y errores sin caché. No requiere migraciones ni ejecutar vigilancia masiva.
+
+Pruebas y límites: [traspaso de importación y logos](handoffs/2026-10-07-marcas-importacion-logos.md). No está verificada la disponibilidad del CDN en Railway y no se ha publicado esta continuación.
