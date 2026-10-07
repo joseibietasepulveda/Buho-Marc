@@ -25,6 +25,9 @@ try {
  await dialog.getByRole('button',{name:'Buscar en INAPI',exact:true}).click();
  await dialog.locator('.candidate-row').first().waitFor(); assert.equal(await dialog.locator('.candidate-row').count(),3);
  assert.equal(await dialog.locator('.candidate-confirm').count(),0);
+ assert.equal(await dialog.getByText('Confirma el cliente de cada selección. Puedes elegir «Sin cliente asignado».',{exact:true}).count(),0);
+ assert.equal(await dialog.locator('.candidate-defaults select').first().inputValue(),'unassigned');
+ for(const select of await dialog.locator('.candidate-assignment select[aria-label^="Cliente de"]').all())assert.equal(await select.inputValue(),'unassigned');
  const good=dialog.locator('.candidate-row').filter({hasText:'Marca QA logos 9100041'});
  await good.locator('img').waitFor(); await page.waitForFunction(()=>{const img=document.querySelector('img[alt="Logo de Marca QA logos 9100041"]');return img?.complete&&img.naturalWidth>0;});
  const unavailable=dialog.getByRole('button',{name:'Reintentar imagen de Marca QA logos 9100042',exact:true}); await unavailable.waitFor();
@@ -51,6 +54,9 @@ try {
  await page.getByRole('button',{name:'Carga desde Excel',exact:true}).click(); dialog=page.getByRole('dialog',{name:'Carga desde Excel',exact:true});
  await dialog.locator('input[type=file]').setInputFiles({name:'logos.csv',mimeType:'text/csv',buffer:Buffer.from('numero_solicitud\n9100044\n')});
  await dialog.locator('.candidate-row').waitFor(); assert.equal(await dialog.locator('.candidate-confirm').count(),0);
+ assert.equal(await dialog.getByText('Confirma el cliente de cada selección. Puedes elegir «Sin cliente asignado».',{exact:true}).count(),0);
+ assert.equal(await dialog.locator('.candidate-defaults select').first().inputValue(),'unassigned');
+ for(const select of await dialog.locator('.candidate-assignment select[aria-label^="Cliente de"]').all())assert.equal(await select.inputValue(),'unassigned');
  await dialog.getByRole('checkbox',{name:'Seleccionar resultados disponibles',exact:true}).check();
  await dialog.locator('.candidate-defaults select').nth(0).selectOption(clientId);
  await dialog.locator('.candidate-defaults select').nth(1).selectOption('representative');
@@ -61,6 +67,12 @@ try {
  const linked=apps.find(a=>a.applicationNumber==='9100044');assert.equal(linked.clientId,clientId);assert.equal(linked.clientRole,'representative');
  await page.screenshot({path:output+'/excel-desktop.png',fullPage:true});
  console.log('PASS: Excel import without confirmation retains the selected client and role');
+ await dialog.getByLabel('Seleccionar archivo Excel o CSV').setInputFiles({name:'siguiente-lote.csv',mimeType:'text/csv',buffer:Buffer.from('numero_solicitud\n9100045\n')});
+ await dialog.locator('.candidate-row').filter({hasText:'9100045'}).waitFor();
+ assert.equal(await dialog.locator('.candidate-defaults select').first().inputValue(),'unassigned');
+ assert.equal(await dialog.locator('.candidate-assignment select').first().inputValue(),'unassigned');
+ console.log('PASS: a new Excel file starts unassigned instead of inheriting the previous client');
+
  await dialog.getByRole('button',{name:'Cerrar',exact:true}).click();
  const bob=await browser.newContext();const bobLogin=await bob.request.post(base+'/api/auth/login',{headers:{origin:base},data:{username:'pilot_bob',password:'pilot-temporary'}});
  const ownDirectory=await context.request.get(base+'/api/clients',{headers:apiHeaders});const ownIds=new Set((await ownDirectory.json()).clients.map(c=>c.id));
@@ -74,4 +86,16 @@ try {
  await page.screenshot({path:output+'/selection-mobile.png',fullPage:true});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);
  console.log('PASS: mobile access and no browser page errors');
+ await dialog.getByRole('checkbox',{name:'Seleccionar resultados disponibles',exact:true}).check();
+ await dialog.locator('.candidate-defaults select').first().selectOption(clientId);
+ assert.equal(await dialog.locator('.candidate-assignment select').first().inputValue(),clientId);
+ await dialog.getByRole('button',{name:'Buscar en INAPI',exact:true}).click();
+ await dialog.locator('.candidate-row').waitFor();
+ assert.equal(await dialog.locator('.candidate-defaults select').first().inputValue(),'unassigned');
+ assert.equal(await dialog.locator('.candidate-assignment select').first().inputValue(),'unassigned');
+ await dialog.getByRole('checkbox',{name:'Seleccionar resultados disponibles',exact:true}).check();
+ assert.equal(await dialog.locator('.candidate-assignment select').first().inputValue(),'unassigned');
+ assert.equal(await dialog.getByRole('button',{name:'Agregar 1 al seguimiento',exact:true}).isEnabled(),true);
+ console.log('PASS: a repeated search starts every candidate unassigned and can import immediately');
+
 } finally {await browser.close();}

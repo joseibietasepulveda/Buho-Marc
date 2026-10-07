@@ -1,7 +1,7 @@
 # Traspaso: incorporación de marcas sin confirmación adicional y logos resilientes
 
 - Actualizado: 2026-10-07 15:47, America/Santiago.
-- Estado: listo y verificado localmente; el usuario prohíbe publicar mientras trabaja otro agente.
+- Estado actual: listo para integración; publicación en Dev autorizada por el usuario. La prohibición anterior queda reemplazada.
 - Rama y base: `codex/marcas-importacion-logos`; `origin/dev` en `18ffae9323a0eee081c1e6ff88d44d98a6600eb0`.
 - PR: no creado. Entrega inicial: `5dee504`. Entrega de prioridad DeQuiénEs: `1c1ee7c` (`fix: prefer DeQuiénEs logos across the workspace and reports`). Ambos locales; no publicar ni integrar sin nueva autorización.
 
@@ -39,7 +39,7 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, Chromium y PostgreSQL desechable. Pr
 
 Servidor local `3417` y PostgreSQL de pruebas propios detenidos después de verificar. Otros agentes y sus procesos no se tocaron.
 
-## Pendientes y siguiente paso
+## Pendientes al cierre de la etapa inicial
 Mantener local hasta autorización explícita de publicación. Antes de integrar, revisar si `dev` avanzó y repetir las verificaciones afectadas. No promover a producción. Si continúan los fallos de imagen en Railway, inspeccionar la respuesta del host oficial desde ese ambiente: no atribuir el fallo a DeQuiénEs ni inventar una imagen.
 
 ## Continuación: prioridad de imágenes (7 de octubre)
@@ -69,5 +69,15 @@ Ambiente: macOS, Node 24.14.0, PostgreSQL desechable, proveedor e imágenes fict
 - `NODE_OPTIONS=--dns-result-order=ipv4first npm run build -- --webpack`: compilación final y TypeScript aprobados (incluye las últimas conexiones de imágenes de Clientes y Mis marcas). `node --import ./tests/ts-loader.mjs --test tests/feasibility-report.test.mjs`: 9/9 aprobadas, PDF/Word e imágenes.
 - Servidor propio `3417` y PostgreSQL desechable detenidos. No se tocaron procesos de otros agentes.
 
-### Limitaciones y entrega
+### Limitaciones y entrega de la etapa local
 La prioridad está implementada y verificada con fixtures; no se ha probado la descarga autenticada del CDN real desde Railway ni se garantiza su disponibilidad. Se mantienen solo las dos fuentes comprobadas del código: DeQuiénEs e INAPI. No se inventaron rutas ni fuentes adicionales. No requiere migraciones. Cambios locales, sin push/PR/merge/despliegue. Antes de publicar, integrar avances pertinentes de `dev` y verificar los consumidores compartidos; la prohibición del usuario sigue vigente hasta nueva autorización.
+
+## Continuación: alta rápida y publicación autorizada
+- Actualizado: 2026-10-07 16:09, America/Santiago.
+- Estado: en curso. El usuario autoriza ahora subir la entrega a Dev; reemplaza expresamente la prohibición anterior. Producción no está autorizada.
+- Objetivo: retirar «Confirma el cliente de cada selección…» y empezar cada búsqueda/archivo/candidato nuevo con «Sin cliente asignado», evitando heredar vínculos de un lote anterior. Las elecciones explícitas siguen disponibles de forma opcional; no modificar expedientes previamente guardados.
+- Integración: incluir los commits locales de retirada de confirmación y prioridad de logos DeQuiénEs. Base remota revisada: `origin/dev` avanzó a `0958928` (PR #7 de documentación de recuperación de antecedentes); incorporar antes de publicar, preservando ese trabajo.
+- Cambio adicional: `BrandSearch.search(false)` reinicia asignaciones y defaults; cada candidato nuevo/paginado usa `unassigned`, preservando ajustes explícitos de filas anteriores al cargar más. `PortfolioImport.read` reinicia defaults y `merge` inicializa cada candidato nuevo sin cliente. Seleccionar filas no aplica clientes de forma implícita. Retiradas instrucciones de progreso que exigían revisar clientes/roles antes de incorporar.
+- El error citado por el usuario ya no existe en estos cambios locales, pero sí en `origin/dev` anterior. Publicar también `5dee504` retira ese bloqueo y la casilla del frontend/API.
+- Verificación actual: build/TypeScript y 32 pruebas dirigidas aprobados tras incorporar `0958928`; ESLint dirigido aprobado y diff sin errores. Integración HTTP/PostgreSQL y navegador aprobados en el piloto desechable `3417`: nuevo Excel y búsqueda repetida empiezan sin cliente, se puede agregar inmediatamente, cliente explícito sigue guardándose, cliente ajeno se rechaza y logos mantienen prioridad/respaldo/recuperación. Captura de escritorio revisada; móvil sin desborde ni errores. Proveedores ficticios, sin consultas a carteras remotas.
+- PR, integración y despliegue: pendientes; completar con evidencia.
