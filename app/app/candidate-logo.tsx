@@ -1,8 +1,9 @@
 "use client";
+import { trademarkImageSrc, retryTrademarkImage } from "@/lib/trademark-image";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export function CandidateLogo({ src, name }: { src?: string; name: string }) {
+export function CandidateLogo({ src, name, applicationId }: { src?: string; name: string; applicationId?: string }) {
   const [attempt, setAttempt] = useState(0);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -14,6 +15,6 @@ export function CandidateLogo({ src, name }: { src?: string; name: string }) {
   if (failed) return <span className="candidate-logo-unavailable" role="status">
     {attempt < 2 ? "Reintentando imagen…" : <>Imagen no disponible<button type="button" aria-label={`Reintentar imagen de ${name}`} onClick={() => { setAttempt(0); setFailed(false); }}>Reintentar</button></>}
   </span>;
-  const image = attempt && src.startsWith("/api/inapi/logo/") ? `${src}?retry=${attempt}` : src;
+  const image = retryTrademarkImage(trademarkImageSrc(src, applicationId) || src, attempt);
   return <Image unoptimized src={image} width={64} height={60} alt={`Logo de ${name}`} loading="lazy" onError={() => setFailed(true)} />;
 }

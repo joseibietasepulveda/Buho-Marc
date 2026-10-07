@@ -9,8 +9,17 @@ if (process.env.PILOT_FIXTURE_FILE) globalThis.fetch = async (input, init) => {
     const fixture = JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,"utf8"));
     const id = new URL(url).searchParams.get("s"), attempt = (logoAttempts.get(id) ?? 0) + 1;
     logoAttempts.set(id, attempt);
-    appendFileSync(process.env.PILOT_FIXTURE_FILE+".logos.jsonl",JSON.stringify({id,attempt})+"\n");
+    appendFileSync(process.env.PILOT_FIXTURE_FILE+".logos.jsonl",JSON.stringify({id,attempt,provider:"inapi"})+"\n");
     if(fixture.logoFailures?.[id] === "always" || attempt <= (fixture.logoFailures?.[id] ?? 0)) return new Response("fixture image outage",{status:503});
+    return new Response(readFileSync("public/reports/studio-logo.png"),{headers:{"content-type":"image/png"}});
+  }
+  if (url.startsWith("https://marcas.dequienes.cl/fixture/")) {
+    const fixture = JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,"utf8"));
+    const id = new URL(url).pathname.split("/").pop().replace(/\.png$/, "");
+    const key = "dequienes:"+id, attempt = (logoAttempts.get(key) ?? 0)+1;
+    logoAttempts.set(key, attempt);
+    appendFileSync(process.env.PILOT_FIXTURE_FILE+".logos.jsonl",JSON.stringify({id,attempt,provider:"dequienes"})+"\n");
+    if (fixture.primaryLogoFailures?.[id] === "always" || attempt <= (fixture.primaryLogoFailures?.[id] ?? 0)) return new Response("fixture primary image outage",{status:503});
     return new Response(readFileSync("public/reports/studio-logo.png"),{headers:{"content-type":"image/png"}});
   }
   if (url === "https://openrouter.ai/api/v1/chat/completions") {

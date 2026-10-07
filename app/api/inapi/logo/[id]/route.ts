@@ -1,40 +1,18 @@
 export const runtime = "nodejs";
 import { sessionIdentity, requestToken } from "@/lib/auth";
-// Bound simultaneous source requests and share requests for the same mark.
-const pending = new Map<string, Promise<{ body: ArrayBuffer; type: string } | null>>();
-let active = 0;
-const waiting: (() => void)[] = [];
-async function loadLogo(id: string) {
-  if (active >= 4) await new Promise<void>(resolve => waiting.push(resolve));
-  else active++;
-  try {
-    const r = await fetch(`https://buscadormarcas.inapi.cl/etiqueta/?s=${id}`, { signal: AbortSignal.timeout(15000), redirect: "error", next: { revalidate: 86400 } });
-    const type = r.headers.get("content-type") ?? "";
-    if (!r.ok || !/^image\/(png|jpeg|gif|webp)(;|$)/i.test(type)) return null;
-    const reader = r.body?.getReader();
-    if (!reader) return null;
-    const chunks: Uint8Array[] = []; let size = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.length;
-      if (size > 8 * 1024 * 1024) { await reader.cancel(); return null; }
-      chunks.push(value);
-    }
-    if (!size) return null;
-    return { body: new Uint8Array(Buffer.concat(chunks)).buffer, type };
-  } finally { const next = waiting.shift(); if (next) next(); else active--; }
-}
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const identity = await sessionIdentity(requestToken(_request));
+import { savedTrademarkImage } from "@/db/trademark-image";
+import { dequienesImage } from "@/lib/trademark-image";
+import { loadTrademarkImage, trademarkImageResponse } from "@/lib/trademark-image-server";
+
+// Compatibility URL for saved portfolios. INAPI is now only the fallback.
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const identity = await sessionIdentity(requestToken(request));
   if (!identity || identity.mustChangePassword) return new Response(null, { status: 401 });
   const { id } = await params;
-  if (!/^\d{1,9}$/.test(id)) return new Response(null, { status: 400 });
-  try {
-    let request = pending.get(id);
-    if (!request) { request = loadLogo(id).finally(() => pending.delete(id)); pending.set(id, request); }
-    const logo = await request;
-    if (!logo) return new Response(null, { status: 503, headers: { "cache-control": "no-store", "retry-after": "2" } });
-    return new Response(logo.body, { headers: { "content-type": logo.type, "cache-control": "private, max-age=3600", "vary": "Cookie", "x-content-type-options": "nosniff" } });
-  } catch { return new Response(null, { status: 503, headers: { "cache-control": "no-store", "retry-after": "2" } }); }
+  const source = new URL(request.url).searchParams.get("source");
+  if (!/^\d{1,9}$/.test(id) || (source && !dequienesImage(source))) return new Response(null, { status: 400 });
+  const logo = await loadTrademarkImage({ applicationId: id, sourceUrl: source ?? undefined, scope: identity.organizationId,
+    savedSource: () => savedTrademarkImage(identity.organizationId, id),
+  });
+  return trademarkImageResponse(logo);
 }

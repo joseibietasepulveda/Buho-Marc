@@ -1,3 +1,4 @@
+import { safeTrademarkImage } from "./trademark-image";
 import type { DiscoveryKind, CommercialRelevance } from "./watch-discovery";
 import { z } from "zod";
 
@@ -17,11 +18,7 @@ export type SimilarityMark = {
 };
 export type SimilarityHit = SimilarityMark & { searchId?:string; feedback?:{vote:"up"|"down";rationale:string;delivery:"pending"|"sent"|"waiting_search"}; score: number; discoveryKind?: DiscoveryKind; commercialRelevance?: CommercialRelevance; watchPublication?: boolean; dataWarnings?: string[]; officialDecision?: { status: string; firmAt: string; verifiedAt: string; sourceStatus: string; sources: { date: string; title: string; page: number; url: string }[] }; channels: Record<string, { rank?: number; score?: number; cosine?: number; contribution?: number }>; history: { date: string; title: string; detail?: string }[]; matchId?: string; reviewStatus?: string; detectedAt?: string };
 export type SimilarityResult = { searchId?:string; query: SimilarityMark; results: SimilarityHit[]; groups: { representative_id: number; member_ids: number[]; holder_names?: string[] }[]; warnings: string[]; candidateCount: number; elapsedSeconds: number; fetchedAt: string; searchScope?: { retrieved:number; limit:number; states?:string[]; minSimilarity:number } };
-export function safeImage(value?: string | null) {
-  if (!value) return "";
-  if (/^\/api\/inapi\/logo\/\d+$/.test(value)) return value;
-  try { const url = new URL(value); return url.protocol === "https:" && url.hostname === "marcas.dequienes.cl" ? url.href : ""; } catch { return ""; }
-}
+export const safeImage = safeTrademarkImage;
 export function similarityExplanation(hit: Pick<SimilarityHit, "channels">) {
   const names = [...new Set(Object.keys(hit.channels).map(key => channelNames[key] ?? "Otra señal de semejanza"))];
   return names.length ? `La búsqueda recuperó esta solicitud mediante: ${names.join(", ")}. Revisa las marcas y sus coberturas para valorar su relevancia.` : "Resultado recuperado por la búsqueda de semejanzas. La fuente no detalló sus señales.";

@@ -1,14 +1,15 @@
-import { safeImage, type SimilarityHit } from "@/lib/similarity-contract";
+import { trademarkImageSrc } from "@/lib/trademark-image";
+import { type SimilarityHit } from "@/lib/similarity-contract";
 export async function reportImages(hits:SimilarityHit[]) {
   const images:Record<string,Uint8Array>={}, missing:string[]=[];
   let index=0; const deadline=Date.now()+45000;
   await Promise.all(Array.from({length:Math.min(4,hits.length)},async()=>{
     for(;;){
       const hit=hits[index++]; if(!hit) return;
-      const src=safeImage(hit.image); if(!src) continue;
+      const src=trademarkImageSrc(hit.image, hit.applicationId); if(!src) continue;
       if(Date.now()>=deadline){missing.push(hit.name);continue;}
       try {
-        const response=await fetch(src.startsWith("/") ? src : `/api/similarity/image?url=${encodeURIComponent(src)}`,{signal:AbortSignal.timeout(Math.min(16000,Math.max(1,deadline-Date.now())))});
+        const response=await fetch(src,{signal:AbortSignal.timeout(Math.min(16000,Math.max(1,deadline-Date.now())))});
         if(!response.ok) throw new Error();
         const bitmap=await createImageBitmap(await response.blob());
         try {

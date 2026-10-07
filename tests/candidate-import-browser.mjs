@@ -5,10 +5,11 @@ const base = process.env.CANDIDATE_QA_BASE, fixturePath = process.env.CANDIDATE_
 assert.ok(base && /^http:\/\/127\.0\.0\.1:\d+$/.test(base) && fixturePath?.startsWith('/var/'), 'Use the isolated local pilot fixture.');
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fixture = JSON.parse(await readFile(fixturePath, 'utf8'));
-const candidate = (id, type = 'Mixta') => ({ application_id:id, registration_number:null, name:`Marca QA logos ${id}`, status:{code:'016',description:'En Trámite'}, dates:{filed_at:'2026-01-01',published_at:null,registered_at:null,expires_at:null,last_changed_at:null}, trademark:{sign_type:type}, holders:[{name:'Titular QA logos',country:'CL'}], representatives:[{name:'Representante QA logos cuarto'}], classes:[{nice_class:35}], events:[], annotations:[], source:{} });
+const candidate = (id, type = 'Mixta') => ({ application_id:id, image_url:type === "Denominativa" ? null : `https://marcas.dequienes.cl/fixture/${id}.png`, registration_number:null, name:`Marca QA logos ${id}`, status:{code:'016',description:'En Trámite'}, dates:{filed_at:'2026-01-01',published_at:null,registered_at:null,expires_at:null,last_changed_at:null}, trademark:{sign_type:type}, holders:[{name:'Titular QA logos',country:'CL'}], representatives:[{name:'Representante QA logos cuarto'}], classes:[{nice_class:35}], events:[], annotations:[], source:{} });
 for (const id of [9100041,9100042,9100043,9100044,9100045]) fixture.documents[id] = candidate(id, id === 9100043 ? 'Denominativa' : 'Mixta');
 fixture.documents[9100044].representatives = []; fixture.documents[9100045].representatives = [];
-fixture.logoFailures = {9100041:1,9100042:'always'};
+fixture.logoFailures = {9100042:'always'};
+fixture.primaryLogoFailures = {9100042:'always',9100044:'always'};
 await writeFile(fixturePath, JSON.stringify(fixture));
 const browser = await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE});
 const context = await browser.newContext({viewport:{width:1440,height:1000}});
@@ -30,7 +31,7 @@ try {
  assert.equal(await dialog.locator('img[alt="Logo de Marca QA logos 9100042"]').count(),0);
  assert.equal(await dialog.locator('.candidate-no-logo').count(),1);
  await page.screenshot({path:output+'/logos-unavailable.png',fullPage:true});
- delete fixture.logoFailures[9100042]; await writeFile(fixturePath,JSON.stringify(fixture)); await unavailable.click();
+ delete fixture.logoFailures[9100042]; delete fixture.primaryLogoFailures[9100042]; await writeFile(fixturePath,JSON.stringify(fixture)); await unavailable.click();
  await page.waitForFunction(()=>{const img=document.querySelector('img[alt="Logo de Marca QA logos 9100042"]');return img?.complete&&img.naturalWidth>0;});
  await dialog.getByRole('checkbox',{name:'Seleccionar resultados disponibles',exact:true}).check();
  const add=dialog.getByRole('button',{name:'Agregar 3 al seguimiento',exact:true}); assert.equal(await add.isEnabled(),true);
@@ -39,7 +40,10 @@ try {
  await dialog.getByText('3 expedientes incorporados.',{exact:false}).waitFor();
  let apps=(await (await context.request.get(base+'/api/registrations',{headers:apiHeaders})).json()).applications;
  for(const id of ['9100041','9100042','9100043']) { const app=apps.find(a=>a.applicationNumber===id); assert.ok(app); assert.ok(!app.clientId); }
- console.log('PASS: bounded automatic retry, honest outage placeholder, manual recovery, no confirmation and unassigned import persists');
+ const calls=(await readFile(fixturePath+'.logos.jsonl','utf8')).trim().split('\n').map(JSON.parse);
+ assert.ok(calls.some(row=>row.id==='9100041'&&row.provider==='dequienes')); assert.ok(!calls.some(row=>row.id==='9100041'&&row.provider==='inapi'));
+ assert.deepEqual(calls.filter(row=>row.id==='9100042').slice(0,2).map(row=>row.provider),['dequienes','inapi']);
+ console.log('PASS: DeQuiénEs priority, ordered fallback, bounded automatic retry, honest outage placeholder, manual recovery, no confirmation and unassigned import persists');
  await dialog.getByRole('button',{name:'Cerrar',exact:true}).click();
  const clientResponse=await context.request.post(base+'/api/clients',{headers:apiHeaders,data:{data:{name:'Cliente QA logos',rut:'',email:'',contact:'',phone:''}}});assert.equal(clientResponse.status(),201);const clientId=(await clientResponse.json()).client.id;
  // Reopen to refresh the shared client directory before the second flow.
