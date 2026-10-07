@@ -15,7 +15,7 @@ export type OppositionProceeding = {
 
 // A publication window alone is not an opposition filed against the applicant.
 export function hasReceivedOpposition(record: SourceRecord): boolean {
-  if (["opposition-answer", "opposition-answered"].includes(record.status)) return true;
+  if (["opposition-filed", "opposition-answer", "opposition-answered"].includes(record.status)) return true;
   const events = (record.inapi?.events ?? []) as { status_description?: string }[];
   return events.some(event => {
     const text = (event.status_description ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

@@ -4,6 +4,7 @@ const originalFetch = globalThis.fetch;
 const logoAttempts = new Map();
 if (process.env.PILOT_FIXTURE_FILE) globalThis.fetch = async (input, init) => {
   const url = String(input);
+  if (url.startsWith("https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx")) return new Response("Official lookup is disabled in pilot fixtures; use recovery-specific mocks", {status:503});
   if(url.startsWith("https://buscadormarcas.inapi.cl/etiqueta/?s=")) {
     const fixture = JSON.parse(readFileSync(process.env.PILOT_FIXTURE_FILE,"utf8"));
     const id = new URL(url).searchParams.get("s"), attempt = (logoAttempts.get(id) ?? 0) + 1;

@@ -9,6 +9,12 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(v => !Number.isNaN(D
 const text = z.string().trim().min(1).max(180);
 export const sourceRecordSchema = z.object({
   provider: z.literal("inapi").optional(),
+  retrieval: z.object({
+    lastSuccessfulQueryAt: z.string().datetime().optional(), lastChangeDetectedAt: z.string().datetime().optional(),
+    origin: z.enum(["dequienes", "official-inapi"]).optional(), sourceReadAt: z.string().datetime().optional(),
+    historyComplete: z.boolean().optional(), historyCheckedAt: z.string().datetime().optional(), officialCheckedAt: z.string().datetime().optional(),
+  }).optional(),
+  officialEvidence: z.object({ checkedAt: z.string().datetime(), record: z.record(z.string(), z.json()), providerRecord: z.record(z.string(), z.json()).optional() }).optional(),
   inapi: z.record(z.string(), z.json()).optional(),
   applicationNumber: z.string().regex(/^\d{1,30}$/), registrationNumber: z.string().regex(/^\d{1,30}$/).nullable(),
   name: text, status: z.enum(sourceStatuses), type: z.enum(["Denominativa", "Figurativa", "Mixta", "Otra"]),
@@ -40,7 +46,7 @@ export const lookupSchema = z.object({ registrationIds: z.array(z.string().regex
 export type Lookup = z.infer<typeof lookupSchema>;
 export const sourceResponseSchema = z.object({ version: z.literal(1), records: z.array(sourceRecordSchema).max(4000), missing: z.array(z.string()), fetchedAt: z.string().datetime() }).strict();
 export const fieldLabels: Record<keyof SourceRecord, string> = {
-  provider: "Fuente", inapi: "Antecedentes del expediente",
+  provider: "Fuente", inapi: "Antecedentes del expediente", retrieval: "Trazabilidad de consulta", officialEvidence: "Comprobación oficial guardada",
   applicationNumber: "N.º de solicitud", registrationNumber: "N.º de registro", name: "Denominación", status: "Estado del expediente", type: "Tipo de marca",
   filingDate: "Fecha de presentación", publicationDate: "Fecha de publicación", expirationDate: "Vencimiento del registro", registrationDate: "Fecha de registro", statusDate: "Fecha de la actuación",
   owner: "Titular", ownerRut: "RUT del titular", ownerCountry: "País del titular", representativeName: "Representante", representativeCountry: "País del representante", classes: "Clases de Niza", logo: "Logo o etiqueta", officialUrl: "Enlace al expediente",
@@ -54,7 +60,7 @@ export function stableJson(value: unknown): string | undefined {
   return JSON.stringify(value);
 }
 export function compareRecords(before: SourceRecord, after: SourceRecord): FieldChange[] {
-  const changes: FieldChange[] = (Object.keys(fieldLabels) as (keyof SourceRecord)[]).filter(k => k !== "inapi" && k !== "provider" && JSON.stringify(before[k]) !== JSON.stringify(after[k])).map(field => ({
+  const changes: FieldChange[] = (Object.keys(fieldLabels) as (keyof SourceRecord)[]).filter(k => !["inapi", "provider", "retrieval", "officialEvidence"].includes(k) && JSON.stringify(before[k]) !== JSON.stringify(after[k])).map(field => ({
     field, label: fieldLabels[field], before: before[field], after: after[field],
     // Initial completion of derived dates accompanies the main event; corrections remain reportable.
     ancillary: (field === "expirationDate" || field === "registrationDate") && !before[field] && Boolean(after[field]) || field === "statusDate" && before.status !== after.status,
@@ -135,7 +141,7 @@ export function describeChanges(before: SourceRecord, after: SourceRecord, chang
   if (eventDescriptions(changes).some(isTitleIssued)) subjects.unshift(`INAPI emitió el título de marca de ${name}`);
   const title = subjects[0].slice(0, 220);
   const details = changes.map(c => `${c.label}: ${c.field === "status" ? statusLabel(String(c.before)) : displayValue(c.before)} → ${c.field === "status" ? statusLabel(String(c.after)) : displayValue(c.after)}${c.ancillary ? " (antecedente complementario)" : ""}.`).join("\n");
-  return { title, urgency: ["form-observation", "substantive-objection", "opposition-answer", "rejected-appeal", "expired", "cancelled"].includes(after.status) || eventChanges.some(c => /oposici|rechaz|observaci|plazo/i.test(displayValue(c.after))) ? "Alta" : "Media", body: `${subjects.join(". ")}.\n\nSolicitud N.º ${after.applicationNumber}${after.registrationNumber ? ` · Registro N.º ${after.registrationNumber}` : ""}.\n\nAntecedentes detectados:\n${details}\n\n${after.provider === "inapi" ? `Fuente: INAPI, consultada a través de dequienes.cl. Expediente: ${after.officialUrl}` : "Fuente de prueba."} Revise la actuación para confirmar su alcance y los plazos aplicables.` };
+  return { title, urgency: ["form-observation", "substantive-objection", "opposition-answer", "rejected-appeal", "expired", "cancelled"].includes(after.status) || eventChanges.some(c => /oposici|rechaz|observaci|plazo/i.test(displayValue(c.after))) ? "Alta" : "Media", body: `${subjects.join(". ")}.\n\nSolicitud N.º ${after.applicationNumber}${after.registrationNumber ? ` · Registro N.º ${after.registrationNumber}` : ""}.\n\nAntecedentes detectados:\n${details}\n\n${after.provider === "inapi" ? `Fuente: INAPI, consultada ${after.retrieval?.origin === "official-inapi" ? "directamente y complementada con antecedentes de DeQuiénEs" : "a través de dequienes.cl"}. Expediente: ${after.officialUrl}` : "Fuente de prueba."} Revise la actuación para confirmar su alcance y los plazos aplicables.` };
 }
 export function chileClock(now = new Date()) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Santiago", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now).map(p => [p.type, p.value]));

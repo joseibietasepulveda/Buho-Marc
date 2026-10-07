@@ -121,7 +121,7 @@ Las cuentas piloto mantienen sus datos separados por organización en PostgreSQL
 
 Hay autenticación de cuentas piloto, consulta y sincronización INAPI, vigilancia real, búsqueda e importación asistida, informes de cliente y de factibilidad. Se guardan perfiles de estudio y contextos/resultados de conclusiones, pero sigue pendiente un archivo completo de estudios con sus imágenes propuestas, almacenamiento general de adjuntos, envío de correos e informe técnico específico de vigilancia. El PDF demo no se ofrece en coincidencias reales.
 
-El filtro de estados aún no existe en la llamada de Víctor. Se interpretan y filtran los estados en la aplicación con los antecedentes disponibles, conservando la respuesta original. **Falta acordar el catálogo completo con la fuente. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.** LOLA 1367215 tiene una corrección individual respaldada por resoluciones oficiales; no se extrapola a otros expedientes. La API directa de INAPI quedó aplazada hasta contar con acceso documentado.
+El filtro de estados aún no existe en la llamada de Víctor. Se interpretan y filtran los estados en la aplicación con los antecedentes disponibles, conservando la respuesta original. **Falta acordar el catálogo completo con la fuente. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores.** LOLA 1367215 tiene una corrección individual respaldada por resoluciones oficiales; no se extrapola a otros expedientes. El 07/10 se implementó la recuperación puntual desde el buscador público de INAPI: [API y contrato observado](docs/INAPI_API_PUBLICA.md), [cola, límites y contrato preparado para DeQuiénEs](docs/INAPI_RECUPERACION_ANTECEDENTES.md). Esta autorización sustituye el aplazamiento anterior; la entrega todavía no está desplegada.
 
 ### Mejoras de UX entregadas
 
@@ -134,7 +134,7 @@ El alcance, la verificación y los pendientes de la entrega están en [v0.5](doc
 
 La lógica procesal contrastada con las Directrices INAPI 2026 y la Ley 19.039 se detalla en [docs/REGISTRATION_PROCESS_REVIEW.md](docs/REGISTRATION_PROCESS_REVIEW.md), incluidos activadores, límites de automatización y escenarios simulados.
 
-La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](docs/PROCESO_Y_PLAZOS_MARCAS_CHILE.md), y la cobertura y límites de los feriados en [Calendario legal Chile 2026–2027](docs/CALENDARIO_LEGAL_CHILE_2026_2027.md). Registrar un antecedente del equipo no modifica el expediente original de INAPI ni sustituye la revisión del documento oficial.
+La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](docs/PROCESO_Y_PLAZOS_MARCAS_CHILE.md), y la cobertura y límites de los feriados en [Calendario legal Chile 2023–2027](docs/CALENDARIO_LEGAL_CHILE_2026_2027.md). Registrar un antecedente del equipo no modifica el expediente original de INAPI ni sustituye la revisión del documento oficial.
 
 ### Pendientes de próximas versiones
 
@@ -170,7 +170,7 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 - [Entrega v0.5 verificada en Dev](docs/V0_5_RELEASE.md)
 - [Verificación de v0.5](docs/V0_5_QA.md)
 - [Proceso y plazos de marcas en Chile](docs/PROCESO_Y_PLAZOS_MARCAS_CHILE.md)
-- [Calendario legal Chile 2026–2027](docs/CALENDARIO_LEGAL_CHILE_2026_2027.md)
+- [Calendario legal Chile 2023–2027](docs/CALENDARIO_LEGAL_CHILE_2026_2027.md)
 - [Arquitectura implementada y evolución](docs/ARCHITECTURE.md)
 - [Contrato con el motor de cruces](docs/MATCHING_ENGINE_INTEGRATION.md)
 - [Modelo de datos y migraciones actuales](docs/DATA_MODEL.md)
@@ -193,7 +193,7 @@ La guía completa está en [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.
 - `scripts/verify-feasibility-layout.ts`: seis variantes de PDF/Word desde una búsqueda guardada, sin iniciar otra búsqueda ni llamar al LLM.
 - `app/app/source-admin.tsx` y `app/app/source-inspector.tsx`: administración de la fuente y ficha legible del expediente.
 - `lib/registration-procedure.ts` y `lib/registration-scenarios.ts`: reglas compartidas del seguimiento y casos ficticios del proceso.
-- `lib/legal-calendar.ts`: calendario nacional LPI/LBPA versionado para 2026–2027.
+- `lib/legal-calendar.ts`: calendario nacional LPI/LBPA versionado para 2023–2027.
 - `lib/registration-evidence.ts`, `lib/inapi-daily-evidence.ts` y `app/api/registrations/evidence/route.ts`: asociación estricta del antecedente a su actuación, manifiesto público verificado y registro/revocación auditados.
 - `lib/notification-timeline.ts`: composición de cronologías, deduplicación y protección ante expedientes homónimos.
 - `app/api/source/status/route.ts` y `lib/source-schedule.ts`: consulta ligera de metadatos de revisión y próxima ejecución en `America/Santiago`.
@@ -228,3 +228,15 @@ La compilación, TypeScript y los componentes modificados pasaron las comprobaci
 Actualizar esta documentación no ejecuta búsquedas de vigilancia ni vuelve a certificar funciones ajenas a la ronda.
 
 Mis marcas recupera automáticamente cargas fallidas de su parte figurativa, sin botón adicional. Las miniaturas conservan sus proporciones y los errores no deforman la tabla; una imagen no disponible se distingue de una marca denominativa. [Detalle y validación](docs/UX_VALORACIONES_COMPARACION_2026-10-05.md#parte-figurativa-en-mis-marcas).
+
+## Antecedentes faltantes · 7 de octubre de 2026
+
+La revisión habitual mantiene a DeQuiénEs como servicio de datos. Una importación/revisión con fechas jurídicas faltantes puede preparar **un intento por antecedente** en una cola persistente, compartida por solicitud entre carteras. El supervisor consulta un expediente por turno, con **mínimo tres segundos después de cada petición HTTP**, bloqueo global entre réplicas y un presupuesto global de **200 expedientes/día**, actualizado por petición del usuario. Una consulta completa requiere como máximo tres peticiones. Fallar pausa la cola una hora; el mismo antecedente no se reintenta automáticamente.
+
+La API pública aporta estado e historial, pero no garantiza notificación ni ejecutoria. Si siguen ausentes, se muestra el antecedente concreto pendiente. Las nuevas reglas distinguen petición/resolución/escrito, conservan oposición y fondo concurrentes, separan incidentes y nulidad, reconocen desistimiento total y pago final y utilizan el calendario nacional revisado 2023–2027. La ficha del administrador distingue consulta exitosa, cambio detectado, lectura oficial informada y completitud declarada.
+
+- [Endpoints y adaptación de la API pública](docs/INAPI_API_PUBLICA.md).
+- [Funcionamiento, variables, evidencia y campos preparados para Víctor](docs/INAPI_RECUPERACION_ANTECEDENTES.md).
+- [Traspaso: archivos, migración, pruebas y estado de integración](docs/handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+
+Migración: `0014_inapi_recovery.sql`, antes de activar el trabajador. `scripts/reproject-inapi-records.ts` revisa/aplica las nuevas reglas a los datos guardados sin consultas externas; `--apply --queue` prepara recuperaciones acotadas. Las vistas también reproyectan al leer, sin extraer de nuevo. `INAPI_DIRECT_RECOVERY_ENABLED=false` desactiva el trabajador; `INAPI_DIRECT_RECOVERY_DAILY_LIMIT` controla el presupuesto diario y admite cero. Nunca se configura un intervalo inferior a tres segundos.

@@ -10,6 +10,8 @@ import { isRealSource, reprojectInapiRecord } from "../lib/inapi-provider";
 import { realBrandConfig, importRealRecord } from "./inapi-portfolio";
 import { proceedingLabel, type OppositionProceeding } from "../lib/opposition";
 import { syncReceivedOpposition } from "./received-oppositions";
+import { enqueueInapiRecovery } from "./inapi-recovery";
+import { retainOfficialEvidence } from "../lib/inapi-official";
 
 export async function syncSource(trigger: "manual" | "scheduled", provider = fetchSource, now = new Date()) {
   if (trigger === "scheduled" && !await automaticMonitoringEnabled()) return { skipped: true, reason: "Esta cartera se revisa a pedido" };
@@ -50,17 +52,27 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
       for (const target of targets!) {
         const savedBefore = target.data as SourceRecord;
         const before = reprojectInapiRecord(savedBefore);
-        const after = response.records.find(r => r.applicationNumber === before.applicationNumber);
-        if (!after) throw new Error(`Respuesta incompleta para la solicitud ${before.applicationNumber}`);
+        const received = response.records.find(r => r.applicationNumber === before.applicationNumber);
+        if (!received) throw new Error(`Respuesta incompleta para la solicitud ${before.applicationNumber}`);
+        const [cached] = await tx`SELECT data FROM source_records WHERE id = ${target.source_id}`;
+        const after = retainOfficialEvidence(received, cached?.data ?? before);
         const changes = compareRecords(before, after);
+        if (after.provider === "inapi") after.retrieval = { ...after.retrieval, lastChangeDetectedAt: changes.length ? now.toISOString() : cached?.data.retrieval?.lastChangeDetectedAt ?? before.retrieval?.lastChangeDetectedAt };
         const receivedCase = target.entity_type !== "case" ? await syncReceivedOpposition(tx, after, target.entity_type === "application") : undefined;
         if (after.provider === "inapi") await tx`UPDATE source_records SET data = ${tx.json(after)}, registration_number = ${after.registrationNumber}, updated_at = now(), version = version + ${changes.length ? 1 : 0} WHERE id = ${target.source_id}`;
         if (target.entity_type === "brand") await tx`UPDATE brands SET last_reviewed_at = now() WHERE id = ${target.entity_id}`;
+        if (after.provider === "inapi" && target.entity_type === "application") {
+          const [application] = await tx`SELECT data FROM registration_applications WHERE id = ${target.entity_id} AND organization_id = ${organizationId()} FOR UPDATE`;
+          const projected = updatedApplication(application.data, after, "Antecedentes del expediente actualizados");
+          await tx`UPDATE registration_applications SET data = ${tx.json(projected)}, updated_at = now() WHERE id = ${target.entity_id}`;
+          await enqueueInapiRecovery(tx, target.source_id, after, projected);
+        }
         let caseProceeding: OppositionProceeding | undefined;
         if (target.entity_type === "case") {
           const [item] = await tx`SELECT proceeding FROM cases WHERE id = ${target.entity_id} AND organization_id = ${organizationId()} AND status = 'active' FOR UPDATE`;
           if (!item) throw new Error("El caso dejó de estar en seguimiento");
           caseProceeding = { ...item.proceeding, record: after };
+          await enqueueInapiRecovery(tx, target.source_id, after);
           await tx`UPDATE cases SET proceeding = ${tx.json(caseProceeding!)}, updated_at = now() WHERE id = ${target.entity_id} AND organization_id = ${organizationId()}`;
         }
         if (!changes.length) {

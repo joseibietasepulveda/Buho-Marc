@@ -1,4 +1,7 @@
-# Integración INAPI · estado al 2 de octubre de 2026
+# Integración INAPI · actualización del 7 de octubre de 2026
+
+Implementación local posterior: [recuperación puntual de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md) y [API pública observada](INAPI_API_PUBLICA.md). Sustituye el aplazamiento de la consulta directa. La fuente habitual continúa siendo DeQuiénEs; las verificaciones/despliegues de las secciones históricas no certifican esta nueva entrega.
+
 
 Vigilancia y factibilidad usan `/trademarks/search` y `/trademarks/batch` para estados, coberturas e historial. Se piden 50 resultados de stock por vigilancia y hasta 100 candidatos por factibilidad. El adaptador admite `registration_id` y el nombre anterior `registration_number`; las imágenes propuestas usan `options` e `image` en multipart. Los estados se interpretan y filtran sobre antecedentes recuperados; el filtro previo en la fuente y su catálogo siguen pendientes. Un rechazo puede tener recursos o instancias posteriores.
 
@@ -29,7 +32,7 @@ Esta responsabilidad compartida no implica que una capacidad solicitada ya esté
 - Inscripción: 100 solicitudes reales seleccionadas en `data/inapi-cohort.json`.
 - Marcas registradas: 100 registros reales más las marcas mock existentes. El origen se muestra en la última columna y en la ficha.
 - Vigilancias, casos y notificaciones mock existentes se conservan. El motor de nuevas coincidencias de similitud todavía no está conectado.
-- Los expedientes reales se consultan exclusivamente desde el servidor a `https://dequienes.cl/inapi/trademarks/batch`, usando `x-api-key`. Lotes de hasta 100 solicitudes según el contrato consultado del proveedor.
+- La consulta habitual de los expedientes reales se realiza desde el servidor a `https://dequienes.cl/inapi/trademarks/batch`, usando `x-api-key`. Lotes de hasta 100 solicitudes según el contrato consultado del proveedor.
 - Los IDs se extrajeron del estado diario ED_MD_2026-09-04.pdf. El archivo de selección conserva sección y página. La carga inicial no crea avisos históricos.
 
 ## Ejecución
@@ -60,7 +63,7 @@ Verificación reproducible en una base desechable: `node --import ./tests/ts-loa
 
 Se comparan todos los antecedentes de negocio devueltos, incluyendo actuaciones, anotaciones, cobertura, titulares y representantes. Metadatos de extracción y orden de claves no son cambios jurídicos. La primera incorporación de fecha de vencimiento o registro se guarda sin aviso aislado. Los avisos agrupan las novedades por expediente usando la denominación de la marca.
 
-Un número y fecha de registro, junto con las actuaciones, pueden acreditar una concesión aunque el estado general siga diciendo En Trámite. La ficha y el administrador conservan ambos datos y las actuaciones posteriores. Los plazos se muestran como informados por la fuente o calculados desde el antecedente específico identificado. No se presume notificación a partir de una resolución ni ejecutoria a partir de la aceptación. El cálculo LPI sólo cubre 2026; véase [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).
+Un número y fecha de registro, junto con las actuaciones, pueden acreditar una concesión aunque el estado general siga diciendo En Trámite. La ficha y el administrador conservan ambos datos y las actuaciones posteriores. Los plazos se muestran como informados por la fuente o calculados desde el antecedente específico identificado. No se presume notificación a partir de una resolución ni ejecutoria a partir de la aceptación. El cálculo LPI/LBPA cubre 2023–2027 tras la ampliación del 07/10; véase [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).
 
 La Gran base real es de solo lectura: no permite generar seis cambios ni editar antecedentes que se presentan como oficiales. Las corridas y sus errores son visibles en la segunda pestaña del administrador.
 

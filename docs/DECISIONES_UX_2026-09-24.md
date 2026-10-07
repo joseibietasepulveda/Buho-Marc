@@ -71,3 +71,9 @@ La interpretación general de estados y actuaciones se aplica a futuros casos, p
 - Conservar cambios y archivos locales ajenos; incluir en el commit solo los archivos del ajuste.
 - Las comprobaciones del 24/09 cubrieron la retirada de controles y compilación. La ronda del 02/10 agregó pruebas dirigidas, piloto aislado y revisión completa de PDF/Word; sus resultados están en las guías de octubre. Editar documentación no vuelve a certificar otros flujos.
 - Referencias: [UX de vigilancia/oposiciones](UX_VIGILANCIA_OPOSICIONES_2026-09-22.md), [antecedentes de prefactibilidad y LOLA](UX_PREFACTIBILIDAD_SEPTIEMBRE.md), [control de consumo](COST_CONTROL.md) y [despliegue](RAILWAY_DEPLOYMENT.md).
+
+## Antecedentes y fechas · actualización del 7 de octubre
+
+El usuario autorizó consulta puntual del buscador público para antecedentes faltantes, con mínimo tres segundos entre peticiones. Esta decisión sustituye el aplazamiento anterior de la API directa. Las consultas habituales y los modos de revisión de cada cartera continúan vigentes. La cola se prepara tras una importación/revisión, nunca al visitar la interfaz, y deduplica por solicitud/antecedente.
+
+La presentación identifica petición frente a resolución, oposición presentada frente a traslado notificado, obligaciones concurrentes y procedimientos de nulidad/incidentes separados. Una consulta exitosa no acredita una nueva extracción de DeQuiénEs ni un historial jurídicamente completo. La ficha del administrador muestra esas diferencias. [Comportamiento y límites](INAPI_RECUPERACION_ANTECEDENTES.md). Estado de esta actualización: local, pendiente de integración y despliegue.

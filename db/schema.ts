@@ -44,6 +44,16 @@ export const sourceSyncRuns = pgTable("source_sync_runs", {
   error: text("error"), detail: jsonb("detail").default([]).notNull(),
 }, t => [index("sync_runs_org_date_idx").on(t.organizationId, t.startedAt)]);
 
+export const inapiRequestClock = pgTable("inapi_request_clock", {
+  id: integer("id").primaryKey(), lastFinishedAt: timestamp("last_finished_at", { withTimezone: true }), blockedUntil: timestamp("blocked_until", { withTimezone: true }),
+}, table => [check("inapi_clock_singleton", sql`${table.id} = 1`)]);
+export const inapiRecoveryJobs = pgTable("inapi_recovery_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(), sourceId: uuid("source_id").notNull().references(() => sourceRecords.id, { onDelete: "cascade" }),
+  applicationNumber: varchar("application_number", { length: 30 }).notNull(), needKey: varchar("need_key", { length: 64 }).notNull(), needs: jsonb("needs").notNull(),
+  status: varchar("status", { length: 20 }).default("queued").notNull(), startedAt: timestamp("started_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }),
+  error: text("error"), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [uniqueIndex("inapi_recovery_need_uq").on(table.applicationNumber, table.needKey), index("inapi_recovery_queue_idx").on(table.status, table.createdAt)]);
+
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(), name: varchar("name", { length: 180 }).notNull(),
   automaticMonitoring: boolean("automatic_monitoring").default(true).notNull(),

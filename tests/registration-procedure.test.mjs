@@ -118,7 +118,7 @@ test('the covered LPI calendar excludes weekends and Chilean holidays and refuse
   assert.equal(addProcedureDays('2026-10-09', 1), '2026-10-13');
   assert.equal(addProcedureDays('2026-12-24', 1), '2026-12-28');
   assert.equal(addProcedureDays('2026-12-31', 1), '2027-01-04');
-  for (const [date, days] of [['2025-12-30', 1], ['2027-12-31', 1], ['2028-01-04', 20], ['2026-02-30', 1], ['2026-09-01', -1], ['2026-09-01', 1.5]]) {
+  for (const [date, days] of [['2022-12-30', 1], ['2027-12-31', 1], ['2028-01-04', 20], ['2026-02-30', 1], ['2026-09-01', -1], ['2026-09-01', 1.5]]) {
     assert.equal(addProcedureDays(date, days), undefined);
   }
   const crossYear = deadlineInfo(application({ statusId: 'accepted-publication', procedure: { notifiedAt: '2027-12-15' } }), '2027-12-16');

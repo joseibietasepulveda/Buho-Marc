@@ -1,6 +1,6 @@
-# Calendario nacional de días hábiles: 2026–2027
+# Calendario nacional de días hábiles: 2023–2027
 
-Revisión: **10 de septiembre de 2026**. Versión: `CL-LPI-LBPA-NATIONAL-2026-2027-v1`.
+Ampliación histórica revisada: **7 de octubre de 2026**. Versión: `CL-LPI-LBPA-NATIONAL-2023-2027-v2`. Se conserva la ruta del documento para no romper enlaces. La versión anterior cubría 2026–2027.
 
 ## Alcance
 
@@ -32,6 +32,20 @@ La tabla 2026 está contrastada con la publicación oficial de Gobierno. Para 20
 
 Los feriados religiosos y cívicos permanentes de la tabla derivan del régimen de feriados de la Ley 2.977 y sus modificaciones; el contraste operativo de 2026 usa la lista oficial vigente, no copia festividades históricas eliminadas, como Ascensión o Corpus Christi. Para el 1 de mayo, la declaración actual está en el Código del Trabajo. [Ley 2.977, art. 1](https://www.bcn.cl/leychile/navegar?idNorma=23639); [Código del Trabajo, art. 35](https://www.bcn.cl/leychile/navegar?idNorma=207436); [Ley 20.148, arts. 1–2](https://www.bcn.cl/leychile/navegar?idNorma=257080).
 
+## Ampliación histórica: 2023–2025
+
+Se incorporan años usados en actuaciones y vencimientos históricos de las carteras. Se mantienen fechas explícitas por año; no se copian las fechas móviles de 2026. El calendario no promete cubrir suspensiones particulares, días regionales ni reglas CPC.
+
+| Año | Fechas móviles y adicionales incluidas | Contraste |
+| --- | --- | --- |
+| 2023 | 02/01; 07–08/04; 21/06; 26/06; 09/10; 27/10 | [Ley 20.983](https://www.bcn.cl/leychile/navegar?idNorma=1098384), [Ley 19.668](https://www.bcn.cl/leychile/navegar?idNorma=160270) y [Ley 20.299](https://www.bcn.cl/leychile/navegar?idNorma=279294); [Viernes Santo, Vaticano](https://www.vaticannews.va/en/word-of-the-day/2023/04/07.html); [solsticio, publicación estatal del 01/06/2023](https://www.bibliotecaregionalantofagasta.gob.cl/noticias/conmemora-los-pueblos-originarios-y-la-llegada-del-solsticio-de-invierno-con-interesantes). |
+| 2024 | 29–30/03; 20/06; 20/09; 29/06, 12/10 y 31/10 sin traslado | [Listado oficial del Gobierno 2024](https://www.gob.cl/noticias/feriado-2024-chile-dias-festivos-irrenunciables/). |
+| 2025 | 18–19/04; 20/06; 29/06, 12/10 y 31/10 sin traslado | [Listado oficial del Gobierno 2025](https://www.gob.cl/noticias/calendario-feriados-2025-festivos-irrenunciables-legales/). |
+
+Los tres años incluyen los feriados permanentes 01/01, 01/05, 21/05, 16/07, 15/08, 18/09, 19/09, 01/11, 08/12 y 25/12. Los feriados de junio/octubre se incorporan únicamente en su fecha observada, sin duplicar el día trasladado. Por ejemplo, 31/10/2023 fue martes y su feriado correspondió al viernes 27/10 por Ley 20.299; el martes 31 queda hábil.
+
+Se registran además fechas electorales dominicales: 07/05 y 17/12/2023; 09/06, 27/10 y 24/11/2024; 29/06, 16/11 y 14/12/2025. Para LPI/LBPA ya estaban excluidas por domingo. No se declara feriado adicional el sábado 26/10/2024 ni se extrapolan elecciones a un día laborable. [Gobierno: elección del 07/05/2023](https://www.gob.cl/noticias/votar-trabajo-dia-votaciones-permiso-laboral-feriado-legal-elecciones-consejo-constitucional/), [Gobierno: segunda vuelta de gobernadores 2024](https://www.gob.cl/noticias/feriado-dia-segunda-vuelta-gobernadores-regionales/), y listados anuales anteriores.
+
 ## Comprobación de fechas variables de 2027
 
 ### Semana Santa: 26 y 27 de marzo
@@ -59,7 +73,7 @@ La Ley 20.299 establece traslado cuando el 31 de octubre cae martes o miércoles
 Archivo: `lib/legal-calendar.ts`.
 
 - `CALENDAR_VERSION`: identificador que debe conservarse en la trazabilidad del cálculo.
-- `calendarCovered(day: string): boolean`: verdadero sólo para una fecha civil ISO existente entre `2026-01-01` y `2027-12-31`, inclusive. Rechaza fechas imposibles, cadenas de fecha/hora y años externos.
+- `calendarCovered(day: string): boolean`: verdadero sólo para una fecha civil ISO existente entre `2023-01-01` y `2027-12-31`, inclusive. Rechaza fechas imposibles, cadenas de fecha/hora y años externos.
 - `nationalBusinessDay(day: string): boolean`: verdadero sólo si la fecha está cubierta y es lunes a viernes no feriado nacional. Una fecha no cubierta devuelve falso; esto **no significa que se haya establecido jurídicamente que es inhábil**.
 
 Todo recorrido que sume días debe comprobar `calendarCovered` en cada paso y detenerse con resultado no calculable si sale del intervalo. No continuar saltando indefinidamente fechas externas por interpretar el falso como simple fin de semana. No extender mecánicamente los mismos mes/día a 2028.
