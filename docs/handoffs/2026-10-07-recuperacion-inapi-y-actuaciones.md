@@ -1,9 +1,9 @@
 # Traspaso: interpretación y recuperación puntual de antecedentes INAPI
 
-- Actualizado: 2026-10-07, 14:25, America/Santiago
-- Estado: integración y publicación en Dev autorizadas; en curso
+- Actualizado: 2026-10-07, 14:46, America/Santiago
+- Estado: integrado y publicado en Dev; conexión directa a INAPI pendiente de disponibilidad
 - Rama y base: `codex/catalogo-actuaciones-fechas`; `dev` 312d8b39dedfdf637c70b140971079c0a0f50781
-- PR y commit de entrega: pendientes; cambios conservados en el worktree de esta rama
+- PR y commit de entrega: [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6), commit funcional `e0dd67b943b7ffeee5fa3fc8e32658c6cb658c4d`, integración Dev `18ffae9323a0eee081c1e6ff88d44d98a6600eb0`
 
 ## Objetivo y alcance
 Corregir el reconocimiento de actuaciones auditadas, conservar obligaciones concurrentes y separar escritos, resoluciones, incidentes y nulidad. Recuperar antecedentes faltantes mediante el buscador público de INAPI, con deduplicación persistente y un intervalo global mínimo de tres segundos entre peticiones. Admitir datos jurídicos documentados que entregue DeQuiénEs sin confundir fecha de actuación, notificación y ejecutoria.
@@ -26,7 +26,7 @@ Corregir el reconocimiento de actuaciones auditadas, conservar obligaciones conc
 - `scripts/reproject-inapi-records.ts`: vista previa; `--apply` reinterpreta fuentes, proyecciones y snapshots guardados sin solicitudes externas ni avisos históricos. `--apply --queue` solo prepara consultas acotadas.
 - Documentación vigente actualizada: `README.md`, `docs/inapi-dev.md`, `COST_CONTROL.md`, `DATA_MODEL.md`, `DECISIONES_UX_2026-09-24.md`, `PROCESO_Y_PLAZOS_MARCAS_CHILE.md`, `REGISTRATION_PROCESS_REVIEW.md` y `CALENDARIO_LEGAL_CHILE_2026_2027.md`. Nuevos [API pública](../INAPI_API_PUBLICA.md) y [operación/contrato DeQuiénEs](../INAPI_RECUPERACION_ANTECEDENTES.md).
 
-Evidencia histórica previa: `docs/handoffs/2026-10-07-endpoints-consulta-inapi.md` y `docs/AUDITORIA_FECHAS_ACTUACIONES_2026-10-06.md`. La identificación del contrato público no demuestra qué API usa internamente DeQuiénEs.
+La auditoría inicial y sus salidas de clientes se conservaron localmente y no se incluyeron en el PR. Los hallazgos necesarios para mantener esta entrega están en los documentos funcionales enlazados. La identificación del contrato público no demuestra qué API usa internamente DeQuiénEs.
 
 ## Coordinación e integración
 Se actualizó esta rama mediante avance directo desde `origin/dev`; se conservaron documentos y salidas locales de la auditoría. Los archivos de clientes en `output/` y `tmp/` no deben incluirse en la entrega versionada.
@@ -37,7 +37,7 @@ Se actualizó esta rama mediante avance directo desde `origin/dev`; se conservar
 - Variables nuevas documentadas en `.env.example`: `INAPI_DIRECT_RECOVERY_ENABLED`, `INAPI_DIRECT_RECOVERY_DAILY_LIMIT`. El mínimo de tres segundos es constante; no hay configuración que lo reduzca.
 
 ## Verificación
-Ambiente: Node 24.19, dependencias instaladas con `npm ci --no-audit --no-fund`, PostgreSQL embebido aislado y expedientes ficticios. No se usaron bases hospedadas ni consultas reales a INAPI para probar la implementación.
+QA local: Node 24.19, dependencias instaladas con `npm ci --no-audit --no-fund`, PostgreSQL embebido aislado y expedientes ficticios. No se usaron bases hospedadas ni consultas reales a INAPI para probar la implementación. La operación posterior autorizada sobre Dev se registra por separado abajo.
 
 - `npm run build`: compilación y TypeScript aprobados.
 - ESLint dirigido a todos los archivos de código modificados/nuevos: aprobado. Se eliminó una desestructuración no usada de una prueba existente; no se reformateó código ajeno.
@@ -51,9 +51,19 @@ Ambiente: Node 24.19, dependencias instaladas con `npm ci --no-audit --no-fund`,
 
 Los primeros ajustes de pruebas corrigieron expectativas de las nuevas etapas/cobertura y comparación tras serializar JSON. Una comparación de prueba de un expediente todavía no publicado mantenía por error la etapa ficticia publicada: se corrigió el fixture. La primera preparación de la demo local falló por una contraseña inicial configurada antes de existir el usuario; se preparó únicamente la cuenta ficticia local. Las verificaciones finales pasaron; no quedan fallos abiertos de esta entrega. Se cerraron la pestaña y los servidores locales propios tras la revisión; se retiraron únicamente los archivos de instrucciones generados por esa instancia de Next, conservando las instrucciones explícitas del usuario y el trabajo de auditoría previo.
 
+## Integración y operación verificadas en Dev
+
+- Usuario autorizó la integración y publicación. Se confirmó `origin/dev` en la base prevista y se integró PR #6 sin conflictos. La rama propia avanzó al commit de integración con árbol idéntico; la auditoría local ajena a la entrega permaneció intacta. Una demora de acceso a archivos Git de iCloud obligó a usar operaciones de índice/commit sobre los archivos previamente revisados; no se alteraron exclusiones ni archivos de otros trabajos.
+- Despliegue Railway `ad376c61-3bc6-4986-b406-0414966c7c8a`, SHA `18ffae9323a0eee081c1e6ff88d44d98a6600eb0`, **SUCCESS**; build/TypeScript y arranque correctos. Migración 0014 comprobada en la tabla de Drizzle mediante hash idéntico al archivo. Salud 200/base conectada/`engine: dequienes`; solicitudes 401 y recuperación 403 sin autenticación.
+- Ambiente y servicio seleccionados por sus UUID de Dev. Variables del servicio web configuradas explícitamente a recuperación habilitada y presupuesto 200, sin tocar producción. Runtime remoto Node 24.10: `recoveryDailyLimit()=200`, `INAPI_REQUEST_INTERVAL_MS=3000`, `directRecoveryEnabled()=true`.
+- `railway ssh ... -- node --import ./tests/ts-loader.mjs scripts/reproject-inapi-records.ts`: vista previa de 222 registros y 222 proyecciones cambiadas. Luego `--apply --queue`: 222 registros reproyectados, cola preparada, `externalRequests: 0`. Fuente, aplicaciones, casos/marcas y snapshots guardados actualizados por el script; sin avisos históricos nuevos. El supervisor toma las recuperaciones aparte.
+- Primera operación pública del supervisor: un trabajo fallido por `fetch failed`, 55 en cola y pausa hasta `2026-10-07T18:39:51.418Z`. DNS remoto resolvió el dominio; TLS sin solicitud HTTP no se completó en 20 segundos. La conexión local también falló con `ENETUNREACH`. No hubo respuesta HTTP oficial ni datos nuevos acreditados. Se conservó la pausa y no se reintentó el expediente fallido. Es una limitación de conexión observada, no prueba de CAPTCHA, rechazo de INAPI, falla de Víctor ni ausencia de la fecha en el expediente.
+- La clave SSH temporal propia usada para esta operación se retiró de Railway y del agente SSH; los dos archivos locales de esa clave se eliminaron. No guardar credenciales ni salidas de clientes en Git. `main` comprobado en `3e0426526079188626682956a53bff9fdb3a8332`; producción sin promoción.
+- Detalle y referencias: [registro de Railway](../RAILWAY_DEPLOYMENT.md). El commit posterior de cierre solo cambia documentación; no modifica las reglas probadas.
+
 ## Pendientes y siguiente paso
-1. Revisar e integrar código y documentación juntos hacia `dev`, comprobando avances de base y migraciones. No se publicó rama ni se abrió PR en esta entrega.
-2. Aplicar migración, revisar vista previa del script en el ambiente correcto, aplicar reproyección y preparar la cola con `--apply --queue` si se quiere recuperar el historial ya guardado. Validar primero en Railway Dev; producción requiere la petición explícita vigente del usuario.
+1. Entrega funcional integrada y publicada en Dev; mantener registro del commit posterior de documentación. La promoción a producción requiere petición explícita.
+2. Comprobar la conexión pública y el avance acotado de la cola cuando termine la pausa. No certificar fechas recuperadas mientras no haya evidencia. Los trabajos fallidos son terminales; no reiniciarlos mediante reimportación o un bucle de reintentos.
 3. Recibir de Víctor ejemplos documentados de `classification`, `legal_facts` y lectura/completitud; el adaptador está preparado, pero no se afirmó que su API ya entregue esos campos. Validar códigos nuevos mediante fixtures antes de activarlos.
 4. La consulta pública no garantiza notificación, depósito en casilla, ejecutoria ni todos los documentos. No se implementó acceso al portal autenticado; si faltan constancias, permanecen pendientes y no se calculan fechas ficticias. Nulidad, incidentes, múltiples oponentes y efectos parciales conservan evidencia, pero aún requieren resolver su alcance y reglas específicas CPC.
 5. Una fuente que cambie contexto o exija un desafío detiene el intento. No se implementó un botón de reintento automático ni una campaña masiva de recuperación. La activación conserva el presupuesto y deduplicación; ajustar el presupuesto no reduce el intervalo.

@@ -1,6 +1,6 @@
 # Integración INAPI · actualización del 7 de octubre de 2026
 
-Implementación local posterior: [recuperación puntual de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md) y [API pública observada](INAPI_API_PUBLICA.md). Sustituye el aplazamiento de la consulta directa. La fuente habitual continúa siendo DeQuiénEs; las verificaciones/despliegues de las secciones históricas no certifican esta nueva entrega.
+Entrega publicada en Dev el 07/10 mediante [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6): [recuperación puntual de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md) y [API pública observada](INAPI_API_PUBLICA.md). Sustituye el aplazamiento de la consulta directa. La fuente habitual continúa siendo DeQuiénEs. Migración y configuración verificadas; 222 registros guardados reproyectados y cola preparada. La primera conexión pública falló y activó la pausa; no se afirma haber recuperado fechas nuevas. [Registro de publicación y límite operativo](RAILWAY_DEPLOYMENT.md).
 
 
 Vigilancia y factibilidad usan `/trademarks/search` y `/trademarks/batch` para estados, coberturas e historial. Se piden 50 resultados de stock por vigilancia y hasta 100 candidatos por factibilidad. El adaptador admite `registration_id` y el nombre anterior `registration_number`; las imágenes propuestas usan `options` e `image` en multipart. Los estados se interpretan y filtran sobre antecedentes recuperados; el filtro previo en la fuente y su catálogo siguen pendientes. Un rechazo puede tener recursos o instancias posteriores.
