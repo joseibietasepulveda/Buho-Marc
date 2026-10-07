@@ -1,6 +1,8 @@
 # Recuperación de antecedentes y reconocimiento de actuaciones
 
-Actualizado: 7 de octubre de 2026. Estado: implementación local; integración y despliegue pendientes. [Traspaso y verificaciones](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+Actualizado: 7 de octubre de 2026. Estado: integrada en `dev` mediante [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6) y publicada en Railway Dev. Migración, salud y configuración comprobadas. [Traspaso y verificaciones](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+
+En Dev se ejecutaron la vista previa y `--apply --queue`: 222 registros guardados reproyectados y 56 recuperaciones preparadas, sin solicitudes externas desde el script. La primera consulta del supervisor falló al conectarse con INAPI (`fetch failed`); quedaron 55 trabajos pendientes y una pausa global hasta el 07/10 a las 15:39:51 America/Santiago. DNS resolvió el dominio desde Railway, pero la conexión TLS no se completó en 20 segundos; Desde el equipo local la conexión también falló (`ENETUNREACH`); no se obtuvo una respuesta HTTP oficial ni se acredita información nueva recuperada. El intento fallido no se repite automáticamente. La publicación no demuestra disponibilidad de INAPI ni completitud del historial. [Registro operativo](RAILWAY_DEPLOYMENT.md).
 
 ## Funcionamiento
 
@@ -102,4 +104,4 @@ node --import ./tests/ts-loader.mjs scripts/reproject-inapi-records.ts
 
 La reproyección de lecturas de la aplicación usa las mismas reglas aunque todavía no se ejecute el script. El script permite dejar persistidas las proyecciones y baselines sin depender de consultas nuevas. Los casos conservan los roles confirmados y las fuentes compartidas.
 
-Pruebas reproducibles, ambiente utilizado y pendientes de integración: [nota de traspaso](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+Pruebas reproducibles, ambiente utilizado, publicación y pendientes de operación: [nota de traspaso](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).

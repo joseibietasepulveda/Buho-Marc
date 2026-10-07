@@ -152,7 +152,7 @@ Las cronologías de notificaciones reutilizan historiales disponibles y deltas a
 
 La actualización de fixtures `db/demo-v05.ts` es transaccional y se marca una sola vez mediante auditoría. Cambia fechas activas de ejemplos conocidos y añade cinco casos/tareas; no desplaza actos reales ni reescribe continuamente fechas según el reloj. El fallback del navegador tiene su actualización local separada. Estado de entrega: [v0.5 verificada en Dev](V0_5_RELEASE.md).
 
-## Recuperación puntual INAPI · implementación local del 07/10
+## Recuperación puntual INAPI · publicada en Dev el 07/10
 
 `0014_inapi_recovery.sql` agrega `inapi_request_clock`, con una única fila que conserva finalización de la última petición y pausa global, e `inapi_recovery_jobs`: solicitud pública, `source_id`, antecedentes pendientes, clave de deduplicación, estado y fechas de inicio/finalización. Su identidad es solicitud/clave; no contiene credenciales ni contexto de sesión. Los bloqueos PostgreSQL serializan trabajador y peticiones entre procesos. Solo se procesan expedientes vinculados a organizaciones activas; las proyecciones y decisiones siguen aisladas por organización. La cola pública compartida evita consultar varias veces el mismo expediente seguido por distintos clientes.
 
