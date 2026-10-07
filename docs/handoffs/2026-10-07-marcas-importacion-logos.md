@@ -3,7 +3,7 @@
 - Actualizado: 2026-10-07 15:47, America/Santiago.
 - Estado: listo y verificado localmente; el usuario prohíbe publicar mientras trabaja otro agente.
 - Rama y base: `codex/marcas-importacion-logos`; `origin/dev` en `18ffae9323a0eee081c1e6ff88d44d98a6600eb0`.
-- PR: no creado. Entrega local: commit con mensaje `fix: simplify brand import and recover candidate logos` en esta rama; no publicar ni integrar sin nueva autorización.
+- PR: no creado. Entrega inicial: `5dee504`. Entrega de prioridad DeQuiénEs: `1c1ee7c` (`fix: prefer DeQuiénEs logos across the workspace and reports`). Ambos locales; no publicar ni integrar sin nueva autorización.
 
 ## Objetivo y alcance
 Retirar la casilla de confirmación de clientes/roles/cartera en Agregar marcas y la restricción asociada. Aplicar el mismo comportamiento a Carga desde Excel. Investigar los logos rotos y mejorar recuperación/presentación. El alcance se amplió después por petición explícita del usuario: priorizar DeQuiénEs en todos los logos de expedientes, incluida Factibilidad e informes.
@@ -59,11 +59,12 @@ Mantener local hasta autorización explícita de publicación. Antes de integrar
 
 ### Verificación de la continuación
 Ambiente: macOS, Node 24.14.0, PostgreSQL desechable, proveedor e imágenes ficticias interceptadas; sin consultas autenticadas remotas.
-- `node --import ./tests/ts-loader.mjs --test tests/trademark-image.test.mjs tests/similarity.test.mjs tests/ux-october.test.mjs tests/source.test.mjs tests/registration.test.mjs`: 23 pruebas aprobadas (el argumento registration no añadió casos). Prioridad, evidencia/reproyección, fuente guardada, consulta puntual antigua, fuentes rechazadas, HTML/bytes inválidos/HTTP/red fallidos, fallback no cacheado, recuperación y deduplicación aislada.
+- `node --import ./tests/ts-loader.mjs --test tests/trademark-image.test.mjs tests/similarity.test.mjs tests/ux-october.test.mjs tests/source.test.mjs`: 23 pruebas aprobadas en esos cuatro archivos. Prioridad, evidencia/reproyección, fuente guardada, consulta puntual antigua, fuentes rechazadas, HTML/bytes inválidos/HTTP/red fallidos, fallback no cacheado, recuperación y deduplicación aislada.
 - `PILOT_KEEP_SERVER=1 PILOT_APP_PORT=3417 node --import ./tests/ts-loader.mjs tests/pilot-e2e.mjs`: recorridos HTTP aprobados. La imagen primaria exitosa no llama a INAPI; fallo primario seguido de INAPI en orden; recuperación vuelve a DeQuiénEs. Sesión, URLs rechazadas, caché, importación, clasificación y aislamiento siguen funcionando.
 - `tests/candidate-import-browser.mjs`, con las variables locales documentadas antes: aprobado; carga DeQuiénEs sin consultar INAPI, ambos fallos con reintentos y recuperación manual, búsqueda/Excel sin casilla, cliente opcional o asignado, aislamiento y móvil sin errores/desborde.
 - `tests/trademark-image-browser.mjs`, con esas mismas variables y después del test anterior: aprobado; imágenes/comparación en Factibilidad, descarga real PDF y Word con PNGs incorporados, orden de fallback y cero errores de página. Su primer intento esperaba tres archivos PNG distintos; DOCX deduplica imágenes idénticas del fixture. Se corrigió la prueba para comprobar cuatro dibujos y archivos PNG, y el recorrido completo pasó después.
 - Revisión visual de `output/candidate-import-2026-10-07/feasibility-comparison.png`, además de las capturas actualizadas de importación. Artefactos PDF/Word de prueba en esa carpeta; no versionados.
+- `git diff --check`: aprobado.
 - ESLint específico de todos los archivos TS/TSX y nuevos tests afectados: aprobado sin advertencias. La revisión de React comprueba claves al cambiar origen, actualización funcional de reintentos, timers con limpieza y conservación de la ampliación de imágenes por teclado.
 - `NODE_OPTIONS=--dns-result-order=ipv4first npm run build -- --webpack`: compilación final y TypeScript aprobados (incluye las últimas conexiones de imágenes de Clientes y Mis marcas). `node --import ./tests/ts-loader.mjs --test tests/feasibility-report.test.mjs`: 9/9 aprobadas, PDF/Word e imágenes.
 - Servidor propio `3417` y PostgreSQL desechable detenidos. No se tocaron procesos de otros agentes.
