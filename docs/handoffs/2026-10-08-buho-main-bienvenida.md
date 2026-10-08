@@ -1,7 +1,7 @@
 # Traspaso: cartera Búho Marc en producción y bienvenida
 
-- Actualizado: 2026-10-08, America/Santiago.
-- Estado: en curso.
+- Actualizado: 2026-10-08 12:24, America/Santiago.
+- Estado: integrado y publicado.
 - Rama y base: `codex/buho-main-bienvenida`; Dev `35537ed3b7d68360a07dff4cef47c1afa468fdaa`.
 - PR: [#14](https://github.com/joseibietasepulveda/Buho-Marc/pull/14); commit funcional `7525d81`.
 
@@ -34,11 +34,18 @@ Nuevo estado de bienvenida independiente de carteras. Verificar numeración de m
 - Inventario posterior al commit remoto (15:12:24 UTC): todas las filas de las otras tres organizaciones y sus tablas hijas coinciden por clave/huella; siete usuarios, 17 sesiones, planes, reloj INAPI y 432 fuentes globales previas íntegros. Se añadieron 200 fuentes. Búho conserva además 11 marcas y cinco tareas exclusivas de Main: resultado 312 marcas, 100 solicitudes, 15 casos y 10 tareas, con 32.396 avisos/borradores y 42.828 coincidencias. Las cinco tareas de Dev no coinciden por caso/título con las cinco previas de Main; no se fusionaron por suposición.
 - Los 32.396 avisos incluyen historial: 32.382 gestionados, 15.014 con descarte y 200 invalidados según exportación. Se conservan sus indicadores; estos recuentos no significan nuevas prioridades pendientes.
 - Se trasladaron las referencias figurativas disponibles (123 marcas con imagen guardada en Dev); no se descargaron en masa ni se certifica disponibilidad de cada CDN. Algunas marcas carecen de imagen en origen.
-- Código integrado en Dev por PR #14, `46804a41f8f87f3f1d7754934c30a5c626569bd0`. Despliegue Dev `23c36670-f1c4-4194-8823-9d2e082719de` **SUCCESS**, SHA exacto comprobado. Salud HTTP 200/base conectada/motor DeQuiénEs; bienvenida 401 sin sesión. Migración 0015 comprobada por hash `68578c41ab5f1efab56db745f2787fd45abfe8c15d92d67b3a76cde012cadea6`, 16 migraciones totales; cuenta admin activa/con clave, bienvenida aún sin aceptar. Presupuesto 200, intervalo 3000 ms, recuperación directa solo Dev e importador inicial desactivado comprobados en runtime. Promoción [PR #15](https://github.com/joseibietasepulveda/Buho-Marc/pull/15) integrada en Main `420e438f840cf2c783bb3517a9f92ffdba569108`; despliegue en curso.
-- Archivos temporales de transferencia retirados del contenedor de producción tras capturar el resultado aplicado. Pendientes: despliegues Dev/Main y retiro del acceso temporal.
+- Código integrado en Dev por PR #14, `46804a41f8f87f3f1d7754934c30a5c626569bd0`. Despliegue Dev `23c36670-f1c4-4194-8823-9d2e082719de` **SUCCESS**, SHA exacto comprobado. Salud HTTP 200/base conectada/motor DeQuiénEs; bienvenida 401 sin sesión. Migración 0015 comprobada por hash `68578c41ab5f1efab56db745f2787fd45abfe8c15d92d67b3a76cde012cadea6`, 16 migraciones totales; cuenta admin activa/con clave, bienvenida aún sin aceptar. Presupuesto 200, intervalo 3000 ms, recuperación directa solo Dev e importador inicial desactivado comprobados en runtime. Promoción [PR #15](https://github.com/joseibietasepulveda/Buho-Marc/pull/15) integrada en Main `420e438f840cf2c783bb3517a9f92ffdba569108`; despliegue `180a7ddf-f913-4cf5-8de8-8c301cad8cf6` **SUCCESS**, SHA exacto de Main comprobado.
+- Archivos temporales de transferencia retirados del contenedor de producción tras capturar el resultado aplicado. Producción: salud 200/base conectada/motor DeQuiénEs; solicitudes y bienvenida 401 sin sesión. Migración 0015 idéntica por hash; presupuesto 200, intervalo 3000 ms, recuperación directa desactivada e importador inicial desactivado comprobados en runtime.
+- Inventario completo tras arranque de Main: **las 37 tablas anteriores coinciden íntegramente con el estado después de la copia**, incluida Búho; única tabla nueva `release_acknowledgements`, vacía. Otras carteras y 17 sesiones originales íntegras.
+- QA autenticada puntual en producción mediante sesión temporal propia, retirada al finalizar: `GET /api/release-welcome` 200, versión correcta y ambos pasos aún sin aceptar. Un logo real desde evidencia importada respondió 200 `image/png`, 942.985 bytes, caché privada primaria DeQuiénEs. Una sola petición de imagen, sin búsquedas de expedientes ni llamadas a la API pública INAPI; no se aceptó la bienvenida del usuario.
+- Las cinco valoraciones copiadas conservan `delivery=sent`; no se reencolaron envíos al motor.
+- Sesión temporal de QA retirada: las 17 sesiones originales coinciden de nuevo por huella agregada. Clave SSH temporal eliminada de Railway y del agente local, ausencia verificada; archivos de transferencia, exportaciones sin cifrar y PostgreSQL de ensayo retirados. Se conservan los respaldos cifrados y las evidencias privadas.
+- [PR #16](https://github.com/joseibietasepulveda/Buho-Marc/pull/16) contiene el cierre documental. Las comprobaciones anteriores corresponden a los despliegues funcionales exactos indicados; el cierre solo modifica Markdown, no vuelve a copiar datos ni cambia comportamiento.
 
 ## Pendientes
-Completar implementación, pruebas y operación autorizada; actualizar esta nota y documentación funcional antes de entregar.
+Funcionalidad y operación completadas. Las futuras versiones deben incrementar `RELEASE_VERSION` deliberadamente, conservando las aceptaciones históricas. No repetir la herramienta de copia como sincronizador. Respaldos periódicos/PITR siguen siendo una tarea independiente, registrada en `docs/PROTECCION_BASES_DE_DATOS_2026-10-05.md`.
+
+El repositorio compartido mantiene problemas de metadatos iCloud; comparar los archivos con la rama remota antes de reconciliar su índice/ref local, sin eliminar locks ni sobrescribir cambios. La publicación usa un bare auxiliar privado, no altera el `.git` compartido.
 
 ## Limitación del entorno de trabajo
 Git compartido en iCloud presentó SIGBUS/lecturas bloqueadas de metadatos. Se conserva intacto y se usa un repositorio bare privado para publicar los archivos de este mismo worktree, con base remota Dev `35537ed`. No se retiraron locks ni se modificaron ramas/carpetas de otros trabajos.
