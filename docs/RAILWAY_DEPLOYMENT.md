@@ -1,14 +1,18 @@
 # Despliegue y operación en Railway
 
-Actualizado el 8 de octubre de 2026. El usuario autorizó promover la versión actual de **Dev** a **Main/production**, conservando la base existente de cada ambiente. La [preparación y restauración de ensayo](handoffs/2026-10-08-promocion-produccion.md) están comprobadas; el despliegue final de producción sigue pendiente en este punto del registro.
+Actualizado el 8 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
 
-## Preparación de la promoción · 8 de octubre
+## Promoción a producción · 8 de octubre
 
-Código objetivo: Dev `345cba5bc36a3b73a1e0f7ab15f8ea4aa7032211`; producción anterior `3e0426526079188626682956a53bff9fdb3a8332`. Se mantiene la conexión a la base de producción; no se copian carteras de Dev ni se restablecen claves.
+- [PR #11](https://github.com/joseibietasepulveda/Buho-Marc/pull/11), Main `eecca0d1f5c260d5d606a2f34bb394d1be9c392c`; despliegue producción `f989e039-e21b-4b9b-9548-d8a8c5cc15a7`, **SUCCESS**. Base funcional Dev `345cba5`, preparación documental [PR #10](https://github.com/joseibietasepulveda/Buho-Marc/pull/10). Producción anterior `3e04265`.
+- Se conserva la conexión a PostgreSQL de cada ambiente; no se trasladaron carteras, usuarios ni perfiles de Dev a producción. Las **33 tablas previas de producción coinciden íntegramente por clave/huella de cada fila antes/después**. Migraciones 0011–0014 aplicadas: cuatro tablas nuevas y columnas aditivas con valores iniciales comprobados.
+- Respaldo completo cifrado, transferencia/descifrado y restauración aislada comprobados. Ensayo de migración/provisión sin modificar filas previas, compilación, 47 pruebas y piloto de integración aprobados. Las proyecciones de ambas carteras reales de producción conservaron casos/tareas, avisos y decisiones sobre la misma restauración.
+- Salud HTTP 200/base conectada/motor DeQuiénEs; rutas privadas 401 y recuperación 403 sin sesión/secreto. Build y arranque remotos aprobados. El cierre posterior solo modifica documentación.
+- **Producción:** `INAPI_DIRECT_RECOVERY_ENABLED=false`, presupuesto 200 e intervalo 3000 ms verificados en runtime. Dev mantiene el único trabajador público habilitado; cada base tiene su propio reloj/cuota. No activar dos trabajadores independientes. La sincronización habitual por DeQuiénEs permanece activa. La disponibilidad de la conexión pública INAPI seguía pendiente en Dev.
+- **Dev:** cartera, tareas, avisos y decisiones coinciden íntegramente. La carga inicial antigua reescribió cuatro usuarios de semilla y su organización durante el arranque; no eliminó ni añadió filas. Se configura `INAPI_IMPORT_COHORT=false` porque la carga de 200 expedientes ya constaba completada. Evita repetir el importador al reiniciar sin afectar el supervisor habitual. Los límites de comparación de esas cinco filas están detallados en el traspaso.
+- La bienvenida HTML sigue como propuesta local. El respaldo puntual no sustituye respaldos periódicos ni PITR.
 
-Respaldo completo cifrado de producción, transferencia y descifrado verificados, restauración en base local aislada y comparación de las 33 tablas existentes. Migraciones 0011–0014 y provisión ensayadas sin modificar filas previas; cuatro tablas nuevas. Compilación, 47 pruebas y piloto de integración aprobados. Las proyecciones de las dos carteras reales conservan casos/tareas, avisos y decisiones de vigilancia al comparar Main y Dev sobre la misma restauración. Detalle y límites en el [traspaso](handoffs/2026-10-08-promocion-produccion.md).
-
-Producción se prepara con recuperación pública directa **desactivada** y presupuesto 200. El reloj de 3 segundos actual es por base; Dev mantiene el único trabajador público habilitado. No activar dos trabajadores independientes. La sincronización habitual por DeQuiénEs conserva su configuración y las carteras su programación. Esta protección no acredita que la conexión directa a INAPI funcione; su disponibilidad seguía pendiente en Dev. La bienvenida HTML permanece como propuesta local separada.
+Los apartados fechados más abajo conservan el estado observado en cada entrega; sus referencias a «sin promoción» describen aquella fecha y quedan actualizadas por la promoción del 8 de octubre.
 
 ## Actuaciones y recuperación puntual INAPI · 7 de octubre
 
