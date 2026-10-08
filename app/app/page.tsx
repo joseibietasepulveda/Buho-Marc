@@ -1,5 +1,7 @@
 "use client";
 
+import { ReleaseWelcome } from "./release-welcome";
+
 import { X } from "@phosphor-icons/react";
 import StartupLoading from "../components/startup-loading";
 import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
@@ -217,7 +219,7 @@ function hydrateDemoCasesV05(source: LegalCase[]) {
   return upgraded;
 }
 
-export default function BuhoAppPage() { return <RegistrationProvider><BuhoWorkspace /></RegistrationProvider>; }
+export default function BuhoAppPage() { return <RegistrationProvider><BuhoWorkspace /><ReleaseWelcome /></RegistrationProvider>; }
 function BuhoWorkspace() {
   const [currentUserId, setCurrentUserId] = useState<string>();
   const [registrationApplications, , registrationLoad] = useRegistrationApplications();
