@@ -6,6 +6,12 @@ Informe de traspaso para implementación en otro chat. Investigación realizada 
 
 Este documento describe trabajo pendiente. No acredita que las protecciones propuestas estén implementadas. La investigación fue de lectura: no modificó bases, volúmenes, respaldos ni despliegues. Tampoco se investigó la otra aplicación mencionada por el usuario; sus datos y configuración quedan fuera de este encargo.
 
+## Actualización · 8 de octubre: producción respaldada y restauración ensayada
+
+La promoción autorizada de Dev a Main incluyó una copia lógica completa de **producción**, cifrada y con restauración real en PostgreSQL 18 local aislado. Se comprobó transferencia/descifrado, identidad de las 33 tablas por clave/huella de cada fila, y aplicación de las nuevas migraciones sin alterar filas previas. Después de publicar, las 33 tablas preexistentes de producción volvieron a coincidir íntegramente con el estado anterior. La base de ensayo quedó detenida y retirada; la copia cifrada, clave de recuperación y evidencia se conservan en `.codex/private-backups/buho-marc/production/2026-10-08-promotion/`, fuera del repositorio.
+
+[Identificadores, SHA-256, alcance y verificaciones](handoffs/2026-10-08-promocion-produccion.md). El respaldo lógico no incluye roles globales del clúster; la restauración de ensayo usó propietario local nuevo sin ACL específicos de Railway. Esta evidencia supera el pendiente de **primera copia restaurable de producción** del informe inicial. No se implementaron programación, alertas ni PITR; ese encargo sigue pendiente. Las secciones históricas siguientes conservan lo observado el 5 de octubre.
+
 ## Encargo para el chat que implementará
 
 Implementar protección y recuperación para las bases de Buho Marc, conservar los datos actuales y entregar evidencia de recuperación real. Revalidar el inventario y los estados de este informe antes de actuar, porque pueden cambiar entre chats. Mantener un registro de operaciones por ambiente, con fecha, resultado e identificadores de respaldo, sin secretos ni datos personales.
