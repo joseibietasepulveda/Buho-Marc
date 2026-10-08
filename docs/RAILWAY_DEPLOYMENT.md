@@ -2,6 +2,10 @@
 
 Actualizado el 8 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
 
+## Bienvenida y traslado exclusivo Búho Marc · 8 de octubre
+
+Entrega posterior a la promoción general: la propuesta HTML se implementa como bienvenida autenticada de dos pasos en Dev y Main. La operación separada traslada exclusivamente la cartera `estudio-ibieta-ip` de Dev a producción, conservando usuarios, contraseñas, sesiones y las demás organizaciones. Incluye tareas, avisos gestionados, decisiones de seguimiento y evidencia guardada; no inicia búsquedas externas. Se conservan además registros exclusivos de Main. Ensayo local restaurado y ensayo remoto transaccional aprobados; estado de copia y publicación en el [traspaso](handoffs/2026-10-08-buho-main-bienvenida.md). [Contrato y operación](BIENVENIDA_Y_CARTERA_BUHO_2026-10-08.md).
+
 ## Promoción a producción · 8 de octubre
 
 - [PR #11](https://github.com/joseibietasepulveda/Buho-Marc/pull/11), Main `eecca0d1f5c260d5d606a2f34bb394d1be9c392c`; despliegue producción `f989e039-e21b-4b9b-9548-d8a8c5cc15a7`, **SUCCESS**. Base funcional Dev `345cba5`, preparación documental [PR #10](https://github.com/joseibietasepulveda/Buho-Marc/pull/10). Producción anterior `3e04265`.
@@ -10,7 +14,7 @@ Actualizado el 8 de octubre de 2026. **Dev fue promovido a Main/production y Rai
 - Salud HTTP 200/base conectada/motor DeQuiénEs; rutas privadas 401 y recuperación 403 sin sesión/secreto. Build y arranque remotos aprobados. El cierre posterior solo modifica documentación.
 - **Producción:** `INAPI_DIRECT_RECOVERY_ENABLED=false`, presupuesto 200 e intervalo 3000 ms verificados en runtime. Dev mantiene el único trabajador público habilitado; cada base tiene su propio reloj/cuota. No activar dos trabajadores independientes. La sincronización habitual por DeQuiénEs permanece activa. La disponibilidad de la conexión pública INAPI seguía pendiente en Dev.
 - **Dev:** cartera, tareas, avisos y decisiones coinciden íntegramente. La carga inicial antigua reescribió cuatro usuarios de semilla y su organización durante el arranque; no eliminó ni añadió filas. Se configura `INAPI_IMPORT_COHORT=false` porque la carga de 200 expedientes ya constaba completada. Evita repetir el importador al reiniciar sin afectar el supervisor habitual. Los límites de comparación de esas cinco filas están detallados en el traspaso.
-- La bienvenida HTML sigue como propuesta local. El respaldo puntual no sustituye respaldos periódicos ni PITR.
+- La propuesta de bienvenida se incorpora en una entrega posterior, junto con el traslado explícito de la cartera Búho Marc; consultar [comportamiento](BIENVENIDA_Y_CARTERA_BUHO_2026-10-08.md) y [estado/evidencia](handoffs/2026-10-08-buho-main-bienvenida.md). El respaldo puntual no sustituye respaldos periódicos ni PITR.
 
 Los apartados fechados más abajo conservan el estado observado en cada entrega; sus referencias a «sin promoción» describen aquella fecha y quedan actualizadas por la promoción del 8 de octubre.
 

@@ -283,3 +283,13 @@ export const watchFeedback = pgTable("watch_feedback", {
   version:integer("version").default(1).notNull(),attempts:integer("attempts").default(0).notNull(),leaseToken:uuid("lease_token"),leaseUntil:timestamp("lease_until",{withTimezone:true}),
   availableAt:timestamp("available_at",{withTimezone:true}).defaultNow().notNull(),sentAt:timestamp("sent_at",{withTimezone:true}),...timestamps,
 },table=>[uniqueIndex("watch_feedback_judge_uq").on(table.organizationId,table.matchId,table.actorUserId),index("watch_feedback_delivery_idx").on(table.delivery,table.availableAt),check("watch_feedback_vote_ck",sql`${table.vote} in ('up','down')`),check("watch_feedback_score_ck",sql`${table.score} between 0 and 1`)]);
+
+export const releaseAcknowledgements = pgTable("release_acknowledgements", {
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  version: varchar("version", { length: 80 }).notNull(),
+  newsAccepted: boolean("news_accepted").default(false).notNull(),
+  futureAccepted: boolean("future_accepted").default(false).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [primaryKey({ columns: [table.organizationId, table.userId, table.version] }),
+  check("release_acknowledgements_sequence", sql`NOT ${table.futureAccepted} OR ${table.newsAccepted}`)]);
