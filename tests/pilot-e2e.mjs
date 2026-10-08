@@ -66,6 +66,21 @@ try {
   assert.equal((await http("/api/registrations", { cookie: alice })).body.applications.length, 0);
   assert.equal((await http("/api/clients", { cookie: alice })).body.clients.length, 0);
   console.log("PASS: login, forced password change, protected endpoints and empty isolated workspace");
+  assert.equal((await http("/api/release-welcome")).status,401);
+  const welcomeNews=["feedback","compare","search","reports","portfolio","registrations","workflow","navigation"];
+  const welcomeFuture=["watch","reports","ai"];
+  const welcomeBody=(stage,readIds)=>({version:"octubre-2026-v1",stage,readIds});
+  assert.equal((await http("/api/release-welcome",{cookie:bob})).body.futureAccepted,false);
+  assert.equal((await http("/api/release-welcome",{cookie:bob,body:welcomeBody("future",welcomeFuture)})).status,409);
+  assert.equal((await http("/api/release-welcome",{cookie:bob,body:welcomeBody("news",welcomeNews.slice(1))})).status,422);
+  assert.equal((await http("/api/release-welcome",{cookie:bob,origin:"https://foreign.invalid",body:welcomeBody("news",welcomeNews)})).status,403);
+  assert.equal((await http("/api/release-welcome",{cookie:bob,body:welcomeBody("news",welcomeNews)})).body.newsAccepted,true);
+  assert.equal((await http("/api/release-welcome",{cookie:alice})).body.newsAccepted,false);
+  assert.equal((await http("/api/release-welcome",{cookie:bob})).body.futureAccepted,false);
+  assert.equal((await http("/api/release-welcome",{cookie:bob,body:welcomeBody("future",welcomeFuture)})).body.futureAccepted,true);
+  assert.equal((await http("/api/release-welcome",{cookie:bob,body:welcomeBody("news",welcomeNews)})).body.futureAccepted,true);
+  console.log("PASS: welcome requires all checkboxes, ordered stages, authenticated same-origin writes, tenant isolation and durable/idempotent completion");
+
 
   for(const slug of ['zamora-ip','fa-abogados','daniel-morales'])await sql`INSERT INTO organizations (name,slug) VALUES (${slug},${slug})`;
   await sql`INSERT INTO organizations (name,slug) VALUES ('Juan Pablo Zamora','estudio-zamora-piloto')`;
