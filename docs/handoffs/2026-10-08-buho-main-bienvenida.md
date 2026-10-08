@@ -3,7 +3,7 @@
 - Actualizado: 2026-10-08, America/Santiago.
 - Estado: en curso.
 - Rama y base: `codex/buho-main-bienvenida`; Dev `35537ed3b7d68360a07dff4cef47c1afa468fdaa`.
-- PR y commit: pendientes.
+- PR: [#14](https://github.com/joseibietasepulveda/Buho-Marc/pull/14); commit funcional `7525d81`.
 
 ## Objetivo y alcance
 El usuario autoriza copiar los datos del espacio Búho Marc de Dev a producción e incorporar la bienvenida de dos pasos propuesta en HTML. Solo se copia la organización `estudio-ibieta-ip`; conservar las demás carteras y credenciales/sesiones de producción. Implementar anuncio de novedades y expectativas futuras una vez por usuario/organización/versión; casillas de lectura y dos aceptaciones, con opción de posponer.
@@ -30,7 +30,8 @@ Nuevo estado de bienvenida independiente de carteras. Verificar numeración de m
 - Ensayo local completo (todos los INSERT/UPDATE y comprobaciones, rollback final) aprobado: 301 marcas, 100 solicitudes, 15 casos, 5 tareas, 42.828 coincidencias, 32.396 avisos y borradores, 1.070 trabajos, 1.147 intentos, 211 snapshots y 200 fuentes; sin cambios en otros estudios/usuarios/planes. Ensayos previos detectaron diferencias de IDs y orden FK; todos revirtieron y se corrigieron antes de operar remotamente.
 - Inventarios completos por clave/huella antes de operación remota; solo cambió la actividad normal de sesiones desde el respaldo. No se hicieron consultas externas INAPI ni búsquedas de vigilancia para la QA.
 - Ensayo transaccional en producción aprobado con reversión final: mismo recuento que el ensayo local, filas íntegras tras mapeo, otros estudios y credenciales sin cambios.
-- Pendientes: copia efectiva y despliegues Dev/Main, comprobación final y retiro del acceso temporal.
+- Copia definitiva aplicada en producción: todas las filas importadas coinciden tras los mapeos documentados; otros estudios, usuarios/credenciales, planes y fuentes globales previas sin cambios, comprobados dentro de la transacción antes del commit.
+- Pendientes: inventario posterior, despliegues Dev/Main y retiro del acceso temporal.
 
 ## Pendientes
 Completar implementación, pruebas y operación autorizada; actualizar esta nota y documentación funcional antes de entregar.
