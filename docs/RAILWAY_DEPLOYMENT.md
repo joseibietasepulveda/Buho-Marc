@@ -1,6 +1,14 @@
 # Despliegue y operación en Railway
 
-Actualizado el 7 de octubre de 2026. Las mejoras se publican únicamente en **Dev** desde la rama `dev`. Production sigue `main` y requiere autorización expresa para una promoción posterior.
+Actualizado el 8 de octubre de 2026. El usuario autorizó promover la versión actual de **Dev** a **Main/production**, conservando la base existente de cada ambiente. La [preparación y restauración de ensayo](handoffs/2026-10-08-promocion-produccion.md) están comprobadas; el despliegue final de producción sigue pendiente en este punto del registro.
+
+## Preparación de la promoción · 8 de octubre
+
+Código objetivo: Dev `345cba5bc36a3b73a1e0f7ab15f8ea4aa7032211`; producción anterior `3e0426526079188626682956a53bff9fdb3a8332`. Se mantiene la conexión a la base de producción; no se copian carteras de Dev ni se restablecen claves.
+
+Respaldo completo cifrado de producción, transferencia y descifrado verificados, restauración en base local aislada y comparación de las 33 tablas existentes. Migraciones 0011–0014 y provisión ensayadas sin modificar filas previas; cuatro tablas nuevas. Compilación, 47 pruebas y piloto de integración aprobados. Las proyecciones de las dos carteras reales conservan casos/tareas, avisos y decisiones de vigilancia al comparar Main y Dev sobre la misma restauración. Detalle y límites en el [traspaso](handoffs/2026-10-08-promocion-produccion.md).
+
+Producción se prepara con recuperación pública directa **desactivada** y presupuesto 200. El reloj de 3 segundos actual es por base; Dev mantiene el único trabajador público habilitado. No activar dos trabajadores independientes. La sincronización habitual por DeQuiénEs conserva su configuración y las carteras su programación. Esta protección no acredita que la conexión directa a INAPI funcione; su disponibilidad seguía pendiente en Dev. La bienvenida HTML permanece como propuesta local separada.
 
 ## Actuaciones y recuperación puntual INAPI · 7 de octubre
 
