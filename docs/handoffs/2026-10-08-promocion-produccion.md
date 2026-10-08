@@ -1,16 +1,17 @@
 # Traspaso: promoción de Dev a producción conservando datos
 
 - Actualizado: 2026-10-08, America/Santiago.
-- Estado: preparación y ensayo aprobados; producción todavía sin promover.
+- Estado: integrado y publicado en producción; conservación de datos comprobada.
 - Rama: `codex/promocion-produccion-octubre`; base Dev `345cba5bc36a3b73a1e0f7ab15f8ea4aa7032211`.
 - Producción inicial: Main `3e0426526079188626682956a53bff9fdb3a8332`, despliegue `ec692224-cb76-4180-8db1-db78e60fd82d`.
-- PR/commit de entrega: pendiente.
+- Preparación: [PR #10](https://github.com/joseibietasepulveda/Buho-Marc/pull/10), Dev `6d59037649dd2baa22601f417ffd7e89a1f5184f`, despliegue `cf8e890c-e6e3-454f-96cc-0b6cf7bd50a0`, SUCCESS.
+- Promoción: [PR #11](https://github.com/joseibietasepulveda/Buho-Marc/pull/11), Main `eecca0d1f5c260d5d606a2f34bb394d1be9c392c`, despliegue `f989e039-e21b-4b9b-9548-d8a8c5cc15a7`, SUCCESS. El cierre posterior solo cambia documentación.
 
 ## Objetivo y autorización
-El 08/10 el usuario autoriza expresamente pasar Dev a Main y pide conservar tareas, clientes, notificaciones, vigilancias avisadas y demás datos antes/después. Se promueve código sobre la base existente de producción. No se sustituyen bases ni se trasladan carteras entre ambientes. La maqueta de bienvenida sigue separada; se consultó si debía incorporarse, con opción predeterminada de promover la versión ya publicada en Dev.
+El 08/10 el usuario autoriza expresamente pasar Dev a Main y pide conservar tareas, clientes, notificaciones, vigilancias avisadas y demás datos antes/después. Se promueve código sobre la base existente de producción. No se sustituyen bases ni se trasladan carteras entre ambientes. La maqueta de bienvenida sigue separada. Se comunicó que esta promoción incluye la versión ya publicada en Dev; la consulta opcional sobre incorporar la maqueta no recibió respuesta.
 
 ## Preparación y evidencia inicial
-- Dev remoto y desplegado: `345cba5`, despliegue `12ca4823-7852-46fb-a056-e49a260be4ae`, SUCCESS; Main/producción continúan en `3e04265`.
+- Dev remoto y desplegado: `345cba5`, despliegue `12ca4823-7852-46fb-a056-e49a260be4ae`, SUCCESS; Main/producción estaban en `3e04265` al iniciar.
 - 33 commits comparados. Migraciones nuevas 0011–0014: descarte de notificaciones, perfiles/conclusiones, feedback y cola INAPI. Son aditivas; no borran filas existentes.
 - Producción: importación inicial false; ninguna variable temporal de provisión/corrección activa. Perfiles precargados y reparaciones automáticas de Daniel están protegidos por UUID exacto de Dev.
 - PostgreSQL producción 18.6, tamaño inicial aproximado 992 MB. Conexión por SSH temporal propia; credenciales no se imprimen ni versionan.
@@ -19,7 +20,7 @@ El 08/10 el usuario autoriza expresamente pasar Dev a Main y pide conservar tare
 ## Decisiones técnicas y coordinación
 Worktree nuevo para conservar auditorías/maquetas del worktree anterior y otros chats. Antes de promover: copia lógica cifrada, restauración local aislada, comparación de huellas por fila sobre columnas preexistentes, migración y arranque ensayados. Conservar esquema/variables/identidad de la base activa. Los controles de clientes, asignaciones, roles, tareas y decisiones no se deducen solo de conteos.
 
-La API pública INAPI requiere una separación mínima de tres segundos; su reloj actual es por base de datos. No activar accidentalmente un segundo trabajador independiente en producción sin resolver la coordinación con Dev. La nueva variable está ausente en producción y su default sería habilitado: revisar antes de promover.
+La API pública INAPI requiere una separación mínima de tres segundos; su reloj actual es por base de datos. No activar accidentalmente un segundo trabajador independiente en producción sin resolver la coordinación con Dev. Se detectó que la variable estaba ausente en producción y su valor predeterminado sería habilitado; se configuró explícitamente false antes de promover.
 
 ## Verificación
 - Inventarios de ambos ambientes mediante transacciones repetibles de solo lectura; comparación por clave y huella de todas las filas, no solo conteos.
@@ -30,13 +31,22 @@ La API pública INAPI requiere una separación mínima de tres segundos; su relo
 - `node --import ./tests/ts-loader.mjs --test tests/watch-view-state.test.mjs tests/watch-feedback.test.mjs tests/portfolio-import.test.mjs tests/registration-procedure.test.mjs tests/registration-evidence.test.mjs tests/case-tasks.test.mjs tests/ux-october.test.mjs tests/trademark-image.test.mjs`: 47 pruebas aprobadas.
 - `node --import ./tests/ts-loader.mjs tests/pilot-e2e.mjs`: aprobado con PostgreSQL descartable y proveedores simulados. Conservación de prioridades/avisos/evidencia, tareas, aislamiento, importaciones, estados cerrados, informes/perfiles y recuperación de logos.
 - Sobre la restauración se ejecutaron `getDemoSnapshot()` y `watchSnapshot(true)` usando primero código Main y después código Dev. Comparación idéntica de identidades de marcas, casos con tareas/estado/responsables, avisos completos, coincidencias revisadas, miembros y todos los resultados guardados con `reviewStatus`/`watchPublication` en las dos carteras de producción con actividad real. `fetch` bloqueado durante esa prueba; sin consultas INAPI.
+- Cierre documental: `git diff --check` aprobado y enlaces documentales nuevos resueltos. El README conserva referencias históricas a dos artefactos de `output/implementacion-ux-2026-10-04/` que no están en este worktree; no se declara verificada su disponibilidad.
 - No se certifica una nueva sesión visual autenticada sobre clientes de producción; la interfaz corresponde a la versión ya comprobada y publicada en Dev. La maqueta de bienvenida no forma parte del código promovido.
+
+## Resultado sobre los ambientes publicados
+- Producción, capturas del 08/10 a las 13:07:21 y 13:28:20 UTC: las **33 tablas preexistentes coinciden fila por fila**, por clave y huella; cero filas eliminadas, añadidas o modificadas en esas tablas. Incluye usuarios, membresías, clientes, marcas, casos, tareas, avisos, borradores, coincidencias/revisiones, evidencia y colas. Cuatro tablas nuevas; 15 migraciones aplicadas, iguales al ensayo.
+- Valores añadidos comprobados en producción: perfiles vacíos/versión cero y `notifications.dismissed_at` nulo. No se trasladaron perfiles de Dev ni se descartaron avisos antiguos.
+- Dev, capturas de las 13:23:25 y 13:28:17 UTC: ninguna fila añadida/eliminada; 35 de 37 tablas idénticas. Cambiaron cuatro usuarios de la semilla inicial y una organización por el arranque de `scripts/import-inapi.ts` → `ensureDemoSeed()`: vuelve a escribir nombre/correo/iniciales, nombre/slug del estudio y `updated_at`. Los cinco registros tienen actualización a las 13:25:40.475 UTC. El manifiesto inicial solo guarda huellas completas: **no permite afirmar retrospectivamente que el único campo distinto fuera la fecha**. Las tablas de cartera, tareas, notificaciones y decisiones sí coinciden íntegramente.
+- La carga inicial Dev ya constaba exitosa desde el 05/09, con 200 expedientes. Se desactiva `INAPI_IMPORT_COHORT=false` en Dev para no ejecutar de nuevo ese importador en futuros arranques. Producción ya tenía false. La sincronización/vigilancia habitual permanece habilitada; esta variable solo controla la carga inicial. No se cambian claves de acceso ni se restauran registros para eliminar diferencias de metadata.
+- Producción: compilación/TypeScript y arranque correctos en Railway; cuenta existente conservada. `/api/health` 200, base conectada y motor DeQuiénEs; rutas privadas 401 sin sesión; recuperación 403 sin autorización, sin consulta al proveedor. Runtime: recuperación directa false, presupuesto 200, intervalo 3000 ms.
+- Copia de ensayo detenida; base local y respaldo sin cifrar eliminados. Se conserva el archivo cifrado, su clave de recuperación y evidencias en la carpeta privada. Se retiró la copia temporal del contenedor. La clave SSH de esta operación debe retirarse después de la última comprobación; no mantener acceso temporal para tareas futuras.
 
 ## Configuración de recuperación directa
 Antes de promover, producción se configura con `INAPI_DIRECT_RECOVERY_ENABLED=false` y presupuesto `INAPI_DIRECT_RECOVERY_DAILY_LIMIT=200`, sin despliegue anticipado. DeQuiénEs y su programación vigente permanecen activos. Dev mantiene el único trabajador público habilitado, 200 expedientes/día y mínimo 3 segundos; el 08/10 seguía fallando por conectividad y conservaba su pausa de una hora. No activar otro trabajador sobre una base independiente mientras el límite global no esté coordinado. Esta limitación debe comunicarse y no declararse como recuperación operativa en producción.
 
-## Pendientes
-1. Integrar documentación de preparación a Dev y crear/adjuntar PR Dev→Main. Solo cambian documentos frente al código ensayado.
-2. Integrar versión verificada, esperar SUCCESS y verificar migraciones/salud y huellas de ambos ambientes.
-3. Actualizar README y operación con evidencia, retirar acceso SSH temporal y procesos propios.
-4. Coordinar una única cuota/reloj para recuperación pública entre ambientes antes de habilitarla en producción. La protección periódica de bases y PITR siguen como encargo separado; esta promoción incluye respaldo puntual con restauración comprobada.
+## Pendientes y límites
+1. La recuperación pública directa continúa desactivada en producción. Coordinar una única cuota/reloj entre bases antes de habilitarla. La disponibilidad de INAPI seguía pendiente en Dev; no se certifican fechas nuevas recuperadas.
+2. Respaldos periódicos, alertas y PITR siguen como encargo separado; esta promoción incluye respaldo puntual con restauración comprobada. Véase [protección de bases](../PROTECCION_BASES_DE_DATOS_2026-10-05.md).
+3. La bienvenida «Buenas noticias» es una maqueta local, no está implementada en la aplicación publicada.
+4. El cierre documental se entrega por la misma rama hacia Dev y después Main. Comprobar el despliegue de ese cierre y la aplicación de `INAPI_IMPORT_COHORT=false`; no repetir búsquedas reales para verificar documentación.

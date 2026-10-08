@@ -1,12 +1,12 @@
 # Buho Marc · v1.0
 
-**Promoción autorizada · 8 de octubre:** se está preparando el paso de Dev a producción sobre su base actual. Ya se comprobó un respaldo restaurable y el ensayo de migraciones con conservación de registros. [Estado y verificaciones](docs/handoffs/2026-10-08-promocion-produccion.md); el éxito de publicación se registra únicamente después de verificarlo en Railway.
+**Producción actualizada · 8 de octubre:** Dev se promovió a Main mediante [PR #11](https://github.com/joseibietasepulveda/Buho-Marc/pull/11); Railway confirmó SUCCESS. Las 33 tablas preexistentes de producción coinciden fila por fila antes/después. Se conserva cada base y cartera en su ambiente. Respaldo cifrado con restauración ensayada y [evidencia de publicación y conservación](docs/handoffs/2026-10-08-promocion-produccion.md). La bienvenida propuesta sigue siendo una maqueta.
 
-Vigilancia, búsqueda de cartera e informes de factibilidad conectados a INAPI / DeQuiénEs. La nueva [implementación de las maquetas aprobadas](docs/UX_IMPLEMENTACION_OCTUBRE_2026.md) se publicó en **Railway Dev el 5 de octubre de 2026**. El **7 de octubre** se integraron y publicaron las [reglas de actuaciones y recuperación puntual de antecedentes](docs/INAPI_RECUPERACION_ANTECEDENTES.md), con migración y salud comprobadas y presupuesto de 200 expedientes diarios. El historial guardado de Dev ya fue reproyectado; la primera conexión directa a INAPI falló y activó la pausa protectora de la cola. Producción conserva su entrega anterior. El [registro de Railway](docs/RAILWAY_DEPLOYMENT.md) y el [índice de documentación](docs/README.md) distinguen publicación, pruebas y antecedentes históricos.
+Vigilancia, búsqueda de cartera e informes de factibilidad conectados a INAPI / DeQuiénEs. La nueva [implementación de las maquetas aprobadas](docs/UX_IMPLEMENTACION_OCTUBRE_2026.md) se publicó en **Railway Dev el 5 de octubre de 2026**. El **7 de octubre** se integraron y publicaron las [reglas de actuaciones y recuperación puntual de antecedentes](docs/INAPI_RECUPERACION_ANTECEDENTES.md), con migración y salud comprobadas y presupuesto de 200 expedientes diarios. El historial guardado de Dev ya fue reproyectado; la primera conexión directa a INAPI falló y activó la pausa protectora de la cola. El 8 de octubre estas mejoras se publicaron también en producción. Allí la recuperación pública directa permanece desactivada para evitar dos trabajadores con cuotas/relojes independientes; DeQuiénEs sigue activo. El [registro de Railway](docs/RAILWAY_DEPLOYMENT.md) y el [índice de documentación](docs/README.md) distinguen publicación, pruebas y antecedentes históricos.
 
 La ronda nueva incluye nueve secciones, Clientes, Usuarios y Bitácora; factibilidad en tres pasos, Excel antiguo y valoraciones de vigilancia persistentes. El [comparador e informe UI/UX](output/implementacion-ux-2026-10-04/comparador-ui-ux.html) permite alternar propuesta original, implementación ajustada y pantalla anterior, con capturas de escritorio/móvil y ejemplos realmente exportados. Su [guía de evidencia](output/implementacion-ux-2026-10-04/README.md) describe las comprobaciones y sus límites.
 
-Las mejoras de búsqueda, importación asistida, informes de clientes y simplificación de pantallas están en [Mejoras UX de octubre](docs/UX_OCTUBRE_2026.md). Los perfiles de estudio y las conclusiones mediante OpenRouter, con respaldo determinista, están en [Informes de factibilidad](docs/INFORMES_FACTIBILIDAD_2026-10-02.md). Estas entregas actualizan las [decisiones de septiembre](docs/DECISIONES_UX_2026-09-24.md). El [pulido del 4 de octubre](docs/UX_PULIDO_2026-10-04.md) reorganiza factibilidad, amplía letras, centra las X y convierte Todas en una bandeja con detalle lateral. Limpiar prioritarias conserva los avisos y limpia el indicador lateral. Estas rondas tienen como destino Dev.
+Las mejoras de búsqueda, importación asistida, informes de clientes y simplificación de pantallas están en [Mejoras UX de octubre](docs/UX_OCTUBRE_2026.md). Los perfiles de estudio y las conclusiones mediante OpenRouter, con respaldo determinista, están en [Informes de factibilidad](docs/INFORMES_FACTIBILIDAD_2026-10-02.md). Estas entregas actualizan las [decisiones de septiembre](docs/DECISIONES_UX_2026-09-24.md). El [pulido del 4 de octubre](docs/UX_PULIDO_2026-10-04.md) reorganiza factibilidad, amplía letras, centra las X y convierte Todas en una bandeja con detalle lateral. Limpiar prioritarias conserva los avisos y limpia el indicador lateral. Estas rondas se validaron en Dev y se incluyeron en la promoción a producción del 8 de octubre.
 
 La [ronda de valoraciones y comparación del 5 de octubre](docs/UX_VALORACIONES_COMPARACION_2026-10-05.md) incorpora respuesta inmediata del pulgar, comentario abierto con Enviar, logos en resultados de factibilidad y el panel comparativo compartido con Vigilancia. PDF y Word muestran las clases separadas por comas y conservan las coberturas completas.
 
@@ -42,6 +42,7 @@ Las fichas de clientes ofrecen informes de cartera en Excel (formato inicial), W
 
 ## Ambiente y documentos
 
+- [Aplicación producción](https://buho-marc-web-production.up.railway.app/app).
 - [Aplicación Dev](https://buho-marc-web-dev.up.railway.app/app).
 - [Índice y vigencia de la documentación](docs/README.md).
 - [Pulido visual y notificaciones · 04/10/2026](docs/UX_PULIDO_2026-10-04.md).
@@ -53,7 +54,7 @@ Las fichas de clientes ofrecen informes de cartera en Excel (formato inicial), W
 - [Acceso e importación de cartera](docs/PILOTO_DANIEL.md).
 - [Landing comercial independiente](https://buho-marc.vercel.app/).
 
-La promoción y carga de FA en producción del 1 de octubre están registradas en [Piloto FA](docs/PILOTO_FA_Y_PRESENTACION_2026-10-01.md). Las mejoras de UI e informes del 2 de octubre se publicaron únicamente en Dev; `main` permaneció en `3e04265` al verificar esta entrega. Los documentos v0.4/v0.5/v0.6 y la entrega inicial v1.0 conservan su historia; las guías de octubre describen el alcance nuevo.
+La promoción y carga de FA en producción del 1 de octubre están registradas en [Piloto FA](docs/PILOTO_FA_Y_PRESENTACION_2026-10-01.md). Las mejoras de UI e informes del 2 de octubre se publicaron inicialmente en Dev; la promoción del 8 de octubre las incorporó a Main/producción. Los documentos v0.4/v0.5/v0.6 y la entrega inicial v1.0 conservan su historia; las guías de octubre describen el alcance nuevo.
 
 ## Ejecutar en local
 
