@@ -3,9 +3,9 @@ import test from 'node:test';
 import { CALENDAR_VERSION, calendarCovered, nationalBusinessDay } from '../lib/legal-calendar.ts';
 
 test('calendar coverage is strict civil ISO and limited to reviewed years', () => {
-  assert.match(CALENDAR_VERSION, /2026-2027/);
+  assert.match(CALENDAR_VERSION, /2023-2027/);
   for (const day of ['2026-01-01', '2026-12-31', '2027-01-01', '2027-12-31']) assert.equal(calendarCovered(day), true, day);
-  for (const day of ['', '2025-12-31', '2028-01-01', '2026-02-29', '2027-02-29', '2027-04-31', '2027-13-01', '2027-00-01', '2027-1-01', '2027-01-01T12:00:00Z']) {
+  for (const day of ['', '2022-12-31', '2028-01-01', '2026-02-29', '2027-02-29', '2027-04-31', '2027-13-01', '2027-00-01', '2027-1-01', '2027-01-01T12:00:00Z']) {
     assert.equal(calendarCovered(day), false, day);
     assert.equal(nationalBusinessDay(day), false, day);
   }
@@ -38,4 +38,11 @@ test('bounded consumer can cross the year but never treats uncovered dates as en
   assert.equal(nextBusinessDay('2027-03-25'), '2027-03-29');
   assert.equal(nextBusinessDay('2027-09-16'), '2027-09-20');
   assert.equal(nextBusinessDay('2027-12-31'), undefined);
+});
+
+test('historical coverage validates year-specific holidays rather than shifting 2026 dates backward', () => {
+  for (const day of ['2023-01-02', '2023-04-07', '2023-06-21', '2023-06-26', '2023-10-09', '2023-10-27', '2024-03-29', '2024-06-20', '2024-09-20', '2025-04-18', '2025-06-20']) assert.equal(nationalBusinessDay(day), false, day);
+  for (const day of ['2023-06-29', '2023-10-12', '2023-10-31', '2024-06-21', '2025-06-23', '2025-10-13']) assert.equal(nationalBusinessDay(day), true, day);
+  assert.equal(calendarCovered('2024-02-29'), true);
+  assert.equal(calendarCovered('2023-02-29'), false);
 });

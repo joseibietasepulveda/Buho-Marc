@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { X } from "@phosphor-icons/react";
 import { AGENDA_CATEGORIES, type AgendaCategory, type AgendaEvent } from "@/lib/agenda";
 import { chileToday, displayWorkDate, workDeadline } from "@/lib/work-priorities";
 import type { TaskMember } from "@/lib/case-tasks";
@@ -11,10 +12,13 @@ const key = (date: Date) => date.toISOString().slice(0, 10);
 const shifted = (date: string, amount: number) => { const result = dateAt(date); result.setUTCDate(result.getUTCDate() + amount); return key(result); };
 const monday = (date: string) => shifted(date, -((dateAt(date).getUTCDay() + 6) % 7));
 
-export function LegalAgenda({ events, members = [], onOpen, onAddTask, today = chileToday(), title = "Calendario y tareas" }: {
-  events: AgendaEvent[]; members?: TaskMember[]; onOpen: (event: AgendaEvent) => void; onAddTask?: (date?: string) => void; today?: string; title?: string;
+export function LegalAgenda({ events, members = [], onOpen, onAddTask, onDelete, detailed = true, today = chileToday(), title = "Calendario y tareas" }: {
+  detailed?: boolean; onDelete?: (event: AgendaEvent) => Promise<boolean>; events: AgendaEvent[]; members?: TaskMember[]; onOpen: (event: AgendaEvent) => void; onAddTask?: (date?: string) => void; today?: string; title?: string;
 }) {
   const id = useId();
+  const [removing, setRemoving] = useState<string | null>(null), [error, setError] = useState("");
+  async function remove(event: AgendaEvent) { if (!onDelete || removing) return; setRemoving(event.id); setError(""); try { if (!await onDelete(event)) setError("No se pudo eliminar la tarea. Intenta nuevamente."); } catch { setError("No se pudo confirmar la eliminación. Revisa tu conexión."); } finally { setRemoving(null); } }
+
   const [cursor, setCursor] = useState(today);
   const [mode, setMode] = useState<"month" | "week">("month");
   const [filters, setFilters] = useState<AgendaCategory[]>(categories);
@@ -46,7 +50,8 @@ export function LegalAgenda({ events, members = [], onOpen, onAddTask, today = c
         const entries = visible.filter(event => event.date === date);
         return <section key={date} aria-label={displayWorkDate(date)} className={`agenda-day${inPeriod ? "" : " outside-period"}${date === today ? " is-today" : ""}${date === dayFilter ? " is-selected" : ""}`}>
           <header><button type="button" aria-pressed={date === dayFilter} aria-label={`Ver agenda del ${displayWorkDate(date)}`} onClick={() => { setDayFilter(current => current === date ? null : date); if (!inPeriod) setCursor(date); const first = entries.find(event => event.category === listCategory) ?? entries[0]; if (first) setListCategory(first.category); }}>{Number(date.slice(-2))}<span className="sr-only">{date === today ? " · Hoy" : ""}</span></button>{onAddTask && <button type="button" className="agenda-day-add" aria-label={`Agregar tarea para el ${displayWorkDate(date)}`} onClick={() => onAddTask(date)}>+</button>}</header>
-          {entries.map(event => {
+          {!detailed && entries.some(event => event.category === "task") && <span className="agenda-simple-count">{entries.filter(event => event.category === "task").length} {entries.filter(event => event.category === "task").length===1?"tarea":"tareas"}</span>}
+          {entries.filter(event => detailed || event.category !== "task").map(event => {
             const due = workDeadline(event.date ?? undefined, false, today);
             const urgent = !event.institutional && !event.informational && (event.fatal || due.tone === "soon" || due.tone === "overdue");
             const text = `${event.title} · ${event.context} · ${owner(event)}${event.fatal ? " · Plazo fatal" : ""}${event.detail ? ` · ${event.detail}` : ""}`;
@@ -57,8 +62,8 @@ export function LegalAgenda({ events, members = [], onOpen, onAddTask, today = c
     </div>
     <div className="agenda-list-head"><div><h3>{dayFilter ? `Agenda del ${displayWorkDate(dayFilter)}` : mode === "week" ? "Detalle de la semana" : "Detalle del mes"}</h3><p>{dated.length} {dated.length === 1 ? "actividad con fecha" : "actividades con fecha"}{events.some(event => !event.date && event.category === "task") ? " · Las tareas sin fecha también aparecen abajo" : ""}</p></div>{dayFilter && <button type="button" onClick={() => setDayFilter(null)}>Ver período completo</button>}</div>
     <div className="agenda-list-tabs" role="group" aria-label="Contenido de la lista">{categories.map(category => <button id={`${id}-${category}`} key={category} type="button" className={`category-${category}`} aria-pressed={listCategory === category} onClick={() => { setListCategory(category); setFilters(current => current.includes(category) ? current : [...current, category]); }}><i aria-hidden />{AGENDA_CATEGORIES[category]}</button>)}</div>
-    <div className="agenda-list" aria-labelledby={`${id}-${listCategory}`}>
-      {list.length ? list.map(event => <button type="button" className={`category-${event.category}`} key={event.id} onClick={() => onOpen(event)}><time dateTime={event.date ?? undefined}>{event.date ? displayWorkDate(event.date) : "Sin fecha"}</time><span><strong>{event.title}</strong><small>{event.context}</small></span><span>{event.institutional ? "INAPI" : event.informational ? "Referencia" : owner(event)}</span><b className={!event.institutional && !event.informational && (event.fatal || event.date && event.date <= today) ? "agenda-fatal" : ""}>{event.institutional ? "Control" : event.informational ? "Hito" : event.fatal ? "Plazo fatal" : event.category === "task" ? "Tarea" : "Plazo"} →</b></button>) : <p className="agenda-empty">No hay {AGENDA_CATEGORIES[listCategory].toLowerCase()} para este período.</p>}
+    {error && <p role="alert" className="task-error">{error}</p>}<div className="agenda-list" aria-labelledby={`${id}-${listCategory}`}>
+      {list.length ? list.map(event => <div className="agenda-list-item" key={event.id}><button type="button" className={`agenda-list-open category-${event.category}`} onClick={() => onOpen(event)}><time dateTime={event.date ?? undefined}>{event.date ? displayWorkDate(event.date) : "Sin fecha"}</time><span><strong>{event.title}</strong><small>{event.context}</small>{detailed && event.detail && <small>{event.detail}</small>}</span><span>{event.institutional ? "INAPI" : event.informational ? "Referencia" : owner(event)}</span><b className={!event.institutional && !event.informational && (event.fatal || event.date && event.date <= today) ? "agenda-fatal" : ""}>{event.institutional ? "Control" : event.informational ? "Hito" : event.fatal ? "Plazo fatal" : event.category === "task" ? "Tarea" : "Plazo"} →</b></button>{event.taskId && onDelete && <button type="button" className="agenda-remove" aria-label={`Eliminar tarea ${event.title}`} title="Eliminar tarea" disabled={!!removing} onClick={() => void remove(event)}><X size={19} weight="bold" aria-hidden/></button>}</div>) : <p className="agenda-empty">No hay {AGENDA_CATEGORIES[listCategory].toLowerCase()} para este período.</p>}
     </div>
   </section>;
 }

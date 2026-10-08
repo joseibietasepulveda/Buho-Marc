@@ -1,16 +1,12 @@
 import ExcelJS from "exceljs";
-import { Readable } from "node:stream";
-import { checkWorkbookSize, normalizeApplicationId, MAX_IMPORT_ROWS } from "./portfolio-import";
+import { loadImportWorkbook } from "./import-workbook";
+import { normalizeApplicationId, MAX_IMPORT_ROWS } from "./portfolio-import";
 export type ProceedingImportRow = { key: string; applicationNumber: string; sheet: string; row: number; type: "opposition" | "nullity" | ""; role: "opponent" | "respondent" | ""; opponent: string };
 const clean = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
 function kind(value: unknown): ProceedingImportRow["type"] { const s = clean(value); return ["oposicion", "oposiciones", "opposition"].includes(s) ? "opposition" : ["nulidad", "nulidades", "nullity"].includes(s) ? "nullity" : ""; }
 function role(value: unknown): ProceedingImportRow["role"] { const s = clean(value); return ["opponent", "oponente", "demandante", "presenta"].includes(s) ? "opponent" : ["respondent", "demandado", "defiende"].includes(s) ? "respondent" : ""; }
 export async function readProceedingFile(buffer: Buffer, filename: string) {
-  if (buffer.length > 2 * 1024 * 1024) throw new Error("El archivo supera 2 MB");
-  const book = new ExcelJS.Workbook();
-  if (/\.xlsx$/i.test(filename)) { checkWorkbookSize(buffer); await book.xlsx.load(buffer as unknown as Parameters<typeof book.xlsx.load>[0]); }
-  else if (/\.csv$/i.test(filename)) await book.csv.read(Readable.from(buffer), { parserOptions: { delimiter: buffer.toString("utf8").split(/\r?\n/)[0].includes(";") ? ";" : "," }, map: v => v });
-  else throw new Error("Usa un archivo .xlsx o .csv");
+  const book = await loadImportWorkbook(buffer, filename);
   const rows: ProceedingImportRow[] = [], invalid: {sheet:string;row:number;value:string}[] = [];
   const seen = new Set<string>(); let duplicates = 0, count = 0;
   for (const sheet of book.worksheets) {

@@ -3,7 +3,7 @@ import { withSession } from "@/lib/auth";
 import { organizationId, actorId, isDemoOrganization, currentIdentity } from "@/lib/tenant-context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ensureDemoSeed, getDemoSnapshot, resetDemoData } from "@/db/demo";
+import { ensureDemoSeed, getDemoSnapshot, resetDemoData, displayPersonName } from "@/db/demo";
 import { getSql } from "@/db";
 import { taskSchema } from "@/lib/task-validation";
 import { isRealSource } from "@/lib/inapi-provider";
@@ -17,18 +17,19 @@ const brandInputSchema = z.object({ name: z.string().min(2).max(180), owner: z.s
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createBrand") }).extend(brandInputSchema.shape),
   z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(250) }),
-  z.object({ action: z.literal("createCase"), title: z.string().min(2).max(220), brand: z.string().min(2).max(180), client: z.string().min(2).max(180), priority: z.enum(["Alta", "Media", "Baja"]), deadline: z.string().min(2).max(40), deadlineDescription: z.string().min(2).max(500), owner: z.string().min(2).max(180), description: z.string().max(5000).optional() }),
+  z.object({ action: z.literal("createCase"), brandCode: z.string().min(1).max(100).optional(), title: z.string().min(2).max(220), brand: z.string().min(2).max(180), client: z.string().min(2).max(180), priority: z.enum(["Alta", "Media", "Baja"]), deadline: z.string().min(2).max(40), deadlineDescription: z.string().min(2).max(500), owner: z.string().min(2).max(180), description: z.string().max(5000).optional() }),
   z.object({ action: z.literal("createManualMatch"), brandId: z.string().min(1).max(30), found: z.string().min(2).max(180), foundType: brandTypeSchema, applicant: z.string().min(2).max(180), applicantRut: z.string().min(3).max(30), application: z.string().min(2).max(100), level: z.enum(["Alta", "Media", "Baja"]), source: z.string().min(2).max(100), publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
   z.object({ action: z.literal("createUser"), name: z.string().min(2).max(180), email: z.string().email().max(255) }),
   z.object({ action: z.literal("reviewMatch"), id: z.string().min(1), status: z.enum(["Pendiente de clasificación", "En seguimiento", "Descartada", "Convertida en caso"]), compact: z.boolean().optional() }),
   z.object({ action: z.literal("updateMatchLevel"), id: z.string().min(1), level: z.enum(["Alta", "Media", "Baja"]) }),
   z.object({ action: z.literal("toggleBrandMonitoring"), id: z.string().min(1), enabled: z.boolean() }),
   z.object({ action: z.literal("moveCase"), id: z.string().min(1), stage: z.enum(["Esperando confirmación de cliente", "En seguimiento", "Concluido"]) }),
+  z.object({ action: z.literal("updateCasePriority"), id: z.string().min(1), priority: z.enum(["Alta", "Media", "Baja"]) }),
   z.object({ action: z.literal("updateCaseOwner"), id: z.string().min(1), owner: z.string().min(2).max(180) }),
   z.object({ action: z.literal("discardCase"), id: z.string().min(1) }),
   z.object({ action: z.literal("unlinkCaseMatch"), id: z.string().min(1) }),
   z.object({ action: z.literal("updateNotice"), id: z.string().min(1), subject: z.string().max(500).optional(), body: z.string().max(20000).optional(), status: z.enum(["Pendiente", "Gestionada"]).optional() }),
-  z.object({ action: z.literal("saveCaseTask"), id: z.string().min(1), task: taskSchema }),
+  z.object({ action: z.literal("saveCaseTask"), id: z.string().min(1), task: taskSchema, compact: z.boolean().optional() }),
   z.object({ action: z.literal("reset") }),
 ]);
 
@@ -106,8 +107,10 @@ async function handlePOST(request: Request) {
     } else if (input.action === "createCase") {
       const deadline = deadlineToIso(input.deadline);
       await sql.begin(async (tx) => {
-        const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 1042) + 1 AS next FROM cases WHERE organization_id = ${organizationId()}`;
-        const [brand] = await tx`SELECT id FROM brands WHERE organization_id = ${organizationId()} AND name = ${input.brand} LIMIT 1`;
+        await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 908102)`;
+        const [counter] = await tx`SELECT COALESCE(MAX(substring(public_code from 4)::bigint), 1042) + 1 AS next FROM cases WHERE organization_id = ${organizationId()} AND public_code ~ '^BM-[0-9]+$'`;
+        const [brand] = input.brandCode ? await tx`SELECT id FROM brands WHERE organization_id = ${organizationId()} AND public_code = ${input.brandCode} LIMIT 1` : await tx`SELECT id FROM brands WHERE organization_id = ${organizationId()} AND name = ${input.brand} LIMIT 1`;
+        if (input.brandCode && !brand) throw new Error("Marca no encontrada en esta cartera");
         const [owner] = await tx`SELECT u.id FROM users u JOIN organization_members om ON om.user_id = u.id WHERE om.organization_id = ${organizationId()} AND u.name = ${input.owner} LIMIT 1`;
         const caseDescription = `${input.description || ""}\nPlazo: ${input.deadlineDescription}`.trim();
         const [created] = await tx`INSERT INTO cases (organization_id, public_code, brand_id, client_name, title, description, stage, priority, next_deadline, owner_id, created_by) VALUES (${organizationId()}, ${nextCode("BM", counter.next, 4)}, ${brand?.id ?? null}, ${input.client}, ${input.title}, ${caseDescription}, 'Esperando confirmación de cliente', ${input.priority}, ${deadline}, ${owner?.id ?? actorId()}, ${actorId()}) RETURNING id`;
@@ -176,6 +179,12 @@ async function handlePOST(request: Request) {
       if (!owner) throw new Error("Abogado no encontrado");
       const [item] = await sql`UPDATE cases SET owner_id = ${owner.id}, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
       if (!item) throw new Error("Caso no encontrado");
+    } else if (input.action === "updateCasePriority") {
+      await sql.begin(async tx => {
+        const [item] = await tx`UPDATE cases SET priority = ${input.priority}, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
+        if (!item) throw new Error("Caso no encontrado");
+        await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${organizationId()}, ${actorId()}, 'case.priority_changed', 'case', ${item.id}, ${tx.json({ priority: input.priority })})`;
+      });
     } else if (input.action === "discardCase") {
       await sql.begin(async (tx) => {
         const [item] = await tx`SELECT id, source_match_id FROM cases WHERE organization_id = ${organizationId()} AND public_code = ${input.id} LIMIT 1`;
@@ -203,9 +212,12 @@ async function handlePOST(request: Request) {
       }
     }
 
+    if (input.action === "saveCaseTask" && input.compact) return NextResponse.json({ saved: true });
     if (input.action === "reviewMatch" && input.compact) {
-      const [row] = await sql`SELECT c.public_code AS case_id FROM matches m LEFT JOIN cases c ON c.id = m.case_id AND c.organization_id = m.organization_id WHERE m.organization_id = ${organizationId()} AND m.public_code = ${input.id}`;
-      return NextResponse.json({ saved:true, caseId:row?.case_id ?? null });
+      const [row] = await sql`SELECT c.id AS internal_id, c.public_code AS case_id, c.title, c.client_name, c.stage, c.priority, c.next_deadline, c.description, c.proceeding, b.name AS brand, COALESCE(u.name, 'Sin asignar') AS owner FROM matches m LEFT JOIN cases c ON c.id = m.case_id AND c.organization_id = m.organization_id LEFT JOIN brands b ON b.id = c.brand_id AND b.organization_id = c.organization_id LEFT JOIN users u ON u.id = c.owner_id WHERE m.organization_id = ${organizationId()} AND m.public_code = ${input.id}`;
+      const tasks = row?.internal_id ? await sql`SELECT id, title, status, priority, due_at, assignee_id FROM case_tasks WHERE case_id = ${row.internal_id} AND organization_id = ${organizationId()}` : [];
+      const linkedCase = row?.case_id ? { id: row.case_id, title: row.title, brand: row.proceeding?.basisName ?? row.brand, client: row.client_name, stage: ["Evaluación", "Preparación", "Esperando confirmación de cliente"].includes(row.stage) ? "Esperando confirmación de cliente" : row.stage === "Concluido" ? "Concluido" : "En seguimiento", priority: row.priority, deadline: row.next_deadline ? new Date(row.next_deadline).toISOString().slice(0, 10) : "", deadlineDescription: String(row.description ?? "").match(/Plazo:\s*(.+)/)?.[1] ?? "Gestión asociada al plazo no informada", owner: displayPersonName(row.owner), proceeding: row.proceeding, sourceMatch: input.id, tasks: tasks.map(task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, dueDate: task.due_at ? new Date(task.due_at).toISOString().slice(0, 10) : null, assigneeId: task.assignee_id })) } : null;
+      return NextResponse.json({ saved: true, caseId: row?.case_id ?? null, case: linkedCase });
     }
     return NextResponse.json({ mode: "database", data: await getDemoSnapshot() });
   } catch (error) {

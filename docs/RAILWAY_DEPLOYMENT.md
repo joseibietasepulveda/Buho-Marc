@@ -1,100 +1,150 @@
 # Despliegue y operación en Railway
 
-## Operación vigente · v1.0
+Actualizado el 8 de octubre de 2026. El usuario autorizó promover la versión actual de **Dev** a **Main/production**, conservando la base existente de cada ambiente. La [preparación y restauración de ensayo](handoffs/2026-10-08-promocion-produccion.md) están comprobadas; el despliegue final de producción sigue pendiente en este punto del registro.
 
-Entrega únicamente a **Dev** desde la rama `dev`; incluye la migración `0006_real_surveillance`. El supervisor procesa una cola PostgreSQL de vigilancia mediante `/api/watch/worker`, además de sincronizar expedientes. Requiere `SOURCE_PROVIDER=inapi`, la credencial y scheduler activado para revisiones automáticas. `/api/health` informa `version: "1.0"` y `engine: "dequienes"` cuando la conexión está configurada; esto no acredita que cada revisión haya terminado. Consultar la pantalla de Vigilancia y [V1_0_RELEASE.md](V1_0_RELEASE.md).
+## Preparación de la promoción · 8 de octubre
 
-Main se actualizó con la base previa `6170e3f` por instrucción del usuario. La nueva v1.0 permanece en dev. Las comprobaciones de demo de las secciones históricas siguientes no describen los resultados reales de esta versión.
+Código objetivo: Dev `345cba5bc36a3b73a1e0f7ab15f8ea4aa7032211`; producción anterior `3e0426526079188626682956a53bff9fdb3a8332`. Se mantiene la conexión a la base de producción; no se copian carteras de Dev ni se restablecen claves.
 
-## Rutas publicadas
+Respaldo completo cifrado de producción, transferencia y descifrado verificados, restauración en base local aislada y comparación de las 33 tablas existentes. Migraciones 0011–0014 y provisión ensayadas sin modificar filas previas; cuatro tablas nuevas. Compilación, 47 pruebas y piloto de integración aprobados. Las proyecciones de las dos carteras reales conservan casos/tareas, avisos y decisiones de vigilancia al comparar Main y Dev sobre la misma restauración. Detalle y límites en el [traspaso](handoffs/2026-10-08-promocion-produccion.md).
+
+Producción se prepara con recuperación pública directa **desactivada** y presupuesto 200. El reloj de 3 segundos actual es por base; Dev mantiene el único trabajador público habilitado. No activar dos trabajadores independientes. La sincronización habitual por DeQuiénEs conserva su configuración y las carteras su programación. Esta protección no acredita que la conexión directa a INAPI funcione; su disponibilidad seguía pendiente en Dev. La bienvenida HTML permanece como propuesta local separada.
+
+## Actuaciones y recuperación puntual INAPI · 7 de octubre
+
+- [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6), integrado en `dev`: `18ffae9323a0eee081c1e6ff88d44d98a6600eb0`; commit funcional `e0dd67b943b7ffeee5fa3fc8e32658c6cb658c4d`.
+- Despliegue `ad376c61-3bc6-4986-b406-0414966c7c8a`, **SUCCESS**, SHA exacto de integración y ambiente Dev `9e2891f0-7281-4872-a992-2c48866a782d` verificados mediante Railway CLI. Compilación y TypeScript remotos aprobados; arranque con migraciones correctas y servidor listo.
+- Migración `0014_inapi_recovery.sql` comprobada también en `drizzle.__drizzle_migrations`: SHA-256 `c6c0f60da593ee446e128135d635d0338d42f08582e5eab22bf94b1e7e7a08e9`, idéntico al archivo entregado.
+- `/api/health`: 200, base conectada, `engine: dequienes`, fuente configurada y programación activa. Solicitudes: 401 sin sesión. Recuperación: 403 sin secreto, sin efectuar llamadas oficiales desde esa comprobación.
+- Variables explícitas del servicio web **Dev**: `SOURCE_PROVIDER=inapi`, `INAPI_DIRECT_RECOVERY_ENABLED=true`, `INAPI_DIRECT_RECOVERY_DAILY_LIMIT=200`. Comprobación del runtime: habilitada, presupuesto 200 e intervalo 3000 ms. El reloj/bloqueo PostgreSQL compartido y la deduplicación persistente conservan sus reglas entre despliegues.
+- Operación autorizada sobre el historial existente: vista previa y `scripts/reproject-inapi-records.ts --apply --queue`, 222 registros reproyectados y 56 recuperaciones preparadas. Ambos comandos informaron `externalRequests: 0`; el supervisor atiende la cola posteriormente, dentro del presupuesto. La QA local usó datos ficticios y no consultó INAPI.
+- Límite operativo observado: primera consulta del supervisor fallida (`fetch failed`), 55 trabajos pendientes y pausa global hasta `2026-10-07T18:39:51.418Z` (15:39:51 Santiago). DNS resolvió `buscadormarcas.inapi.cl`; una comprobación TLS sin petición HTTP no completó la conexión en 20 segundos. La conexión local también falló (`ENETUNREACH`). No hubo una respuesta HTTP que permita atribuir rechazo al proveedor, ni se certifica recuperación de fechas nuevas. No se omitió la pausa ni se reintentó el expediente fallido.
+- Node local 24.19, 91 pruebas dirigidas/integración PostgreSQL, lint del cambio, compilación y piloto completo aprobados. [Operación y contrato](INAPI_RECUPERACION_ANTECEDENTES.md) y [traspaso con verificaciones](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+- `main` comprobado en `3e0426526079188626682956a53bff9fdb3a8332`; sin promoción ni cambios de variables en producción. El registro posterior de esta entrega solo cambia documentación.
+
+## Alta rápida y logos DeQuiénEs — 7 de octubre
+
+- [PR #8](https://github.com/joseibietasepulveda/Buho-Marc/pull/8), integrado en `dev`: `26dfd3551b7a6795f4ec731df406f00e0a9696f4`; último commit funcional `6240b34c05dedde8d01117a1172457455c302917`.
+- GitHub deployment `6918702406`, ambiente `heartfelt-magic / Dev`, SHA exacto de integración; estado `success` el 7 de octubre a las 16:21:45 America/Santiago.
+- Alta sin casilla ni aviso de confirmar clientes. Cada búsqueda, archivo y candidato nuevo comienza «Sin cliente asignado», sin heredar elecciones anteriores. Asignación explícita opcional; datos existentes conservados.
+- Logos de expedientes: DeQuiénEs primero en todas las pantallas y PDF/Word; etiqueta oficial INAPI solo como respaldo. Evidencia guardada reutilizada, proxies con sesión, fallos y respaldo sin caché. Sin migraciones.
+- Build/TypeScript, ESLint dirigido, 32 pruebas, PostgreSQL/HTTP y Chromium aprobados con datos/proveedores ficticios. Nuevo Excel y búsqueda repetida sin herencia de cliente; incorporación directa, aislamiento, recuperación de logos y móvil comprobados.
+- Salud posterior 200/base conectada/`engine: dequienes`; vigilancia, solicitudes y ambos proxies de imagen responden 401 sin sesión. No se hicieron operaciones sobre datos remotos ni búsquedas adicionales de INAPI. El panel de logs no se leyó por timeout del navegador; no se afirma disponibilidad de cada imagen real del CDN.
+- `main` conserva `3e0426526079188626682956a53bff9fdb3a8332`, sin promoción a producción. [Comportamiento](UX_OCTUBRE_2026.md) y [traspaso](handoffs/2026-10-07-marcas-importacion-logos.md).
+
+## Resúmenes y respuesta inmediata · 6 de octubre
+
+- [PR #5](https://github.com/joseibietasepulveda/Buho-Marc/pull/5), integrado en `dev`: `2cad7ab674c4e135dfe003f8838efb9f09d9305c`; commit funcional `238a98a12df708d4068be874f1759791a3d6189e`.
+- GitHub deployment `6897977391`, ambiente `heartfelt-magic / Dev`, SHA exacto de integración; estado `success` el 6 de octubre a las 20:49:29 America/Santiago.
+- Salud posterior HTTP 200, base conectada, `engine: dequienes`; Vigilancia y cartera responden 401 sin sesión. No se hicieron acciones sobre datos remotos ni consultas nuevas a INAPI.
+- Tabla comparativa y titular; loading y selectores buscables; Vigilancia conservada entre visitas, feedback inmediato y apertura del caso exacto; tareas optimistas con recuperación; registros simplificados y corrección del contador de casos. Sin dependencias ni migraciones nuevas.
+- Compilación/TypeScript, 21 pruebas dirigidas, integración HTTP/PostgreSQL y recorrido Chromium con latencia/fallo/lectura antigua aprobados. ESLint de archivos modificados aprobado; lint global conserva problemas ajenos documentados. [Comportamiento vigente](UX_RESPUESTA_INMEDIATA_2026-10-06.md) y [traspaso con límites y evidencia](handoffs/2026-10-06-ux-respuesta-inmediata.md).
+- `main` permanece en `3e0426526079188626682956a53bff9fdb3a8332`; sin promoción a producción. El registro posterior solo modifica documentación.
+
+## Referencias internas de la interfaz · 6 de octubre
+
+- PR [#4](https://github.com/joseibietasepulveda/Buho-Marc/pull/4), integrado en `dev`: `ec7ecbdc0aab09375781b8e13c2e189e2d3d6b8b`.
+- Despliegue Dev `ccd33df2-583a-4ae4-8fdb-cabe57f6a226`: exitoso el 6 de octubre a las 20:19:43 America/Santiago; SHA y ambiente confirmados mediante GitHub deployment `6897542363`. Compilación remota aprobada. Salud HTTP 200, base conectada y `engine: dequienes`.
+- Cabeceras, notificaciones y correo al cliente sin referencias internas; relaciones e identificadores oficiales conservados. Sin migraciones ni cambios de API. 19 pruebas dirigidas, lint, compilación local y revisión visual con fixtures aprobados. [Alcance y traspaso](handoffs/2026-10-06-ux-sin-referencias-internas.md).
+
+## Implementación de las maquetas aprobadas · 5 de octubre
+
+- Commit funcional de UI/UX: `865f535e6699192af6e2ac3699e7c8af96b87c2b`; publicado junto con la documentación de protección en `d6fb8182ddcd4452996ad516a7adcf9f0ccfac4c`.
+- Despliegue de la entrega funcional: `3857245e-4072-4785-b9f0-698bb3c8cd90`, **SUCCESS**, desde GitHub y rama `dev`. Railway procesó esta entrega durante el incidente de retrasos de GitHub; no fue necesario cambiar de vía ni duplicar despliegues para sortearlo.
+- Compilación y TypeScript aprobados. Los registros del arranque confirman migraciones correctas, cuenta existente conservada, perfiles sin sobrescribir, importación inicial ya realizada y servidor listo. La entrega incluye `0013_watch_feedback.sql`.
+- `/api/health`: 200, `ok: true`, `database: connected`, `engine: dequienes`, fuente configurada y programación activa.
+- Auditoría, feedback y perfil del estudio: 401 sin sesión. `/app` redirige al ingreso. `/ui/caret-down.svg`: 200 y hash idéntico al archivo de esta entrega.
+- Respaldo previo: copia lógica cifrada de Dev de 109.679.639 bytes sin cifrar, lectura completa y transferencia/descifrado comprobados; acceso SSH temporal retirado. No se probó una restauración en una base ni se automatizaron respaldos.
+- Producción conserva el despliegue `ec692224-cb76-4180-8db1-db78e60fd82d`, de `main`, commit `3e04265`. No hubo promoción de esta UI/UX.
+
+La revisión autenticada de los flujos y la QA visual permanecen en el piloto local aislado. La comprobación de esta publicación no hizo operaciones sobre carteras reales ni consultas nuevas de INAPI. Véase [implementación y límites](UX_IMPLEMENTACION_OCTUBRE_2026.md); comprobaciones HTTP y capturas se conservan en `output/deploy-dev-2026-10-05/`. El commit posterior que actualiza estos registros solo cambia documentación.
+
+## Entrega funcional verificada · 2 de octubre
+
+- Commit de UI e informes: `b42ae34c4bc15bb8224206cb4b4db5b8452452f8`, posterior a las mejoras de cartera/clientes `5a2010e` y de paneles/móvil `d4a5272`.
+- Despliegue Dev: `f02635e3-bd50-4342-9931-710d648b36a4`, estado **SUCCESS**.
+- Compilación y TypeScript aprobados, migraciones aplicadas correctamente y arranque completado.
+- El arranque confirmó la precarga en `juan-pablo-zamora`, `fa-abogados` y `daniel-morales`.
+- `/api/health`: 200, `ok: true`, `database: connected`, `engine: dequienes`, fuente configurada y programación activa.
+- `/api/report-profile`: 401 sin sesión. Los tres logos publicados respondieron 200 como PNG.
+- `main` permaneció en `3e04265`; la entrega de octubre no se promovió a producción. La promoción y carga FA del día 1 tienen su [registro separado](PILOTO_FA_Y_PRESENTACION_2026-10-01.md).
+
+Esta es la evidencia del despliegue funcional, no un indicador de que toda revisión de vigilancia haya terminado ni una llamada real a OpenRouter. La revisión autenticada y de formatos se realizó en un piloto local aislado. Véanse [UI/UX](UX_OCTUBRE_2026.md) e [informes](INFORMES_FACTIBILIDAD_2026-10-02.md).
+
+## Rutas y ambientes
 
 | Ruta | URL | Propósito |
 | --- | --- | --- |
-| Web app | [https://buho-marc-web-dev.up.railway.app/app](https://buho-marc-web-dev.up.railway.app/app) | Dashboard navegable de demostración. |
-| Web app de producción | [https://buho-marc-web-production.up.railway.app/app](https://buho-marc-web-production.up.railway.app/app) | Versión estable compartible. |
-| Landing principal | [https://buho-marc-web-dev.up.railway.app/](https://buho-marc-web-dev.up.railway.app/) | Landing comercial con escáner multimodal y dashboard promocional estático. |
-| URL anterior de prueba | [https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Redirige a la landing principal. |
+| Web app Dev | [Aplicación Dev](https://buho-marc-web-dev.up.railway.app/app) | Funciones nuevas y cuentas piloto, con sesión. |
+| Web app production | [Aplicación production](https://buho-marc-web-production.up.railway.app/app) | Entrega estable promovida por separado. |
+| Landing en Dev | [Landing](https://buho-marc-web-dev.up.railway.app/) | Presentación comercial y dashboard estático. |
+| URL anterior | [Landing de prueba](https://buho-marc-web-dev.up.railway.app/landing-de-prueba-js) | Redirige a la landing principal. |
 
-La landing comercial se publica separadamente en Vercel: [https://buho-marc.vercel.app/](https://buho-marc.vercel.app/). Los enlaces de pricing de la web app deben apuntar a `https://buho-marc.vercel.app/#pricing`.
+La landing comercial se publica separadamente en [Vercel](https://buho-marc.vercel.app/). Los enlaces de pricing apuntan a `https://buho-marc.vercel.app/#pricing`.
 
-## Ambientes
+Cada ambiente tiene PostgreSQL independiente. Publicar código no copia carteras, usuarios, claves, perfiles ni conclusiones entre bases. La precarga de perfiles está protegida por el ID exacto de Dev: `9e2891f0-7281-4872-a992-2c48866a782d`.
 
-Railway mantiene ambientes separados de **Dev** y **production**. Cada uno debe tener su propio servicio PostgreSQL y, por lo tanto, una base de datos independiente. Los cambios de esta demo se prueban y verifican primero en Dev; Production solo se actualiza cuando se aprueba expresamente.
+## Servicios e inicio
 
-La publicación de cambios de la aplicación se dirige primero al ambiente **Dev**, servicio `buho-marc-web`. No debe promoverse a `production` sin una solicitud posterior y explícita.
+El proyecto tiene un servicio web conectado a `joseibietasepulveda/Buho-Marc` y PostgreSQL, con `DATABASE_URL` referenciada desde la base al servicio web. La cola durable usa PostgreSQL; no requiere Redis.
 
-Base verificada antes de v0.4, el 10 de septiembre de 2026: Dev `906f8244-c5b6-4759-832c-ae82d79b1975`, commit `c5a6be2`, estado `SUCCESS`. Production conserva `c5a6be2` mediante el despliegue `02bbc781-9146-4771-8ccb-a0f5d38b6758` (puede aparecer `SLEEPING` por suspensión automática). La entrega [v0.4](V0_4_RELEASE.md) tiene autorización para **Dev únicamente**, sin actualizar `main` ni production.
+`railway.json` configura `npm run build`, `npm run railway:start` y el health check `/api/health`. El arranque ejecuta, en orden:
 
-## Entrega v0.4 a Dev
+1. `npm run db:migrate`.
+2. `npm run account:provision`: mantiene las cuentas existentes y ejecuta las preparaciones autorizadas para su ambiente.
+3. `npm run start`: Next.js y el supervisor de sincronización/vigilancia.
 
-Verificado el 10 de septiembre de 2026: commit de aplicación `30fd710`, despliegue `0131c57e-3384-455c-98ad-36048ea4c3f8`, estado **SUCCESS**. Migraciones aplicadas correctamente; `/api/health`, `/api/registrations` (incluidas las tareas) y `/app` responden 200. `main` permanece en `c5a6be2`.
+Las migraciones actuales incluyen `0011_notification_dismissal.sql` y `0012_feasibility_report_settings.sql`. La segunda guarda el perfil del estudio y el historial de conclusiones, sin borrar expedientes. `provisionReportProfiles` solo completa perfiles vacíos/versionados en cero; no sobrescribe ediciones ni restaura datos que un usuario haya borrado.
 
-- Publicar la rama `dev` en GitHub; el servicio `buho-marc-web` del ambiente **Dev** sigue esa rama. Production sigue `main`.
-- Comprobar que el despliegue corresponda al commit enviado y termine en `SUCCESS`, y que `/api/health` responda correctamente. Subir el commit no equivale por sí solo a completar el despliegue.
-- La migración `0003_huge_blazing_skull.sql` agrega `registration_tasks` sin borrar las tareas ni los expedientes existentes. Se aplica mediante el inicio habitual de Railway.
-- No ejecutar `dev:local` en Railway: es exclusivamente para una base simulada en el computador. `.buho-local/` queda fuera de Git y de las cargas de Railway.
-- `NEXT_PUBLIC_MOCK_ATTRIBUTE_SEARCH=false` desactiva al compilar la consulta simulada por atributos. La consulta real continúa limitada a los campos que admite la fuente, y no se incorporan resultados ficticios a una cartera con proveedor real.
-- Verificar v0.4 en `/app`: Solicitudes con lista/tarjetas/calendario, agenda y tareas asignables en Casos y Solicitudes, avisos globales, Prioritarias/Todas sin configuraciones, detalles desplegables y correo comparativo copiable. La búsqueda aproximada y el envío por Resend no están conectados a servicios reales; Resend permanece en los pendientes.
+`dev:local` y `.buho-local/` son exclusivamente para el computador y no se usan en Railway. Los fixtures permanecen separados de las cuentas reales. La variable `NEXT_PUBLIC_MOCK_ATTRIBUTE_SEARCH=false` evita ofrecer búsquedas ficticias en el alta del piloto real.
 
-## Servicios necesarios
+## Variables del servicio web
 
-El proyecto de Railway debe contener:
+| Variable | Uso |
+| --- | --- |
+| `DATABASE_URL` | Referencia privada al PostgreSQL del mismo ambiente. |
+| `SOURCE_PROVIDER=inapi` | Activa la fuente real. |
+| `INAPI_API_KEY` | Credencial privada para DeQuiénEs, únicamente en servidor. |
+| `APP_PUBLIC_ORIGIN` o `RAILWAY_PUBLIC_DOMAIN` | Origen validado para acciones del navegador. |
+| `MONITORING_SCHEDULER_ENABLED` | Habilita el supervisor; respeta el modo automático/a pedido de cada organización. |
+| `MONITORING_CRON_SECRET` | Credencial interna del worker; el supervisor puede generarla. |
+| `OPENROUTER_API_KEY` | Opcional: activa la redacción asistida de conclusiones. Sin ella funciona el respaldo determinista. |
+| `OPENROUTER_MODEL` | Opcional, predeterminado `openai/gpt-4.1-mini`. |
+| `PORT`, `NODE_ENV` | Configurados por el entorno de ejecución. |
 
-1. Un servicio web conectado al repositorio GitHub `joseibietasepulveda/Buho-Marc`.
-2. Un servicio PostgreSQL administrado.
-3. Una referencia `DATABASE_URL` del PostgreSQL disponible en el servicio web.
+En local, [openrouter.example.txt](../openrouter.example.txt) se copia como `openrouter.private.txt`. Ese archivo está ignorado por Git y no se publica en Railway. Las variables del servidor tienen prioridad. No incluir valores reales de claves en documentación, commits, navegador o registros de generaciones.
 
-La v1.0 no requiere Redis: usa PostgreSQL para la cola durable y el supervisor del servicio para ejecutar trabajos acotados. Separar un worker dedicado si las mediciones de carga y tamaño de cartera lo justifican.
+Las variables temporales de provisión de cuentas/correcciones solo se utilizan cuando la operación y el ambiente fueron autorizados; se retiran después de verificarla. Sus contraseñas no se documentan. Los perfiles de los tres estudios no necesitan una contraseña nueva.
 
-## Inicio y migraciones
+## Verificar una entrega
 
-Railway lee `railway.json`:
+1. Comprobar el commit exacto de la rama esperada, el ambiente y el estado `SUCCESS`. Un push o una compilación local no acreditan el despliegue.
+2. Consultar `/api/health`: con fuente real se espera `engine: dequienes`, base conectada y fuente configurada. La ausencia de clave OpenRouter no altera este indicador de INAPI.
+3. Confirmar migraciones y arranque en los registros del despliegue exacto; no confundirlos con los de una entrega anterior.
+4. Comprobar 401 en rutas privadas sin sesión y el aislamiento en el piloto descartable. No cambiar claves de usuarios para verificar una entrega visual.
+5. Verificar los nuevos flujos en una base aislada: candidatos, cliente/rol, duplicados, informes de cliente, Casos simple/detallado, retirada de avisos y eliminación de tareas.
+6. Para informes de factibilidad, comprobar guardado/recarga del perfil, conflicto de edición, éxito/error del proveedor aislado, reutilización de la conclusión y descarga de ambos formatos. Renderizar y revisar las páginas completas.
 
-- Construcción: `npm run build`.
-- Inicio: `npm run railway:start`.
-- El inicio ejecuta `drizzle-kit migrate` antes de levantar Next.js.
-- Health check: `GET /api/health`.
+No disparar búsquedas remotas, revisiones de cartera ni llamadas facturables solo para comprobar documentación o maquetación. `scripts/verify-feasibility-layout.ts` usa una consulta guardada; puede descargar imágenes de origen si no están en la caché local.
 
-La primera petición a `GET /api/demo` inserta el dataset ficticio con operaciones idempotentes. Reiniciar o volver a desplegar no duplica esos registros. La acción **Restaurar datos demo** borra únicamente la organización de demostración y vuelve a crearla.
+## Operación y pendientes
 
-## Variables
+La consulta de lectura del 5 de octubre de 2026 confirmó volúmenes persistentes y PGDATA dentro del montaje en Dev y producción, pero listas vacías de respaldos y programaciones nativas, y PITR desactivado en ambos. La protección y sus pruebas **siguen pendientes**. El [informe de protección de bases](PROTECCION_BASES_DE_DATOS_2026-10-05.md) contiene los identificadores, la evidencia y la secuencia para implementarla en otro chat. No se modificaron servicios durante esa investigación.
 
-| Variable | Obligatoria | Uso |
-| --- | --- | --- |
-| `DATABASE_URL` | Sí en Railway | Conexión PostgreSQL del servicio web |
-| `PORT` | Automática | Puerto entregado por Railway |
-| `NODE_ENV` | Automática | Activa el comportamiento de producción |
+Al preparar la nueva publicación de Dev, el panel autenticado de Postgres confirmó que **crear respaldos nativos y habilitar PITR requiere Pro** con el plan actual. Renovar la autorización de la CLI no resolvió su error `OAUTH_INSUFFICIENT_GRANT`. Revalidar el plan antes de intentar configurar estas protecciones; no ampliar la suscripción sin aprobación. Una copia lógica puntual de Dev, si se registra antes de publicar, no acredita la automatización ni la protección de producción.
 
-No guardar credenciales en GitHub. Railway debe inyectar la URL como referencia al servicio PostgreSQL.
+El usuario autorizó un acceso SSH temporal para una primera copia lógica de Dev. El 5 de octubre, a las 16:10 UTC, se comprobó el archivo de `pg_dump 18.6` (109.679.639 bytes, 35 entradas de datos de tablas), su transferencia y su cifrado/descifrado. La clave SSH y los archivos temporales se retiraron. La copia privada, sus límites y el procedimiento están registrados en el [informe de protección](PROTECCION_BASES_DE_DATOS_2026-10-05.md). No hubo restauración sobre una base de ensayo ni protección de producción en esta operación.
 
-## Verificación
+Daniel conserva la revisión diaria a las 12:30 de `America/Santiago`; `estudio-ibieta-ip` permanece a pedido. Consultar [control de consumo](COST_CONTROL.md) y la cola para conocer el progreso. Un health check exitoso no acredita la finalización de trabajos.
 
-Después de desplegar:
+Quedan pendientes activar OpenRouter con una credencial real y comprobar ese llamado; permisos/invitaciones avanzados, almacenamiento general de adjuntos y estudios completos, envío de correos, métricas, respaldos con restauración probada y capacidad a escala. Autenticación piloto, aislamiento, motor de similitud e informes PDF/Word ya están implementados.
 
-1. `/api/health` debe responder `ok: true`, `database: connected` y `engine: not-connected`.
-2. `/app` debe cargar el dashboard navegable con sus datos demo.
-3. Crear una marca, recargar y comprobar que permanece.
-4. La búsqueda simulada por número de registro debe mostrar RUT, marca, titular, Clases de Niza y estado antes de permitir agregar al seguimiento. En base queda un trabajo `awaiting_engine`; no debe aparecer una coincidencia inventada.
-5. Convertir una coincidencia ficticia en caso dos veces debe conservar un solo caso.
-6. Los accesos de pricing deben abrir `https://buho-marc.vercel.app/#pricing`.
-7. Confirmar que Resumen Vigilancia muestre la tabla de tareas pendientes con las columnas Tareas pendientes y Caso, sin contador interno; que las vigilancias se separen por nivel, las cuatro métricas estén alineadas y Casos activos indique los vencimientos dentro de 14 días.
-8. Revisar Vigilancia a ancho de escritorio y angosto: las insignias y controles de Similitud y Estado no deben superponerse, los filtros acumulables deben limpiarse con Todas o Todos y la tabla debe ofrecer desplazamiento horizontal cuando sea necesario.
-9. Confirmar el orden lateral actual desde **Resumen Vigilancia** hasta **Acerca de esta versión**, incluidos Clientes y Administrador de fuente.
-10. En **Revisor de factibilidad**, verificar el caso Cafeteras Mistral, la carga local de imagen, las clases Niza acumulativas, la probabilidad mock de oposición de terceros y las cuatro coincidencias explicables.
-11. En **Solicitudes de registro**, verificar lista, tarjetas y calendario, las dos macrofases, los 22 ejemplos separados, los plazos normal/próximo/vencido, las gestiones cuyo antecedente activador falta y los estados terminales.
-12. Abrir una tarjeta y comprobar estado primero, datos completos, referencia a INAPI e historial ascendente con flechas. En Administrador de fuente, abrir una fila y comprobar cobertura, actuaciones, resoluciones desplegables y cierre fijo.
-13. Confirmar que las notificaciones distingan Prioritarias y Todas, los avisos de seguimiento interno y los hitos emitidos por la fuente; que la concesión no se confunda con la emisión del título y que los cambios administrativos secundarios permanezcan en Todas.
+La CLI de Railway advirtió durante esta entrega que `railway.json`/`railway.toml` quedarán obsoletos el 1 de diciembre de 2026. La migración de configuración se mantiene como tarea independiente; no se realizó en esta ronda.
 
-## Antes de producción real
+## Antecedentes
 
-- Añadir autenticación OIDC y derivar la organización desde la sesión.
-- Cambiar la organización fija de demo por un tenant real y aplicar autorización en todas las rutas.
-- Mover la siembra demo fuera del tráfico normal.
-- Configurar backups, alertas, entorno staging y rotación de credenciales.
-- Añadir almacenamiento de archivos con URLs firmadas y escaneo.
-- Añadir rate limiting y pruebas automáticas de aislamiento.
-- Conectar el motor únicamente mediante el contrato documentado en `MATCHING_ENGINE_INTEGRATION.md`.
+Los despliegues y comprobaciones anteriores están en [UX_RELEASE_PLAN](UX_RELEASE_PLAN.md), [v0.4](V0_4_RELEASE.md), [v0.5](V0_5_RELEASE.md), [v1.0 inicial](V1_0_RELEASE.md) y [piloto FA](PILOTO_FA_Y_PRESENTACION_2026-10-01.md). Sus recorridos simulados y commits no sustituyen la verificación de una entrega actual.
 
-## Promoción del 6 de septiembre de 2026
+## Pulido visual · 4 de octubre de 2026
 
-Base `60ea09c` promovida desde Dev a main por solicitud expresa del usuario. Railway completó production (`153c9c2a-f07b-474e-a72d-78351ad079a3`) y Dev (`1dc66f23-ed9b-46d4-b8dd-6418df762a80`) con estado SUCCESS. La segunda ronda de UX continúa únicamente en Dev. Las comprobaciones de interfaz antiguas de esta guía se complementan con [UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md); el porcentaje global de factibilidad y el selector manual de expedientes importados ya no forman parte de la versión nueva.
+La entrega funcional `83386dc` se publicó únicamente en Dev. Despliegue `dc2db98a-0f70-486b-8ab8-2d020a41bfab`: `SUCCESS`, compilación/TypeScript correctos y salud 200/base conectada con `engine: dequienes`. La acción `PATCH /api/notifications` necesita sesión; la limpieza de Prioritarias utiliza campos existentes y no agrega migraciones. Detalle de cambios, contratos y QA en [Pulido del 4 de octubre](UX_PULIDO_2026-10-04.md).

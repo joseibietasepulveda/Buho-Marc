@@ -150,7 +150,7 @@ test("substantive observations and opposition obligations coexist until each is 
   const events = [act("Notificación de observaciones de fondo", "2026-07-01", { due_date: "2026-08-12" }), act("Notificación de traslado de oposición", "2026-07-03", { due_date: "2026-08-14" })];
   let projection = inapiProcedure(events);
   assert.equal(projection.status, "opposition-answer");
-  assert.deepEqual(projection.procedure.concurrent, [{ statusId: "substantive-objection", notifiedAt: "2026-07-01", officialDeadline: "2026-08-12", sourceActDate: "2026-07-01" }]);
+  assert.deepEqual(projection.procedure.concurrent, [{ statusId: "substantive-objection", notifiedAt: "2026-07-01", officialDeadline: "2026-08-12", sourceActDate: "2026-07-01", sourceActId: "2026-07-01", sourceActDescription: "Notificación de observaciones de fondo" }]);
   events.push(act("Contestación de oposición", "2026-07-20"));
   projection = inapiProcedure(events);
   assert.equal(projection.procedure.concurrent[0].statusId, "substantive-objection");
@@ -184,7 +184,8 @@ test("normalization corrections stay silent at the next consultation while new s
 });
 
 test("simulated source rejects contradictory stages and impossible registry chronology", () => {
-  const { provider: _provider, inapi: _inapi, ...record } = normalizeInapi(document([act("Publicación de marca en Diario Oficial", "2026-03-10")]));
+  const record = { ...normalizeInapi(document([act("Publicación de marca en Diario Oficial", "2026-03-10")])) };
+  delete record.provider; delete record.inapi;
   for (const patch of [
     { status: "accepted-publication" },
     { status: "publication-pending" },

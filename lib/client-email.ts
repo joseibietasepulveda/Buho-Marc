@@ -4,10 +4,10 @@ export function absoluteEmailLogo(logo: string | undefined, origin: string): str
   if (!logo) return null;
   try { const url = new URL(logo, origin); return ["https:", "http:"].includes(url.protocol) ? url.href : null; } catch { return null; }
 }
-export function oppositionEmail(watched: EmailBrand, requested: EmailBrand, lawyer: string, reference: string, origin: string) {
+export function oppositionEmail(watched: EmailBrand, requested: EmailBrand, lawyer: string, origin: string) {
   const subject = `Se recomienda presentar oposición · ${watched.name} / ${requested.name}`;
   const introduction = `Estimado/a cliente:\n\nEn la vigilancia de su marca ${watched.name}, identificamos la solicitud ${requested.name}, que presenta similitudes que podrían generar riesgo de confusión. A continuación encontrará una comparación de ambas marcas.`;
-  const recommendation = `Se recomienda presentar oposición. Agradeceremos confirmar su autorización para preparar y presentar la oposición dentro del plazo aplicable.\n\nReferencia: ${reference}.\n\nSaludos cordiales,\n${lawyer}`;
+  const recommendation = `Se recomienda presentar oposición. Agradeceremos confirmar su autorización para preparar y presentar la oposición dentro del plazo aplicable.\n\nSaludos cordiales,\n${lawyer}`;
   const noLogo = (brand: EmailBrand) => brand.type === "Denominativa" ? "Marca denominativa (sin logo)" : "Logo no disponible";
   const image = (brand: EmailBrand) => { const url = absoluteEmailLogo(brand.logo, origin); return url ? `<img src="${escape(url)}" alt="${escape(brand.name)}" width="180" height="140" style="max-width:100%;object-fit:contain;" />` : `<span>${noLogo(brand)}</span>`; };
   const cell = 'style="width:50%;padding:16px;border:1px solid #d9d0e2;vertical-align:top;text-align:center;"';

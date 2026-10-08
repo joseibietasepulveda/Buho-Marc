@@ -1,0 +1,600 @@
+/* Approved October reference: 214px navigation, 31px headings, 15px body. */
+.buho-app { --ink:#282331; --muted:#72697d; --line:#e1dce8; --surface:#fff; --purple:#6d3e94; grid-template-columns:214px minmax(0,1fr); color:var(--ink); background:#f6f5f8; font-family:Arial,Helvetica,sans-serif; font-size:15px; line-height:1.45; }
+.buho-app .buho-sidebar { padding:26px 16px 18px; background:#17121f; }
+.buho-app .buho-wordmark { margin:0 10px 24px; font-size:23px; letter-spacing:-1px; }
+.buho-app .buho-profile { margin:0 0 16px; padding:12px; min-height:60px; border-color:#3c3348; background:transparent; }
+.buho-app .buho-profile strong { font-size:13px; }
+.buho-app .buho-profile small { font-size:12px; color:#bfb2cf; }
+.buho-app .buho-profile > span { width:30px; height:30px; }
+.buho-app .buho-sidebar nav button { min-height:44px; padding:10px; margin:2px 0; font-size:13px; font-weight:600; border-radius:7px; line-height:1.45; color:#c8bdd1; }
+.buho-app .buho-sidebar nav button span { font-size:11px; color:#ab85c4; }
+.buho-app .buho-sidebar nav button.is-active { color:#fff; background:#342341; box-shadow:inset 3px 0 #ac80cd; }
+.buho-app .buho-workspace { padding:0; background:#f6f5f8; }
+.workspace-location { height:62px; padding:0 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:#fff; border-bottom:1px solid var(--line); color:var(--muted); font-size:13px; }
+.workspace-location time { white-space:nowrap; }
+.buho-app .buho-workspace-content,.buho-app .buho-workspace-content.is-compact { width:100%; max-width:1500px; padding:24px 28px 40px; zoom:1; margin:0; }
+.buho-app .buho-topbar,.buho-app .buho-topbar.buho-summary-topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin:0 0 22px; padding:0; }
+.buho-app .buho-topbar > div:first-child > .buho-overline { display:none; }
+.buho-app .buho-topbar h1 { margin:0 0 7px; font-family:Arial,Helvetica,sans-serif; font-size:31px; line-height:1.2; letter-spacing:-.8px; font-weight:700; }
+.buho-app .buho-topbar > div:first-child > p { margin:0; font-size:15px; color:var(--muted); font-weight:400; line-height:1.45; }
+.buho-app .buho-topbar .pending-tasks-compact { display:none; }
+.buho-app .buho-primary, .review-dialog .buho-primary { border:1px solid #6d3e94; background:#6d3e94; color:white; box-shadow:none; border-radius:8px; min-height:42px; padding:10px 16px; font-size:14px; font-weight:600; line-height:1.4; }
+.buho-app .buho-secondary { box-shadow:none; min-height:42px; padding:10px 16px; background:#fff; border:1px solid #ddd5e5; border-radius:8px; font-size:14px; font-weight:600; color:#51455f; line-height:1.4; }
+.buho-app :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { font-family:inherit; font-size:14px; min-height:44px; border:1px solid #d9d2e1; border-radius:8px; padding:11px 12px; background-color:#fff; color:var(--ink); }
+:is(.buho-app,.review-dialog) select { appearance:none; -webkit-appearance:none; background-image:url('/ui/caret-down.svg') !important; background-repeat:no-repeat !important; background-position:right 12px center !important; background-size:15px 15px !important; padding-right:38px !important; }
+:is(.buho-app,.review-dialog) select[multiple] { background-image:none!important; padding-right:12px!important; }
+.buho-app label { font-size:14px; }
+.buho-app :is(button,a,input,select,textarea):focus-visible { outline:3px solid #aa81c7; outline-offset:3px; }
+.buho-app :is(.buho-panel,.buho-table-panel,.buho-agenda,.buho-dashboard-matches,.workspace-directory,.tasks-list) { box-shadow:none; border:1px solid var(--line); border-radius:12px; background:#fff; }
+.buho-app .buho-table-wrap table { font-size:14px; border-collapse:collapse; width:100%; }
+.buho-app table th { padding:13px 14px; text-transform:none; color:#776984; background:#f8f6fb; font-size:12px; font-weight:700; letter-spacing:.3px; font-family:inherit; }
+.buho-app table td { padding:14px; font-size:14px; border-bottom:1px solid #eee9f2; vertical-align:middle; }
+.buho-app table td strong { font-size:14px; }
+.buho-app table td small { display:block; font-size:12px; color:var(--muted); margin-top:3px; }
+.buho-app .buho-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; border:0; border-radius:0; background:transparent; box-shadow:none; margin:0 0 20px; }
+.buho-app .buho-metrics button { border:1px solid var(--line); border-radius:12px; padding:20px; min-height:136px; background:#fff; }
+.buho-app .buho-metrics button>span { font-size:13px; text-transform:none; min-height:0; padding-right:0; color:var(--muted); letter-spacing:0; font-family:inherit; }
+.buho-app .buho-metrics strong { margin:8px 0; font-size:31px; line-height:1.25; letter-spacing:0; }
+.buho-app .buho-metrics small { font-size:12px; line-height:1.45; }
+.buho-app .metric-icon { display:none; }
+.buho-app .buho-attention { border:1px solid #e7dcee; border-radius:8px; background:#f2edf8; padding:12px 15px; min-height:0; margin:0 0 18px; box-shadow:none; }
+.buho-app .buho-attention strong { font-size:14px; }
+.buho-app .buho-attention-levels { font-size:12px; }
+.buho-app .buho-dashboard-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.buho-app .buho-dashboard-grid > .buho-agenda { order:2; }
+.buho-app .buho-dashboard-grid > .buho-dashboard-matches { order:1; }
+.buho-app .buho-panel>header,.buho-app .buho-agenda>header { min-height:0; padding:20px; }
+.buho-app .buho-dashboard-grid :is(h2,.buho-agenda h2) { font-family:inherit; font-size:20px; line-height:1.3; letter-spacing:0; font-weight:700; }
+.buho-app .buho-dashboard-grid > :is(.buho-agenda,.buho-dashboard-matches) > header .buho-overline { font-family:inherit; font-size:12px; letter-spacing:0; }
+.buho-app .buho-agenda .buho-calendar { padding:8px 20px; }
+.buho-app .buho-calendar-days { gap:5px; }
+.buho-app .buho-calendar-days> :is(button,span) { min-height:30px; font-size:13px; padding:5px; border-radius:6px; box-shadow:none; }
+.buho-app .buho-calendar-events { padding:12px 20px; }
+.buho-app .buho-calendar-events button { min-height:0; padding:12px; }
+.buho-app .buho-calendar-events strong { font-size:14px; line-height:1.45; }
+.buho-app .buho-calendar-events time { font-size:12px; }
+.buho-app .dashboard-findings-count { font-size:13px; padding:0 20px; }
+.buho-app .buho-dashboard-matches .buho-match-row { padding:16px 20px; min-height:90px; gap:12px; }
+.buho-app .buho-dashboard-matches .buho-match-row b { font-size:15px; }
+.buho-app .buho-tone { letter-spacing:0; text-transform:none; font-family:inherit; font-size:12px; border-radius:6px; padding:5px 10px; box-shadow:none; }
+.portfolio-heading-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.buho-app .brand-portfolio-actions { display:flex; align-items:end; gap:12px; width:100%; margin:16px 0; }
+.buho-app .brand-portfolio-actions label { flex:1; min-width:0; }
+.buho-app .brand-portfolio-actions .buho-search { border:0; padding:0; display:block; height:auto; background:none; box-shadow:none; }
+.buho-app .brand-portfolio-actions .buho-search span { display:block; color:var(--muted); font-size:12px; margin-bottom:7px; }
+.buho-app .brand-portfolio-actions .buho-search input { width:100%; }
+.buho-app .brand-attribute-select { max-width:200px; }
+.buho-app .brand-match-mode { max-width:170px; }
+.buho-app .buho-brand-filter-fields { grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.buho-app .buho-brand-filters { padding:16px; margin-bottom:18px; background:#fff; border:1px solid var(--line); border-radius:10px; }
+.buho-app .buho-table-panel>header { min-height:0; padding:16px 20px; }
+.portfolio-logo-cell { width:90px; }
+.portfolio-logo-cell img { width:58px; height:44px; object-fit:contain; border:1px solid #eee9f2; background:#fff; border-radius:6px; }
+.portfolio-word-mark { color:#72697d; font-size:12px; }
+.buho-app .buho-board-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:16px; }
+.case-view-controls { display:flex; align-items:center; flex-wrap:wrap; gap:16px; width:100%; }
+.buho-app .case-density-control { padding:0; gap:9px; font-size:13px; }
+.buho-app .case-density-control small { display:none; }
+.buho-app .case-filter-controls { width:100%; display:flex; flex-wrap:wrap; align-items:end; gap:12px; }
+.buho-app .case-filter-controls label:first-child { flex:1; }
+.buho-app .buho-kanban { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; overflow:visible; }
+.buho-app .buho-kanban-column { padding:14px; background:#edeaf1; border:1px solid #e0dae7; border-radius:11px; }
+.buho-app .buho-kanban-column>header { padding:0 0 14px; min-height:0; font-size:14px; }
+.buho-app .buho-kanban-column>div,.buho-app .buho-kanban-column.is-following>div { display:block; }
+.buho-app .buho-kanban-column article { margin:0 0 12px; border:1px solid #ded6e5; border-radius:9px; background:#fff; box-shadow:none; }
+.buho-app .buho-case-main { padding:16px; min-height:0; }
+.buho-app .buho-case-main h3 { font-size:16px; line-height:1.35; letter-spacing:0; margin:10px 0; }
+.buho-app .case-brand-role { margin:9px 0; }
+.buho-app .case-brand-role strong { font-size:14px; }
+.buho-app .case-brand-role small,.buho-app .buho-case-main p,.buho-app .buho-case-client { font-size:12px; }
+.buho-app .buho-case-deadline { font-size:12px; line-height:1.5; }
+.buho-app .buho-case-client { padding:10px 16px; border-top:1px solid #eee8f2; }
+.buho-app .buho-drop-copy { background:transparent; font-size:12px; margin:8px 0 0; padding:8px; }
+.buho-app .case-card-tasks { font-size:13px; margin:0 16px; padding:12px 0; }
+.buho-app .tasks-toolbar { padding:0; margin:0 0 16px; }
+.buho-app .tasks-toolbar strong { font-size:16px; }
+.buho-app .tasks-toolbar p { font-size:13px; color:var(--muted); margin:4px 0; }
+.buho-app .tasks-list article { display:grid; grid-template-columns:24px minmax(0,1fr) 170px 100px 40px; align-items:center; gap:12px; padding:17px 16px; }
+.buho-app .task-list-main { padding:0; }
+.buho-app .task-list-main strong { font-size:15px; line-height:1.4; }
+.buho-app .task-list-main span,.buho-app .task-list-context small { font-size:12px; }
+.buho-app .task-list-context { font-size:13px; line-height:1.5; }
+.buho-app .tasks-list .task-remove { grid-column:5; grid-row:auto; width:40px; height:40px; margin:0; padding:0; border:0; background:transparent; display:grid; place-items:center; }
+.task-complete { width:19px; height:19px; accent-color:#6d3e94; cursor:pointer; }
+.buho-app .task-inline-priority { min-height:36px; padding:7px 34px 7px 10px; font-size:13px; width:100%; }
+.tasks-state-tabs { display:flex; gap:6px; border-bottom:1px solid #e2dbe9; margin:0 0 18px; flex-wrap:wrap; }
+.tasks-state-tabs button { border:0; background:transparent; color:#776984; padding:11px 16px; font-size:14px; cursor:pointer; }
+.tasks-state-tabs button[aria-pressed=true] { color:#6d3e94; box-shadow:inset 0 -3px #6d3e94; font-weight:600; }
+.workspace-directory { padding:20px; }
+.directory-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.directory-heading p { margin:0; color:#72697d; font-size:14px; }
+.directory-toolbar { display:flex; gap:12px; align-items:end; margin-bottom:18px; flex-wrap:wrap; }
+.directory-toolbar label { display:grid; gap:7px; flex:1; min-width:140px; }
+.directory-toolbar input { width:100%; }
+.directory-toolbar label:first-child { flex:2; }
+.directory-note { font-size:13px; color:#72697d; margin:18px 0 0; }
+.directory-empty { padding:32px 20px; text-align:center; }
+.buho-app .buho-clients>header { display:block; padding:20px; }
+.buho-app .client-directory-actions { display:flex; align-items:end; justify-content:space-between; margin-top:16px; }
+.buho-app .client-directory-actions label { flex:1; max-width:460px; }
+.buho-app .buho-clients>header strong { font-size:16px; }
+.buho-app .buho-clients>header p { margin:6px 0; font-size:13px; color:#72697d; }
+.buho-app .client-directory-actions input { width:100%; }
+.buho-client-profile .buho-client-profile-body { padding:24px; }
+.buho-client-profile .buho-client-profile-body dl { grid-template-columns:1fr 1fr; gap:12px; border:0; }
+.buho-client-profile .buho-client-profile-body dl>div { background:#f8f6fb; border:1px solid #eee9f2; border-radius:8px; padding:12px; }
+.buho-client-profile .buho-client-profile-body dt { font-size:12px; }
+.buho-client-profile .buho-client-cell { font-size:14px; }
+.client-linked-table { overflow:auto; margin-top:16px; }
+.client-linked-table table { width:100%; border-collapse:collapse; font-size:13px; }
+.client-linked-table th { background:#f8f6fb; padding:12px; text-align:left; color:#776984; }
+.client-linked-table td { border-top:1px solid #eee9f2; padding:12px; vertical-align:middle; }
+.client-linked-table .client-brand-link { font-size:13px; min-height:0; padding:0; display:block; }
+.client-linked-table img { width:50px; height:40px; object-fit:contain; }
+.client-linked-heading { align-items:center; flex-wrap:wrap; }
+.client-linked-heading h3 { font-size:18px; }
+.client-linked-heading button { font-size:13px; }
+.review-dialog :is(.buho-drawer-scroll,.buho-client-profile-body) { background:#fff; }
+.review-dialog.buho-drawer { background:#fff; border-radius:12px 0 0 12px; }
+.review-dialog.buho-drawer>header h2 { font-size:24px; letter-spacing:-.4px; }
+.buho-app .notification-inbox-row .notification-inbox-title { font-size:16px; line-height:1.4; }
+.buho-app .notification-inbox-row time { font-size:14px; }
+.buho-app .notification-center { margin-top:0; }
+.buho-app .reg-canvas { background:transparent; }
+.buho-app .reg-macro { background:#edeaf1; border-color:#e0dae7; }
+.buho-app .reg-card { background:#fff; border-color:var(--line); box-shadow:none; }
+.registration-examples-corner { display:flex; justify-content:flex-end; margin:0 0 8px; }
+.registration-examples-corner button { border:0; padding:5px 8px; background:transparent; color:#72697d; font-size:11px; cursor:pointer; }
+.audit-detail-grid { display:grid; gap:14px; margin:0; }
+.audit-detail-grid>div { padding:14px; border:1px solid #eee9f2; border-radius:8px; }
+.audit-detail-grid dt { color:#72697d; font-size:12px; }
+.audit-detail-grid dd { margin:5px 0 0; font-size:14px; overflow-wrap:anywhere; }
+.audit-change-table { width:100%; border-collapse:collapse; font-size:13px; }
+.audit-change-table th,.audit-change-table td { text-align:left; padding:10px; border-bottom:1px solid #eee9f2; overflow-wrap:anywhere; }
+@media(max-width:1100px) { .buho-app .buho-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .buho-app .buho-dashboard-grid { grid-template-columns:1fr; } .buho-app .buho-kanban { grid-template-columns:repeat(3,minmax(230px,1fr)); overflow:auto; } }
+@media(max-width:800px) { .buho-app { grid-template-columns:74px minmax(0,1fr); } .buho-app .buho-sidebar { padding:20px 10px; } .buho-app .buho-wordmark { font-size:12px; margin:0 0 20px; } .buho-app .buho-profile { display:none; } .buho-app .buho-sidebar nav button { font-size:0; justify-content:center; } .buho-app .buho-workspace-content,.buho-app .buho-workspace-content.is-compact { padding:20px; } .workspace-location { padding:0 20px; } .buho-app .tasks-list article { grid-template-columns:24px minmax(0,1fr) 105px 40px; } .buho-app .task-list-context { grid-column:2; } .buho-app .task-inline-priority { grid-column:3; grid-row:1; } .buho-app .tasks-list .task-remove { grid-column:4; grid-row:1; } .buho-app .buho-brand-filter-fields { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:620px) { .buho-app { display:block; } .buho-app .buho-sidebar { position:relative; height:auto; display:block; padding:12px; } .buho-app .buho-sidebar nav { display:flex; overflow:auto; } .buho-app .buho-sidebar nav button { display:flex; min-width:44px; } .buho-app .buho-wordmark,.buho-app .buho-session-actions { display:none; } .buho-app .buho-workspace { height:calc(100dvh - 74px); } .workspace-location time { display:none; } .buho-app .buho-topbar { align-items:flex-start; flex-wrap:wrap; } .buho-app .buho-topbar h1 { font-size:28px; } .buho-app .buho-metrics { gap:10px; } .buho-app .buho-metrics button { padding:14px; } .buho-app .brand-portfolio-actions { flex-wrap:wrap; } .buho-app .brand-portfolio-actions label { flex-basis:45%; } .buho-app .buho-kanban { display:flex; flex-direction:column; overflow:visible; } .buho-client-profile .buho-client-profile-body dl { grid-template-columns:1fr; } }
+@media(forced-colors:active) { :is(.buho-app,.review-dialog) select { appearance:auto; background-image:none!important; } }
+@media(prefers-reduced-motion:reduce) { .buho-app *, .review-dialog * { animation:none!important; transition:none!important; } }
+.excel-simple-guide { padding:20px; border:1px solid #e1dce8; border-radius:12px; background:#faf8fd; margin-bottom:18px; }
+.excel-simple-guide h3 { font-size:20px; margin:0 0 8px; }
+.excel-simple-guide p { font-size:14px; line-height:1.6; }
+.excel-guide-example { display:grid; grid-template-columns:150px minmax(0,1fr); gap:20px; align-items:center; margin:18px 0; }
+.excel-guide-example table { border-collapse:collapse; background:#fff; text-align:center; width:100%; }
+.excel-guide-example :is(th,td) { padding:10px; border:1px solid #ddd5e5; }
+.excel-guide-example th { background:#eee9f4; }
+.excel-guide-example small { font-size:13px; color:#72697d; }
+.excel-assisted-guide { margin:16px 0; padding:14px 0; border-top:1px solid #eee9f2; font-size:14px; }
+.excel-assisted-guide summary { color:#6d3e94; cursor:pointer; font-weight:600; }
+@media(max-width:620px){.excel-guide-example{grid-template-columns:1fr}.excel-guide-example table{max-width:180px}}
+.audit-readonly { display:inline-flex; align-items:center; gap:7px; background:#f0e9f7; padding:6px 10px; border-radius:6px; color:#633887; font-size:12px; white-space:nowrap; }
+.audit-date-filters label { flex:0 1 190px; }
+.audit-record-link { display:flex; align-items:center; gap:8px; background:transparent; border:0; color:#6d3e94; padding:0; text-align:left; font:inherit; cursor:pointer; }
+.audit-directory time { font-size:12px; white-space:nowrap; }
+/* Feasibility: the approved three-step search, review and report workflow. */
+.buho-app .feasibility-workflow { font-size:15px; }
+.feasibility-steps { display:flex; gap:24px; padding:5px 0 16px; border-bottom:1px solid #e2dbe9; margin-bottom:20px; flex-wrap:wrap; }
+.feasibility-steps button { display:flex; gap:8px; align-items:center; border:0; padding:0; background:none; color:#72697d; font-size:14px; cursor:pointer; }
+.feasibility-steps b { font-size:12px; padding:5px 8px; background:#efe7f5; border-radius:50%; }
+.feasibility-steps button[aria-current=step] { color:#6d3e94; font-weight:700; }
+.feasibility-steps button:disabled { color:#8c8197; opacity:.75; cursor:default; }
+.feasibility-search-grid,.feasibility-report-grid { display:grid; grid-template-columns:minmax(0,1fr) 244px; gap:16px; align-items:start; }
+.feasibility-search-card,.feasibility-report-card,.feasibility-image-card,.feasibility-export-card,.feasibility-report-branding { min-width:0; padding:20px; background:white; border:1px solid #e1dce8; border-radius:12px; }
+.feasibility-search-card>label,.feasibility-report-card label { display:block; font-weight:600; margin-bottom:7px; }
+.feasibility-workflow :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { width:100%; }
+.feasibility-workflow :is(input[type=checkbox],input[type=radio]) { accent-color:#6d3e94; width:18px; height:18px; flex:none; margin:0; }
+.feasibility-workflow fieldset { border:0; padding:0; margin:18px 0 0; }
+.feasibility-workflow legend { margin-bottom:7px; font-weight:600; font-size:14px; }
+.feasibility-mode-radios>div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.feasibility-mode-radios label { display:flex; align-items:center; gap:8px; margin:0; padding:8px 10px; min-height:41px; border:1px solid #e4dce9; background:#fbf9fd; border-radius:7px; font-size:13px; line-height:1.4; cursor:pointer; }
+.feasibility-mode-radios label:has(:checked) { border-color:#946db1; background:#f3edf8; color:#633787; }
+.feasibility-form-help { color:#7c7186; font-size:12px; line-height:1.5; margin:8px 0 0; }
+.feasibility-nice-row { display:grid; grid-template-columns:minmax(0,1fr) 210px; align-items:end; gap:16px; margin-top:19px; }
+.feasibility-nice-row label:not(.feasibility-group-inline) { display:block; margin-bottom:7px; font-weight:600; }
+.feasibility-group-inline { display:flex; align-items:center; gap:9px; min-height:44px; padding:0; background:none; border:0; border-radius:0; font-weight:400; line-height:1.45; margin:0; }
+.feasibility-chosen-classes { display:flex; flex-wrap:wrap; gap:8px; margin-top:9px; }
+.feasibility-chosen-classes>span { display:inline-flex; align-items:center; gap:8px; background:#f3edf8; border:1px solid #ddcde9; border-radius:7px; padding:6px 10px; font-size:13px; }
+.feasibility-chosen-classes button { border:0; background:none; color:#6d3e94; width:26px; height:26px; display:grid; place-items:center; padding:0; cursor:pointer; }
+.feasibility-state-field { border-top:1px solid #eee7f3 !important; padding-top:16px !important; }
+.feasibility-workflow .feasibility-state-chips { display:flex; gap:7px; flex-wrap:wrap; }
+.feasibility-workflow .feasibility-state-chips button { font-size:13px; min-height:37px; border-radius:8px; padding:7px 10px; border:1px solid #ddd5e5; background:#fff; color:#51455f; }
+.feasibility-workflow .feasibility-state-chips button[aria-pressed=true] { color:#6d3e94; border-color:#ac8cc4; background:#f3edf8; }
+.feasibility-advanced { margin-top:18px; border-top:1px solid #eee7f3; padding-top:16px; }
+.feasibility-advanced summary { color:#6d3e94; font-size:14px; font-weight:600; cursor:pointer; }
+.feasibility-advanced label { display:block; margin:16px 0 0; font-weight:600; }
+.feasibility-advanced :is(input,textarea) { margin-top:7px; }
+.feasibility-date-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.feasibility-holder-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.feasibility-minimum-inline { display:flex; align-items:center; gap:14px; }
+.feasibility-minimum-inline input { flex:1; accent-color:#6d3e94; }
+.feasibility-checkbox { display:flex!important; align-items:center; gap:9px; font-weight:400!important; }
+.feasibility-search-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:18px; padding-top:18px; border-top:1px solid #eee7f3; }
+.feasibility-workflow button.buho-primary { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+.feasibility-workflow button.feasibility-subtle { border:0; background:transparent; padding:8px; color:#6d3e94; font-size:14px; font-weight:600; cursor:pointer; }
+.buho-app .feasibility-search-aside .report-profile-launcher { display:block; margin:0 0 16px; padding:15px; border-radius:12px; border:1px solid #e4d8ef; background:#f7f2fb; box-shadow:none; min-height:0; width:100%; }
+.buho-app .feasibility-search-aside .report-profile-launcher-icon { display:none; }
+.buho-app .feasibility-search-aside .report-profile-launcher strong { font-size:14px; line-height:1.5; display:block; }
+.buho-app .feasibility-search-aside .report-profile-launcher small { font-size:12px; line-height:1.5; margin-top:7px; display:block; }
+.buho-app .feasibility-image-card h3 { font-size:16px; margin:0; }
+.feasibility-upload-area { border:1px dashed #bea6d0; background:#fcfafe; border-radius:10px; padding:22px 12px; position:relative; margin:14px 0; text-align:center; }
+.feasibility-upload-area>button:first-child { display:flex; align-items:center; flex-direction:column; justify-content:center; gap:16px; width:100%; padding:0; border:0; background:none; color:#6d3e94; min-height:110px; font-size:14px; cursor:pointer; }
+.feasibility-upload-area img { object-fit:contain; max-width:100%; }
+.feasibility-upload-area .feasibility-image-remove { position:absolute; top:7px; right:7px; border:1px solid #e4d8ef; border-radius:50%; background:#fff; width:30px; height:30px; display:grid; place-items:center; padding:0; color:#a83d56; }
+.feasibility-result-summary { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 18px; border:1px solid #dfd0eb; border-radius:10px; background:#f3edf8; margin-bottom:16px; }
+.feasibility-result-summary small { display:block; font-size:12px; color:#72697d; margin-top:4px; }
+.feasibility-result-summary>button { min-height:42px; border:1px solid #ddd5e5; border-radius:8px; background:#fff; color:#6d3e94; padding:10px 16px; font-size:14px; white-space:nowrap; cursor:pointer; }
+.feasibility-result-controls { display:flex; align-items:center; gap:12px; margin:16px 0; }
+.feasibility-result-controls>select { max-width:190px; }
+.feasibility-result-search { display:flex; align-items:center; position:relative; flex:1; }
+.feasibility-result-search svg { position:absolute; left:12px; color:#72697d; }
+.buho-app .feasibility-result-search input { padding-left:40px; }
+.feasibility-result-controls .feasibility-checkbox { white-space:nowrap; }
+.feasibility-results-table { overflow:auto; border:1px solid #e1dce8; border-radius:11px; background:#fff; }
+.feasibility-results-table table { width:100%; border-collapse:collapse; min-width:740px; }
+.feasibility-results-table td { line-height:1.45; }
+.feasibility-results-table th { text-align:left; }
+.feasibility-results-table tr.is-selected td { background:#f8f4fb; }
+.feasibility-result-score { color:#6d3e94; }
+.feasibility-workflow .feasibility-pagination { border:0; padding:0; display:flex; justify-content:space-between; align-items:center; margin:16px 0; color:#72697d; font-size:13px; }
+.feasibility-workflow .feasibility-pagination label,.feasibility-pagination>div { display:flex; align-items:center; gap:10px; }
+.buho-app .feasibility-pagination select { width:76px; }
+.feasibility-pagination button { font:inherit; border:1px solid #ddd5e5; background:#fff; border-radius:7px; padding:8px 12px; color:#51455f; cursor:pointer; }
+.feasibility-selection-bar { display:flex; justify-content:space-between; align-items:center; gap:15px; position:sticky; bottom:16px; padding:12px 17px; border-radius:9px; background:#6d3e94; color:#fff; margin:16px 0; }
+.feasibility-selection-bar>div { display:flex; align-items:center; gap:10px; }
+.feasibility-selection-bar button { display:inline-flex; align-items:center; gap:7px; background:#fff; color:#6d3e94; border:0; padding:10px 14px; border-radius:7px; font-size:14px; cursor:pointer; }
+.feasibility-selection-bar button.feasibility-clear-selection { background:transparent; color:#fff; font-size:12px; }
+.feasibility-empty { padding:24px; margin:0; font-size:14px; color:#72697d; }
+.feasibility-report-card h2 { margin:0 0 12px; font-size:20px; }
+.feasibility-report-card>p { color:#72697d; font-size:14px; margin:0 0 18px; }
+.feasibility-report-card .feasibility-holder-grid { margin-bottom:16px; }
+.feasibility-report-card>label { margin-top:16px; }
+.feasibility-report-card label :is(select,textarea) { margin-top:7px; }
+.feasibility-report-branding { margin-bottom:16px; background:#f7f2fb; }
+.feasibility-report-aside h3 { margin:0 0 12px; font-size:16px; }
+.feasibility-report-branding :is(strong,small) { display:block; margin:7px 0; font-size:13px; }
+.feasibility-report-branding small { font-size:12px; color:#72697d; }
+.feasibility-report-branding img { max-width:100%; object-fit:contain; }
+.feasibility-export-card fieldset { margin:0 0 18px; }
+.feasibility-export-card fieldset>label { display:flex; align-items:center; gap:9px; margin:10px 0; font-size:14px; }
+.feasibility-export-card .feasibility-checkbox { align-items:flex-start; font-size:13px; line-height:1.5; }
+.feasibility-export-card .feasibility-checkbox input { margin-top:2px; }
+.feasibility-export-card>button { width:100%; margin-top:16px; }
+.feasibility-workflow .feasibility-conclusion-preview { margin:18px 0; background:#fcfafe; border:1px solid #ded5e4; border-radius:9px; padding:20px; }
+.feasibility-conclusion-preview h3 { font-size:18px; margin:10px 0; }
+.feasibility-conclusion-preview p { font-size:14px; line-height:1.7; }
+.feasibility-compare-dialog .similarity-card { box-shadow:none; border:0; }
+.feasibility-compare-dialog .similarity-comparison .similarity-image:has(span) { min-height:64px; height:64px; }
+@media(max-width:1100px) { .feasibility-nice-row { grid-template-columns:1fr; align-items:start; } .feasibility-group-inline { min-height:30px; } .feasibility-mode-radios>div { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:800px) { .feasibility-search-grid,.feasibility-report-grid { grid-template-columns:1fr; } .feasibility-search-aside { display:grid; grid-template-columns:1fr 1fr; gap:16px; } .feasibility-result-controls { flex-wrap:wrap; } .feasibility-result-search { flex-basis:100%; } .feasibility-result-summary { flex-wrap:wrap; } }
+@media(max-width:620px) { .feasibility-date-grid,.feasibility-holder-grid,.feasibility-search-aside { grid-template-columns:1fr; } .feasibility-steps { gap:12px; } .feasibility-steps button { font-size:12px; } .feasibility-selection-bar { flex-wrap:wrap; position:static; } .feasibility-selection-bar>div { flex-wrap:wrap; } .feasibility-workflow .feasibility-pagination { flex-wrap:wrap; gap:12px; } }
+/* Remove the old .8 page zoom so reference typography has its actual size. */
+html:has(.buho-app) { zoom:1!important; }
+html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!important; }
+.buho-app .global-deadlines { display:none; }
+.buho-app input.buho-sr-only { position:absolute; width:1px!important; height:1px!important; min-height:0!important; padding:0!important; margin:-1px!important; border:0!important; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+.buho-app .feasibility-search-aside .report-profile-open { padding:0; min-height:0; border:0; background:none; display:block; text-align:left; }
+.buho-app .feasibility-state-field { border-top:0!important; margin-top:12px!important; padding-top:12px!important; }
+.buho-app .feasibility-workflow .feasibility-advanced { background:transparent; border-radius:0; padding:14px 0 0; border:0; border-top:1px solid #eee7f3; }
+.buho-app,.buho-app .buho-sidebar,.buho-app .buho-workspace { height:100dvh; }
+.buho-app .buho-sidebar { overflow-y:auto; }
+.buho-app .buho-sidebar nav { flex:1; }
+.buho-app .buho-sidebar-search { font-size:12px; background:transparent; color:#bfb2cf; }
+.buho-app .watch-tabs { margin:0 0 18px; }
+.buho-app .watch-tabs button { font-size:14px; }
+.buho-app .watch-toolbar { padding:16px; background:#fff; border:1px solid #e1dce8; border-radius:10px; }
+.buho-app .watch-toolbar>label { font-size:13px; }
+.buho-app .watch-toolbar>label input { font-size:14px; }
+.buho-app .watch-help { font-size:13px; line-height:1.6; }
+.buho-app .watch-publication-filters { background:#fff; border:1px solid #e1dce8; padding:16px; border-radius:10px; }
+.buho-app .watch-relevance { font-size:14px; }
+.buho-app .watch-relevance select { max-width:320px; }
+.buho-app .watch-band>header h2 { font-size:20px; letter-spacing:0; }
+.buho-app .watch-family>header h3 { font-size:20px; }
+.buho-app .watch-family>header p { font-size:14px; }
+.watch-rating { margin-right:auto; flex:1 1 390px; align-self:center; max-width:600px; }
+.watch-rating-controls { display:flex; align-items:center; gap:7px; }
+.buho-app .similarity-actions .watch-rating button { padding:0; width:36px; height:36px; border:1px solid #ddd5e5; background:#fff; border-radius:8px; display:grid; place-items:center; flex:none; color:#72697d; min-height:0; }
+.watch-rating-controls>span { font-size:12px; color:#72697d; margin-left:5px; }
+.buho-app .watch-rating button.is-positive { background:#eaf5ee; color:#28764b; border-color:#83c3a0; animation:watch-vote-pop .28s ease-out; }
+.buho-app .watch-rating button.is-negative { background:#fbe8ec; color:#a83d56; border-color:#e4a8b5; animation:watch-vote-pop .28s ease-out; }
+.buho-app .buho-side-by-side .buho-mark-card:has(.similarity-image>span),.buho-app .similarity-comparison .similarity-image:has(>span) { min-height:76px; height:76px; }
+@keyframes watch-vote-pop { 0% { transform:scale(1); } 50% { transform:scale(1.16); } 100% { transform:scale(1); } }
+/* Notifications: select on the left, read its evidence beside the list. */
+.buho-app .notice-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.buho-app .notice-tabs { background:transparent; border:0; padding:0; border-radius:0; border-bottom:1px solid #e2dbe9; }
+.buho-app .notice-tabs button { font-size:14px; min-height:42px; padding:11px 16px; border-radius:0; }
+.buho-app .notice-tabs button[aria-pressed=true] { background:transparent; box-shadow:inset 0 -3px #6d3e94; }
+.buho-app .notice-tabs button span { font-size:12px; padding:2px 6px; }
+.buho-app .notice-clear { border:1px solid #ddd5e5; background:#fff; border-radius:8px; font-size:13px; min-height:42px; padding:10px 14px; }
+.buho-app .notice-intro { font-size:13px; line-height:1.6; margin:14px 0 18px; }
+.buho-app .notice-inbox-filters { gap:12px; margin-bottom:16px; }
+.buho-app .notice-search { padding:0 12px; min-height:44px; }
+.buho-app .notice-search input { font-size:14px; border:0; padding:10px 0; min-height:42px; }
+.buho-app .notice-status-filter { font-size:13px; }
+.buho-app .notice-status-filter select { min-height:44px; font-size:14px; }
+.notice-content-layout { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:18px; align-items:start; }
+.notice-list-column { min-width:0; }
+.buho-app .notice-pagination { margin:0 0 14px; font-size:12px; }
+.buho-app .notice-inbox-row { padding:16px; gap:12px; min-height:96px; }
+.buho-app .notice-inbox-icon { width:26px; height:26px; flex-basis:26px; border:0; background:none!important; }
+.buho-app .notice-inbox-icon svg { width:18px; height:18px; }
+.buho-app .notice-inbox-meta { font-size:14px; gap:4px 10px; }
+.buho-app .notice-inbox-meta>strong { font-size:13px; }
+.buho-app .notice-inbox-source { display:none; }
+.buho-app .notice-inbox-title { font-size:16px; font-weight:600; margin-top:5px; line-height:1.45; }
+.buho-app .notice-inbox-status { font-size:11px; padding:4px 7px; }
+.buho-app .notice-inbox-item { padding-right:8px; gap:0; }
+.buho-app .notice-inbox-chevron { display:none; }
+.buho-app .notice-inbox-item.is-selected { box-shadow:inset 3px 0 #9a70b9; background:#f3edf8; }
+.buho-app .notice-remove { display:grid; place-items:center; padding:0; margin:0; width:36px; height:36px; min-height:36px; border:0; flex:none; }
+.notice-reader-empty,.priority-notice-reader { min-width:0; background:#fff; border:1px solid #e1dce8; border-radius:12px; padding:20px; position:sticky; top:16px; }
+.notice-reader-empty { text-align:center; color:#72697d; padding:40px 20px; }
+.notice-reader-empty h3 { font-size:16px; color:#51455f; }
+.notice-reader-empty p { font-size:13px; }
+.priority-notice-reader { border-left:3px solid #a680c2; padding:0; max-height:calc(100dvh - 110px); overflow:auto; }
+.priority-notice-reader>header { display:flex; align-items:center; justify-content:space-between; padding:18px; border-bottom:1px solid #e1dce8; gap:10px; }
+.priority-notice-reader>header span { font-size:11px; color:#72697d; }
+.priority-notice-reader>header h2 { font-size:18px; margin:5px 0 0; }
+.priority-notice-reader>header button { display:grid; place-items:center; width:32px; height:32px; border:0; background:none; padding:0; color:#72697d; cursor:pointer; }
+.priority-notice-reader .priority-notice-scroll { padding:18px; overflow:visible; }
+.priority-notice-reader .priority-notice-highlight { background:none; border:0; padding:0; }
+.priority-notice-reader .priority-notice-highlight h3 { font-size:18px; line-height:1.4; margin:10px 0; }
+.priority-notice-reader .priority-notice-highlight p { font-size:13px; }
+.priority-notice-reader .priority-notice-highlight small { font-size:14px; }
+.priority-notice-reader .priority-notice-history { margin-top:24px; }
+.priority-notice-reader .priority-notice-history h3,.priority-notice-reader .priority-other-changes h3 { font-size:15px; }
+.priority-notice-reader .priority-notice-history>p { font-size:12px; margin:10px 0 18px; }
+.priority-notice-reader .priority-timeline h4 { font-size:14px; }
+.priority-notice-reader .priority-timeline small { font-size:12px; }
+.priority-notice-reader details { margin-top:8px; font-size:12px; }
+.priority-notice-reader summary { color:#6d3e94; cursor:pointer; }
+.priority-notice-reader .priority-evidence-fields { padding:5px 0; }
+.priority-notice-reader .priority-evidence-fields dd { font-size:12px; }
+.priority-notice-reader>footer { display:flex; flex-direction:column; gap:8px; padding:18px; border-top:1px solid #eee9f2; }
+.priority-notice-reader>footer button { min-height:38px; background:#fff; border:1px solid #ddd5e5; border-radius:8px; font-size:13px; padding:8px; color:#6d3e94; cursor:pointer; }
+.priority-notice-reader .is-danger { color:#a83d56; }
+.priority-notice-reader .priority-review-action { background:#6d3e94; color:#fff; }
+@media(max-width:1049px) { .notice-content-layout { grid-template-columns:1fr; } }
+@media(max-width:620px) { .buho-app,.buho-app .buho-sidebar { height:auto; } .buho-app .buho-workspace { height:calc(100dvh - 74px); } .buho-app .notice-toolbar { flex-wrap:wrap; } }
+.buho-app .registration-recent-table { margin-top:20px; }
+.buho-app .registration-recent-table>header h2 { margin:0; font-size:18px; }
+.buho-app .registration-recent-table>header p { margin:5px 0 0; color:#72697d; font-size:13px; }
+.buho-app .registration-recent-table td>img { object-fit:contain; }
+.buho-app .trademark-toolbar { background:#fff; border:1px solid #e1dce8; border-radius:10px; padding:16px; gap:12px; }
+.buho-app .trademark-phase { background:#edeaf1; border-color:#e0dae7; }
+.buho-app .trademark-phase>header { background:#f4f0f8; border-color:#e0dae7; }
+.buho-app .trademark-phase>header h2 { font-size:23px; }
+.buho-app .trademark-phase>header p { font-size:14px; }
+.buho-app .trademark-card { background:#fff; border-color:#e1dce8; box-shadow:none; }
+.buho-app .trademark-card h3 { font-size:20px; }
+.buho-app .trademark-card-meta,.buho-app .trademark-card p { font-size:14px; }
+.buho-app .registration-list-row { background:#fff; border-color:#e1dce8; }
+.buho-app .case-calendar { background:#fff; border-color:#e1dce8; }
+.buho-app .buho-agenda-calendar { background:#fff; }
+.buho-app .buho-wordmark small { display:none; }
+.buho-app .buho-profile { width:100%; flex:none; }
+.buho-app .buho-profile>div { min-width:0; }
+.buho-app .buho-profile :is(strong,small) { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.buho-app .workspace-search-launcher { width:100%; margin:0 0 12px; padding:10px; min-height:36px; font-size:11px; background:transparent; color:#bfb2cf; border:1px solid #3c3348; border-radius:7px; gap:8px; box-shadow:none; }
+.buho-app .workspace-search-launcher span { white-space:nowrap; }
+.buho-app .workspace-search-launcher kbd { font-size:10px; padding:2px 4px; color:#bfb2cf; border-color:#3c3348; }
+.buho-app .buho-sidebar nav { gap:0; }
+.buho-app .buho-sidebar nav button { width:100%; min-height:40px; padding:10px 8px; margin:2px 0; }
+.buho-app .buho-workspace-content:has(.feasibility-workflow) { padding-top:18px; }
+.buho-app .buho-workspace-content:has(.feasibility-workflow) .buho-topbar { margin-bottom:12px; }
+.buho-app .buho-workspace-content:has(.feasibility-workflow) .buho-topbar h1 { font-size:28px; }
+.feasibility-steps { padding:5px 0 12px; margin-bottom:16px; }
+.feasibility-search-card { padding:16px; }
+.feasibility-mode-radios label { padding:7px 10px; min-height:37px; }
+.feasibility-search-actions { margin-top:12px; padding-top:12px; }
+
+.buho-app .feasibility-result-search input { padding-left:40px!important; }
+.buho-app .buho-workspace-content:has(.feasibility-workflow) { padding-top:24px; }
+.buho-app .buho-workspace-content:has(.feasibility-workflow) .buho-topbar h1 { font-size:31px; }
+.feasibility-selection-bar button:disabled { opacity:.55; cursor:not-allowed; }
+.buho-app .feasibility-family-heading td { background:#f1ebf7; padding:9px 14px; }
+.feasibility-family-toggle { display:flex; align-items:center; gap:10px; width:100%; background:none; border:0; padding:4px 0; color:#51455f; text-align:left; cursor:pointer; }
+.feasibility-family-toggle[aria-expanded=true] svg { transform:rotate(180deg); }
+.feasibility-family-toggle span { margin-left:auto; font-size:12px; color:#72697d; }
+@media(max-width:620px) { .feasibility-family-toggle { flex-wrap:wrap; } }
+
+.feasibility-paper-preview { border-top:1px solid #eee9f2; margin-top:18px; padding-top:16px; }
+.feasibility-paper-preview>h3 { font-size:16px; margin:0 0 14px; }
+.feasibility-paper-preview article { border:1px solid #ded9e4; background:#fff; padding:26px; font-size:13px; line-height:1.7; }
+.feasibility-paper-preview article>h3 { margin:10px 0 18px; font-size:23px; line-height:1.3; }
+.feasibility-paper-preview article>small { display:block; color:#72697d; font-size:12px; }
+.buho-app .feasibility-paper-preview img { width:160px; height:56px; object-fit:contain; object-position:left center; margin-bottom:10px; }
+.feasibility-report-aside .feasibility-report-branding { margin:16px 0 0; padding:16px; }
+.buho-app .feasibility-report-branding img { width:160px; height:56px; object-fit:contain; }
+.buho-app .feasibility-pagination label { white-space:nowrap; min-width:230px; }
+
+.buho-app .buho-metrics button { display:flex; align-items:flex-start; justify-content:flex-start; gap:0; min-height:136px; padding:20px; }
+.buho-app .buho-metrics button>span { font-weight:400; font-size:13px; text-transform:none; white-space:normal; }
+.buho-app .buho-metrics button>strong { font-size:31px; font-weight:700; margin:9px 0; align-self:flex-start; }
+.buho-app .buho-metrics button>small { font-size:12px; font-weight:400; }
+.dashboard-attention-panel,.dashboard-next-agenda { border:1px solid #e1dce8; background:#fff; border-radius:12px; padding:20px; min-width:0; }
+.buho-app .dashboard-attention-panel>h2,.buho-app .dashboard-next-agenda h2 { font-size:20px; margin:0 0 16px; font-weight:700; }
+.dashboard-attention-item+article { border-top:1px solid #eee9f2; margin-top:16px; padding-top:16px; }
+.dashboard-attention-item header { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.dashboard-attention-item h3 { font-size:16px; margin:0; }
+.dashboard-attention-item header>span { font-size:12px; background:#f9eaf0; color:#a83d56; border-radius:6px; padding:5px 9px; }
+.dashboard-attention-item>p { margin:7px 0 12px; font-size:14px; color:#72697d; }
+.dashboard-publication-note { background:#f3edf8; border:1px solid #e1dce8; border-radius:8px; padding:13px 15px; font-size:13px; line-height:1.6; }
+.dashboard-attention-item footer { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; font-size:14px; }
+.dashboard-next-agenda>header { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px; border-bottom:1px solid #eee9f2; }
+.dashboard-next-agenda>header .dashboard-inline-link { font-size:12px; }
+.dashboard-agenda-row { display:grid; grid-template-columns:58px minmax(0,1fr) 28px; align-items:center; gap:12px; padding:16px 0; border-bottom:1px solid #eee9f2; }
+.dashboard-agenda-row time { font-size:12px; font-weight:700; color:#6d3e94; }
+.dashboard-agenda-row>button { text-align:left; padding:0; background:transparent; border:0; cursor:pointer; }
+.dashboard-agenda-row strong { display:block; font-size:14px; line-height:1.5; }
+.dashboard-agenda-row small { display:block; color:#72697d; margin-top:6px; font-size:12px; }
+.dashboard-agenda-row .dashboard-task-remove { display:grid; place-items:center; width:28px; height:28px; text-align:center; color:#a83d56; }
+.dashboard-next-agenda>footer { padding-top:16px; }
+.dashboard-inline-link { padding:0; border:0; background:transparent; color:#6d3e94; font-size:14px; font-weight:600; cursor:pointer; }
+.dashboard-refresh-note { font-size:11px; color:#72697d; margin-top:20px; }
+@media(max-width:620px) { .dashboard-attention-item footer { flex-wrap:wrap; } .dashboard-agenda-row { grid-template-columns:46px minmax(0,1fr) 28px; } }
+
+.buho-app .buho-table-wrap .buho-brands-table { min-width:980px!important; width:100%; table-layout:fixed; }
+.buho-app .buho-brands-table :is(th,td) { padding:13px 10px!important; font-size:13px!important; text-align:left; white-space:normal!important; }
+.buho-app .buho-brands-table th:nth-child(1) { width:90px; }
+.buho-app .buho-brands-table th:nth-child(2) { width:92px; }
+.buho-app .buho-brands-table th:nth-child(3) { width:170px; }
+.buho-app .buho-brands-table th:nth-child(4) { width:140px; }
+.buho-app .buho-brands-table th:nth-child(5) { width:150px; }
+.buho-app .buho-brands-table th:nth-child(6) { width:70px; }
+.buho-app .buho-brands-table th:nth-child(7) { width:135px; }
+.buho-app .buho-brands-table th:nth-child(8) { width:100px; }
+.buho-app .buho-brands-table .buho-brand-cell { justify-content:flex-start; text-align:left; }
+.buho-app .buho-brands-table .buho-brand-cell strong { font-size:14px!important; line-height:1.4; }
+.buho-app .buho-brands-table .buho-brand-cell small { font-size:12px!important; line-height:1.5; }
+.buho-app .buho-brands-table :is(.client-brand-link,.buho-client-cell,.portfolio-watch-count,.buho-status-cell) { font-size:13px!important; }
+.buho-app .brand-portfolio-actions label { display:grid; gap:7px; height:auto; align-content:end; }
+.buho-app .brand-portfolio-actions label>span { margin:0; text-transform:none; letter-spacing:0; font-family:inherit; font-size:12px; line-height:1.4; color:#72697d; font-weight:600; }
+.buho-app .brand-portfolio-actions :is(select,input) { height:44px!important; min-height:44px!important; }
+.buho-app .buho-brand-filter-fields { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.buho-app .buho-table-panel .buho-tabs button { font-size:14px; min-height:40px; padding:10px 14px; }
+.buho-app .buho-brand-filters { margin:0; border-left:0; border-right:0; border-radius:0; }
+
+.buho-app :is(.dashboard-attention-item,.dashboard-next-agenda)>footer { background:none; padding:0; border:0; color:inherit; font:inherit; margin-top:14px; min-height:0; }
+.buho-app .dashboard-attention-item h3 { font-weight:700; }
+.buho-app .dashboard-attention-panel,.buho-app .dashboard-next-agenda { font-family:Arial,sans-serif; }
+.buho-app .surveillance-dashboard .buho-dashboard-grid { margin-top:20px; }
+.buho-app .brand-portfolio-actions label.buho-search { display:grid; }
+.buho-app .brand-portfolio-actions label.buho-search>span { position:static; transform:none; display:block; padding:0; height:auto; line-height:1.4; margin:0; }
+.buho-app .watch-view .watch-toolbar { margin:0 0 14px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; }
+.buho-app .watch-toolbar>label { flex:1; min-width:230px; }
+.buho-app .watch-thresholds { width:100%; border-top:1px solid #eee9f2; padding-top:10px; }
+.watch-thresholds summary { cursor:pointer; color:#6d3e94; font-size:13px; font-weight:600; }
+.buho-app .watch-view .watch-relevance { margin:12px 0; display:flex; align-items:center; gap:12px; font-size:13px; }
+.buho-app .watch-view .watch-publication-filters { margin:0 0 12px; }
+.buho-app .watch-view .watch-tabs { margin-bottom:16px; }
+.buho-app .watch-view .watch-help { margin:10px 0; font-size:12px; }
+.buho-app .watch-view .watch-progress { font-size:12px; margin:0 0 12px; color:#72697d; }
+
+.buho-app .surveillance-dashboard .buho-dashboard-grid { margin-top:0; }
+.buho-app .case-density-control { margin-left:auto; }
+.buho-app .case-filter-controls>label:first-child input { width:100%; }
+.buho-app .buho-kanban-column>div { padding:0; }
+.buho-app .buho-case-main { width:100%; }
+.buho-app .is-simple .case-brand-role strong { font-weight:400; }
+.buho-app .is-simple .case-brand-role,.buho-app .case-simple-owner { margin:9px 0; font-size:12px; line-height:1.5; color:#72697d; }
+.buho-app .is-simple .buho-case-deadline { border-top:1px solid #eee9f2; padding-top:10px; display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:9px; }
+.buho-app .is-simple .buho-case-deadline time { font-size:12px; }
+.buho-app .is-simple .buho-case-deadline .buho-tone { padding:3px 6px; font-size:11px; }
+
+.buho-app .surveillance-dashboard { gap:0; }
+.buho-app .case-filter-controls>label:first-child input { max-width:none; }
+.buho-app .buho-sidebar nav button { min-height:36px; padding:8px 8px; }
+
+.buho-app .is-simple .case-brand-role { display:block; }
+.buho-app .is-simple .case-brand-role strong { display:inline; font-size:12px; }
+.buho-app .is-simple .case-deadline-status { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.buho-app .is-simple .case-deadline-status .work-status { font-size:11px; padding:4px 6px; }
+
+.buho-app .brand-match-mode select { width:100%; min-width:0; }
+.buho-app .dashboard-attention-item footer span { font:inherit; }
+.buho-app .watch-view { display:block; }
+.buho-app .watch-view .watch-tabs { padding-bottom:6px; margin-bottom:12px; }
+.buho-app .watch-view .watch-tabs button { min-height:40px; padding:10px 14px; }
+.buho-app .watch-view .watch-toolbar { padding:12px; margin:0 0 12px; }
+.buho-app .watch-thresholds { display:block; }
+.buho-app .watch-view .watch-relevance { flex-direction:row; max-width:none; margin:0 0 12px; justify-content:flex-start; }
+.buho-app .watch-relevance select { width:260px; }
+.buho-app .watch-view .watch-publication-filters { padding:12px; gap:12px; }
+.buho-app .watch-context { margin:0 0 10px; font-size:12px; color:#72697d; }
+.buho-app .watch-context summary { cursor:pointer; color:#6d3e94; }
+.buho-app .watch-band { margin-bottom:16px; }
+.buho-app .registration-attention-description { color:#302735; line-height:1.6; }
+.buho-app .registration-summary-caution { font-size:12px; color:#72697d; border-top:1px solid #eee9f2; padding-top:14px; margin-top:16px; line-height:1.6; }
+.buho-app .registration-summary-context { margin:16px 0 0; font-size:12px; color:#72697d; line-height:1.6; }
+.buho-app .registration-summary-context summary { color:#6d3e94; cursor:pointer; }
+@media(max-width:620px){ .buho-app .watch-view .watch-relevance { flex-direction:column; align-items:stretch; } .buho-app .watch-relevance select { width:100%; } }
+
+.buho-app .buho-table-top-scroll[hidden] { display:none; }
+.buho-app .tasks-view { gap:0; }
+.buho-app .tasks-view .tasks-toolbar { margin-bottom:12px; }
+
+.buho-app .dashboard-attention-panel>footer.registration-summary-caution { display:block; background:none; padding:14px 0 0; border:0; border-top:1px solid #eee9f2; color:#72697d; font:12px/1.6 Arial,sans-serif; min-height:0; }
+.buho-app .is-simple .case-deadline-status time { display:inline; margin:0; }
+
+/* Component styles load lazily; keep the approved shell authoritative. */
+.buho-app .notification-center .notice-tabs { border:0; border-bottom:1px solid #e2dbe9; border-radius:0; padding:0; background:none; }
+.buho-app .notification-center .notice-tabs button { min-height:42px; padding:11px 16px; border-radius:0; font-size:14px; }
+.buho-app .notification-center .notice-tabs button[aria-pressed=true] { background:none; box-shadow:inset 0 -3px #6d3e94; }
+.buho-app .notification-center .notice-tabs button span { font-size:12px; padding:2px 6px; }
+.buho-app .notification-center .notice-intro { font-size:13px; line-height:1.6; margin:12px 0 16px; }
+.buho-app .notification-center .notice-clear { min-height:42px; padding:10px 14px; font-size:13px; }
+.buho-app .notification-center .notice-search input { border:0; box-shadow:none; background:transparent; padding:10px 0; min-width:0; }
+.buho-app .notification-center .priority-notice-reader { display:flex; flex-direction:column; height:calc(100dvh - 330px); min-height:380px; max-height:calc(100dvh - 110px); overflow:hidden; }
+.buho-app .priority-notice-reader>header { flex:none; }
+.buho-app .priority-notice-reader .priority-notice-scroll { flex:1; min-height:0; overflow:auto; }
+.buho-app .priority-notice-reader>footer { flex:none; background:white; color:inherit; margin:0; min-height:0; padding:14px 18px; font:inherit; }
+.buho-app .trademark-toolbar .trademark-search { border:1px solid #d9d2e1; border-radius:8px; }
+.buho-app .trademark-toolbar .trademark-search input { border:0; background:transparent; box-shadow:none; }
+
+.review-dialog.buho-client-profile .buho-client-profile-body dl { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+.review-dialog.buho-client-profile .buho-client-profile-body dl>div:first-child { grid-column:1/-1; }
+.review-dialog.buho-client-profile .client-linked-heading { margin:16px 0 12px; gap:10px; }
+.review-dialog.buho-client-profile .buho-client-profile-body section { margin:16px 0; }
+@media(max-width:560px){.review-dialog.buho-client-profile .buho-client-profile-body dl { grid-template-columns:1fr; }}
+
+/* Compact watch filters follow the approved header; rich findings remain unchanged. */
+.buho-app .watch-view .watch-toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; background:none; border:0; padding:0; }
+.buho-app .watch-view .watch-toolbar>label:first-child { flex:1 1 300px; }
+.buho-app .watch-view .watch-toolbar .watch-relevance { flex:0 1 220px; display:flex; flex-direction:column; align-items:stretch; margin:0; font-size:12px; }
+.buho-app .watch-toolbar .watch-relevance select { width:100%; }
+.buho-app .watch-thresholds,.buho-app .watch-publication-disclosure { position:relative; flex:0 0 auto; width:auto; margin:0; border:0; padding:0; }
+.buho-app .watch-thresholds>summary,.buho-app .watch-publication-disclosure>summary { padding:12px; min-height:44px; border:1px solid #ddd5e5; border-radius:8px; background:#fff; color:#51455f; cursor:pointer; font:600 13px/1.4 Arial,sans-serif; }
+.buho-app .watch-thresholds[open],.buho-app .watch-publication-disclosure[open] { flex:1 1 100%; }
+.buho-app .watch-thresholds[open]>summary,.buho-app .watch-publication-disclosure[open]>summary { width:max-content; margin-bottom:10px; }
+.buho-app .watch-thresholds .watch-level-switch { margin-top:12px; }
+@media(max-width:620px){ .buho-app .watch-view .watch-toolbar>label:first-child,.buho-app .watch-view .watch-toolbar .watch-relevance { flex:1 1 100%; } }
+
+@media(max-width:620px) {
+  .buho-app { display:flex; flex-direction:column; height:100dvh; }
+  .buho-app .buho-sidebar { flex:none; }
+  .buho-app .buho-workspace { flex:1; min-height:0; height:auto; }
+  .buho-app .case-filter-controls label:first-child { flex:1 1 100%; }
+  .buho-app .case-filter-controls label:not(:first-child) { flex:1 1 130px; }
+  .buho-app .tasks-view .tasks-list article { grid-template-columns:24px minmax(0,1fr) 40px; align-items:start; gap:10px; }
+  .buho-app .tasks-view .task-complete { grid-column:1; grid-row:1; margin-top:4px; }
+  .buho-app .tasks-view .task-list-main { grid-column:2; grid-row:1; }
+  .buho-app .tasks-view .tasks-list .task-remove { grid-column:3; grid-row:1; }
+  .buho-app .tasks-view .task-inline-priority { grid-column:2; grid-row:2; width:110px; justify-self:start; }
+  .buho-app .tasks-view .task-list-context { grid-column:2; grid-row:3; }
+}
+
+/* These inputs live inside a shared search field; only its outer border is visible. */
+.buho-app .notification-center .notice-search input[type=search],
+.buho-app .trademark-toolbar .trademark-search input[type=search],
+.buho-app .feasibility-result-search input[type=search] { border:0; box-shadow:none; background:transparent; }
+.buho-app .tasks-view select.task-inline-priority.task-priority-alta { background-color:#fbe8ec; color:#a83d56; }
+.buho-app .tasks-view select.task-inline-priority.task-priority-media { background-color:#fff2ce; color:#936420; }
+.buho-app .tasks-view select.task-inline-priority.task-priority-baja { background-color:#eaf5ee; color:#28764b; }
+@media(max-width:620px) {
+  .buho-app .buho-brand-filters .buho-brand-filter-fields { grid-template-columns:1fr; }
+}
+
+/* Immediate, inline feedback: the form remains usable while persistence completes. */
+.buho-app .watch-rating-comment { display:grid; gap:10px; margin-top:18px; }
+.buho-app .watch-rating-comment > label { display:block; font-size:17px; font-weight:750; line-height:1.4; color:#33253d; }
+.buho-app .watch-rating-comment > label span { display:inline; font-size:13px; font-weight:400; color:#75697d; }
+.buho-app .watch-rating-comment textarea { display:block; width:100%; min-height:88px; resize:vertical; padding:12px 14px; border:1px solid #d8cbe2; border-radius:10px; background:white; color:#33253d; font:inherit; font-size:15px; line-height:1.5; }
+.buho-app .watch-rating-comment textarea:focus { outline:2px solid #8753ab; outline-offset:2px; }
+.buho-app .watch-rating-comment-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.buho-app .watch-rating-comment-actions small { font-size:13px; color:#75697d; }
+.buho-app .similarity-actions .watch-rating-comment button,.buho-app .similarity-actions .watch-rating-error button { width:auto; height:auto; min-height:40px; padding:9px 20px; font-size:14px; border-radius:8px; }
+.buho-app .watch-rating-error p { font-size:14px; color:#a42e4d; }
+.buho-app .watch-rating-controls button.is-positive:disabled,.buho-app .watch-rating-controls button.is-negative:disabled { opacity:1; }
+.feasibility-result-logo { width:88px; min-width:88px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image { width:68px; height:60px; min-width:0; min-height:0; border-radius:8px; background:#fff; }
+.feasibility-results-table .feasibility-result-logo .similarity-image img { width:100%; height:100%; object-fit:contain; padding:4px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image > span { min-height:0; padding:4px; gap:2px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image b { font-size:18px; }
+.feasibility-results-table .feasibility-result-logo .similarity-image small { font-size:10px; }
+
+@media(max-width:620px) {
+ .buho-drawer .buho-match-summary { grid-template-columns:auto minmax(0,1fr); }
+ .buho-drawer .buho-match-summary > a { grid-column:1/-1; justify-self:start; }
+ .buho-drawer .buho-match-summary > div strong { font-size:20px; }
+}

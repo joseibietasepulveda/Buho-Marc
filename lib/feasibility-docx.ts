@@ -1,82 +1,66 @@
-import { AlignmentType, Document, Header, HeadingLevel, ImageRun, Packer, Paragraph, TextRun } from 'docx';
+import { reportCoverage } from './report-coverage';
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, PageNumber, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from 'docx';
 import type { FeasibilityReportInput } from './feasibility-report';
 import { selectReportHits } from './report-selection';
 import { filterFeasibility, uncertainState } from './feasibility-policy';
 import { reportRecommendation } from './feasibility-recommendation';
 import { applyVerifiedDecision } from './verified-decisions';
-
-const date = (value: string) => new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'long' }).format(new Date(value.length === 10 ? `${value}T12:00:00Z` : value));
-const pngSize = (bytes: Uint8Array, maxWidth: number, maxHeight: number) => {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const width = view.getUint32(16), height = view.getUint32(20);
-  const scale = Math.min(maxWidth / width, maxHeight / height);
-  return { width: Math.round(width * scale), height: Math.round(height * scale) };
-};
-
-export async function createFeasibilityDocx(input: FeasibilityReportInput): Promise<Blob> {
-  const { proposal, status } = input;
-  const result = { ...input.result, results: input.result.results.map(applyVerifiedDecision) };
-  const allHits = filterFeasibility(result.results, status);
-  const hits = selectReportHits(allHits, input.selectedIds);
-  const recommendation = reportRecommendation(result, input.recommendation, input.explanation, proposal.coverage.map(item => item.nice_class));
-  const body: Paragraph[] = [];
-  const paragraph = (value: string, options: { bold?: boolean; small?: boolean; after?: number; keepNext?: boolean } = {}) => new Paragraph({
-    children: [new TextRun({ text: value, bold: options.bold, color: options.small ? '60666B' : '1F2933', size: options.small ? 19 : 22, font: 'Aptos' })],
-    spacing: { after: options.after ?? 130, line: 310 }, keepNext: options.keepNext,
-  });
-  const heading = (value: string) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: value, bold: true, color: '000000', size: 27, font: 'Aptos' })], spacing: { before: 280, after: 130 }, keepNext: true });
-  const picture = (bytes: Uint8Array, width: number, height: number) => new Paragraph({ children: [new ImageRun({ type: 'png', data: bytes, transformation: pngSize(bytes, width, height), altText: { name: 'Imagen de marca', title: 'Imagen de marca', description: 'Imagen de la marca examinada' } })], spacing: { after: 130 }, keepNext: false });
-
-  body.push(new Paragraph({ style: 'Title', children: [new TextRun({ text: 'Informe de prefactibilidad de marca', bold: true, color: '000000', size: 34, font: 'Aptos' })], spacing: { after: 120 } }));
-  body.push(paragraph(proposal.name.trim() || 'Marca sin nombre', { bold: true, after: 80 }));
-  body.push(paragraph(date(result.fetchedAt), { small: true }));
-  if (input.client?.trim()) body.push(paragraph(`Para: ${input.client.trim()}`, { small: true }));
-  if (input.author?.trim()) body.push(paragraph(`Preparado por: ${input.author.trim()}`, { small: true }));
-
-  body.push(heading('La marca que revisamos'));
-  if (input.image) body.push(picture(input.image, 220, 150));
-  body.push(paragraph(proposal.coverage.map(c => `${c.text.trim() || 'Productos o servicios por definir'} (clase ${c.nice_class})`).join('; ') || 'Los productos o servicios todavía no están definidos.'));
-
-  body.push(heading('Marcas que conviene comparar'));
-  body.push(paragraph(`La búsqueda devolvió ${result.results.length} resultados con los criterios elegidos. En este informe destacamos ${hits.length}.`));
-  const { evidence } = recommendation;
-  body.push(paragraph(`Entre las marcas registradas o en trámite: ${evidence.high} con similitud alta (65% a 100%) y ${evidence.medium} con similitud media (45% a 64%).${evidence.topScore == null ? '' : ` Índice mayor: ${Math.round(evidence.topScore * 100)}%.`}`, { bold: true }));
-  body.push(paragraph('El índice expresa semejanza entre marcas; no es una probabilidad de rechazo.', { small: true }));
-  if (hits.length) body.push(paragraph(input.selectedIds?.length ? 'Las marcas detalladas fueron seleccionadas para este informe. La recomendación considera toda la búsqueda.' : 'Marcas con mayor índice de similitud.', { small: true }));
-  else body.push(paragraph('No hay resultados con este filtro. Conviene revisar también los demás estados.'));
-
-  for (const [index, hit] of hits.entries()) {
-    const shared = hit.classes.filter(c => proposal.coverage.some(p => p.nice_class === c.nice_class));
-    const coverage = (shared.length ? shared : hit.classes).map(c => c.coverage_text || `Productos o servicios de la clase ${c.nice_class}`).join('; ');
-    body.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun({ text: `${index + 1}. ${hit.name}`, bold: true, color: '000000', size: 24, font: 'Aptos' })], spacing: { before: 220, after: 90 }, keepNext: true }));
-    body.push(paragraph(`Índice de similitud: ${Math.round(hit.score * 100)}%`, { bold: true, after: 65, keepNext: true }));
-    body.push(paragraph(`${uncertainState(hit.status) ? 'Estado por confirmar' : hit.status} · Solicitud ${hit.applicationId}${hit.registrationId ? ` · Registro ${hit.registrationId}` : ''}`, { small: true, after: 65, keepNext: true }));
-    body.push(paragraph(`Titular: ${hit.holders.map(h => h.name).join('; ') || 'No informado'}`, { small: true, after: 65, keepNext: true }));
-    body.push(paragraph(`Clases ${hit.classes.map(c => c.nice_class).join(', ') || 'no informadas'} · ${coverage || 'Productos o servicios no informados'}`, { small: true }));
-    if (hit.officialDecision) body.push(paragraph(`Decisión firme desde el ${date(hit.officialDecision.firmAt)}.`, { small: true }));
-    else if (uncertainState(hit.status) || hit.dataWarnings?.length) body.push(paragraph('Hay datos de esta solicitud que debemos confirmar.', { small: true }));
-    const bytes = input.resultImages?.[hit.applicationId];
-    if (bytes) body.push(picture(bytes, 220, 145));
+const date=(value:string)=>new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'long'}).format(new Date(value.length===10?`${value}T12:00:00Z`:value));
+const pngSize=(bytes:Uint8Array,maxWidth:number,maxHeight:number)=>{const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),width=view.getUint32(16),height=view.getUint32(20),scale=Math.min(maxWidth/width,maxHeight/height);return{width:Math.round(width*scale),height:Math.round(height*scale)};};
+export async function createFeasibilityDocx(input:FeasibilityReportInput):Promise<Blob>{
+  const{proposal,status,studioProfile:profile}=input;
+  const result={...input.result,results:input.result.results.map(applyVerifiedDecision)};
+  const allHits=filterFeasibility(result.results,status),hits=selectReportHits(allHits,input.selectedIds);
+  const recommendation=reportRecommendation(result,input.recommendation,input.explanation,proposal.coverage.map(c=>c.nice_class));
+  const author=input.author?.trim()||profile?.lawyerName.trim();
+  const body:(Paragraph|Table)[]=[];
+  const paragraph=(value:string,options:{bold?:boolean;small?:boolean;after?:number;keepNext?:boolean;align?:typeof AlignmentType[keyof typeof AlignmentType];underline?:boolean}={})=>new Paragraph({children:[new TextRun({text:value,bold:options.bold,font:'Arial',size:options.small?18:22,color:options.small?'60666B':'000000',underline:options.underline?{}:undefined})],alignment:options.align,spacing:{after:options.after??120,line:310},keepNext:options.keepNext,widowControl:true});
+  const heading=(value:string)=>new Paragraph({heading:HeadingLevel.HEADING_1,children:[new TextRun({text:value,bold:true,underline:{},font:'Arial',size:22,color:'000000'})],spacing:{before:340,after:160},keepNext:true});
+  const field=(label:string,value:string,keepNext=false)=>new Paragraph({children:[new TextRun({text:label+': ',bold:true,font:'Arial',size:22}),new TextRun({text:value,font:'Arial',size:22})],spacing:{after:65,line:300},keepNext,widowControl:true});
+  const picture=(bytes:Uint8Array,width:number,height:number,keepNext=false)=>new Paragraph({children:[new ImageRun({type:'png',data:bytes,transformation:pngSize(bytes,width,height),altText:{name:'Etiqueta de la marca',title:'Etiqueta de la marca',description:'Imagen de los antecedentes examinados'}})],spacing:{after:140},keepNext});
+  const name=proposal.name.trim()||'Marca sin nombre',classes=[...new Set(proposal.coverage.map(c=>c.nice_class))];
+  body.push(paragraph(name,{bold:true,align:AlignmentType.RIGHT,after:80,keepNext:true}));
+  if(classes.length)body.push(paragraph(`Clase${classes.length===1?'':'s'} ${classes.join(', ')}`,{bold:true,align:AlignmentType.RIGHT,after:380,keepNext:true}));
+  body.push(paragraph('INFORME DE FACTIBILIDAD',{bold:true,underline:true,align:AlignmentType.CENTER,after:120,keepNext:true}));
+  if(input.client?.trim())body.push(paragraph(`Para: ${input.client.trim()}`,{small:true}));
+  body.push(heading('I.     Marca objeto del análisis.'));
+  body.push(paragraph(`La marca objeto del análisis es “${name}”${classes.length?`, para distinguir productos y/o servicios en las clases ${classes.join(', ')} del Clasificador Internacional de Niza.`:'. Los productos o servicios todavía no están definidos.'}`));
+  for(const c of proposal.coverage)if(c.text.trim())body.push(field(`Cobertura propuesta · Clase ${c.nice_class}`,c.text.trim()));
+  if(input.image)body.push(picture(input.image,210,140));
+  body.push(heading('II.    Antecedentes registrales relevantes.'));
+  body.push(paragraph(`La búsqueda, efectuada conforme a los criterios seleccionados, arrojó ${result.results.length} resultados, de los cuales el presente informe analiza en detalle ${hits.length}.`));
+  const{evidence}=recommendation;
+  body.push(paragraph(`Entre los registros vigentes y las solicitudes en trámite se identificaron ${evidence.high} marcas con similitud alta (índice entre 65% y 100%) y ${evidence.medium} con similitud media (índice entre 45% y 64%).${evidence.topScore==null?'':` El índice de similitud más alto obtenido es de ${Math.round(evidence.topScore*100)}%.`}`));
+  body.push(heading('III.   Resultados de la búsqueda.'));
+  if(!hits.length)body.push(paragraph('No hay antecedentes con el filtro elegido. Este resultado no acredita la disponibilidad de la marca; conviene completar la revisión.'));
+  for(const[index,hit]of hits.entries()){
+    body.push(new Paragraph({heading:HeadingLevel.HEADING_2,children:[new TextRun({text:`${index+1}. ${hit.name}`,bold:true,underline:{},font:'Arial',size:22,color:'000000'})],spacing:{before:260,after:100},keepNext:true}));
+    body.push(field('Factor de similitud',`${Math.round(hit.score*100)}%`,true));
+    body.push(field('Estado',uncertainState(hit.status)?'Estado por confirmar':hit.status,true));
+    body.push(field('Solicitud',hit.applicationId,true));if(hit.registrationId)body.push(field('Registro',hit.registrationId,true));
+    body.push(field('Titular',hit.holders.map(h=>h.name).join('; ')||'No informado',true));
+    const bytes=input.resultImages?.[hit.applicationId];
+    if(bytes){body.push(paragraph('Etiqueta:',{bold:true,after:50,keepNext:true}));body.push(picture(bytes,180,115,true));}
+    else body.push(field('Etiqueta',hit.image?'Imagen no disponible':'No registra imagen en los antecedentes recuperados',true));
+    for(const row of reportCoverage(hit.classes))body.push(field(row.label,row.value));
+    if(hit.officialDecision)body.push(paragraph(`Decisión firme desde el ${date(hit.officialDecision.firmAt)}.`,{small:true}));
+    else if(uncertainState(hit.status)||hit.dataWarnings?.length)body.push(paragraph('Hay datos de esta solicitud que deben confirmarse.',{small:true}));
   }
-
-  body.push(heading('Sobre esta revisión'));
-  body.push(paragraph(`Fuente: datos de INAPI entregados por DeQuiénEs, consultados el ${date(result.fetchedAt)}. Se recuperaron hasta ${result.searchScope?.limit ?? 50} candidatos de la fuente.`, { small: true }));
-  if (result.warnings.length || hits.some(h => h.dataWarnings?.length)) body.push(paragraph('Algunos datos de la fuente deben confirmarse antes de presentar.', { small: true }));
-  if (input.includeAppendix) {
-    body.push(heading('Anexo de resultados'));
-    for (const hit of allHits) body.push(paragraph(`${hit.name} · Solicitud ${hit.applicationId} · ${Math.round(hit.score * 100)}% · ${hit.status}`, { small: true }));
-  }
-  body.push(heading('Recomendación final'));
-  body.push(paragraph(recommendation.title, { bold: true, after: 80 }));
-  body.push(paragraph(recommendation.explanation));
-
-  const logo = input.studioLogo && new ImageRun({ type: 'png', data: input.studioLogo, transformation: pngSize(input.studioLogo, 150, 110), altText: { name: 'Logo del estudio', title: 'Logo del estudio', description: 'Estudio Jurídico' } });
-  const doc = new Document({
-    creator: input.author?.trim() || 'Estudio Jurídico', title: `Informe de prefactibilidad de marca ${proposal.name.trim()}`,
-    sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1900, right: 1150, bottom: 1200, left: 1150, header: 450 } } },
-      headers: logo ? { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [logo] })] }) } : undefined,
-      children: body,
-    }],
-  });
+  if(input.includeAppendix){body.push(heading('Anexo de resultados.'));for(const hit of allHits){body.push(paragraph(`${hit.name} · Solicitud ${hit.applicationId} · ${Math.round(hit.score*100)}% · ${hit.status}`,{keepNext:!!hit.classes.length}));for(const row of reportCoverage(hit.classes))body.push(field(row.label,row.value));}}
+  body.push(heading('IV.    Conclusión.'));
+  body.push(paragraph(input.conclusion?.title||recommendation.title,{bold:true,keepNext:true}));
+  const conclusionParagraphs=input.conclusion?.paragraphs??[recommendation.explanation],shortConclusion=conclusionParagraphs.join(' ').length<1600;
+  for(const[index,value]of conclusionParagraphs.entries())body.push(paragraph(value,{keepNext:shortConclusion&&index<conclusionParagraphs.length-1,after:180}));
+  body.push(paragraph(`Nota: el análisis se basa en los antecedentes de INAPI entregados por DeQuiénEs, consultados el ${date(result.fetchedAt)}, y en hasta ${result.searchScope?.limit??50} candidatos recuperados. No garantiza el resultado del examen de INAPI ni excluye oposiciones de terceros. Los índices expresan semejanza, no probabilidad de registro.`,{small:true}));
+  if(result.warnings.length||hits.some(h=>h.dataWarnings?.length))body.push(paragraph('Los datos incompletos o inconsistentes deben confirmarse antes de presentar.',{small:true}));
+  if(author){body.push(paragraph(author,{after:0,keepNext:true}));body.push(paragraph('Abogado',{after:0}));}
+  const headerText=profile?.headerText?.trim()||profile?.studioName.trim()||'';
+  const headerRows=headerText.split('\n').filter(Boolean);
+  const logo=input.studioLogo?new ImageRun({type:'png',data:input.studioLogo,transformation:pngSize(input.studioLogo,130,85),altText:{name:'Logo del estudio',title:'Logo del estudio',description:profile?.studioName||'Estudio jurídico'}}):undefined;
+  const none={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
+  const header=(logo||headerText)?new Header({children:[new Table({width:{size:9940,type:WidthType.DXA},columnWidths:[3800,6140],borders:{top:none,bottom:none,left:none,right:none,insideHorizontal:none,insideVertical:none},rows:[new TableRow({cantSplit:true,children:[new TableCell({width:{size:3800,type:WidthType.DXA},margins:{top:0,bottom:0,left:0,right:0},children:[new Paragraph({children:logo?[logo]:[],spacing:{after:0}})]}),new TableCell({width:{size:6140,type:WidthType.DXA},margins:{top:0,bottom:0,left:0,right:0},children:headerRows.length?headerRows.map(value=>new Paragraph({children:[new TextRun({text:value,font:'Arial',size:17,color:'60666B'})],alignment:AlignmentType.RIGHT,spacing:{after:20,line:220}})):[new Paragraph({})]})]})]})]}):undefined;
+  const footerTexts=[...(profile?.address.trim().split('\n').filter(Boolean)??[]),[profile?.website,profile?.email,profile?.phone].filter(Boolean).join(' · ')].filter(Boolean);
+  const footerLineCount=footerTexts.reduce((sum,value)=>sum+Math.ceil(value.length/100),0);
+  const doc=new Document({creator:author||profile?.studioName||'',title:`Informe de factibilidad de marca ${name}`,styles:{default:{document:{run:{font:'Arial',size:22},paragraph:{spacing:{line:310}}}},paragraphStyles:[{id:'ReportFooter',name:'Pie del informe',basedOn:'Normal',run:{font:'Arial',size:17,color:'000000'},paragraph:{alignment:AlignmentType.CENTER,spacing:{after:0,line:220}}}]},sections:[{properties:{page:{size:{width:12240,height:15840},margin:{top:Math.max(1200,logo?2200:0,headerRows.reduce((sum,value)=>sum+Math.ceil(value.length/65),0)*220+550),right:1150,left:1150,bottom:Math.max(1000,footerLineCount*220+500),header:380,footer:300}}},headers:header?{default:header}:undefined,footers:{default:new Footer({children:[...footerTexts.map(value=>new Paragraph({style:'ReportFooter',children:[new TextRun(value)]})),new Paragraph({style:'ReportFooter',alignment:AlignmentType.RIGHT,children:[new TextRun({size:14,children:[PageNumber.CURRENT,' / ',PageNumber.TOTAL_PAGES]})]})]})},children:body}]});
   return Packer.toBlob(doc);
 }

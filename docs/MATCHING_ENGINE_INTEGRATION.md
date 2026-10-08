@@ -1,6 +1,8 @@
 # Contrato vigente del motor · v1.0
 
-Se consume `POST https://dequienes.cl/inapi/trademarks/search` de forma síncrona desde el servidor, mediante trabajos persistentes propios. Stock: `application_id`, `limit: 30`, `grouped: false`, `exclude_same_holder: true`, `include: ["coverage"]`, sin filtro de estados. Novedades: llamadas separadas con `filed_after` y `published_after`. Estados e historial: `/trademarks/batch`. Prefactibilidad por imagen usa multipart con los campos `options` (JSON) e `image`.
+Actualizado el 2 de octubre de 2026. Se consume `POST https://dequienes.cl/inapi/trademarks/search` desde el servidor, mediante trabajos persistentes propios. Stock de vigilancia: `application_id`, `limit: 50`, `grouped: false`, `exclude_same_holder: true`, `include: ["coverage"]`, sin filtro previo de estados. Novedades: llamadas separadas con `filed_after` y `published_after`. Estados, cobertura e historial: `/trademarks/batch`. Factibilidad recupera hasta 100 candidatos y por imagen usa multipart con `options` (JSON) e `image`. Las fechas de solicitud/publicación/registro se envían a la fuente; estados y modos textuales se aplican al lote recuperado.
+
+El alta de cartera incorpora `/trademarks/by-holder` por RUT exacto/nombre y rol de titular/representante, con revisión paginada y confirmación de cliente/rol. La evidencia textual original se conserva para preparar la conclusión sobre toda la búsqueda. Los puntajes no son probabilidades jurídicas; la API y las clases no garantizan una búsqueda exhaustiva. [Contrato y límites implementados](inapi-dev.md) · [Flujos de UI](UX_OCTUBRE_2026.md) · [Informes](INFORMES_FACTIBILIDAD_2026-10-02.md).
 
 Los puntajes se conservan en evidencia sin convertirlos en probabilidades; la clasificación manual se guarda aparte. Las decisiones y casos se preservan al actualizar resultados. Detalle operativo y pendientes: [v1.0](V1_0_RELEASE.md).
 

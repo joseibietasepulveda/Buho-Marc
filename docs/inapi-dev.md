@@ -1,6 +1,19 @@
-# Integración INAPI · actualización v1.0
+# Integración INAPI · actualización del 7 de octubre de 2026
 
-Vigilancia y prefactibilidad ya usan `/trademarks/search`, más `/trademarks/batch` para estados e historial. El adaptador admite `registration_id` y el nombre anterior `registration_number`. Las imágenes propuestas usan `options` e `image` en multipart. Se solicitan 30 similitudes por consulta de vigilancia, sin filtrar estados. Víctor implementará el filtro por estado en una versión posterior; falta acordar su catálogo, considerando recursos e instancias tras un rechazo. [Entrega y límites](V1_0_RELEASE.md).
+Entrega publicada en Dev el 07/10 mediante [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6): [recuperación puntual de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md) y [API pública observada](INAPI_API_PUBLICA.md). Sustituye el aplazamiento de la consulta directa. La fuente habitual continúa siendo DeQuiénEs. Migración y configuración verificadas; 222 registros guardados reproyectados y cola preparada. La primera conexión pública falló y activó la pausa; no se afirma haber recuperado fechas nuevas. [Registro de publicación y límite operativo](RAILWAY_DEPLOYMENT.md).
+
+
+Vigilancia y factibilidad usan `/trademarks/search` y `/trademarks/batch` para estados, coberturas e historial. Se piden 50 resultados de stock por vigilancia y hasta 100 candidatos por factibilidad. El adaptador admite `registration_id` y el nombre anterior `registration_number`; las imágenes propuestas usan `options` e `image` en multipart. Los estados se interpretan y filtran sobre antecedentes recuperados; el filtro previo en la fuente y su catálogo siguen pendientes. Un rechazo puede tener recursos o instancias posteriores.
+
+## Capacidades integradas en octubre
+
+La [documentación de DeQuiénEs](https://dequienes.cl/inapi/docs) se revisó para incorporar `/trademarks/by-holder`: RUT exacto, nombre por semejanza y roles `holder`, `representative` o `any`, con paginación de hasta 100 y desplazamiento máximo de 10.000. El flujo combina criterios, consulta expedientes completos por lote, explica candidatos y exige confirmar cliente/rol antes de incorporar. No resuelve directamente números de registro solos; estos se buscan entre datos guardados.
+
+Factibilidad envía Solicitud desde, Publicación DO desde y Registro desde a los canales de recuperación. Admite descripción de etiqueta, titular de propuesta/exclusión y el modelo visual disponible (`base`); no muestra un selector de modelos. Contiene, Similar, Contiene palabra completa, Empieza con, Termina con y Exacto están disponibles donde corresponde; los modos textuales, estados y filtros estrictos se aplican al lote recuperado, sin prometer exhaustividad. Las clases orientan la recuperación y no excluyen por sí solas otras clases.
+
+El adaptador conserva evidencia textual adicional de búsqueda y expediente para preparar el contexto completo de conclusión. Los resultados/actuaciones son datos de referencia; no se ejecutan instrucciones incluidas en documentos o campos de la fuente. [Contrato y límites de UI](UX_OCTUBRE_2026.md) · [Contexto e informes](INFORMES_FACTIBILIDAD_2026-10-02.md).
+
+La publicación funcional de estas mejoras se verificó en Dev con `b42ae34`, estado `SUCCESS` y base/fuente conectadas. Las secciones siguientes conservan la historia de septiembre; cantidades iniciales, botones antiguos y estados de producción se interpretan con su fecha.
 
 ## Historial de la integración de expedientes
 
@@ -19,7 +32,7 @@ Esta responsabilidad compartida no implica que una capacidad solicitada ya esté
 - Inscripción: 100 solicitudes reales seleccionadas en `data/inapi-cohort.json`.
 - Marcas registradas: 100 registros reales más las marcas mock existentes. El origen se muestra en la última columna y en la ficha.
 - Vigilancias, casos y notificaciones mock existentes se conservan. El motor de nuevas coincidencias de similitud todavía no está conectado.
-- Los expedientes reales se consultan exclusivamente desde el servidor a `https://dequienes.cl/inapi/trademarks/batch`, usando `x-api-key`. Lotes de hasta 100 solicitudes según el contrato consultado del proveedor.
+- La consulta habitual de los expedientes reales se realiza desde el servidor a `https://dequienes.cl/inapi/trademarks/batch`, usando `x-api-key`. Lotes de hasta 100 solicitudes según el contrato consultado del proveedor.
 - Los IDs se extrajeron del estado diario ED_MD_2026-09-04.pdf. El archivo de selección conserva sección y página. La carga inicial no crea avisos históricos.
 
 ## Ejecución
@@ -50,7 +63,7 @@ Verificación reproducible en una base desechable: `node --import ./tests/ts-loa
 
 Se comparan todos los antecedentes de negocio devueltos, incluyendo actuaciones, anotaciones, cobertura, titulares y representantes. Metadatos de extracción y orden de claves no son cambios jurídicos. La primera incorporación de fecha de vencimiento o registro se guarda sin aviso aislado. Los avisos agrupan las novedades por expediente usando la denominación de la marca.
 
-Un número y fecha de registro, junto con las actuaciones, pueden acreditar una concesión aunque el estado general siga diciendo En Trámite. La ficha y el administrador conservan ambos datos y las actuaciones posteriores. Los plazos se muestran como informados por la fuente o calculados desde el antecedente específico identificado. No se presume notificación a partir de una resolución ni ejecutoria a partir de la aceptación. El cálculo LPI sólo cubre 2026; véase [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).
+Un número y fecha de registro, junto con las actuaciones, pueden acreditar una concesión aunque el estado general siga diciendo En Trámite. La ficha y el administrador conservan ambos datos y las actuaciones posteriores. Los plazos se muestran como informados por la fuente o calculados desde el antecedente específico identificado. No se presume notificación a partir de una resolución ni ejecutoria a partir de la aceptación. El cálculo LPI/LBPA cubre 2023–2027 tras la ampliación del 07/10; véase [REGISTRATION_PROCESS_REVIEW.md](REGISTRATION_PROCESS_REVIEW.md).
 
 La Gran base real es de solo lectura: no permite generar seis cambios ni editar antecedentes que se presentan como oficiales. Las corridas y sus errores son visibles en la segunda pestaña del administrador.
 
@@ -80,3 +93,13 @@ El Administrador de fuente muestra una tabla resumida de expedientes y conserva 
 Las filas admiten clic, Enter y Espacio. El panel mantiene cabecera y cierre visibles, tiene desplazamiento interno y no desborda horizontalmente con resoluciones extensas. La fuente INAPI no se edita desde esta vista; las revisiones manuales se inician desde Marcas registradas y las automáticas conservan el horario configurado.
 
 Última interfaz Dev verificada en Railway: despliegue `24e72a29-3ece-4701-9859-623aa9f28aad`, commit `24300f9`, estado `SUCCESS`. Production permanece en `60ea09c`.
+
+## Prioridad de logos — 7 de octubre de 2026 (publicado en Dev)
+
+Decisión del usuario: DeQuiénEs es la primera fuente de imágenes en todos los apartados, porque el equipo tiene control sobre este servicio. `image_url`, documentado en los documentos y lotes de `https://dequienes.cl/inapi/docs`, se conserva en el adaptador y en la evidencia original.
+
+`lib/trademark-image.ts` construye las rutas comunes para pantallas e informes. `lib/trademark-image-server.ts` intenta la URL de DeQuiénEs recibida o guardada; para URLs antiguas sin este campo, consulta un único expediente al batch de DeQuiénEs. INAPI `/etiqueta/?s=<solicitud>` es exclusivamente el respaldo. No se adivinan rutas del CDN ni se generan logos. La ruta histórica `/api/inapi/logo/[id]` conserva compatibilidad aunque su fuente principal ahora sea DeQuiénEs. `/api/similarity/image` comparte el cargador.
+
+Las rutas requieren sesión y usan evidencia de `source_snapshots` de la organización de esa sesión. Máximo cuatro cargas simultáneas, deduplicación en vuelo por organización/solicitud/URL, descargas limitadas a 8 MiB y decodificación hasta 20 megapíxeles. Solo HTTPS de `marcas.dequienes.cl` sin credenciales, puerto alternativo ni redirecciones; las claves del API nunca se envían al host de imágenes. URL firmada sin modificaciones. Caché privada de una hora para éxito DeQuiénEs; respaldo oficial y errores sin caché. No requiere migraciones ni ejecutar vigilancia masiva.
+
+Pruebas y límites: [traspaso de importación y logos](handoffs/2026-10-07-marcas-importacion-logos.md). La entrega se integró por PR #8 y Railway confirmó el despliegue del SHA `26dfd3551b7a6795f4ec731df406f00e0a9696f4`. La disponibilidad de cada imagen del CDN no se deduce de la salud de la app.

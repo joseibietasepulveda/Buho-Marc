@@ -27,7 +27,6 @@ import { RegistrationLogo } from "./registration-logo";
 import { ClientNameLink } from "./client-provider";
 import { activityContent, activityDate, oldestActivityFirst } from "@/lib/registration-activity";
 import { deadlineInfo, registrationDeadlines, deadlineLabel, registrationProgress, type Attention, type ProcedureDeadline } from "@/lib/registration-procedure";
-import { RegistrationEvidenceEditor } from "./registration-evidence-editor";
 import "./registration-v05.css";
 import { PROCESS_DEMO_DATE, PROCESS_SCENARIOS } from "@/lib/registration-scenarios";
 export { deadlineInfo } from "@/lib/registration-procedure";
@@ -57,20 +56,36 @@ function AttentionIcon({ attention }: { attention: Attention }) {
 }
 
 type RegistrationState = { applications: RegistrationApplication[]; tasks: RegistrationTask[]; loading: boolean; error: string };
-const RegistrationContext = createContext<(RegistrationState & { refresh: () => Promise<void> }) | null>(null);
+const RegistrationContext = createContext<(RegistrationState & { refresh: () => Promise<void>; saveTask: (applicationId: string, task: CaseTask, remove?: boolean) => Promise<boolean> }) | null>(null);
 export function RegistrationProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RegistrationState>({ applications: [], tasks: [], loading: true, error: "" });
+  const pendingWrites = useRef(new Set<string>()), version = useRef(0);
   const reader = useRef(snapshotReader<{applications: RegistrationApplication[]; tasks: RegistrationTask[]}>());
   const refresh = useCallback(async () => {
     try {
+      const requestedVersion = version.current;
       const p = await reader.current("/api/registrations");
-      if (!p) return;
+      if (!p || requestedVersion !== version.current || pendingWrites.current.size) return;
       if (!Array.isArray(p.applications)) throw new Error();
       setState({ applications: p.applications, tasks: p.tasks ?? [], loading: false, error: "" });
     } catch { setState(current => ({ ...current, loading: false, error: "No se pudieron actualizar las solicitudes. Se conservan los últimos datos; reintentaremos automáticamente." })); }
   }, []);
+  async function saveTask(applicationId: string, task: CaseTask, remove = false) {
+    const key = `${applicationId}:${task.id}`;
+    if (pendingWrites.current.has(key)) return false;
+    const prior = state.tasks.find(entry => entry.id === task.id && entry.applicationId === applicationId);
+    const patch = (replacement?: RegistrationTask) => setState(current => ({ ...current, tasks: [...current.tasks.filter(entry => entry.id !== task.id || entry.applicationId !== applicationId), ...(replacement ? [replacement] : [])] }));
+    pendingWrites.current.add(key); version.current++;
+    patch(remove ? undefined : { ...task, applicationId });
+    try {
+      const response = await fetch("/api/tasks", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(remove ? { action: "delete", entityType: "application", entityId: applicationId, taskId: task.id } : { action: "save", entityType: "application", entityId: applicationId, task }) });
+      if (!response.ok) throw new Error("No se pudo guardar la tarea.");
+      return true;
+    } catch { patch(prior); return false; }
+    finally { version.current++; pendingWrites.current.delete(key); }
+  }
   useEffect(() => pollWhileVisible(refresh, 30000), [refresh]);
-  return <RegistrationContext.Provider value={{ ...state, refresh }}>{children}</RegistrationContext.Provider>;
+  return <RegistrationContext.Provider value={{ ...state, refresh, saveTask }}>{children}</RegistrationContext.Provider>;
 }
 export function useRegistrationApplications() {
   const state = useContext(RegistrationContext);
@@ -80,13 +95,7 @@ export function useRegistrationApplications() {
 export function useRegistrationTasks() {
   const state = useContext(RegistrationContext);
   if (!state) throw new Error("RegistrationProvider missing");
-  async function save(applicationId: string, task: CaseTask, remove = false) {
-    const r = await fetch("/api/tasks", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(remove ? { action: "delete", entityType: "application", entityId: applicationId, taskId: task.id } : { action: "save", entityType: "application", entityId: applicationId, task }) });
-    if (!r.ok) return false;
-    await state!.refresh();
-    return true;
-  }
-  return { tasks: state.tasks, save };
+  return { tasks: state.tasks, save: state.saveTask };
 }
 
 export type RegistrationSelection = { id?: string; status?: RegistrationStatusId; view?: "cards" | "list" | "calendar" | "oppositions" };
@@ -123,7 +132,8 @@ export function TrademarkRegistrationCanvas({ allowExamples = false, initialSele
   }
 
   return <section className="trademark-registration-view">
-    <section className="procedure-view-switch" aria-label="Origen de las solicitudes"><div><h2>{examples ? "Ejemplos del procedimiento" : "Solicitudes en seguimiento"}</h2><p>{examples ? `Casos ficticios · fecha de referencia ${formatDate(PROCESS_DEMO_DATE)}. No forman parte de la cartera ni generan avisos.` : "Cada plazo corresponde a una gestión y a la actuación que lo activa."}</p></div>{allowExamples && <button type="button" onClick={() => { setExamples(value => !value); setSelectedId(null); setDemoState("canvas"); resetFilters(); }}>{examples ? "Volver a mis solicitudes" : "Explorar ejemplos del proceso"}</button>}</section>
+    {allowExamples && <div className="registration-examples-corner"><button type="button" onClick={() => { setExamples(value => !value); setSelectedId(null); setDemoState("canvas"); resetFilters(); }}>{examples ? "Volver a mis solicitudes" : "Explorar ejemplos"} · Solo interno, no visible para clientes</button></div>}
+    {examples && <p className="directory-note">Ejemplos ficticios del procedimiento · fecha de referencia {formatDate(PROCESS_DEMO_DATE)}.</p>}
     {examples && <section className="procedure-route" aria-label="Etapas del procedimiento"><span>Presentación y examen de forma</span><span>Requerimiento y publicación</span><span>Oposición y examen de fondo</span><span>Resolución y recursos</span><span>Ejecutoria, pago y registro</span><p>La oposición y la observación de fondo pueden coexistir. La prueba, la apelación y los desenlaces dependen de las actuaciones del expediente.</p></section>}
     {viewMode !== "oppositions" && <section className="trademark-toolbar" aria-label="Buscar y filtrar solicitudes">
       <label className="trademark-search"><MagnifyingGlass aria-hidden size={18} /><span>Buscar</span><input aria-label="Buscar solicitudes" onChange={(event) => setQuery(event.target.value)} placeholder="Marca, solicitud, titular o cliente" type="search" value={query} /></label>
@@ -143,7 +153,7 @@ export function TrademarkRegistrationCanvas({ allowExamples = false, initialSele
     </div>}
 
     {!examples && loadState.error && <p role="alert">{loadState.error}</p>}
-    {viewMode === "oppositions" ? <OppositionFollowing cases={oppositionCases} onOpenCase={onOpenOpposition} onAdd={onAddOpposition} onImport={onImportProceedings}/> : demoState === "loading" || (!examples && loadState.loading) ? <RegistrationLoading /> : demoState === "empty" ? <RegistrationEmpty onReset={() => setDemoState("canvas")} /> : viewMode === "calendar" ? <LegalAgenda key={examples ? "examples" : "portfolio"} title="Agenda de solicitudes" events={registrationAgenda(visible, examples ? [] : tasks, examples ? PROCESS_DEMO_DATE : undefined)} members={members} today={examples ? PROCESS_DEMO_DATE : undefined} onAddTask={examples ? undefined : date => setTaskEditor({ date })} onOpen={event => { if (event.taskId) setTaskEditor({ task: tasks.find(task => task.id === event.taskId), applicationId: event.entityId }); else setSelectedId(event.entityId); }} /> : visible.length === 0 ? <RegistrationEmpty filtered onReset={resetFilters} /> : viewMode === "list" ? <RegistrationList applications={visible} onSelect={setSelectedId} /> : <section className="trademark-canvas" aria-label="Tarjetas de solicitudes de registro">
+    {viewMode === "oppositions" ? <OppositionFollowing cases={oppositionCases} onOpenCase={onOpenOpposition} onAdd={onAddOpposition} onImport={onImportProceedings}/> : demoState === "loading" || (!examples && loadState.loading) ? <RegistrationLoading /> : demoState === "empty" ? <RegistrationEmpty onReset={() => setDemoState("canvas")} /> : viewMode === "calendar" ? <LegalAgenda key={examples ? "examples" : "portfolio"} title="Agenda de solicitudes" events={registrationAgenda(visible, examples ? [] : tasks, examples ? PROCESS_DEMO_DATE : undefined)} members={members} today={examples ? PROCESS_DEMO_DATE : undefined} onDelete={examples ? undefined : async event => { const task = tasks.find(task => task.id === event.taskId); return task ? save(event.entityId, task, true) : false; }} onAddTask={examples ? undefined : date => setTaskEditor({ date })} onOpen={event => { if (event.taskId) setTaskEditor({ task: tasks.find(task => task.id === event.taskId), applicationId: event.entityId }); else setSelectedId(event.entityId); }} /> : visible.length === 0 ? <RegistrationEmpty filtered onReset={resetFilters} /> : viewMode === "list" ? <RegistrationList applications={visible} onSelect={setSelectedId} /> : <section className="trademark-canvas" aria-label="Tarjetas de solicitudes de registro">
       <PhaseColumn applications={visible.filter((application) => STATUS_BY_ID[application.statusId].phase === "inapi")} onSelect={setSelectedId} phase="inapi" />
       <div className="trademark-phase-transition" aria-hidden><ArrowRight size={22} weight="bold" /></div>
       <PhaseColumn applications={visible.filter((application) => STATUS_BY_ID[application.statusId].phase === "gazette")} onSelect={setSelectedId} phase="gazette" />
@@ -213,7 +223,7 @@ function ProcedureDeadlinePanel({ deadline: d, today, application, detailed = fa
   return <div className={`trademark-deadline deadline-${d.attention}${d.kind === "institutional" ? " institutional-control" : ""}`}><AttentionIcon attention={d.attention} /><div><span>{d.label}</span><strong>{deadlineLabel(d, today)}</strong>{d.dueDate && <small>{d.kind === "institutional" || d.kind === "milestone" ? "Fecha" : "Vence el"} {formatDate(d.dueDate)} · {origin}</small>}{(d.attention === "none" || detailed) && <small>{d.explanation}</small>}{detailed && d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ": fecha no informada"}</small>}</div></div>;
 }
 
-function RegistrationDrawer({ application, onClose, children, onEvidenceSaved }: { application: RegistrationApplication; onClose: () => void; children?: ReactNode; onEvidenceSaved?: () => Promise<void> }) {
+function RegistrationDrawer({ application, onClose, children }: { application: RegistrationApplication; onClose: () => void; children?: ReactNode; onEvidenceSaved?: () => Promise<void> }) {
   const status = STATUS_BY_ID[application.statusId];
   const today = application.demoScenario ? PROCESS_DEMO_DATE : undefined;
   const deadlines = registrationDeadlines(application, today);
@@ -230,7 +240,6 @@ function RegistrationDrawer({ application, onClose, children, onEvidenceSaved }:
           {application.procedure?.sourceActDate && <p className="procedure-source">Actuación de referencia: {formatDate(application.procedure.sourceActDate)} · {application.procedure.sourceActDescription}</p>}
         </section>
 
-        {onEvidenceSaved && <RegistrationEvidenceEditor key={`${application.id}:${application.procedure?.sourceActId ?? application.statusId}`} application={application} onSaved={onEvidenceSaved} />}
         {deadlines.some(item => item.kind === "institutional") && <details className="registration-controls"><summary>Controles de respuesta de INAPI ({deadlines.filter(item => item.kind === "institutional").length})</summary><p>Referencias para revisar demoras de la institución. No son plazos fatales del abogado ni cambian el estado del expediente.</p>{deadlines.filter(item => item.kind === "institutional").map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} detailed />)}</details>}
 
         {children}
@@ -248,7 +257,7 @@ function RegistrationDrawer({ application, onClose, children, onEvidenceSaved }:
           <div><dt>Clases o categorías Niza</dt><dd>{application.niceClasses}</dd></div>
           <div><dt>RUT del titular</dt><dd>{application.holderRut}</dd></div>
           <div><dt>Titular</dt><dd>{application.holder}</dd></div>
-          <div><dt>Cliente</dt><dd><ClientNameLink name={application.client} /></dd></div>
+          <div><dt>Cliente</dt><dd><ClientNameLink clientId={application.clientId} name={application.client} /></dd></div>
           <div><dt>Publicación efectiva</dt><dd>{application.publishedAt ? formatDate(application.publishedAt) : "No informada en los antecedentes"}</dd></div>
           {(application.registrationNumber || application.registrationDate) && <div><dt>Vencimiento del registro</dt><dd>{application.expirationDate ? formatDate(application.expirationDate) : "No informado"}</dd></div>}
           <div><dt>País del titular</dt><dd>{application.ownerCountry ?? "No informado"}</dd></div>
@@ -260,7 +269,7 @@ function RegistrationDrawer({ application, onClose, children, onEvidenceSaved }:
         </dl>
 
         <section className="trademark-history">
-          <header><span>HISTORIAL DE ACTIVIDAD</span><h3>Actividad del expediente</h3><p>De más antiguo a más reciente · {application.history.length} movimientos</p></header>
+          <header><span>HISTORIAL DE ACTIVIDAD</span><h3>Actividad del expediente</h3><p>De más antiguo a más reciente · {application.history.length} {application.history.length===1?"movimiento":"movimientos"}</p></header>
           {application.history.length ? <ol>{oldestActivityFirst(application.history).map((event, index) => {
             const activity = activityContent(event);
             const date = activityDate(event.date);

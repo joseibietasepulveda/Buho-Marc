@@ -1,6 +1,29 @@
 # Hoja de ruta de implementación
 
-**Versión vigente: 1.0, ambiente Dev.** Alcance, verificación y pendientes actuales: [V1_0_RELEASE.md](V1_0_RELEASE.md). Las fases históricas siguientes no vuelven a abrir funcionalidades ya entregadas.
+**Estado actualizado al 2 de octubre de 2026, ambiente Dev.** Las guías vigentes están en el [índice](README.md), [UI/UX de octubre](UX_OCTUBRE_2026.md) e [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md). [V1_0_RELEASE.md](V1_0_RELEASE.md) conserva la entrega inicial. Las fases históricas siguientes no vuelven a abrir funcionalidades entregadas.
+
+## Entregado en octubre
+
+- [x] Buscador general sobre datos guardados con acceso al expediente por marca, cliente, RUT, solicitud, registro, representante y contraparte.
+- [x] Búsqueda combinada para agregar marcas; carteras por titular/representante, candidatos explicados, confirmación de cliente y rol, deduplicación e incorporación por lotes.
+- [x] Excel/CSV ampliado a solicitudes, RUT, razones sociales y representantes, sin atribuir clientes automáticamente.
+- [x] Filtros de factibilidad, agrupación arriba activada inicialmente y seis modos de coincidencia donde corresponde; límites de recuperación explicados.
+- [x] Mis marcas con solicitud primero, sin RUT visible ni filtro Real/Mock, estados en texto y pendientes «5+ por revisar».
+- [x] Casos simple/detallado en tablero, lista y calendario; prioridad editable y expediente defendido organizado.
+- [x] Cierre exterior de paneles, retirada/limpieza de notificaciones y eliminación de tareas desde listas/editor.
+- [x] Informe de cliente Excel/Word/PDF con columnas seleccionables y datos completos guardados.
+- [x] Informe de factibilidad PDF/Word según el ejemplo del cliente, coberturas completas y conclusión/firma al final.
+- [x] Perfil opcional del estudio persistente y editable; precarga verificada en Dev para Zamora IP, Daniel/De Las Heras y FA.
+- [x] OpenRouter preparado con contexto completo, registros de generación/uso/costo, deduplicación y respaldo determinista; pruebas con proveedor aislado.
+- [x] Compilación, pruebas dirigidas, piloto descartable, revisión de seis variantes PDF/Word y publicación funcional `b42ae34` en Dev.
+
+## Pendientes actuales relacionados
+
+- [ ] Configurar una clave real de OpenRouter en Dev y verificar la llamada real; hoy la ausencia de credencial mantiene el respaldo determinista.
+- [ ] Archivo completo de estudios, imágenes propuestas y almacenamiento general de adjuntos; los perfiles y contextos/resultados de conclusiones ya se guardan.
+- [ ] Filtro de estados previo a recuperar candidatos en la fuente, catálogo de estados y mejora de exhaustividad/cargas tardías.
+- [ ] Calibración de semejanza con revisión humana, operación a escala, respaldos/observabilidad, correo externo e invitaciones/permisos avanzados.
+- [ ] Promoción de las mejoras de octubre a producción, solo cuando se solicite expresamente.
 
 > Historial del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
 
@@ -85,6 +108,6 @@ Criterio de salida: pruebas críticas aprobadas, restauración ensayada y monito
 - Una transición recibida dos veces desde la API no duplica el historial ni las notificaciones de la solicitud.
 - Un estado sin plazo legal fijo no genera fecha de vencimiento; una fecha fuente ausente se presenta como pendiente de confirmar.
 
-## Priorización vigente — septiembre de 2026
+## Priorización histórica — septiembre de 2026
 
-Consultar [UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md) para el alcance aprobado, las mejoras ya realizadas y los pendientes de la próxima versión. Las decisiones documentadas y la búsqueda global quedan fuera del alcance aprobado.
+[UX_RELEASE_PLAN.md](UX_RELEASE_PLAN.md) conserva el alcance de septiembre. El buscador general se implementó en octubre; su exclusión anterior dejó de aplicar. La priorización actual y las entregas verificadas están al comienzo de este documento.

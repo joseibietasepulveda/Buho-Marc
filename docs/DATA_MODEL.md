@@ -11,6 +11,12 @@ Las secciones siguientes conservan convenciones de diseño iniciales; para colum
 
 ## Convenciones
 
+### Valoraciones de vigilancia · implementación local de octubre
+
+`0013_watch_feedback.sql` crea `watch_feedback`: organización, hallazgo, actor, solicitud propia/ofrecida, índice confiable, `search_id`, voto y motivo. La identidad única es organización/hallazgo/actor. La entrega conserva estado, versión, intentos, próxima disponibilidad, reclamación temporal y fecha de confirmación. El trigger incrementa la revisión del snapshot de Vigilancia. La mutación registra `watch.feedback` en `audit_events`, con antes/después cuando existe una valoración previa. La migración se probó en PostgreSQL aislado; no está publicada por esta ronda.
+
+La Bitácora consulta `audit_events` paginados por organización; no introduce un segundo historial ni inventa cambios ausentes. El detalle solo presenta el antes/después almacenado y referencias resolubles al expediente o cliente.
+
 - Identificadores UUIDv7: únicos, ordenables por tiempo y seguros fuera de la base.
 - Todas las tablas de negocio incluyen `organization_id`, `created_at` y `updated_at`.
 - Borrado lógico para marcas, coincidencias y casos; archivos físicos se eliminan mediante una política de retención.
@@ -74,16 +80,34 @@ La demo ya usa `registration_applications` con una proyección JSONB por organiz
 
 La fuente INAPI es de solo lectura desde el Administrador. Una revisión actualiza la proyección de cartera y el snapshot de forma idempotente; sólo una diferencia material genera un aviso. La interfaz conserva los códigos originales y presenta etiquetas, fechas y actuaciones en formato legible.
 
-## Revisiones de factibilidad
+## Perfiles de estudio y conclusiones implementados · octubre
 
-Modelo propuesto para sustituir la demostración frontend:
+La migración `0012_feasibility_report_settings.sql` agrega:
 
-- `feasibility_reviews`: organización, usuario, denominación consultada, estado del análisis, probabilidad formal, probabilidad de fondo, versión del modelo y advertencia mostrada.
+- `organizations.report_profile`: JSONB con nombre, dirección, abogado, encabezado adicional, correo, teléfono, web y logo opcionales. El logo se normaliza a PNG dentro de 1000 × 1000 y hasta 1 MiB; este activo pequeño se guarda en el perfil, no en la tabla propuesta `files`.
+- `organizations.report_profile_version`: entero inicial 0; cada escritura incrementa la versión. `PUT /api/report-profile` bloquea la organización y devuelve 409 ante una versión anterior, conservando el borrador en la interfaz.
+- `feasibility_conclusions`: `id` UUID asignado antes de la llamada, `organization_id`, `user_id`, `context_hash`, `input` JSONB, `status`, `output` JSONB, `model`, `provider_id`, `usage`, `cost` numérico `(18,8)`, `created_at` y `completed_at`.
+
+La combinación organización/contexto es única y hay un índice por organización/fecha. El hash considera contexto, modelo, versión del prompt y huella de credencial; la clave no se persiste. Los estados son `pending`, `complete` y `abandoned`. `complete` también puede contener una conclusión determinista: su `output.source` y `reason` distinguen la asistencia exitosa del respaldo. Uso/costo se guardan solo cuando el proveedor los informa.
+
+El contexto contiene consulta, filtros, todos los resultados recuperados con cobertura/historial/evidencia textual, selección y evaluación determinista. Los intentos previos se conservan al liberar la clave de deduplicación para un reintento. El logo binario no forma parte del contexto enviado al modelo. La auditoría `report_profile.updated` registra cambios del perfil sin repetir el logo en antes/después.
+
+La precarga en Dev reconoce identidades existentes de Zamora IP, FA y Daniel; solo escribe perfiles vacíos con versión 0. Una edición posterior, incluido vaciar el formulario, nunca se restaura en un reinicio. No crea usuarios ni cambia contraseñas.
+
+## Archivo completo de estudios: modelo propuesto
+
+La consulta real ya está implementada y las conclusiones se persisten. Las tablas siguientes conservan una propuesta para un archivo completo de estudios con imágenes y candidatos, todavía pendiente:
+
+- `feasibility_reviews`: organización, usuario, denominación y criterios consultados, estado del análisis, versión del modelo y advertencias. No se proponen porcentajes jurídicos a partir del ranking de similitud.
 - `feasibility_review_classes`: relación acumulativa entre revisión y clase Niza.
 - `feasibility_review_assets`: referencia privada al logo, huella del archivo, tipo y política de retención; el binario debe vivir fuera de PostgreSQL.
 - `feasibility_candidates`: marca encontrada, solicitante, solicitud, estado, clases, fuente, puntaje visual, fonético, conceptual, puntaje combinado y explicación versionada.
 
 Los porcentajes deben conservar la versión del modelo y los insumos utilizados para que una revisión posterior pueda reproducir el resultado. Nunca deben almacenarse como si fueran una actuación oficial de INAPI.
+
+## Retirada de avisos y tareas · octubre
+
+`0011_notification_dismissal.sql` agrega `notifications.dismissed_at`. La retirada individual o limpieza de Todas es persistente por organización y conserva el aviso y su evidencia para auditoría; no impide avisos de actuaciones futuras. Desde el 4 de octubre, Limpiar Prioritarias completa `read_at` y `managed_at` de las prioritarias pendientes y conserva `dismissed_at` vacío. Los avisos permanecen en ambas bandejas, el indicador lateral se limpia y los administrativos no cambian. La operación se audita como `notifications.reviewed`. La eliminación de tareas respeta la organización y los límites del flujo; no elimina el plazo legal ni el hito del expediente.
 
 ## Colaboración, archivos y comunicación
 
@@ -120,10 +144,18 @@ La implementación utiliza el JSONB existente `registration_applications.data`, 
 
 El manifiesto `lib/inapi-daily-evidence.ts` identifica 19 actos exactos de aceptación a trámite: solicitud, identificador/código/descripción del acto, fecha, sección/página, URL y huella del documento. Es evidencia versionada en código, no una marca genérica de que cualquier actuación de esa solicitud esté notificada. `GET /api/registrations` reproyecta los antecedentes existentes y aplica sólo evidencia vigente; una lectura no consulta nuevamente INAPI.
 
-Las fechas calculadas se clasifican como plazo legal (`legal`), control administrativo (`institutional`) o hito informativo (`milestone`). Controles e hitos no incrementan las alertas de plazos vencidos del abogado. El calendario de cómputo está identificado como `CL-LPI-LBPA-NATIONAL-2026-2027-v1`; sus límites están en [Calendario legal Chile 2026–2027](CALENDARIO_LEGAL_CHILE_2026_2027.md).
+Las fechas calculadas se clasifican como plazo legal (`legal`), control administrativo (`institutional`) o hito informativo (`milestone`). Controles e hitos no incrementan las alertas de plazos vencidos del abogado. Desde el 07/10, el calendario de cómputo está identificado como `CL-LPI-LBPA-NATIONAL-2023-2027-v2`; sus límites están en [Calendario legal Chile 2023–2027](CALENDARIO_LEGAL_CHILE_2026_2027.md).
 
 Las cronologías de notificaciones reutilizan historiales disponibles y deltas antes/después de `change_detail`; conservan IDs y versiones en detalles desplegables. Se deduplican por ID de actuación y, cuando falta, por fecha/descripción. Si una denominación corresponde a expedientes ambiguos, no se incorpora la historia de otro expediente sólo por tener el mismo nombre.
 
 `GET /api/source/status` devuelve únicamente metadatos de revisiones manuales/programadas, hora de consulta, última revisión completa exitosa y próxima ejecución. No expone payloads de expedientes, listas de solicitudes ni errores internos. Una incorporación aislada o carga inicial no se presenta como actualización completa de la cartera.
 
 La actualización de fixtures `db/demo-v05.ts` es transaccional y se marca una sola vez mediante auditoría. Cambia fechas activas de ejemplos conocidos y añade cinco casos/tareas; no desplaza actos reales ni reescribe continuamente fechas según el reloj. El fallback del navegador tiene su actualización local separada. Estado de entrega: [v0.5 verificada en Dev](V0_5_RELEASE.md).
+
+## Recuperación puntual INAPI · publicada en Dev el 07/10
+
+`0014_inapi_recovery.sql` agrega `inapi_request_clock`, con una única fila que conserva finalización de la última petición y pausa global, e `inapi_recovery_jobs`: solicitud pública, `source_id`, antecedentes pendientes, clave de deduplicación, estado y fechas de inicio/finalización. Su identidad es solicitud/clave; no contiene credenciales ni contexto de sesión. Los bloqueos PostgreSQL serializan trabajador y peticiones entre procesos. Solo se procesan expedientes vinculados a organizaciones activas; las proyecciones y decisiones siguen aisladas por organización. La cola pública compartida evita consultar varias veces el mismo expediente seguido por distintos clientes.
+
+`SourceRecord.retrieval` distingue recepción exitosa, cambio material, lectura efectiva informada, comprobación y completitud del historial y consulta directa. `officialEvidence` conserva la comprobación oficial normalizada y el registro del proveedor por separado. Ambos campos quedan fuera de diferencias de negocio: un cambio de fecha de consulta no produce una novedad jurídica.
+
+Las actuaciones admiten los contratos opcionales versionados `classification` y `legal_facts`. `procedure.concurrent` conserva vínculo al acto y prueba individual; `relatedProceedings` separa nulidad e incidente. La fecha jurídica requiere documento, acto, objeto, destinatario y medio compatibles. La migración y contratos no están integrados/desplegados por esta entrega; [operación y compatibilidad](INAPI_RECUPERACION_ANTECEDENTES.md) y [traspaso](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).

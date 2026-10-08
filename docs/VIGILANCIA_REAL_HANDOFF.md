@@ -1,6 +1,6 @@
 # Traspaso al desarrollo: vigilancia real y prefactibilidad
 
-> **Estado vigente al 24/09/2026:** consultar [Decisiones UX y operación](DECISIONES_UX_2026-09-24.md) y [Control de consumo](COST_CONTROL.md). Stock de 50, estados interpretados/filtrados en la aplicación, umbrales 65%/45%, informes PDF/Word y revisiones manuales desde el chat. Los cambios se publican en Dev. El filtro previo en la API de la fuente sigue pendiente; no interpretar rechazo como firmeza sin evidencia.
+> **Estado actualizado al 02/10/2026:** consultar [el índice](README.md), [decisiones actualizadas](DECISIONES_UX_2026-09-24.md), [UI/UX](UX_OCTUBRE_2026.md), [informes](INFORMES_FACTIBILIDAD_2026-10-02.md) y [control de consumo](COST_CONTROL.md). Vigilancia usa stock de 50, umbrales iniciales 70%/55% y exclusión de registradas; factibilidad usa hasta 100 candidatos y evaluación 65%/45%, con perfil de estudio y conclusión asistida/determinista. Búsqueda general e importación por titular/representante ya están implementadas. Las mejoras de octubre están verificadas en Dev; el filtro previo de estados en la fuente sigue pendiente.
 >
 > Los apartados siguientes conservan la conversación y el diseño previo. Las cifras, restricciones y pendientes históricos no reemplazan las decisiones del documento vigente.
 

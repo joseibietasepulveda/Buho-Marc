@@ -41,3 +41,15 @@ test('search keeps incomplete registration evidence while portfolio import still
   assert.equal(result.results.length,1);assert.equal(result.results[0].registeredAt,'2026-02-01');assert.equal(result.results[0].registrationId,null);
   assert.match(result.results[0].dataWarnings[0],/número de registro/);assert.equal(result.warnings.length,1);
 });
+test('source name_match preserves other retrieval channels and the feedback search ID',async()=>{
+ for(const [mode,expected] of [['starts','prefix'],['ends','suffix'],['contains','contains'],['word','contains_token'],['similar',undefined]]){
+  let received;
+  const result=await searchSimilar({name:'SOL',matchMode:mode,limit:30},undefined,async(url,options)=>{if(url.endsWith('/search')){received=JSON.parse(options.body);return Response.json({search_id:'123e4567-e89b-12d3-a456-426614174000',query,results:[{...hit,name:'Otro signo',channels:{coverage:{score:.9}}}],candidate_count:1,elapsed_seconds:.1});}return Response.json({documents:[document(200)],application_ids_not_found:[]});});
+  assert.equal(received.name_match,expected);assert.equal('matchMode' in received,false);assert.equal(result.results.length,1);assert.equal(result.results[0].searchId,result.searchId);
+ }
+});
+test('exact uses a supported source literal and then validates exact names in the recovered lot',async()=>{
+ let request;
+ const result=await searchSimilar({name:'SOL',matchMode:'exact',limit:30},undefined,async(url,options)=>{if(url.endsWith('/search')){request=JSON.parse(options.body);return Response.json({query,results:[{...hit,name:'SOL MAR'}],candidate_count:1,elapsed_seconds:.1});}return Response.json({documents:[],application_ids_not_found:[]});});
+ assert.equal(request.name_match,'contains');assert.equal(result.results.length,0);
+});

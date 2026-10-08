@@ -16,7 +16,8 @@ El modo manual posterga la detección de novedades y los avisos hasta que se sol
 la revisión. Daniel sigue trabajando automáticamente aunque nadie tenga la web abierta.
 
 Las decisiones actuales de presentación, casos e informes están en
-[Decisiones UX del 24 de septiembre](DECISIONES_UX_2026-09-24.md).
+[UI/UX de octubre](UX_OCTUBRE_2026.md), [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md)
+y las [decisiones de septiembre](DECISIONES_UX_2026-09-24.md).
 
 ## Descargas
 
@@ -32,6 +33,16 @@ Las decisiones actuales de presentación, casos e informes están en
   La ficha individual conserva esos antecedentes y se carga al abrirla.
 - Los datos se conservan en memoria de cada pantalla, sin caché compartida entre
   sesiones ni almacenamiento persistente en el navegador.
+
+## Búsquedas e informes · octubre
+
+- El buscador general filtra datos guardados: escribir no inicia consultas remotas. Buscar candidatos para cartera y la consulta de factibilidad sí requieren una acción explícita.
+- Los modos textuales/estados trabajan sobre el lote recuperado; las fechas de factibilidad se envían a la fuente. La búsqueda por persona es paginada y acotada. No se asegura exhaustividad por ampliar una tabla local.
+- El informe de cliente usa datos persistidos, sin volver a consultar INAPI. Cambiar columnas o formato no dispara una búsqueda.
+- PDF y Word de factibilidad reutilizan la misma conclusión preparada. El servidor deduplica por organización/contexto, modelo, versión de prompt y huella de credencial; las solicitudes concurrentes esperan la generación existente.
+- Las respuestas asistidas y el respaldo por falta de clave se reutilizan para el mismo contexto. Un respaldo por fallo transitorio se conserva cinco minutos antes de habilitar reintento; los trabajos pendientes de más de 120 segundos se conservan como abandonados antes de crear otro intento.
+- El llamado OpenRouter tiene límite de 45 segundos. Un contexto textual mayor a 2 MiB usa la conclusión determinista sin truncar expedientes. Se persisten uso/costo solo cuando el proveedor los entrega; no se estima un costo desconocido como cero.
+- La clave permanece en servidor. Sin credencial se genera el informe completo con respaldo determinista. No se ejecutan llamadas facturables para verificar estilos: la QA de documentos usa una consulta histórica guardada.
 
 ## Verificación
 
@@ -51,3 +62,11 @@ Antes de migrar, medir capacidad, memoria, costo fijo, respaldos, restauración 
 tiempos de cola; acordar con DeQuiénEs las cuotas y concurrencia. Más capacidad de
 servidor no elimina los límites de la fuente. No se contrata ni migra infraestructura
 con esta entrega.
+
+## Recuperación puntual de fechas · 7 de octubre
+
+La importación o revisión de un expediente con un antecedente jurídico faltante puede preparar la cola `inapi_recovery_jobs`. Es independiente de similitudes y conserva los modos diarios/a pedido de cada organización: visitar pantallas no la prepara. El supervisor consume un expediente por turno; cada una de sus hasta tres peticiones espera como mínimo tres segundos desde que terminó la anterior. PostgreSQL comparte el reloj y bloqueo entre réplicas y carteras. Nunca se verifica la interfaz con consultas masivas reales.
+
+Presupuesto global: 200 intentos de expediente por día de Santiago, incluidos fallos, actualizado por petición explícita del usuario el 07/10. `INAPI_DIRECT_RECOVERY_DAILY_LIMIT` admite cero y hasta 200; valor predeterminado 200. Son hasta 600 peticiones HTTP diarias para consultas completas, siempre serializadas y separadas por el intervalo mínimo de tres segundos. `INAPI_DIRECT_RECOVERY_ENABLED=false` desactiva. Un fallo pausa la cola una hora. Deduplicación permanente por solicitud/acto/antecedente: una fecha que siga faltando no provoca reintentos repetidos ni un ciclo de consultas por cada renderizado. Un reinicio conserva intentos, presupuesto y reloj. La carga inicial del historial guardado requiere la opción explícita `--apply --queue` del script de reproyección.
+
+[Contrato, evidencia y operación](INAPI_RECUPERACION_ANTECEDENTES.md) · [API pública](INAPI_API_PUBLICA.md) · [validación local](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).

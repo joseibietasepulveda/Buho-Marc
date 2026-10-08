@@ -30,15 +30,19 @@
 .pilot-dialog .pilot-template-link:hover { background: #f2eaf8; }
 .pilot-dialog .pilot-body > [role="status"]:empty { display: none; }
 .pilot-dialog .pilot-body > [role="status"]:not(:empty) { margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: #f1eaf7; color: #553369; }
-.review-dialog.pilot-dialog > footer { min-height: 0; padding: 16px 28px; background: #fffdfa; color: #302039; }
-.review-dialog.pilot-dialog > footer button { border: 1px solid #d4c5de; background: #fff; color: #523164; font-size: 14px; }
-.review-dialog.pilot-dialog > footer .buho-primary { border-color: #35213f; background: #35213f; color: #fff; }
-.review-dialog.pilot-dialog > footer button:disabled { opacity: 1; color: #817886; background: #eee9f0; border-color: #e0d8e5; cursor: not-allowed; }
+.review-dialog.pilot-dialog footer { min-height: 0; padding: 16px 28px; background: #fffdfa; color: #302039; }
+.review-dialog.pilot-dialog footer button { border: 1px solid #d4c5de; background: #fff; color: #523164; font-size: 14px; }
+.review-dialog.pilot-dialog footer .buho-primary { border-color: #35213f; background: #35213f; color: #fff; }
+.review-dialog.pilot-dialog footer button:disabled { opacity: 1; color: #817886; background: #eee9f0; border-color: #e0d8e5; cursor: not-allowed; }
 .review-dialog.pilot-dialog :is(button, a, select, input[type="checkbox"]):focus-visible { outline: 3px solid #8553a6; outline-offset: 3px; }
 @media (max-width: 640px) {
   .pilot-dialog .pilot-body { padding: 20px 16px; }
   .pilot-dialog .import-file-picker { flex-wrap: wrap; padding: 18px; gap: 12px; }
   .import-file-button { width: 100%; text-align: center; }
-  .review-dialog.pilot-dialog > footer { padding: 14px 16px; }
-  .review-dialog.pilot-dialog > footer button { flex: 1 1 auto; }
+  .review-dialog.pilot-dialog footer { padding: 14px 16px; }
+  .review-dialog.pilot-dialog footer button { flex: 1 1 auto; }
 }
+
+.review-dialog.pilot-dialog > form { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.review-dialog.pilot-dialog > form > .pilot-body { min-height: 0; flex: 1; }
+.review-dialog.pilot-dialog > form > footer { flex-shrink: 0; }

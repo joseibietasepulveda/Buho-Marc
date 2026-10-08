@@ -6,7 +6,7 @@ import { significantRegistrationEvent } from "./registration-milestones";
 
 export type Attention = "normal" | "soon" | "overdue" | "terminal" | "none" | "pending";
 export type ProcedureDeadline = {
-  key: RegistrationStatusId | "inapi-decision-control" | "administrative-duration" | "certificate-control" | "renewal-open" | "renewal-close" | "registration-expiry";
+  key: RegistrationStatusId | "inapi-decision-control" | "administrative-duration" | "certificate-control" | "renewal-open" | "renewal-close" | "registration-expiry" | "nullity-review" | "incident-review";
   label: string; attention: Attention; explanation: string; trigger: string;
   days?: number; sourceDate?: string; dueDate?: string; nominalDate?: string; deadline?: Date; remaining?: number;
   origin: "source" | "calculated" | "simulated" | "unavailable";
@@ -107,9 +107,9 @@ function primaryDeadline(a: RegistrationApplication, today: string): ProcedureDe
   const official = parseWorkDate(a.officialDeadline);
   if (a.officialDeadline && (!official || (sourceDate && official < sourceDate) || (parseWorkDate(a.filedAt) && official < a.filedAt.slice(0, 10)))) return { ...pending, explanation: "El vencimiento informado es inválido o anterior a la solicitud o al hecho que lo activa." };
   const dueDate = official ?? (sourceDate ? addProcedureDays(sourceDate, days) : undefined);
-  if (!dueDate) return { ...pending, explanation: sourceDate ? "El cómputo requiere un calendario fuera del período cubierto (2026–2027). No se estima una fecha." : `${base.trigger} no informada. ${p?.sourceActDate ? "Consta la fecha de la actuación, que no se presume como notificación o ejecutoria. " : ""}El vencimiento de esta gestión no está determinado.` };
+  if (!dueDate) return { ...pending, explanation: sourceDate ? "El cómputo requiere un calendario fuera del período cubierto (2023–2027). No se estima una fecha." : `${base.trigger} no informada. ${p?.sourceActDate ? "Consta la fecha de la actuación, que no se presume como notificación o ejecutoria. " : ""}El vencimiento de esta gestión no está determinado.` };
   const remaining = remainingDays(today, dueDate);
-  if (a.statusId === "opposition-window" && dueDate < today) return { ...base, label: "Ventana de oposición finalizada", days, sourceDate: sourceDate ?? undefined, dueDate, deadline: new Date(`${dueDate}T12:00:00`), remaining, attention: "none", fatal: false, kind: "milestone", origin: a.provider ? official ? "source" : "calculated" : "simulated", explanation: "El período de 30 días hábiles terminó. Revisar si hubo oposiciones y las siguientes actuaciones de INAPI. No implica ausencia de oposición, aprobación ni registro concedido." };
+  if (a.statusId === "opposition-window" && dueDate < today) return { ...base, label: "Ventana de oposición finalizada", days, sourceDate: sourceDate ?? undefined, dueDate, deadline: new Date(`${dueDate}T12:00:00`), remaining, attention: "none", fatal: false, kind: "milestone", origin: a.provider ? official ? "source" : "calculated" : "simulated", explanation: hasContestedProceeding(a) ? "El período de oposición terminó y constan actuaciones contenciosas en el historial. Revisar su tramitación y las siguientes resoluciones de INAPI." : "El período de oposición terminó. No constan oposiciones en el historial disponible; su completitud no está acreditada. Se esperan las siguientes actuaciones de INAPI. No implica ausencia de oposición ni registro concedido." };
   // Date ordering is authoritative: a past weekend must not become “Vence hoy”.
   const attention: Attention = dueDate < today ? "overdue" : dueDate === today || (remaining !== undefined && remaining <= 5) ? "soon" : "normal";
   return { ...base, days, sourceDate: sourceDate ?? undefined, dueDate, deadline: new Date(`${dueDate}T12:00:00`), remaining, attention, origin: !a.provider ? "simulated" : official ? "source" : "calculated" };
@@ -152,7 +152,7 @@ function supplementaryDeadlines(a: RegistrationApplication, today: string): Proc
   }
   if (activeAdministrative) {
     if (p?.readyToResolveAt) control("inapi-decision-control", "Control de decisión de INAPI", p.readyToResolveAt, 20, addProcedureDays(p.readyToResolveAt, 20), "Certificación de estar en estado de resolver, solicitada por el interesado", "Control del artículo 24 de la Ley 19.880: 20 días hábiles desde la certificación. No se cuenta desde la publicación ni produce concesión automática. No se aplica a la tramitación contenciosa de oposición.");
-    if (parseWorkDate(a.filedAt)) control("administrative-duration", "Control de duración del trámite administrativo", a.filedAt.slice(0, 10), undefined, nextProcedureBusinessDay(addCalendarMonths(a.filedAt, 6)), "Inicio del procedimiento", "Referencia general de seis meses (artículo 27 de la Ley 19.880), salvo caso fortuito o fuerza mayor; último día inhábil prorrogado al siguiente hábil. Permite revisar una demora; no es un plazo de respuesta del abogado, ni declara silencio positivo, abandono o aprobación. Cómputo automático limitado al calendario nacional validado de 2026–2027.");
+    if (parseWorkDate(a.filedAt)) control("administrative-duration", "Control de duración del trámite administrativo", a.filedAt.slice(0, 10), undefined, nextProcedureBusinessDay(addCalendarMonths(a.filedAt, 6)), "Inicio del procedimiento", "Referencia general de seis meses (artículo 27 de la Ley 19.880), salvo caso fortuito o fuerza mayor; último día inhábil prorrogado al siguiente hábil. Permite revisar una demora; no es un plazo de respuesta del abogado, ni declara silencio positivo, abandono o aprobación. Cómputo automático limitado al calendario nacional validado de 2023–2027.");
   }
   if (a.statusId === "registered") {
     const certificateIssued = a.history.some(event => {
@@ -164,7 +164,7 @@ function supplementaryDeadlines(a: RegistrationApplication, today: string): Proc
   }
   // Expiry does not remove the six-month post-expiry renewal window. Retain
   // the source status and the original expiry while deriving its closing day.
-  if (a.statusId === "registered" || a.statusId === "expired") {
+  if (a.statusId === "registered" || a.statusId === "expired" && !/caducad/i.test(a.sourceStatus ?? "")) {
     const expiry = parseWorkDate(a.expirationDate);
     if (expiry) {
       const dates = [["renewal-open", "Apertura de ventana de renovación", addCalendarMonths(expiry, -6)], ["registration-expiry", "Vencimiento del registro", expiry], ["renewal-close", "Cierre de renovación posterior al vencimiento", addCalendarMonths(expiry, 6)]] as const;
@@ -205,9 +205,10 @@ export function registrationDeadlines(a: RegistrationApplication, today = chileT
   const parallel = (a.procedure?.concurrent ?? []).flatMap(item => {
     if (seen.has(item.statusId)) return [];
     seen.add(item.statusId);
-    return [primaryDeadline({ ...a, statusId: item.statusId, officialDeadline: item.officialDeadline, deadlineSource: undefined, procedure: { notifiedAt: item.notifiedAt, sourceActDate: item.sourceActDate, evidenceExtensionDays: item.evidenceExtensionDays } }, today)];
+    return [primaryDeadline({ ...a, statusId: item.statusId, officialDeadline: item.officialDeadline, deadlineSource: undefined, procedure: { notifiedAt: item.notifiedAt, sourceActDate: item.sourceActDate, sourceActId: item.sourceActId, sourceActDescription: item.sourceActDescription, notificationProof: item.notificationProof, evidenceExtensionDays: item.evidenceExtensionDays } }, today)];
   });
-  return [main, ...parallel, ...extra];
+  const related: ProcedureDeadline[] = (a.procedure?.relatedProceedings ?? []).map(item => ({ key: item.object === "nullity" ? "nullity-review" : "incident-review", label: item.object === "nullity" ? "Revisar acción de nulidad" : "Revisar incidente", attention: "pending", sourceDate: item.actDate, trigger: "Resolución, rol del cliente y notificación del procedimiento específico", explanation: `${item.description}. Este procedimiento se conserva separado: falta determinar su obligación, destinatario y antecedente jurídico. No se aplica el plazo de contestación de una oposición.`, origin: "unavailable", kind: "legal", fatal: false }));
+  return [main, ...parallel, ...related, ...extra];
 }
 
 export function deadlineInfo(a: RegistrationApplication, today = chileToday()) {

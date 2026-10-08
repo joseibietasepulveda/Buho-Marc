@@ -1,0 +1,9 @@
+# Copia este archivo como openrouter.private.txt en la carpeta del proyecto.
+# Escribe la clave después del signo =. No incluyas la clave en el chat.
+# El archivo privado está excluido del repositorio.
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=openai/gpt-4.1-mini
+
+# Sin clave, o si la llamada falla, el informe conserva una conclusión local.
+# En Railway Dev usa estas mismas variables en la configuración del servicio.
+# El archivo privado local no se publica en Railway.

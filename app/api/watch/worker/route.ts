@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { hasToken } from "@/lib/source-api";
 import { getSql } from "@/db";
 import { runAs } from "@/lib/tenant-context";
+import { deliverWatchFeedback } from "@/db/watch-feedback";
 import { processWatchJob, queueWatch } from "@/db/similarity";
 import { similarityConfigured } from "@/lib/similarity-provider";
 export const runtime = "nodejs";
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
     catch { enqueueErrors++; }
   }
   const outcome = await processWatchJob();
+  const feedback=await deliverWatchFeedback();
   const progress = await getSql()`SELECT o.slug AS organization, count(*)::int AS total,
     count(*) FILTER (WHERE s.id IS NOT NULL)::int AS reviewed,
     count(*) FILTER (WHERE s.stock_limit >= 50)::int AS stock50,
@@ -26,5 +28,5 @@ export async function POST(request: Request) {
     LEFT JOIN LATERAL (SELECT status FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
     WHERE b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled'
     GROUP BY o.slug ORDER BY o.slug`;
-  return NextResponse.json({ ...outcome, enqueueErrors, progress });
+  return NextResponse.json({ ...outcome, feedback, enqueueErrors, progress });
 }

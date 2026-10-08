@@ -1,5 +1,6 @@
 "use client";
 
+import { dismissDialogBackdrop } from "./dialog-dismiss";
 import { useEffect, useRef } from "react";
 import { ArrowSquareOut, X } from "@phosphor-icons/react";
 import { activityDate, oldestActivityFirst } from "@/lib/registration-activity";
@@ -16,6 +17,7 @@ const labels: Record<string, string> = {
 };
 const labelFor = (key: string) => labels[key] ?? key.replaceAll("_", " ").replace(/^./, first => first.toUpperCase());
 const recordOf = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+const queryTime = (value?: string) => value ? new Intl.DateTimeFormat("es-CL", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Santiago" }).format(new Date(value)) : "No acreditada";
 
 function SourceValue({ value, field = "" }: { value: unknown; field?: string }) {
   if (value == null || value === "") return <span className="source-missing">No informado</span>;
@@ -52,11 +54,14 @@ export function SourceInspector({ data, tracked, pending, onClose }: { data: Sou
     ["Número de solicitud", data.applicationNumber], ["Número de registro", data.registrationNumber ?? "No asignado"], ["Tipo de marca", data.type], ["Clases de Niza", data.classes.join(", ") || "No informadas"],
     ["Presentación", sourceDate(data.filingDate)], ["Publicación en Diario Oficial", sourceDate(data.publicationDate)], ["Fecha de registro", sourceDate(data.registrationDate)], ["Vencimiento del registro", sourceDate(data.expirationDate)],
   ];
-  return <dialog ref={dialog} className="source-inspector" onCancel={onClose} aria-labelledby="source-inspector-title">
+  // Native dialog supports Escape; this handler only dismisses its backdrop.
+  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+  return <dialog ref={dialog} onClick={event => dismissDialogBackdrop(event, onClose)} className="source-inspector" onCancel={onClose} aria-labelledby="source-inspector-title">
     <header><div><span>INAPI · SOLICITUD {data.applicationNumber}</span><h2 id="source-inspector-title">{data.name}</h2></div><button type="button" onClick={onClose} aria-label="Cerrar expediente"><X size={22} /></button></header>
     <div className="source-inspector-body">
       <section className="source-inspector-status"><div className="source-status-heading"><span>Etapa según los antecedentes</span><span className={`source-pill ${pending ? "pending" : ""}`}>{pending ? "Con diferencias pendientes" : tracked ? "En cartera" : "Fuera de cartera"}</span></div><h3>{statusLabel(data.status)}</h3><p>Estado general de INAPI: <strong>{String(general.description ?? "No informado")}</strong>{general.code ? ` · Código ${general.code}` : ""}</p>{data.status === "registered" && general.description === "En Trámite" && <p className="source-feedback">El estado general de la fuente aún indica “En trámite”. Los antecedentes de registro y la resolución del historial sustentan la etapa “Registro concedido”.</p>}</section>
       <section className="source-inspector-section"><h3>Datos del expediente</h3><dl className="source-fact-grid">{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>
+      {data.provider === "inapi" && <section className="source-inspector-section"><h3>Actualización de los antecedentes</h3><dl className="source-fact-grid"><div><dt>Última consulta exitosa</dt><dd>{queryTime(data.retrieval?.lastSuccessfulQueryAt)}</dd></div><div><dt>Último cambio detectado</dt><dd>{queryTime(data.retrieval?.lastChangeDetectedAt)}</dd></div><div><dt>Lectura oficial informada</dt><dd>{queryTime(data.retrieval?.sourceReadAt)}</dd></div><div><dt>Consulta directa a INAPI</dt><dd>{queryTime(data.retrieval?.officialCheckedAt)}</dd></div><div><dt>Completitud del historial</dt><dd>{data.retrieval?.historyComplete === true ? "Declarada por la fuente" : data.retrieval?.historyComplete === false ? "La fuente informa antecedentes incompletos" : "No acreditada"}</dd></div></dl><p className="source-section-hint">Una consulta exitosa puede devolver información guardada. Una fecha de actuación no acredita su notificación; una consulta directa tampoco garantiza que estén todos los antecedentes jurídicos.</p></section>}
       <details className="source-inspector-section" open><summary>Clases y cobertura</summary><SourceValue value={data.inapi?.classes} /></details>
       <details className="source-inspector-section" open><summary>Actuaciones del expediente <span>{events.length}</span></summary><p className="source-section-hint">De más antiguo a más reciente</p><SourceActivities value={events} /></details>
       {Object.entries(data.inapi ?? {}).filter(([key]) => !["events", "classes", "status"].includes(key)).map(([key, value]) => <details className="source-inspector-section" key={key}><summary>{labelFor(key)}{Array.isArray(value) && <span>{value.length}</span>}</summary>{key === "annotations" ? <SourceActivities value={value} /> : <SourceValue value={value} />}</details>)}

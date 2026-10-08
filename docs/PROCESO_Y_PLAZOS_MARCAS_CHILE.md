@@ -360,3 +360,7 @@ Los enlaces se distribuyen por regla; las páginas citadas son las impresas dent
 [no-uso]: https://inapi.cl/sala-de-prensa/detalle-noticia/solicitudes-de-marcas-en-chile-aumentan-un-18-2-al-cierre-de-julio-de-2026-e-impulsan-sectores-de-tecnologia-y-salud "INAPI, septiembre de 2026: cómputo transitorio de caducidad por falta de uso"
 [gaceta-madrid]: https://tramites.inapi.cl/TrademarkNewGazette/DownloadFile?date=01%2F30%2F2026+00%3A00%3A00&stream_id=5cfac730-e4fd-f011-894d-040973dcfef1 "Gaceta INAPI del 30 de enero de 2026: publicidad de designaciones Madrid"
 [ompi-guia]: https://www.wipo.int/documents/d/business/docs-es-la-clave-pi-cl-es.pdf "OMPI/INAPI: La clave para la Propiedad Intelectual"
+
+## Actualización de reconocimiento y recuperación · 7 de octubre de 2026
+
+La interpretación de actuaciones distingue petición/resolución, contestación presentada, apertura a prueba y objeto de incidentes/nulidad; conserva oposición y fondo concurrentes. El calendario nacional revisado se amplía a 2023–2027. El buscador público se usa como recuperación puntual, con deduplicación persistente, presupuesto diario y mínimo tres segundos entre peticiones. No acredita por sí solo la notificación ni la ejecutoria. [Reglas y contrato preparado para DeQuiénEs](INAPI_RECUPERACION_ANTECEDENTES.md) · [API pública](INAPI_API_PUBLICA.md). Implementación local: los despliegues anteriores de este documento conservan su fecha y alcance.

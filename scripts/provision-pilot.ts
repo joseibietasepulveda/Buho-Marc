@@ -3,6 +3,7 @@ import { hashPassword } from "../lib/password";
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from "../lib/tenant-context";
 import { provisionFaWorkspace, prepareIbietaPresentation, featuredPilotAvailability, provisionPublicBriocheExample } from "../db/fa-pilot";
 import { prepareFaProduction, repairFaPartyOrderNotices } from "../db/fa-production";
+import { provisionReportProfiles, REPORT_PROFILE_DEV_ENVIRONMENT } from "../db/report-profile-provision";
 
 const password = process.env.DANIEL_INITIAL_PASSWORD;
 const sql = getSql();
@@ -61,5 +62,8 @@ try {
   }
   if (process.env.FA_REPAIR_PARTY_ORDER_RUN) {
     console.log("Reparación FA de avisos por orden:", JSON.stringify(await repairFaPartyOrderNotices(sql, process.env.RAILWAY_ENVIRONMENT_ID, process.env.FA_REPAIR_PARTY_ORDER_RUN)));
+  }
+  if (process.env.RAILWAY_ENVIRONMENT_ID === REPORT_PROFILE_DEV_ENVIRONMENT) {
+    console.log("Datos de estudio preparados:", JSON.stringify(await provisionReportProfiles(sql, process.env.RAILWAY_ENVIRONMENT_ID)));
   }
 } finally { await sql.end(); }

@@ -1,6 +1,6 @@
 import {
   bigint, boolean, check, date, index, integer, jsonb, pgTable, primaryKey, real, text,
-  timestamp, uniqueIndex, uuid, varchar,
+  timestamp, uniqueIndex, uuid, varchar, numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -44,9 +44,21 @@ export const sourceSyncRuns = pgTable("source_sync_runs", {
   error: text("error"), detail: jsonb("detail").default([]).notNull(),
 }, t => [index("sync_runs_org_date_idx").on(t.organizationId, t.startedAt)]);
 
+export const inapiRequestClock = pgTable("inapi_request_clock", {
+  id: integer("id").primaryKey(), lastFinishedAt: timestamp("last_finished_at", { withTimezone: true }), blockedUntil: timestamp("blocked_until", { withTimezone: true }),
+}, table => [check("inapi_clock_singleton", sql`${table.id} = 1`)]);
+export const inapiRecoveryJobs = pgTable("inapi_recovery_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(), sourceId: uuid("source_id").notNull().references(() => sourceRecords.id, { onDelete: "cascade" }),
+  applicationNumber: varchar("application_number", { length: 30 }).notNull(), needKey: varchar("need_key", { length: 64 }).notNull(), needs: jsonb("needs").notNull(),
+  status: varchar("status", { length: 20 }).default("queued").notNull(), startedAt: timestamp("started_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }),
+  error: text("error"), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [uniqueIndex("inapi_recovery_need_uq").on(table.applicationNumber, table.needKey), index("inapi_recovery_queue_idx").on(table.status, table.createdAt)]);
+
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(), name: varchar("name", { length: 180 }).notNull(),
   automaticMonitoring: boolean("automatic_monitoring").default(true).notNull(),
+  reportProfile: jsonb("report_profile").default({}).notNull(),
+  reportProfileVersion: integer("report_profile_version").default(0).notNull(),
   slug: varchar("slug", { length: 120 }).notNull(), watchSettings: jsonb("watch_settings").default({ high: 0.7, medium: 0.55 }).notNull(), status: varchar("status", { length: 30 }).default("active").notNull(), ...timestamps,
 }, (table) => [uniqueIndex("organizations_slug_uq").on(table.slug)]);
 
@@ -57,6 +69,14 @@ export const users = pgTable("users", {
   mustChangePassword: boolean("must_change_password").default(false).notNull(),
   initials: varchar("initials", { length: 4 }).notNull(), ...timestamps,
 }, (table) => [uniqueIndex("users_email_uq").on(table.email), uniqueIndex("users_username_uq").on(table.username)]);
+
+export const feasibilityConclusions = pgTable("feasibility_conclusions", {
+  id: uuid("id").primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }), contextHash: varchar("context_hash", { length: 64 }).notNull(),
+  input: jsonb("input").notNull(), status: varchar("status", { length: 20 }).default("pending").notNull(), output: jsonb("output"),
+  model: varchar("model", { length: 180 }), providerId: varchar("provider_id", { length: 180 }), usage: jsonb("usage"), cost: numeric("cost", { precision: 18, scale: 8 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(), completedAt: timestamp("completed_at", { withTimezone: true }),
+}, table => [uniqueIndex("feasibility_conclusions_org_context_uq").on(table.organizationId, table.contextHash), index("feasibility_conclusions_org_date_idx").on(table.organizationId, table.createdAt)]);
 
 export const authSessions = pgTable("auth_sessions", {
   tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
@@ -220,7 +240,7 @@ export const notifications = pgTable("notifications", {
   publicCode: varchar("public_code", { length: 30 }).notNull(), userId: uuid("user_id").references(() => users.id), entityType: varchar("entity_type", { length: 40 }).notNull(),
   entityId: uuid("entity_id").notNull(), type: varchar("type", { length: 80 }).notNull(), title: varchar("title", { length: 220 }).notNull(),
   brandName: varchar("brand_name", { length: 180 }).notNull(), urgency: varchar("urgency", { length: 20 }).default("Media").notNull(),
-  readAt: timestamp("read_at", { withTimezone: true }), managedAt: timestamp("managed_at", { withTimezone: true }), ...timestamps,
+  dismissedAt: timestamp("dismissed_at", { withTimezone: true }), readAt: timestamp("read_at", { withTimezone: true }), managedAt: timestamp("managed_at", { withTimezone: true }), ...timestamps,
 }, (table) => [uniqueIndex("notifications_org_code_uq").on(table.organizationId, table.publicCode), index("notifications_inbox_idx").on(table.organizationId, table.managedAt, table.createdAt)]);
 
 export const emailDrafts = pgTable("email_drafts", {
@@ -254,3 +274,12 @@ export const snapshotRevisions = pgTable("snapshot_revisions", {
   scope: varchar("scope", { length: 30 }).notNull(),
   revision: bigint("revision", { mode: "bigint" }).default(BigInt(0)).notNull(),
 }, table => [primaryKey({ columns: [table.organizationId, table.scope] })]);
+
+export const watchFeedback = pgTable("watch_feedback", {
+  id:uuid("id").defaultRandom().primaryKey(),organizationId:uuid("organization_id").notNull().references(()=>organizations.id,{onDelete:"cascade"}),
+  matchId:uuid("match_id").notNull().references(()=>matches.id,{onDelete:"cascade"}),actorUserId:uuid("actor_user_id").notNull().references(()=>users.id),
+  ownApplicationId:varchar("own_application_id",{length:30}).notNull(),offeredApplicationId:varchar("offered_application_id",{length:30}).notNull(),score:real("score").notNull(),
+  searchId:uuid("search_id"),vote:varchar("vote",{length:4}).notNull(),rationale:text("rationale").default("").notNull(),delivery:varchar("delivery",{length:20}).default("pending").notNull(),
+  version:integer("version").default(1).notNull(),attempts:integer("attempts").default(0).notNull(),leaseToken:uuid("lease_token"),leaseUntil:timestamp("lease_until",{withTimezone:true}),
+  availableAt:timestamp("available_at",{withTimezone:true}).defaultNow().notNull(),sentAt:timestamp("sent_at",{withTimezone:true}),...timestamps,
+},table=>[uniqueIndex("watch_feedback_judge_uq").on(table.organizationId,table.matchId,table.actorUserId),index("watch_feedback_delivery_idx").on(table.delivery,table.availableAt),check("watch_feedback_vote_ck",sql`${table.vote} in ('up','down')`),check("watch_feedback_score_ck",sql`${table.score} between 0 and 1`)]);

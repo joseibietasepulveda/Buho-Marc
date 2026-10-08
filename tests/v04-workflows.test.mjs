@@ -55,9 +55,11 @@ test("task validation rejects impossible dates and foreign-shaped assignees", ()
   assert.equal(taskSchema.safeParse({ ...task, dueDate: "2026-09-16", assigneeId: null }).success, true);
 });
 test("client email preserves the chosen lawyer and escapes content while excluding the internal report", () => {
-  const result = oppositionEmail({ name: 'A <script>alert(1)</script>', classes: "35", logo: "/logos/a.png" }, { name: "B", classes: "35", logo: "javascript:alert(1)" }, "Camila León", "CO-1", "https://example.com");
+  const result = oppositionEmail({ name: 'A <script>alert(1)</script>', classes: "35", logo: "/logos/a.png" }, { name: "B", classes: "35", logo: "javascript:alert(1)" }, "Camila León", "https://example.com");
   assert.match(result.text, /Se recomienda presentar oposición/);
   assert.match(result.text, /Camila León$/);
+  assert.doesNotMatch(result.text, /Referencia:|CO-/);
+  assert.doesNotMatch(result.html, /Referencia:|CO-/);
   assert.match(result.html, /<table/);
   assert.match(result.html, /https:\/\/example.com\/logos\/a.png/);
   assert.doesNotMatch(result.html, /<script>|javascript:|\.pdf|informe adjunto/);

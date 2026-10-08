@@ -3,6 +3,8 @@ export type RegistrationPhase = "inapi" | "gazette";
 export type RegistrationStatusId =
   | "publication-pending"
   | "not-filed"
+  | "withdrawn"
+  | "opposition-filed"
   | "decision-pending"
   | "decision-review"
   | "finality-pending"
@@ -59,6 +61,7 @@ export type LegalEvidence = {
 export type NotificationProof = { date: string; method: string; reference: string; sourceUrl?: string; verifiedBy: "public-document" | "team" | "source" };
 
 export type RegistrationApplication = {
+  clientId?: string; clientRole?: "holder" | "representative";
   demoScenario?: string;
   legalEvidence?: LegalEvidence[];
   procedure?: {
@@ -78,7 +81,8 @@ export type RegistrationApplication = {
     certificatePaymentAt?: string;
     readyToResolveProof?: NotificationProof;
     certificatePaymentProof?: NotificationProof;
-    concurrent?: { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string; evidenceExtensionDays?: number }[];
+    concurrent?: { statusId: RegistrationStatusId; notifiedAt?: string; officialDeadline?: string; sourceActDate?: string; sourceActId?: string; sourceActDescription?: string; notificationProof?: NotificationProof; evidenceExtensionDays?: number }[];
+    relatedProceedings?: { object: "nullity" | "incident"; description: string; actId?: string; actDate?: string }[];
   };
   provider?: "inapi";
   officialDeadline?: string;
@@ -110,6 +114,8 @@ export type RegistrationApplication = {
 export const STATUS_DEFINITIONS: StatusDefinition[] = [
   { id: "publication-pending", label: "Gestión de publicación registrada — esperando Diario Oficial", phase: "inapi", helper: "Consta una gestión de requerimiento o pago de publicación. Revisar su comprobante; la oposición comienza con la publicación efectiva." },
   { id: "not-filed", label: "Solicitud tenida por no presentada", phase: "inapi", terminal: "neutral", helper: "Consta la resolución que tiene por no presentada la solicitud; el vencimiento por sí solo no cambia el estado." },
+  { id: "withdrawn", label: "Solicitud desistida", phase: "inapi", terminal: "neutral", helper: "Desistimiento de la solicitud informado por INAPI. Un escrito que lo solicita o un desistimiento de oposición no termina la solicitud." },
+  { id: "opposition-filed", label: "Oposición presentada — traslado por confirmar", phase: "gazette", helper: "Consta una oposición. Su presentación no inicia por sí sola el plazo para contestar: falta el traslado y su notificación." },
   { id: "decision-pending", label: "Oposición — pendiente de fallo de INAPI", phase: "gazette", helper: "La contestación y la prueba no conceden ni rechazan por sí solas el registro." },
   { id: "decision-review", label: "Resolución dictada — resultado por revisar", phase: "gazette", helper: "La actuación recibida no identifica suficientemente el resultado o la ejecutoria. Revisar la resolución." },
   { id: "finality-pending", label: "Aceptación a registro — firmeza por confirmar", phase: "gazette", helper: "El plazo de pago final comienza cuando la resolución queda ejecutoriada." },

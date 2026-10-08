@@ -16,7 +16,7 @@ test("new events and annotations alert even without a change of general status",
   const d=doc(),before=normalizeInapi(d);
   d.events.push({...d.events[0],event_id:"2",event_date:"2026-09-04",seq:2,status_description:"Oposición - Presentación de demanda"});
   const after=normalizeInapi(d), changes=compareRecords(before,after);
-  assert.ok(changes.some(c=>c.field==="inapi.events"));assert.match(describeChanges(before,after).title,/Tire Market/);assert.equal(after.status,"opposition-answer");
+  assert.ok(changes.some(c=>c.field==="inapi.events"));assert.match(describeChanges(before,after).title,/Tire Market/);assert.equal(after.status,"opposition-filed");
   const baseline=normalizeInapi(d);d.annotations.push({...d.events[0],event_id:"3",status_description:"Transferencia de marca"});assert.ok(compareRecords(baseline,normalizeInapi(d)).some(c=>c.field==="inapi.annotations"));
 });
 test("scrape timestamps and array reordering do not send false notices; coverage edits do",()=>{

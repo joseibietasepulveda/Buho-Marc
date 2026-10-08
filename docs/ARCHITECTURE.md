@@ -2,19 +2,20 @@
 
 ## Alcance
 
-La aplicación implementa un BFF en Next.js, PostgreSQL, sesiones y aislamiento por organización. En v1.0, Dev consulta el motor externo INAPI / DeQuiénEs, guarda resultados y revisiones y ejecuta vigilancia mediante una cola persistente supervisada. El contrato vigente está en `lib/similarity-contract.ts` y `lib/similarity-provider.ts`; el despliegue y sus límites se documentan en `V1_0_RELEASE.md`.
+La aplicación implementa un BFF en Next.js, PostgreSQL, sesiones y aislamiento por organización. En v1.0, Dev consulta el motor externo INAPI / DeQuiénEs, guarda resultados y revisiones y ejecuta vigilancia mediante una cola persistente supervisada. El contrato vigente está en `lib/similarity-contract.ts` y `lib/similarity-provider.ts`; el despliegue y sus límites se documentan en [Railway](RAILWAY_DEPLOYMENT.md) y en las [entregas de octubre](README.md). DeQuiénEs pertenece al mismo equipo; «proveedor» describe su función técnica.
 
 ## Estado implementado
 
 - Next.js 16, TypeScript y Route Handlers.
 - PostgreSQL mediante Drizzle ORM y migraciones versionadas.
 - Datos demo idempotentes, PostgreSQL local independiente y respaldo de interfaz en el navegador; este respaldo no sustituye la persistencia del servidor.
-- Altas simuladas de marcas por número de registro INAPI o por RUT, casos y miembros; revisiones, conversiones, desvinculación de coincidencias, cambios de etapa y notificaciones persistentes.
+- Alta real de cartera por solicitud, marca, titular o representante; búsqueda combinada de candidatos y carga asistida Excel/CSV con confirmación de cliente/rol y deduplicación. Casos, miembros, conversiones, desvinculación, etapas y notificaciones persistentes; los fixtures se mantienen separados de la cartera real.
 - Clientes editables y tareas de casos persistentes con estados `not-applicable`, `pending` y `completed`.
 - Proveedor INAPI, registros de fuente, snapshots por expediente, revisiones programadas/manuales e historial de consultas. El Administrador de fuente es de solo lectura cuando el proveedor es INAPI.
 - Seguimiento de registros con gestiones y hechos activadores diferenciados, plazos concurrentes y 22 escenarios ficticios separados de la cartera. Reglas de LPI/RLPI en un módulo compartido y calendario nacional LPI/LBPA limitado a 2026–2027.
-- Prefactibilidad real por nombre, imagen y coberturas, con estados e historiales y agrupación opcional. Sin probabilidades jurídicas derivadas del ranking.
-- Vigilancia real: 30 resultados de stock, cinco visibles y ampliación de cinco; búsquedas separadas de ingresos y publicaciones, persistencia de decisiones, reintentos y recuperación por token de ejecución.
+- Factibilidad real por nombre, imagen y coberturas, hasta 100 candidatos, filtros de fecha enviados a la fuente y filtros sobre el lote recuperado. Agrupación inicial activa. Informes PDF/Word con perfil de estudio persistente y conclusión asistida o determinista, sin probabilidades jurídicas derivadas del ranking.
+- Informes de cliente Excel/Word/PDF por columnas elegidas, usando datos guardados y respetando organización/cliente. Buscador general sobre datos locales con vínculos a fichas.
+- Vigilancia real: 50 resultados de stock, cinco visibles y ampliación de cinco; búsquedas separadas de ingresos y publicaciones, persistencia de decisiones, reintentos y recuperación por token de ejecución.
 - Tablero de casos con `dnd-kit` para mover una tarjeta completa entre tres etapas sin recargar la pantalla.
 - Auditoría básica de las mutaciones principales.
 - Configuración de despliegue y health check para Railway.
@@ -25,7 +26,25 @@ El Canvas de registros combina solicitudes persistidas en PostgreSQL con anteced
 
 El Revisor de factibilidad envía la propuesta a `/api/similarity`, que valida el archivo y consulta la API externa desde el servidor. La imagen viaja como multipart (`options` e `image`) y no se guarda como estudio permanente. El servidor completa estados e historiales por lote. El puntaje de fusión ordena resultados; calibrar relevancia y acordar filtros por estado siguen pendientes.
 
+## Perfil del estudio y generación del informe · octubre
+
+`GET/PUT /api/report-profile` lee y guarda el perfil opcional de la organización. La versión evita sobrescribir una edición concurrente; el servidor valida y normaliza el logo y registra auditoría sin repetir su binario. La precarga de los tres estudios solo se ejecuta en el Dev identificado y con perfil vacío/versionado en cero.
+
+`POST /api/feasibility/conclusions` valida el contexto de hasta 100 resultados y obtiene el perfil desde la sesión. `db/feasibility-conclusions.ts` asigna UUID y persiste el contexto antes de llamar al proveedor, serializa la reclamación de trabajo por organización y libera la transacción antes de la llamada externa. Una solicitud concurrente recibe 202 y consulta `GET /api/feasibility/conclusions/[id]`; otras organizaciones reciben 404.
+
+`lib/openrouter-conclusion.ts` envía los antecedentes textuales completos a OpenRouter desde el servidor. Valida la respuesta, las solicitudes citadas y la decisión expresa del autor; sin clave o ante fallo usa `lib/feasibility-conclusion.ts`. Las respuestas equivalentes se reutilizan y los intentos abandonados se conservan. PDF/Word consumen la misma conclusión, sin repetir la búsqueda. Un motivo escrito por el abogado se utiliza directamente.
+
+`lib/feasibility-report.ts` (`pdf-lib`) y `lib/feasibility-docx.ts` (`docx`) generan los documentos en el navegador, con coberturas completas y datos opcionales del estudio. Guardar un contexto textual de conclusión no archiva el binario de la imagen propuesta ni el documento exportado. Contratos, límites y pruebas en [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md).
+
 ## Capas recomendadas
+
+### Ronda visual posterior · comprobada localmente
+
+`design-refresh.css` define el sistema común y sus ajustes adaptables; `feasibility-review.tsx` organiza Buscar/Revisar resultados/Preparar informe sin reemplazar los generadores PDF/Word. La búsqueda ejecutada y el borrador se conservan como contextos distintos, y una edición relevante invalida la revisión del informe.
+
+`POST /api/watch/feedback` valida hallazgo/voto/motivo y deriva organización, actor, pareja de solicitudes e índice desde sesión/evidencia. `db/watch-feedback.ts` persiste y entrega al proveedor con ACK concordante, versión/reclamación y reintento duradero; el worker procesa pendientes. `GET /api/audit` consulta el historial completo de la organización con filtros y páginas de 25. `lib/import-workbook.ts` añade BIFF/OLE .xls mediante SheetJS oficial, manteniendo validaciones y límites. La guía simple reconoce encabezado libre por contenido, incluidos números como texto.
+
+Las vistas Usuarios/Clientes utilizan entidades y permisos existentes. La importación no sobrescribe un cliente ya asignado; los informes usan los datos guardados del cliente. Alcance y registros en [Implementación de maquetas](UX_IMPLEMENTACION_OCTUBRE_2026.md). Esta ronda no está desplegada.
 
 ### Frontend
 
@@ -53,18 +72,16 @@ El Revisor de factibilidad envía la propuesta a `/api/similarity`, que valida e
 - Toda consulta y mutación exige `organization_id` validado en servidor.
 - Nunca se acepta un `organization_id` del cliente sin contrastarlo con la sesión.
 - Políticas de base de datos o repositorios que obliguen a incluir el contexto organizacional.
-- Todos los usuarios comparten permisos en el MVP, pero las operaciones quedan preparadas para roles futuros.
+- El producto distingue administrador y miembro; el alta de usuarios exige administrador. Los permisos granulares adicionales siguen siendo una propuesta futura.
 
-## Flujo de creación de marca
+## Flujo implementado de incorporación de cartera
 
-1. El cliente solicita un número de registro INAPI y valida su formato básico.
-2. `POST /api/brands` valida sesión, membresía, cupo, duplicados y archivos.
-3. En una transacción crea `brand`, clases, archivos y un `monitoring_job` con clave idempotente.
-4. La implementación demo devuelve parámetros ficticios y presenta la marca en monitoreo; en persistencia deja un trabajo `awaiting_engine` listo para el motor externo.
-5. Publica el evento `brand.monitoring_requested`.
-6. Un adaptador envía el trabajo al motor externo.
-7. El frontend consulta `GET /api/monitoring-jobs/:id` o recibe actualizaciones por SSE.
-8. Cada transición genera un `audit_event`.
+1. El usuario combina criterios en Agregar marcas o carga un Excel/CSV. `POST /api/inapi/search` recupera candidatos desde la fuente; `POST /api/portfolio/import` resuelve los pasos de la carga asistida.
+2. La interfaz explica coincidencias por titular/representante, reúne solicitudes duplicadas y pide confirmar cartera propia, cliente y rol por expediente, o dejarlo expresamente sin cliente.
+3. La incorporación autenticada valida organización e identidades, consulta el expediente y clasifica registro acreditado o solicitud según antecedentes de INAPI. Los expedientes existentes conservan vínculos; los errores de un lote no borran lo ya incorporado.
+4. La cartera y sus snapshots quedan en PostgreSQL. Las novedades de expediente y la vigilancia de similitudes mantienen sus flujos independientes. Expedientes contrarios se incorporan desde Casos con su rol de terceros.
+
+Los modelos de archivos/cola administrada y las capas recomendadas de este documento son propuestas de evolución; no describen endpoints adicionales publicados.
 
 ## Revisión y conversión en caso
 

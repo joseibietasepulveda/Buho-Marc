@@ -62,5 +62,11 @@ export function applyRegistrationEvidence(application: RegistrationApplication, 
     if (evidence.kind === "ready-to-resolve") { procedure.readyToResolveAt = evidence.date; procedure.readyToResolveProof = proof; }
     if (evidence.kind === "certificate-payment") { procedure.certificatePaymentAt = evidence.date; procedure.certificatePaymentProof = proof; }
   }
+  // An act can become concurrent after a later, independent obligation. Keep
+  // validating its own proof rather than losing a previously entered date.
+  if (procedure.concurrent) procedure.concurrent = procedure.concurrent.map(item => {
+    const target = applyRegistrationEvidence({ ...application, statusId: item.statusId, officialDeadline: item.officialDeadline, deadlineSource: undefined, procedure: { ...item, concurrent: undefined } }, today);
+    return { ...item, notifiedAt: target.procedure?.notifiedAt, notificationProof: target.procedure?.notificationProof };
+  });
   return { ...application, procedure };
 }

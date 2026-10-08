@@ -12,7 +12,7 @@ test("Excel: headers, multiple sheets, duplicate IDs, invalid cells and optional
   const result = await readImportFile(Buffer.from(await workbook.xlsx.writeBuffer()), "cartera.xlsx");
   assert.deepEqual(result.ids, ["1234567", "2345678"]);
   assert.equal(result.duplicates, 1); assert.equal(result.invalid.length, 2);
-  await assert.rejects(readImportFile(Buffer.from("registro\n1234567\n"), "registro.csv"), /no de registro/);
+  assert.deepEqual((await readImportFile(Buffer.from("Solicitudes del estudio\n1234567\n"), "libre.csv")).ids,["1234567"]);
   assert.deepEqual((await readImportFile(Buffer.from("numero_solicitud;estado\n1234567;concluida\n2345678;pendiente"), "test.csv")).ids, ["1234567", "2345678"]);
   await assert.rejects(readImportFile(Buffer.alloc(2 * 1024 * 1024 + 1), "test.xlsx"), /2 MB/);
   assert.equal(normalizeApplicationId("1e6"), null);
@@ -30,4 +30,14 @@ test("Password hashing uses independent salts and rejects wrong passwords", asyn
 test("Concurrent asynchronous requests keep organization and actor isolated", async () => {
   const scopes = [{ organizationId: "org-a", userId: "user-a" }, { organizationId: "org-b", userId: "user-b" }];
   await Promise.all(scopes.map(scope => runAs(scope, async () => { await new Promise(resolve => setTimeout(resolve, 20)); assert.equal(organizationId(), scope.organizationId); assert.equal(actorId(), scope.userId); })));
+});
+
+test("Legacy BIFF .xls accepts numeric text and a free optional header on any sheet",async()=>{
+ const XLSX=await import('xlsx');
+ for(const rows of [[['1234567'],[2345678]],[['Listado del estudio'],['1234567'],[2345678]]]){
+  const workbook=XLSX.utils.book_new();XLSX.utils.book_append_sheet(workbook,XLSX.utils.aoa_to_sheet(rows),'Cartera del estudio');
+  const buffer=XLSX.write(workbook,{type:'buffer',bookType:'biff8'});
+  assert.deepEqual((await readImportFile(buffer,'antiguo.xls')).ids,['1234567','2345678']);
+ }
+ await assert.rejects(readImportFile(Buffer.from('<table><tr><td>1234567</td></tr></table>'),'disfrazado.xls'),/Excel|xls|válido|válida/);
 });

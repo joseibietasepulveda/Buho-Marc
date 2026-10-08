@@ -1,0 +1,45 @@
+// Run after candidate-import-browser against the same disposable pilot fixture.
+import assert from 'node:assert/strict';
+import { readFile, mkdir } from 'node:fs/promises';
+import JSZip from 'jszip';
+import { PDFDocument } from 'pdf-lib';
+const base=process.env.CANDIDATE_QA_BASE,fixturePath=process.env.CANDIDATE_QA_FIXTURE;
+assert.ok(/^http:\/\/127\.0\.0\.1:\d+$/.test(base??'')&&fixturePath?.startsWith('/var/'));
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE});
+const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
+const login=await context.request.post(base+'/api/auth/login',{headers:{origin:base},data:{username:'pilot_alice',password:'pilot-confirmed-password'}});assert.equal(login.status(),200);
+const page=await context.newPage();page.setDefaultTimeout(15000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
+const imageRequests=[];page.on('request',r=>{if(r.url().includes('/api/inapi/logo/')||r.url().includes('/api/similarity/image'))imageRequests.push(r.url());});
+const output='output/candidate-import-2026-10-07';await mkdir(output,{recursive:true});
+try {
+ await page.goto(base+'/app');await page.getByRole('button',{name:/^07\s*Revisor de factibilidad$/}).click();
+ await page.getByLabel('Nombre de la marca',{exact:true}).fill('Marca QA logos');
+ await page.getByRole('checkbox',{name:'Agrupar similares del mismo titular'}).uncheck();
+ await page.getByRole('button',{name:'Todos',exact:true}).click();
+ await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();
+ await page.getByRole('region',{name:'Antecedentes de factibilidad'}).waitFor();
+ for(const id of ['9100041','9100044']) await page.waitForFunction(id=>{const img=document.querySelector(`img[alt="Marca Marca QA logos ${id}"]`);return img?.complete&&img.naturalWidth>0;},id);
+ assert.ok(imageRequests.some(url=>url.includes('/api/inapi/logo/9100041?source=')));
+ const row=page.locator('.feasibility-results-table tbody tr').filter({hasText:'9100044'});
+ await row.getByRole('button',{name:'Comparar',exact:true}).click();
+ const dialog=page.getByRole('dialog',{name:'Revisión de factibilidad',exact:true});await dialog.waitFor();
+ await page.screenshot({path:output+'/feasibility-comparison.png',fullPage:true});await dialog.getByRole('button',{name:'Cerrar',exact:true}).click();
+ await page.getByRole('checkbox',{name:'Seleccionar resultados de esta página',exact:true}).check();
+ await page.getByRole('button',{name:'Preparar informe',exact:true}).click();
+ await page.getByLabel('Conclusión del abogado (opcional)',{exact:true}).fill('Revisar las marcas y coberturas de los antecedentes seleccionados antes de presentar la propuesta.');
+ await page.getByRole('button',{name:'Preparar conclusión para revisar',exact:true}).click();
+ await page.getByRole('checkbox',{name:'Revisé los antecedentes y la conclusión del informe.',exact:true}).check();
+ let download=page.waitForEvent('download');await page.getByRole('button',{name:'Descargar PDF',exact:true}).click();const pdf=await download;await pdf.saveAs(output+'/logos-provider-first.pdf');
+ const pdfDocument=await PDFDocument.load(await readFile(output+'/logos-provider-first.pdf'));assert.ok(pdfDocument.getPageCount()>=1);
+ await page.getByRole('radio',{name:'Word editable',exact:true}).check();
+ download=page.waitForEvent('download');await page.getByRole('button',{name:'Descargar Word',exact:true}).click();const word=await download;await word.saveAs(output+'/logos-provider-first.docx');
+ const zip=await JSZip.loadAsync(await readFile(output+'/logos-provider-first.docx'));assert.ok(Object.keys(zip.files).some(key=>/^word\/media\/.*\.png$/.test(key)));
+ const xml=await zip.file('word/document.xml').async('string');assert.ok((xml.match(/<w:drawing>/g)||[]).length>=4, 'Identical fixture PNGs share a media file but each logo is drawn');
+ assert.deepEqual(errors,[]);
+ const calls=(await readFile(fixturePath+'.logos.jsonl','utf8')).trim().split('\n').map(JSON.parse);
+ assert.ok(!calls.some(row=>row.id==='9100041'&&row.provider==='inapi'));
+ const fallback=calls.filter(row=>row.id==='9100044').map(row=>row.provider);assert.ok(fallback.length>=4);
+ for(let i=0;i<fallback.length;i+=2)assert.deepEqual(fallback.slice(i,i+2),['dequienes','inapi']);
+ console.log('PASS: feasibility images/comparison and PDF/Word use DeQuiénEs first, ordered fallback and actual embedded PNGs; no page errors');
+} finally {await browser.close();}
