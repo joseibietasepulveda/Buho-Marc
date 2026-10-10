@@ -1,9 +1,9 @@
 # Traspaso: factibilidad por clase y multinforme
 
-- Actualizado: 2026-10-09 21:58, America/Santiago.
-- Estado: listo para integrar; publicación e integración en Dev autorizadas por el usuario; validación remota pendiente.
-- Rama y base: `codex/factibilidad-multinforme`; `origin/dev` en `156e172`. Fetch final confirma que Dev no avanzó.
-- PR y commit de entrega: se registrarán al publicar; la entrega anterior fue exclusivamente local.
+- Actualizado: 2026-10-09 22:11, America/Santiago.
+- Estado: integrado y desplegado exclusivamente en Dev; publicación verificada. Iteraciones futuras del informe de referencia pendientes.
+- Rama y base: `codex/factibilidad-multinforme`; base de implementación Dev `156e172`. Integración publicada en Dev `b78d204`; rama local actualizada a esa integración antes del cierre documental.
+- PR y commit de entrega: [#18](https://github.com/joseibietasepulveda/Buho-Marc/pull/18); funcional `14997bd99b5e50ec25a2b5e95df7577a56feda72`; integración Dev `b78d204e7d2a42dc1c01b633c6ed2cf3f1077247`. Cierre documental posterior.
 
 ## Objetivo y alcance
 El usuario autorizó Informe (una clase) y Multinforme (varios análisis de una sola clase), conservar análisis durante el flujo y reunirlos en PDF/Word. OpenRouter recibe texto y redacta conclusiones por clase; no presentar reglas automáticas como análisis del modelo. Sin porcentajes en informes ni conclusiones. Tabla comparativa o fichas con imágenes confirmado. El diseño definitivo espera el informe de referencia del usuario.
@@ -47,7 +47,7 @@ Instancia local: aplicación 3127, PostgreSQL 55467, datos propios en `.buho-loc
 1. Autenticación resuelta con una clave de inferencia independiente. Mantener el límite US$1; no ampliar gasto sin autorización. La clave no vence por petición posterior del usuario.
 2. Recibir el informe de referencia y ajustar/comparar todos los visuales en local. No se afirma fidelidad a una referencia aún no entregada.
 3. Continuar pruebas de edición y textos extensos según la guía del usuario.
-4. Preparar commit/PR con código y documentación juntos cuando corresponda publicar. Dev remoto y producción no se modificaron.
+4. Continuar las iteraciones en el worktree conservado; la entrega ya está publicada exclusivamente en Dev por PR #18. Revisar avances de Dev antes de integrar cambios nuevos. Producción no se modificó.
 
 ## Diagnóstico histórico de OpenRouter · resuelto en la activación siguiente
 - La documentación oficial distingue claves de administración de inferencia: las primeras no sirven para completions. Un 401 aislado no demuestra que la clave esté vencida. Fuente: https://openrouter.ai/docs/guides/overview/auth/management-api-keys.
@@ -78,3 +78,10 @@ Instancia local: aplicación 3127, PostgreSQL 55467, datos propios en `.buho-loc
 - Versión final: `npm run build`, 30/30 pruebas dirigidas y ESLint de todos los archivos de código modificados aprobados. Sin dependencias nuevas ni migraciones; la fuente real sigue activada en Railway.
 - Se comprobó que el servicio web de Dev no tenía OPENROUTER_API_KEY. Se configuraron solamente OPENROUTER_API_KEY y OPENROUTER_MODEL en el ambiente `9e2891f0-7281-4872-a992-2c48866a782d`, servicio `3c48aadd-c695-4c4a-ae9c-1ae24e1f1217`, proyecto heartfelt-magic. Se usa la clave exclusiva ya autorizada, sin vencimiento y tope US$1; autenticación 200/tipo inferencia comprobados antes de instalarla. Configuración mediante entrada privada; ningún valor quedó en Git/registros. Sin cambios en producción, base o credenciales de usuarios.
 - Variables configuradas con skip-deploys para evitar publicar una versión intermedia antes de integrar el código. Pendientes PR, SHA exacto y SUCCESS de Railway, salud y rutas privadas.
+
+## Integración y despliegue comprobados
+- PR #18 integrado según autorización; Railway despliegue `39007126-edc7-4e7e-897f-f800ef1ea29d`, SHA exacto `b78d204e7d2a42dc1c01b633c6ed2cf3f1077247`, rama Dev, estado SUCCESS. Build/TypeScript y arranque remotos comprobados; migraciones existentes aplicadas correctamente, servidor listo. No se añadieron migraciones ni dependencias.
+- Health HTTP 200/database connected/engine dequienes/source configured. Perfil, solicitudes, búsqueda y conclusiones HTTP 401 sin sesión; /app HTTP 307 a ingresar. Configuración remota comprobada: clave de inferencia vigente (autenticación 200), modelo openai/gpt-4.1-mini, tope US$1, expires_at=null; fixture local desactivado. Uso confirmado US$0,00662.
+- Registro reproducible privado de comprobación en `work/study-qa/dev-deployment-qa.json`, sin credenciales. Revisión autenticada de toda la experiencia y documentos fue local; Chrome llegó al ingreso de Dev por no tener sesión. No se reconfiguraron claves de usuarios, copiaron datos ni consultaron fuentes reales para probar visuales. Lectura SSH no disponible porque no hay claves locales; no se creó acceso nuevo y no se afirma una inspección SSH del runtime.
+- Main se conserva en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; solo Dev recibió código y configuración. Se actualizan README y documentos vigentes para sustituir los estados previos de «solo local» y «OpenRouter pendiente en Dev».
+- Cierre documental posterior registra esta entrega funcional exacta; no cambia código ni vuelve a generar informes. Se conserva el worktree para los cambios que el usuario seguirá guiando.
