@@ -16,7 +16,7 @@ export async function prepareConclusion(input: ConclusionInput) {
     await tx`SELECT id FROM organizations WHERE id=${organizationId()} FOR UPDATE`;
     const [existing] = await tx`SELECT id,status,output,created_at,completed_at FROM feasibility_conclusions WHERE organization_id=${organizationId()} AND context_hash=${hash}`;
     if (existing) {
-      if (existing.status === 'complete' && (existing.output?.source !== 'deterministic' || existing.output?.reason === 'not_configured' || Date.now() - new Date(existing.completed_at).getTime() < 300000)) return { cached: existing.output as ReportConclusion };
+      if (existing.status === 'complete' && (existing.output?.source !== 'deterministic' || existing.output?.reason === 'not_configured' || input.proposal.niceClass === undefined && Date.now() - new Date(existing.completed_at).getTime() < 300000)) return { cached: existing.output as ReportConclusion };
       if (existing.status === 'pending' && Date.now() - new Date(existing.created_at).getTime() < 120000) return { pending: existing.id as string };
       // Retain failed/abandoned attempts and their metadata when retrying.
       const archivedHash = createHash('sha256').update(hash + existing.id).digest('hex');
