@@ -1,6 +1,14 @@
 # Despliegue y operación en Railway
 
-Actualizado el 8 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+Actualizado el 9 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+
+## Factibilidad por clase y nuevos informes · 9 de octubre
+
+- [PR #18](https://github.com/joseibietasepulveda/Buho-Marc/pull/18), exclusivamente Dev `b78d204e7d2a42dc1c01b633c6ed2cf3f1077247`; despliegue `39007126-edc7-4e7e-897f-f800ef1ea29d` **SUCCESS**, SHA exacto y rama comprobados. Build/TypeScript remotos aprobados; migraciones existentes y arranque correctos. Sin migraciones o dependencias nuevas.
+- Informe y Multinforme, una clase por búsqueda, conservación/navegación de análisis, conclusiones independientes y exportación tabla/fichas en PDF/Word con presentación sobria y sin porcentajes. [Contrato vigente](FACTIBILIDAD_MULTINFORME_2026-10-09.md) y [traspaso](handoffs/2026-10-09-factibilidad-multinforme.md).
+- OpenRouter activado únicamente en Dev con clave de inferencia exclusiva, sin vencimiento, tope US$1 y modelo `openai/gpt-4.1-mini`. Autenticación 200/tipo/tope/vigencia comprobados. Valores privados fuera de Git. No se cambió la configuración de producción.
+- Salud 200/base conectada/motor DeQuiénEs; perfil, solicitudes, búsqueda y conclusiones 401 sin sesión; /app redirige a ingresar. Fuente real conservada y fixture local desactivado. La QA autenticada completa y las cuatro descargas se verificaron en local con datos ficticios; no hubo búsquedas nuevas de INAPI ni operaciones sobre carteras reales por esta comprobación.
+- Compilación final, lint y 30/30 pruebas dirigidas aprobados. Doce páginas de cuatro informes finales revisadas (tres por documento). Main se comprobó sin cambios en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior de esta entrega solo actualiza documentación.
 
 ## Bienvenida y traslado exclusivo Búho Marc · 8 de octubre
 
@@ -116,7 +124,7 @@ Las migraciones actuales incluyen `0011_notification_dismissal.sql` y `0012_feas
 | `APP_PUBLIC_ORIGIN` o `RAILWAY_PUBLIC_DOMAIN` | Origen validado para acciones del navegador. |
 | `MONITORING_SCHEDULER_ENABLED` | Habilita el supervisor; respeta el modo automático/a pedido de cada organización. |
 | `MONITORING_CRON_SECRET` | Credencial interna del worker; el supervisor puede generarla. |
-| `OPENROUTER_API_KEY` | Opcional: activa la redacción asistida de conclusiones. Sin ella funciona el respaldo determinista. |
+| `OPENROUTER_API_KEY` | Activa las conclusiones asistidas; configurada en Dev. El nuevo flujo por clase exige revisión del texto del modelo o del autor y no exporta un respaldo automático. |
 | `OPENROUTER_MODEL` | Opcional, predeterminado `openai/gpt-4.1-mini`. |
 | `PORT`, `NODE_ENV` | Configurados por el entorno de ejecución. |
 
@@ -145,7 +153,7 @@ El usuario autorizó un acceso SSH temporal para una primera copia lógica de De
 
 Daniel conserva la revisión diaria a las 12:30 de `America/Santiago`; `estudio-ibieta-ip` permanece a pedido. Consultar [control de consumo](COST_CONTROL.md) y la cola para conocer el progreso. Un health check exitoso no acredita la finalización de trabajos.
 
-Quedan pendientes activar OpenRouter con una credencial real y comprobar ese llamado; permisos/invitaciones avanzados, almacenamiento general de adjuntos y estudios completos, envío de correos, métricas, respaldos con restauración probada y capacidad a escala. Autenticación piloto, aislamiento, motor de similitud e informes PDF/Word ya están implementados.
+OpenRouter quedó activado en Dev el 9 de octubre; el proveedor real se verificó en local con datos ficticios. Continúan pendientes su activación en producción, permisos/invitaciones avanzados, almacenamiento general de adjuntos y estudios completos, envío de correos, métricas, respaldos con restauración probada y capacidad a escala. Autenticación piloto, aislamiento, motor de similitud e informes PDF/Word ya están implementados.
 
 La CLI de Railway advirtió durante esta entrega que `railway.json`/`railway.toml` quedarán obsoletos el 1 de diciembre de 2026. La migración de configuración se mantiene como tarea independiente; no se realizó en esta ronda.
 

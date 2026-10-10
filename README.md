@@ -30,7 +30,7 @@ Las decisiones y los pendientes de esta revisión están en [Vigilancia · 28 de
 
 ## Factibilidad e informes
 
-Actualización en esta rama, todavía sin integrar ni desplegar: [Informe y Multinforme por clase Niza](docs/FACTIBILIDAD_MULTINFORME_2026-10-09.md). Cada búsqueda requiere una clase; Multinforme reúne análisis de la misma marca con conclusiones independientes. Permite tabla o fichas, omite porcentajes en la exportación y bloquea la descarga si falla OpenRouter. Los párrafos siguientes conservan el contexto de la versión publicada anterior.
+Actualización integrada y desplegada exclusivamente en Dev el 9 de octubre de 2026 (PR #18): [Informe y Multinforme por clase Niza](docs/FACTIBILIDAD_MULTINFORME_2026-10-09.md). Cada búsqueda requiere una clase; Multinforme reúne análisis de la misma marca con conclusiones independientes. Permite tabla o fichas, omite porcentajes en la exportación y bloquea la descarga si falla OpenRouter. Los párrafos siguientes conservan el contexto de la versión publicada anterior.
 
 Nombre, imagen o ambos; clases y coberturas opcionales; estados y porcentaje mínimo elegidos antes de Buscar. La nueva interfaz ofrece **Buscar / Revisar resultados / Preparar informe**. La agrupación está activada inicialmente junto al desplegable Niza por número o significado. Solicitud desde, Publicación DO desde y Registro desde se envían a la fuente. Contiene, palabra completa, prefijo y sufijo se envían como `name_match` al canal de denominación; Similar usa la búsqueda por semejanza. Exacto filtra localmente el lote recuperado después de una consulta remota contiene. Estados e índice mínimo se aplican al lote de hasta 100 candidatos, con paginación de 10/25/50/100. Por defecto se consideran registradas y en trámite. El índice se muestra en porcentaje y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.
 
@@ -149,7 +149,7 @@ La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](doc
 - [Control de consumo y programación por cartera](docs/COST_CONTROL.md): Daniel automático, Búho a pedido.
 
 
-La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. Activar OpenRouter en Dev requiere configurar una clave real.
+La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. OpenRouter quedó activado en Dev con una clave de inferencia exclusiva; su activación en producción continúa pendiente.
 
 ### Backlog · Registro de marcas
 
