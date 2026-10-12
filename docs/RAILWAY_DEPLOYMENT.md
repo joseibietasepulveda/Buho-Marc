@@ -2,6 +2,14 @@
 
 Actualizado el 11 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
 
+## Notificación asumida el día del evento · 12 de octubre
+
+- [PR #24](https://github.com/joseibietasepulveda/Buho-Marc/pull/24), exclusivamente Dev `c6d91f796c9b560bae540f526ecf5776bf60599a`; Railway `3a3f152d-6309-4f97-9fd9-7edb304b0010` **SUCCESS**, rama y SHA exactos confirmados. Compilación, TypeScript, migraciones existentes y arranque correctos. Sin migraciones nuevas ni cambios de variables.
+- El cálculo asume notificación el día de la actuación habilitante cuando falta fecha informada, con prioridad de fechas acreditadas y vencimientos válidos. Tarjetas/detalle/resumen indican la suposición. No fabrica pruebas, presume ejecutoria ni cambia tareas/avisos históricos. La recuperación deja de consultar cuando basta la actuación guardada; conserva 200 expedientes diarios y mínimo tres segundos. [Regla vigente](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md) y [traspaso](handoffs/2026-10-12-notificacion-mismo-dia-evento.md).
+- 74 pruebas aprobadas, build/TypeScript, ESLint y QA visual local con fixtures. Un test HTTP optativo omitido por puertos fijos ajenos a la instancia aislada. El recálculo de carteras guardadas de Dev completa 55 de 57 obligaciones legales indeterminadas al corte; no requiere una nueva extracción ni escritura/reproyección de la base.
+- Salud remota 200/base conectada/motor DeQuiénEs; registros 401 sin sesión; `/app` 307 a ingresar. QA autenticada local. No se trasladaron datos ni se dispararon búsquedas de fuentes para verificar el despliegue.
+- Main permanece en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior sólo registra documentación.
+
 ## Informes para cliente y estudio · 12 de octubre
 
 - [PR #22](https://github.com/joseibietasepulveda/Buho-Marc/pull/22), exclusivamente Dev `e78b18d05fc45b2e436069518e3b4f445dbcf052`; Railway `3deae247-7fea-4fd7-85e4-0e53a96b209b` **SUCCESS**, SHA exacto confirmado. Compilación, TypeScript, migraciones existentes y arranque correctos. Sin migraciones, dependencias ni credenciales nuevas.

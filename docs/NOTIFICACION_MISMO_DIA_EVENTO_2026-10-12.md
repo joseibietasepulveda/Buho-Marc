@@ -35,6 +35,8 @@ La API de registros reproyecta `source_records` guardados mediante `updatedAppli
 
 ## Verificación y publicación
 
+Integrado mediante [PR #24](https://github.com/joseibietasepulveda/Buho-Marc/pull/24) y publicado únicamente en Railway Dev: commit `c6d91f796c9b560bae540f526ecf5776bf60599a`, despliegue `3a3f152d-6309-4f97-9fd9-7edb304b0010`, `SUCCESS`. Compilación/TypeScript, arranque y salud verificados; sin migraciones nuevas ni traslado de datos. Main conserva su versión anterior.
+
 Pruebas específicas: `tests/notification-event-assumption.test.mjs`, `tests/registration-procedure.test.mjs`, `tests/registration-evidence.test.mjs`, `tests/inapi-procedure.test.mjs`, `tests/inapi-recovery.test.mjs` y `tests/inapi-recovery-integration.test.mjs`. Cubren prioridades, obligaciones concurrentes, separación de pruebas, fechas incompatibles, cumplimiento y ausencia de consultas innecesarias. Resultado y estado real de integración/despliegue: [nota de traspaso](handoffs/2026-10-12-notificacion-mismo-dia-evento.md).
 
 Las auditorías y los informes anteriores conservan su fecha de corte y describen la política que existía entonces; no representan la política actual. Los recálculos de carteras reales son evidencia privada en `output/`, no fixtures ni documentación versionada con datos de clientes.
