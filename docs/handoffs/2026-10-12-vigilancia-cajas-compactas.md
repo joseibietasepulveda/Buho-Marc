@@ -1,9 +1,9 @@
 # Traspaso: cajas compactas de Vigilancia
 
-- Actualizado: 2026-10-12 19:21, America/Santiago
-- Estado: listo para revisión e integración autorizada
+- Actualizado: 2026-10-12 19:30, America/Santiago
+- Estado: integrado y publicado en Dev
 - Rama y base: `codex/vigilancia-cajas-compactas`; `dev` en `816c5eaad7e8cdb89890ee524378b7cd367d6c2f`
-- PR y commit de entrega: pendientes
+- PR de integración: [#28](https://github.com/joseibietasepulveda/Buho-Marc/pull/28). Entrega: `a05f1c08861dc8c78861ba930855a4f2375ee584`. Integración: `f1d8c12b2ce9009db776150e67d332382a15f10e`.
 
 ## Objetivo y alcance
 Petición explícita del usuario: retirar «Nueva publicación» de las cajas de cruces, abrir comparación/historial al pulsar la caja, eliminar su botón y ordenar Convertir en caso / Pasar a seguimiento / Descartar en una fila de igual altura. Publicar e integrar únicamente en Dev.
@@ -35,4 +35,10 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, Chrome/Playwright y PostgreSQL desec
 - `git diff --check`: aprobado. `origin/dev` seguía en la base al preparar la entrega; no hay ramas pendientes de las que dependa este cambio.
 
 ## Pendientes y siguiente paso
-Abrir PR hacia Dev, integrar por autorización del usuario y comprobar despliegue exacto/salud. Actualizar aquí las referencias de integración y publicación. Detener el servidor/base local al terminar. Sin promoción a main ni producción.
+No quedan cambios funcionales pendientes. El servidor y PostgreSQL de QA se detuvieron al terminar; el puerto 3438 dejó de escuchar. Recargar Dev para cargar los nuevos recursos. Sin promoción a main ni producción. El ajuste del bloque de oposición en tablet queda como mejora independiente.
+
+## Integración y publicación verificadas
+- PR #28 integrado por la autorización explícita «esto en dev, súbelo a dev». `dev` no avanzó desde la base durante la implementación; el árbol funcional de la integración es idéntico al probado (`git diff f1d8c12 a05f1c0 --stat` vacío). No hubo conflictos ni cambios conjuntos adicionales que requirieran repetir pruebas.
+- Railway: proyecto `heartfelt-magic`, servicio `buho-marc-web`, ambiente Dev `9e2891f0-7281-4872-a992-2c48866a782d`. Despliegue `6ab613a4-9253-4446-9b05-efbbb52cceed`, SHA exacto `f1d8c12b2ce9009db776150e67d332382a15f10e`, rama `dev`, estado **SUCCESS**. CLI y logs confirman compilación, TypeScript, empaquetado y servidor listo.
+- `curl --silent --show-error --max-time 20 https://buho-marc-web-dev.up.railway.app/api/health`: salud correcta, `ok:true`, base conectada y `engine:dequienes`. `/api/watch` responde 401 sin sesión. No se cambiaron claves para entrar en cuentas alojadas; la comprobación autenticada de los controles fue local con fixtures.
+- `main` sigue en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`, el mismo SHA observado antes de publicar. La actualización posterior de esta nota es únicamente documental y no cambia el código funcional verificado.
