@@ -4,6 +4,7 @@
 - Estado: integrado y publicado en Dev
 - Rama y base: `codex/vigilancia-cajas-compactas`; `dev` en `816c5eaad7e8cdb89890ee524378b7cd367d6c2f`
 - PR de integración: [#28](https://github.com/joseibietasepulveda/Buho-Marc/pull/28). Entrega: `a05f1c08861dc8c78861ba930855a4f2375ee584`. Integración: `f1d8c12b2ce9009db776150e67d332382a15f10e`.
+- Promoción posterior autorizada: [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30), Main `01a8b0e523656bf72961070053dafddec57a67c9`, producción SUCCESS. Ver [promoción y verificaciones](2026-10-12-promocion-dev-main.md); los apartados siguientes describen la entrega inicial a Dev.
 
 ## Objetivo y alcance
 Petición explícita del usuario: retirar «Nueva publicación» de las cajas de cruces, abrir comparación/historial al pulsar la caja, eliminar su botón y ordenar Convertir en caso / Pasar a seguimiento / Descartar en una fila de igual altura. Publicar e integrar únicamente en Dev.
