@@ -1,5 +1,6 @@
 // Local UI QA with explicit fixtures. No source search or real model request.
 import assert from 'node:assert/strict';
+import { NICE_CLASSES } from '../lib/nice-classes.ts';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 const {chromium}=await import(process.env.BUHO_PLAYWRIGHT_MODULE || 'playwright');
 const base=process.env.BUHO_QA_ORIGIN || 'http://127.0.0.1:3127';
@@ -24,12 +25,13 @@ await page.route('**/api/feasibility/conclusions',async route=>{
   await route.fulfill({json:{conclusion:{title:providerFails?'Respaldo automático':empty?'Se recomienda presentar la solicitud':'Se recomienda presentar con riesgo moderado de oposición',decision:empty?'proceed':'moderate',recommendation:empty?'proceed':'review',source:providerFails?'deterministic':'openrouter',paragraphs:[`En la clase ${number}, los antecedentes muestran cercanía entre las denominaciones y sus coberturas. Conviene evaluar la solicitud ${10000+number} antes de presentar.`, 'La recomendación depende de confirmar las coberturas; el resultado del examen corresponde a INAPI.'],evidenceApplicationIds:empty?[]:[String(10000+number)]}}});
 });
 await writeFile(`${output}/local-fixture.json`,JSON.stringify({sourceType:'fixture',query:{...hit(30),name:'Marca de prueba'},results:[hit(30),hit(43)],groups:[],warnings:[],candidateCount:2,elapsedSeconds:0,fetchedAt:'2026-10-09T12:00:00Z'},null,2));
+async function chooseClass(number){await page.getByRole('combobox',{name:'Clase Niza',exact:true}).fill(String(number));await page.getByRole('option',{name:new RegExp('^'+number+' ·')}).click();}
 try {
   await page.goto(base+'/app',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:/Revisor de factibilidad/}).click();
   await page.getByRole('button',{name:'Multinforme',exact:true}).click();
   const emptyProgress=await page.locator('.feasibility-study-progress').evaluate(el=>{const parent=el.getBoundingClientRect(),text=el.querySelector('strong').getBoundingClientRect();return {top:text.top-parent.top,bottom:parent.bottom-text.bottom};});assert.ok(Math.abs(emptyProgress.top-emptyProgress.bottom)<2);
   await page.getByLabel('Nombre de la marca').fill('Marca de prueba');
-  await page.locator('#proposal-class').selectOption('30');
+  await chooseClass(30);
   await page.screenshot({path:`${output}/01-busqueda.png`,fullPage:true});
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();
   await page.getByText('Marca de prueba · 1 antecedente',{exact:true}).waitFor();
@@ -44,7 +46,7 @@ try {
   assert.equal(await page.getByRole('button',{name:'Agregar otro análisis por clase de Niza',exact:true}).count(),2);
   await page.getByRole('button',{name:'Agregar otro análisis por clase de Niza',exact:true}).last().click();
   assert.equal(await page.getByLabel('Nombre de la marca').inputValue(),'Marca de prueba');
-  await page.locator('#proposal-class').selectOption('43');
+  await chooseClass(43);
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();
   await page.locator('.feasibility-selection-bar').getByRole('button',{name:'Siguiente',exact:true}).click();
   await page.getByRole('button',{name:'Generar conclusión con IA - Buho Marc',exact:true}).click();
@@ -59,7 +61,7 @@ try {
   await page.getByRole('button',{name:'Clase 30 · Con conclusión',exact:true}).click();
   assert.equal(await page.locator('#proposal-class').count(),0);
   await page.getByRole('navigation',{name:'Pasos de factibilidad'}).getByRole('button',{name:/Buscar/}).click();
-  assert.equal(await page.locator('#proposal-class').inputValue(),'30');
+  assert.equal(await page.locator('#proposal-class').inputValue(),NICE_CLASSES.find(item=>item.number===30).number+' · '+NICE_CLASSES.find(item=>item.number===30).meaning);
   await page.getByRole('navigation',{name:'Pasos de factibilidad'}).getByRole('button',{name:/Preparar informe/}).click();
   await page.getByRole('button',{name:'Clase 43 · Con conclusión',exact:true}).click();
   assert.equal(modelCalls,2,'Navegar entre clases conserva las conclusiones');
@@ -80,12 +82,12 @@ try {
   }
   assert.equal(modelCalls,2,'Cambiar destinatario, presentación y descargar no vuelve a analizar');
   // A failed model response must remain visible and block export.
-  await page.getByRole('button',{name:'Nuevo estudio',exact:true}).click();await page.getByRole('button',{name:'Informe',exact:true}).click();await page.getByLabel('Nombre de la marca').fill('Prueba de fallo');await page.locator('#proposal-class').selectOption('30');
+  await page.getByRole('button',{name:'Nuevo estudio',exact:true}).click();await page.getByRole('button',{name:'Informe',exact:true}).click();await page.getByLabel('Nombre de la marca').fill('Prueba de fallo');await chooseClass(30);
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();await page.locator('.feasibility-selection-bar').getByRole('button',{name:'Siguiente',exact:true}).click();
   assert.equal(await page.getByRole('button',{name:'Agregar otro análisis por clase de Niza',exact:true}).count(),0);providerFails=true;await page.getByRole('button',{name:'Generar conclusión con IA - Buho Marc',exact:true}).click();
   await page.getByRole('alert').filter({hasText:'IA - Buho Marc no pudo concluir'}).waitFor();assert.ok(await page.getByRole('button',{name:'Descargar Word',exact:true}).isDisabled());
   await page.screenshot({path:`${output}/03-fallo-openrouter.png`,fullPage:true});
-  providerFails=false;await page.getByRole('button',{name:'Nuevo estudio',exact:true}).click();await page.getByLabel('Nombre de la marca').fill('Sin antecedentes relevantes');await page.locator('#proposal-class').selectOption('30');
+  providerFails=false;await page.getByRole('button',{name:'Nuevo estudio',exact:true}).click();await page.getByLabel('Nombre de la marca').fill('Sin antecedentes relevantes');await chooseClass(30);
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();await page.getByRole('button',{name:'Limpiar selección',exact:true}).click();await page.locator('.feasibility-selection-bar').getByRole('button',{name:'Siguiente',exact:true}).click();
   await page.getByRole('button',{name:'Generar conclusión con IA - Buho Marc',exact:true}).click();await page.waitForFunction(()=>{const button=Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Descargar Word');return button&&!button.disabled;});
   assert.equal(await page.getByRole('article').getByText('Se recomienda presentar la solicitud',{exact:true}).count(),1);

@@ -119,3 +119,7 @@
   .notice-pagination { font-size:14px; }
   .notice-pagination > div { gap:8px; }
 }
+
+.priority-notice-reader{cursor:zoom-in}
+.priority-notice-reader>header>div{flex:1}
+.priority-notice-reader :is(button,a,summary){cursor:pointer}

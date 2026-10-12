@@ -8,6 +8,7 @@ Actualizada el 5 de octubre de 2026. La ronda más reciente implementa las maque
 
 | Documento | Contenido |
 | --- | --- |
+| [Interfaz, informes y avisos reales · 12 de octubre](handoffs/2026-10-12-interfaz-informes-notificaciones.md) | Combobox Niza, tipografía y tabla, controles estables, loading y avisos reales acotados a Dev/admin y producción/Barros & Errázuriz. |
 | [Notificación el día del evento](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md) | Convención vigente, plazos afectados, prioridad de pruebas y límites. |
 | [README del proyecto](../README.md) | Funciones, inicio local, configuración y límites actuales. |
 | [Implementación de maquetas · 4 de octubre](UX_IMPLEMENTACION_OCTUBRE_2026.md) | Alcance aprobado, tres pasos, Excel antiguo, feedback, directorios, auditoría y verificación local. |

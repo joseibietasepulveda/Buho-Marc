@@ -120,3 +120,10 @@ img[role=button]{cursor:zoom-in}img[role=button]:focus-visible{outline:3px solid
 .feasibility-audience-switch button[aria-pressed=true]{background:#6c3f91;color:#fff;font-weight:600}
 .feasibility-audience-switch button:focus-visible{outline:2px solid #40235c;outline-offset:-3px}
 .feasibility-audience-switch button:disabled{opacity:.65;cursor:default}
+
+.feasibility-audience-switch button{font-weight:600}
+.feasibility-audience-switch button span{display:block;white-space:nowrap;line-height:1.4}
+.buho-app .feasibility-workflow .feasibility-report-card textarea{font-weight:400}
+.feasibility-study-header .buho-primary{padding:11px 18px;background:#6c3f91;color:#fff;border:1px solid #6c3f91;border-radius:7px;font-weight:600;cursor:pointer}
+.feasibility-study-header .buho-primary:hover{background:#573078}
+.nice-class-combobox [aria-disabled=true]{opacity:.5;cursor:default}

@@ -96,7 +96,7 @@ test('Word retains the supplied conclusion, full coverages and optional study de
  const allXml=(await Promise.all(Object.keys(zip.files).filter(name=>/^word\/.*\.xml$/.test(name)).map(name=>zip.file(name).async('string')))).join(' ');
  for(const value of [conclusion.title,...conclusion.paragraphs,'Estudio personalizado','Abogada personalizada','Dirección personalizada',fullCoverage,'Servicios relacionados de otra clase.','IV.    Conclusión.'])assert.ok(allXml.includes(value),value);
  assert.match(xml,/30, 35/);assert.ok(xml.includes('Clases de Niza: '));
- assert.match(xml,/w:keepNext/);assert.match(xml,/w:ascii="Arial"/);
+ assert.match(xml,/w:keepNext/);assert.match(xml,/w:ascii="Times New Roman"/);
  assert.equal(Object.keys(zip.files).some(name=>name.startsWith('word/media/')),false,'no logo or placeholder should be inserted when the profile has no logo');
  const pdf=await createFeasibilityReport({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',audience:'study',conclusion});
  assert.ok((await PDFDocument.load(pdf)).getPageCount()>=2);
@@ -110,7 +110,7 @@ test('new table groups one mark, embeds its logo and includes only selected rele
  const analysis={proposal,result,selectedIds:['1','2','3'],conclusion};
  const input={proposal,result,status:'all',layout:'table',analyses:[analysis],selectedIds:analysis.selectedIds,resultImages:{'2':tiny},includeAppendix:true};
  const zip=await JSZip.loadAsync(await(await createFeasibilityDocx(input)).arrayBuffer()),xml=await zip.file('word/document.xml').async('string');
- assert.equal((xml.match(/<w:tc>/g)||[]).length,4);assert.match(xml,/1 antecedente relevante/);assert.match(xml,/w:jc w:val="center"/);assert.match(xml,/w:vAlign w:val="center"/);
+ assert.equal((xml.match(/<w:tc>/g)||[]).length,4);assert.match(xml,/1 antecedente relevante/);assert.match(xml,/w:jc w:val="center"/);assert.match(xml,/w:vAlign w:val="center"/);assert.match(xml,/Parte Figurativa/);assert.equal(xml.includes('>Logo<'),false);assert.match(xml,/w:ascii="Times New Roman"/);assert.match(xml,/w:jc w:val="both"/);
  assert.match(xml,/CIOCCOLATA.*, todos/);assert.equal(xml.includes('Marca no incluida'),false);assert.equal(xml.includes('Anexo de resultados'),false);
  assert.equal(xml.includes('antecedentes recuperados'),false);assert.equal(xml.includes('Nota: el análisis'),false);assert.equal(xml.includes('Los datos incompletos'),false);
  assert.equal(Object.keys(zip.files).filter(name=>name.startsWith('word/media/')&&!zip.files[name].dir).length,1);
