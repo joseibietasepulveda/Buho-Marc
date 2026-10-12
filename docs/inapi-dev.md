@@ -7,6 +7,10 @@ Entrega publicada en Dev el 07/10 mediante [PR #6](https://github.com/joseibieta
 
 Vigilancia y factibilidad usan `/trademarks/search` y `/trademarks/batch` para estados, coberturas e historial. Se piden 50 resultados de stock por vigilancia y hasta 100 candidatos por factibilidad. El adaptador admite `registration_id` y el nombre anterior `registration_number`; las imágenes propuestas usan `options` e `image` en multipart. Los estados se interpretan y filtran sobre antecedentes recuperados; el filtro previo en la fuente y su catálogo siguen pendientes. Un rechazo puede tener recursos o instancias posteriores.
 
+## Recuperación adicional en factibilidad · 12 de octubre
+
+Se revisó [el contrato público](https://dequienes.cl/inapi/spec): el buscador de similitudes admite `limit` hasta 100, sin continuación documentada. La paginación local recorre el lote filtrado; cuatro antecedentes de una clase no significan que solo se consultaran cuatro candidatos. El usuario aceptó aplazar **Ver más**. No se añadieron parámetros remotos ni consultas nuevas. La continuación queda para desarrollo coordinado dentro del equipo DeQuiénEs/Buho Marc; [acuerdo y criterios para retomarla](handoffs/2026-10-12-cierre-factibilidad.md).
+
 ## Capacidades integradas en octubre
 
 La [documentación de DeQuiénEs](https://dequienes.cl/inapi/docs) se revisó para incorporar `/trademarks/by-holder`: RUT exacto, nombre por semejanza y roles `holder`, `representative` o `any`, con paginación de hasta 100 y desplazamiento máximo de 10.000. El flujo combina criterios, consulta expedientes completos por lote, explica candidatos y exige confirmar cliente/rol antes de incorporar. No resuelve directamente números de registro solos; estos se buscan entre datos guardados.
