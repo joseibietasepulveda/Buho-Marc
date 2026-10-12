@@ -69,6 +69,12 @@
 .buho-app .buho-dashboard-matches .buho-match-row>span{min-width:0}.buho-dashboard-matches .buho-match-row b{overflow-wrap:anywhere;font-size:18px}.buho-dashboard-matches .buho-match-row small{white-space:normal}
 .buho-app .buho-dashboard-matches header{gap:16px;flex-wrap:wrap}.buho-app .buho-dashboard-matches h2{overflow-wrap:anywhere}
 .similarity-card.is-selectable{cursor:pointer;transition:background .15s,border-color .15s}
+.watch-children .similarity-card.is-openable{cursor:pointer}
+.watch-children .similarity-card.is-openable:hover{border-color:#b494c9}
+.buho-app .watch-children .similarity-card-open{padding:0;border:0;border-radius:2px;background:transparent;color:inherit;font:inherit;text-align:left;min-height:0}
+.watch-finding-actions{display:flex;gap:8px;align-items:center;flex-wrap:nowrap}
+.buho-app .watch-finding-actions>button{min-height:40px;padding:9px 13px;font-size:13px;font-weight:600;line-height:20px;white-space:nowrap}
+@media(max-width:700px){.watch-finding-actions{flex-wrap:wrap}}
 .similarity-card.is-selected{background:#edf6fc;border:2px solid #80b3d2;padding:17px;box-shadow:0 0 0 2px #deedf7}
 .report-select{grid-column:1/-1;padding:10px;border:1px solid #99b8ce;color:#315a76;background:#f5faff;border-radius:6px;font:inherit;font-size:13px;cursor:pointer}
 .report-select[aria-pressed=true]{background:#d6eaf7;border-color:#6e9ebd}
