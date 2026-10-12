@@ -31,3 +31,9 @@ Se tomó la última actuación prioritaria disponible de cada expediente, sin in
 Se verificaron los 12 avisos de Barros & Errázuriz mediante API autenticada y navegador en producción, con captura de bandeja/timeline. La nueva interfaz de esa cuenta continúa siendo la versión de Main. La verificación de la nueva interfaz se realiza en Dev. Las sesiones y el acceso SSH usados para comprobar se retiran al finalizar.
 
 Artefactos ignorados: `work/feasibility-ui-2026-10-12/`. No versionar claves, sesiones, archivos privados de Railway ni datos crudos de clientes.
+
+## Publicación y cierre comprobados
+
+[PR #27](https://github.com/joseibietasepulveda/Buho-Marc/pull/27) integrado en Dev `816c5eaad7e8cdb89890ee524378b7cd367d6c2f`. Railway `f8ce295d-6fbb-4f34-9908-c3663cb7d067` terminó SUCCESS para ese SHA, con compilación, TypeScript y salud 200/base conectada. Se comprobaron los 12 avisos mediante sesión autenticada en Dev, lector ampliado y diez descargas desde su bundle con expedientes/logos históricos interceptados; sin nueva búsqueda ni conclusión de IA.
+
+Main conservó `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`, producción `94718a9f-e979-4501-8cd3-980c162be484`; la operación autorizada sobre Barros & Errázuriz fue exclusivamente de datos. Se revocaron las dos sesiones temporales y la clave SSH de comprobación, y se retiraron los archivos privados de acceso. Las entregas posteriores de Dev conservan esta funcionalidad. [Cierre documental y aplazamiento de recuperación adicional](2026-10-12-cierre-factibilidad.md).
