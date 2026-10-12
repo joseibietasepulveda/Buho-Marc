@@ -24,7 +24,7 @@ El usuario invierte explícitamente la dirección del cruce anterior ELQUI.CL �
 - `npm run build -- --webpack`: aprobado después de corregir la serialización JSON para el tipo de postgres.
 - `git diff --check`: aprobado.
 - Ensayo sin escrituras en las bases Dev/producción con la misma función: TV 1572142 → ELQUI 1670929, índice 0,6841. B&E no existe en Dev; no se crea ni se copian credenciales. B&E producción sí existe.
-- Sin llamadas OpenRouter, INAPI ni búsquedas masivas. Acceso SSH temporal para operación; retirar al cierre.
+- Las pruebas y el script de preparación no llaman a OpenRouter, INAPI ni DeQuiénEs. El supervisor habitual de B&E sí realizó después un stock real, registrado en la sección de producción. Acceso SSH temporal retirado al cierre.
 
 ## Pendientes y siguiente paso
 Sin pendientes funcionales. B&E se ajustó en producción, su único ambiente existente. No crear un B&E Dev ni copiar credenciales sin un encargo específico. La revisión propia de TV en Ibieta permanece a pedido; no se ejecutó una búsqueda manual para esta entrega.
@@ -44,4 +44,4 @@ Sin pendientes funcionales. B&E se ajustó en producción, su único ambiente ex
 - B&E mantiene la programación automática que ya tenía: el supervisor encoló un stock real para la nueva TV a las 20:47:40 de Santiago, terminado a las 20:48:03. La fuente devolvió 0,3394 y sustituyó la evidencia provisional, incluido `presentationReversedFrom`, por evidencia real de TV → ELQUI. El script no llamó a la fuente ni encoló trabajos, pero el supervisor sí consultó la marca al encontrarla activa sin stock anterior. No afirmar que todo el ambiente careció de consultas: se comprobó este trabajo automático exitoso. La auditoría del alta conserva 0,6841 como procedencia inicial. No se forzó de nuevo el porcentaje viejo.
 - Chrome autenticado en B&E producción: primer cruce y nombres correctos; Mis marcas, búsqueda 1572142, devuelve TV, registro 1449935, Niza 38, En monitoreo y un hallazgo. La barra conserva 11 avisos pendientes antes/después. Se limpió la búsqueda y se dejó abierta Vigilancia. Capturas locales ignoradas: `outputs/barros-production.jpg`, `outputs/barros-mis-marcas.jpg`.
 - El acceso SSH temporal de esta operación se retiró de Railway; claves propias eliminadas. No se tocaron claves ajenas ni procesos de otros chats.
-- Cierre documental: actualizar esta nota y documento funcional en ambas ramas, sin cambios de código ni necesidad de repetir build/pruebas funcionales.
+- Cierre documental: este contenido actualiza la nota y el documento funcional; sin cambios de código ni necesidad de repetir build/pruebas funcionales.
