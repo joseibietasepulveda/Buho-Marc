@@ -1,9 +1,9 @@
 # Traspaso: informes para cliente y estudio
 
-- Actualizado: 2026-10-12 11:24, America/Santiago
-- Estado: listo para revisión y publicación en Dev
-- Rama y base: `codex/factibilidad-cliente-estudio`; Dev `d17ff43fcbeb14a31640df6edef522a0ae8263d6`
-- PR y commit de entrega: pendiente
+- Actualizado: 2026-10-12 11:32, America/Santiago
+- Estado: integrado y publicado en Dev
+- Rama y base: implementación `codex/factibilidad-cliente-estudio`; Dev `d17ff43fcbeb14a31640df6edef522a0ae8263d6`. Cierre documental `codex/factibilidad-cliente-estudio-cierre` desde la integración.
+- PR y commit de entrega: [PR #22](https://github.com/joseibietasepulveda/Buho-Marc/pull/22); entrega `426739c61ce2ee2c0dcda02c7aeff6f0e26f0254`, integración Dev `e78b18d05fc45b2e436069518e3b4f445dbcf052`.
 
 ## Objetivo y alcance
 Selector de destinatario al descargar, inicialmente cliente; encabezado ordenado y nombres de marca en mayúsculas; logo de estudio reducido un 20%. Continuar el pulido del PR #20 en PDF y Word, tabla y fichas.
@@ -34,7 +34,9 @@ Reutiliza el worktree aislado del chat con rama nueva desde Dev actualizado. Sin
 - Se renderizaron y revisaron 23 páginas: fichas cliente PDF/Word 2/2, fichas estudio 3/3, tablas cliente 2/2, tablas estudio 2/2 y multinforme tabla cliente 3/2. PDFium y LibreOffice incluido en el runtime de documentos. Sin desbordes; tablas pequeñas no se dividen, logos proporcionados, selector revisado en escritorio y móvil.
 - Evidencia privada/local ignorada: `work/feasibility-audience-2026-10-12/` (manifest de páginas, QA del navegador, renders y descargas). No versionar el PDF fuente ni sus datos personales.
 - La compilación en frío excedió inicialmente el timeout de navegación de 30 s; el verificador espera `domcontentloaded` con 60 s. Recorrido final aprobado sin errores.
-- Dev actualizado comprobado en `d17ff43`; Main sigue en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`. Publicación remota pendiente.
+- Railway Dev: despliegue `3deae247-7fea-4fd7-85e4-0e53a96b209b`, SHA exacto `e78b18d05fc45b2e436069518e3b4f445dbcf052`, `SUCCESS`. Compilación, TypeScript, migraciones existentes y arranque correctos. No se cambiaron variables ni datos de los ambientes.
+- Salud remota 200/base conectada/motor DeQuiénEs. Perfil GET, búsqueda POST y conclusiones POST devuelven 401 sin sesión; `/app` devuelve 307 a `/ingresar`. La QA autenticada completa se hizo en local. No se ejecutaron consultas reales ni operaciones sobre carteras remotas.
+- Main sigue en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida.
 
 ## Pendientes y siguiente paso
-Crear PR hacia Dev, integrar con la autorización vigente y comprobar el SHA exacto/SUCCESS en Railway, salud y protección de rutas. Actualizar esta nota con la evidencia remota. No promover producción. La QA autenticada completa corresponde a local; las comprobaciones remotas serán de salud y aislamiento sin sesión.
+Sin pendientes de implementación para este alcance. El cierre documental registra las comprobaciones de Dev en un PR separado sin cambios de código. Los ejemplos locales son de presentación con la evidencia histórica; una evaluación nueva requerirá preparar su propia conclusión en el flujo por clase. No promover producción sin una petición explícita.

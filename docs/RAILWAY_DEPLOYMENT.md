@@ -2,6 +2,13 @@
 
 Actualizado el 11 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
 
+## Informes para cliente y estudio · 12 de octubre
+
+- [PR #22](https://github.com/joseibietasepulveda/Buho-Marc/pull/22), exclusivamente Dev `e78b18d05fc45b2e436069518e3b4f445dbcf052`; Railway `3deae247-7fea-4fd7-85e4-0e53a96b209b` **SUCCESS**, SHA exacto confirmado. Compilación, TypeScript, migraciones existentes y arranque correctos. Sin migraciones, dependencias ni credenciales nuevas.
+- Descarga con destinatario cliente inicial y estudio opcional; cliente omite números oficiales y cobertura, estudio los conserva. Encabezado ordenado, referencias de marca en mayúsculas y logo de estudio reducido un 20%. Ninguna presentación incluye factor de similitud. [Contrato vigente](FACTIBILIDAD_MULTINFORME_2026-10-09.md) y [traspaso](handoffs/2026-10-12-factibilidad-cliente-estudio.md).
+- 33/33 pruebas dirigidas, TypeScript, lint y compilación local aprobados. Ocho exportaciones simuladas y diez con registros/logos del PDF histórico; 23 páginas revisadas, tabla y fichas en PDF/Word, escritorio y móvil. Sin consultas nuevas a INAPI ni llamadas al modelo para esta maquetación.
+- Salud 200/base conectada/motor DeQuiénEs; perfil, búsqueda y conclusiones 401 sin sesión; `/app` redirige a ingresar. La QA autenticada completa se hizo en local. Main permanece en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior solo actualiza documentación.
+
 ## Pulido de factibilidad · 11 de octubre
 
 - [PR #20](https://github.com/joseibietasepulveda/Buho-Marc/pull/20), exclusivamente Dev `c8ff459a4c42a2eb183c3ed38716c2e8c2bec341`; Railway `6f5b7742-acab-4d48-baa3-54bc471ed833` **SUCCESS**, SHA exacto confirmado. Compilación y arranque correctos; no hay migraciones, dependencias ni credenciales nuevas.
