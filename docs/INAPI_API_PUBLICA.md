@@ -1,5 +1,7 @@
 # API del buscador público de INAPI
 
+**Uso en el cálculo · 12/10/2026:** cuando falta fecha de notificación, el proyecto usa la fecha del evento habilitante bajo la convención de notificación el mismo día. No crea prueba oficial; una notificación acreditada tiene prioridad. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
+
 Actualizado: 7 de octubre de 2026. Implementación: `lib/inapi-official.ts`. Operación y límites: [recuperación de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md).
 
 ## Qué se comprobó
@@ -47,7 +49,7 @@ Un ejemplo verificado es la solicitud **1110615**: el buscador informó `Caducad
 
 ## Lo que no garantiza
 
-La respuesta pública puede recuperar una actuación o fecha de publicación ausente, y confirmar un estado actual. No garantiza constancia de depósito en casilla, destinatario, fecha jurídica de notificación ni ejecutoria. `Fecha` de una resolución no se convierte en notificación. Una consulta exitosa tampoco acredita que el historial contenga todos los documentos o actuaciones.
+La respuesta pública puede recuperar una actuación o fecha de publicación ausente, y confirmar un estado actual. No garantiza constancia de depósito en casilla, destinatario, fecha jurídica de notificación ni ejecutoria. `Fecha` de una resolución no se convierte en una constancia de notificación; desde el 12/10 puede ser la base de cálculo bajo la convención expresamente indicada. Una consulta exitosa tampoco acredita que el historial contenga todos los documentos o actuaciones.
 
 No se implementa acceso al portal autenticado de notificaciones. Ese acceso necesita un contrato y autorización adecuados para cada destinatario, o antecedentes documentados de DeQuiénEs/el equipo.
 

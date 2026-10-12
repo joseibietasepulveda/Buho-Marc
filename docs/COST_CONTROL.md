@@ -1,5 +1,7 @@
 # Control de consumo · 24 de septiembre de 2026
 
+**Recálculo de notificación · 12/10/2026:** la convención de notificación el día de la actuación se aplica al historial guardado, sin consultas adicionales. La recuperación sólo se prepara si siguen faltando fechas necesarias; se conservan 200 expedientes diarios y separación mínima de tres segundos. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
+
 Daniel conserva su revisión automática diaria a las 12:30 de Chile. La cartera
 `estudio-ibieta-ip` (Búho) queda a pedido, tanto para similitudes como para actualizar
 los expedientes. La migración conserva datos, decisiones y revisiones completadas;
