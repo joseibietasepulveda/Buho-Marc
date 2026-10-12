@@ -14,15 +14,21 @@ Solicitud del 1 de octubre de 2026. Entrega autorizada **primero en Dev**, sin p
 
 Comparaciones, en el orden solicitado:
 
-1. Club Del Mal Amor (1659715) → Chaparrita del amor (1683639) y Titanes del amor (1689486).
-2. La Brioche Bakery Café (1638707) → LA BRIOCHE DOREE (997604).
-3. Maison Dubai Niche (1644808) → M MAISON NICHE (1397032).
-4. Bosques del Norte por un Mundo Sustentable (1675838) → bosquesdelnorte por un mundo sustentable (1245326).
-5. ELQUI.CL (1670929) → Tv elqui.cl (1572142).
-6. Mote con Huesillo El Copihue de Lonquén (1552147) → Copihue Mote con Huesillo El Original 1985 (1672680).
+1. Tv elqui.cl (1572142) → ELQUI.CL (1670929).
+2. Mote con Huesillo El Copihue de Lonquén (1552147) → Copihue Mote con Huesillo El Original 1985 (1672680).
+3. Club Del Mal Amor (1659715) → Chaparrita del amor (1683639) y Titanes del amor (1689486).
+4. La Brioche Bakery Café (1638707) → LA BRIOCHE DOREE (997604).
+5. Maison Dubai Niche (1644808) → M MAISON NICHE (1397032).
+6. Bosques del Norte por un Mundo Sustentable (1675838) → bosquesdelnorte por un mundo sustentable (1245326).
 7. INIZZI (1652393) → inizzi tu primera ilusión (1290829).
 8. MAÍTA (1630024) → MAITA PLAYA LAS MOSTAZAS (1665441).
 9. ALMATEXTIL (1671216) → Almatex (1658314).
+
+### Actualización del 12/10: dirección de ELQUI y B&E
+
+El usuario reemplaza la dirección anterior ELQUI.CL → Tv elqui.cl. Tv elqui.cl se incorpora a **Mis marcas** y queda como vigilada; ELQUI.CL es la encontrada. En Ibieta los dos primeros grupos son TV/ELQUI y Copihue. En `barros-errazuriz` se destaca exclusivamente TV/ELQUI en primer lugar; las otras selecciones de Ibieta no se trasladan.
+
+`scripts/provision-elqui-watch.ts` realiza una preparación explícita en Dev/producción; sin `--apply` solo inspecciona. Usa evidencia pública ya guardada, sin búsquedas nuevas ni copiar feedback/clientes/decisiones entre estudios. Conserva el índice 0,6841 de la búsqueda original y documenta la inversión en `evidence.presentationReversedFrom`: no es una búsqueda nueva calculada desde TV. La consulta propia de TV queda pendiente hasta una revisión real. No crea un trabajo exitoso ficticio ni avisos retroactivos. ELQUI permanece en la cartera anterior con vigilancia pausada; sus decisiones y evidencia se conservan. Una auditoría por organización vuelve idempotente la preparación y respeta decisiones posteriores. Si el estudio no existe en un ambiente, informa su ausencia sin crear usuarios ni copiar credenciales. [Traspaso y verificaciones](handoffs/2026-10-12-vigilancia-tv-elqui.md).
 
 ## FA Abogados
 

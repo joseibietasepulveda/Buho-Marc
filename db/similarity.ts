@@ -4,7 +4,7 @@ import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { createHash, randomUUID } from "node:crypto";
 import type { TransactionSql } from "postgres";
 import { getSql } from "./index";
-import { organizationId, actorId, isDemoOrganization } from "../lib/tenant-context";
+import { organizationId, actorId } from "../lib/tenant-context";
 import { featuredWatchRank } from "../lib/featured-watch";
 import { realBrandConfig } from "./inapi-portfolio";
 import { fetchInapiEvidence, InapiHttpError } from "../lib/inapi-provider";
@@ -190,7 +190,7 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
 export async function watchSnapshot(compact = false) {
   const automaticEnabled = await automaticMonitoringEnabled();
   const sql = getSql();
-  const [org] = await sql`SELECT watch_settings FROM organizations WHERE id = ${organizationId()}`;
+  const [org] = await sql`SELECT slug, watch_settings FROM organizations WHERE id = ${organizationId()}`;
   const targets = await sql`SELECT b.id, b.public_code, b.name, b.status, b.monitoring_config,
     (SELECT array_agg(nice_class ORDER BY nice_class) FROM brand_classes WHERE brand_id=b.id) AS own_classes,
     j.status AS job_status, j.error_code, j.created_at AS requested_at, j.started_at,
@@ -205,7 +205,7 @@ export async function watchSnapshot(compact = false) {
   const present = (m: typeof matches[number]) => {
     const hit = applyVerifiedDecision(m.evidence.hit as SimilarityHit);
     return { ...hit, feedback:m.vote?{vote:m.vote,rationale:m.rationale,delivery:m.delivery}:undefined, history: [], classes: compact ? hit.classes.map(c => ({ nice_class: c.nice_class })) : hit.classes,
-      featuredRank: isDemoOrganization() ? featuredWatchRank(ownApplications.get(m.brand_id) ?? "", hit.applicationId) : undefined,
+      featuredRank: featuredWatchRank(ownApplications.get(m.brand_id) ?? "", hit.applicationId, org?.slug ?? ""),
       discoveryKind: m.evidence.discoveryKind ?? 'baseline', commercialRelevance: commercialRelevance(m.evidence.query?.classes ?? [], hit.classes),
       watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at };
   };
