@@ -84,21 +84,21 @@ test('editable Word report uses the same recommendation and embeds supplied imag
 test('report supports logo, optional full appendix and multipage author explanations',async()=>{
  const result={query:hit(),results:[hit({classes:[{nice_class:30,coverage_text:'Caramelos '.repeat(500)}]})],groups:[],warnings:[],candidateCount:1,elapsedSeconds:1,fetchedAt:'2026-09-22T12:00:00Z'};
  const {readFile}=await import('node:fs/promises');
- const bytes=await createFeasibilityReport({proposal:{name:'Marca',coverage:[],grouped:false},result,status:'all',studioLogo:await readFile('public/reports/studio-logo.png'),includeAppendix:true,explanation:'Texto de prueba. '.repeat(160)});
+ const bytes=await createFeasibilityReport({proposal:{name:'Marca',coverage:[],grouped:false},result,status:'all',studioLogo:await readFile('public/reports/studio-logo.png'),audience:'study',includeAppendix:true,explanation:'Texto de prueba. '.repeat(160)});
  assert.ok((await PDFDocument.load(bytes)).getPageCount()>3);
 });
 test('Word retains the supplied conclusion, full coverages and optional study details',async()=>{
  const fullCoverage='Productos y servicios de cobertura extensa. '.repeat(50)+'Fin de la cobertura original.';
  const result={query:hit(),results:[hit({classes:[{nice_class:30,coverage_text:fullCoverage},{nice_class:35,coverage_text:'Servicios relacionados de otra clase.'}]})],groups:[],warnings:[],candidateCount:1,elapsedSeconds:1,fetchedAt:'2026-10-02T12:00:00Z'};
  const conclusion={title:'Revisión del abogado',recommendation:'review',source:'openrouter',paragraphs:['Esta conclusión preparada debe aparecer igual en los dos formatos.','Segundo párrafo de la conclusión guardada.'],evidenceApplicationIds:['123']};
- const blob=await createFeasibilityDocx({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',conclusion,studioProfile:{studioName:'Estudio personalizado',lawyerName:'Abogada personalizada',address:'Dirección personalizada',email:'',phone:'',website:'',logo:''}});
+ const blob=await createFeasibilityDocx({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',audience:'study',conclusion,studioProfile:{studioName:'Estudio personalizado',lawyerName:'Abogada personalizada',address:'Dirección personalizada',email:'',phone:'',website:'',logo:''}});
  const zip=await JSZip.loadAsync(await blob.arrayBuffer());const xml=await zip.file('word/document.xml').async('string');
  const allXml=(await Promise.all(Object.keys(zip.files).filter(name=>/^word\/.*\.xml$/.test(name)).map(name=>zip.file(name).async('string')))).join(' ');
  for(const value of [conclusion.title,...conclusion.paragraphs,'Estudio personalizado','Abogada personalizada','Dirección personalizada',fullCoverage,'Servicios relacionados de otra clase.','IV.    Conclusión.'])assert.ok(allXml.includes(value),value);
  assert.match(xml,/30, 35/);assert.ok(xml.includes('Clases de Niza: '));
  assert.match(xml,/w:keepNext/);assert.match(xml,/w:ascii="Arial"/);
  assert.equal(Object.keys(zip.files).some(name=>name.startsWith('word/media/')),false,'no logo or placeholder should be inserted when the profile has no logo');
- const pdf=await createFeasibilityReport({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',conclusion});
+ const pdf=await createFeasibilityReport({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',audience:'study',conclusion});
  assert.ok((await PDFDocument.load(pdf)).getPageCount()>=2);
 });
 test('new table groups one mark, embeds its logo and includes only selected relevant evidence',async()=>{
@@ -117,4 +117,32 @@ test('new table groups one mark, embeds its logo and includes only selected rele
  const emptyZip=await JSZip.loadAsync(await(await createFeasibilityDocx({...input,analyses:[{...analysis,selectedIds:[]}]})).arrayBuffer()),empty=await emptyZip.file('word/document.xml').async('string');
  assert.match(empty,/0 antecedentes relevantes/);assert.equal(empty.includes('<w:tbl>'),false);
  assert.ok((await PDFDocument.load(await createFeasibilityReport(input))).getPageCount()>=1);
+});
+
+test('client and study exports share uppercase identity but expose different technical details',async()=>{
+ const record=hit({applicationId:'1310823',registrationId:'1297232',name:'Pasteles holz',holders:[{name:'Titular de ejemplo'}],classes:[{nice_class:30,coverage_text:'Cobertura completa del antecedente.'}]});
+ const result={query:record,results:[record],groups:[],warnings:[],candidateCount:1,elapsedSeconds:1,fetchedAt:'2026-10-12T12:00:00Z'};
+ const proposal={name:'pasteles',niceClass:30,coverage:[{nice_class:30,text:'Cobertura propuesta de prueba.'}],grouped:true};
+ const conclusion={title:'No se recomienda presentar la solicitud',recommendation:'adjust',decision:'avoid',source:'author',paragraphs:['La marca “pasteles” guarda cercanía denominativa con “Pasteles holz” (solicitud 1310823, registro 1297232). Conviene revisar alternativas antes de presentar.'],evidenceApplicationIds:['1310823']};
+ const input={result,proposal,status:'all',analyses:[{result,proposal,selectedIds:['1310823'],conclusion}],client:'Cliente de ejemplo'};
+ for(const audience of ['client','study'])for(const layout of ['cards','table']){
+  const zip=await JSZip.loadAsync(await(await createFeasibilityDocx({...input,audience,layout})).arrayBuffer());
+  const xml=await zip.file('word/document.xml').async('string');
+  assert.ok(xml.indexOf('INFORME DE FACTIBILIDAD')<xml.indexOf('Inscripción marca: PASTELES'));
+  assert.ok(xml.indexOf('Inscripción marca: PASTELES')<xml.indexOf('Inscripción en clase: 30'));
+  assert.ok(xml.indexOf('Inscripción en clase: 30')<xml.indexOf('Para: Cliente de ejemplo'));
+  assert.ok(!xml.includes('pasteles')&&!xml.includes('Pasteles holz'));
+  assert.ok(xml.includes('PASTELES HOLZ'));
+  for(const value of ['1310823','1297232','Cobertura propuesta de prueba.'])assert.equal(xml.includes(value),audience==='study',`${audience}: ${value}`);
+  assert.equal(xml.includes('Cobertura completa del antecedente.'),audience==='study'&&layout==='cards');
+  assert.ok(!xml.includes('Factor de similitud')&&!xml.includes('%'));
+  const {PDFName}=await import('pdf-lib');
+  const pdf=await PDFDocument.load(await createFeasibilityReport({...input,audience,layout}));
+  assert.equal(Boolean(pdf.catalog.get(PDFName.of('Names'))),audience==='study','only study PDF carries technical evidence');
+ }
+ const defaultZip=await JSZip.loadAsync(await(await createFeasibilityDocx(input)).arrayBuffer());
+ assert.equal((await defaultZip.file('word/document.xml').async('string')).includes('1310823'),false,'client is the default');
+ const multi={...input,proposal:{...proposal,coverage:[...proposal.coverage,{nice_class:43,text:'Servicios'}]}};
+ const multiZip=await JSZip.loadAsync(await(await createFeasibilityDocx(multi)).arrayBuffer());
+ assert.ok((await multiZip.file('word/document.xml').async('string')).includes('Inscripción en clases: 30, 43'));
 });

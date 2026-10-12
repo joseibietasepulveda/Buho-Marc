@@ -113,3 +113,10 @@ img[role=button]{cursor:zoom-in}img[role=button]:focus-visible{outline:3px solid
 .feasibility-workflow .feasibility-preview-editor:focus{outline:2px solid #8051b2;outline-offset:2px}
 .feasibility-add-analysis-bottom{margin-top:20px}
 @media(max-width:700px){.feasibility-study-header{align-items:flex-start;gap:12px}.feasibility-study-header p{flex-basis:100%}}
+
+.feasibility-audience-switch{display:grid;grid-template-columns:1fr 1fr;border:1px solid #d7cee2;border-radius:7px;overflow:hidden}
+.feasibility-audience-switch button{min-width:0;padding:11px 9px;border:0;background:#fff;color:#5e526b;font:inherit;font-size:14px;line-height:1.4;cursor:pointer}
+.feasibility-audience-switch button+button{border-left:1px solid #d7cee2}
+.feasibility-audience-switch button[aria-pressed=true]{background:#6c3f91;color:#fff;font-weight:600}
+.feasibility-audience-switch button:focus-visible{outline:2px solid #40235c;outline-offset:-3px}
+.feasibility-audience-switch button:disabled{opacity:.65;cursor:default}

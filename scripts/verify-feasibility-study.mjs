@@ -9,7 +9,7 @@ const {token}=JSON.parse(await readFile(`${output}/session.json`,'utf8'));
 const browser=await chromium.launch({headless:true,executablePath:process.env.BUHO_BROWSER_EXECUTABLE});
 const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
 await context.addCookies([{name:'buho_session',value:token,url:base}]);
-const page=await context.newPage();const errors=[];let modelCalls=0,searchCalls=0,providerFails=false;const generatedClasses=[];
+const page=await context.newPage();page.setDefaultTimeout(60000);const errors=[];let modelCalls=0,searchCalls=0,providerFails=false;const generatedClasses=[];
 page.on('pageerror',error=>errors.push(error.message));
 const hit=number=>({applicationId:String(10000+number),registrationId:null,name:`Marca de prueba ${number}`,type:'Denominativa',image:'',holders:[{name:'Titular de prueba'}],classes:[{nice_class:number,coverage_text:number===30?'Confites y caramelos':'Servicios de restaurante'}],filedAt:'2026-01-01',publishedAt:null,registeredAt:null,status:'En Trámite',statusCode:'P',score:.8,channels:{name:{rank:1}},history:[]});
 await page.route('**/api/release-welcome',route=>route.fulfill({json:{version:'qa-local',futureAccepted:true}}));
@@ -25,7 +25,7 @@ await page.route('**/api/feasibility/conclusions',async route=>{
 });
 await writeFile(`${output}/local-fixture.json`,JSON.stringify({sourceType:'fixture',query:{...hit(30),name:'Marca de prueba'},results:[hit(30),hit(43)],groups:[],warnings:[],candidateCount:2,elapsedSeconds:0,fetchedAt:'2026-10-09T12:00:00Z'},null,2));
 try {
-  await page.goto(base+'/app');await page.getByRole('button',{name:/Revisor de factibilidad/}).click();
+  await page.goto(base+'/app',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:/Revisor de factibilidad/}).click();
   await page.getByRole('button',{name:'Multinforme',exact:true}).click();
   const emptyProgress=await page.locator('.feasibility-study-progress').evaluate(el=>{const parent=el.getBoundingClientRect(),text=el.querySelector('strong').getBoundingClientRect();return {top:text.top-parent.top,bottom:parent.bottom-text.bottom};});assert.ok(Math.abs(emptyProgress.top-emptyProgress.bottom)<2);
   await page.getByLabel('Nombre de la marca').fill('Marca de prueba');
@@ -65,15 +65,20 @@ try {
   assert.equal(modelCalls,2,'Navegar entre clases conserva las conclusiones');
 
   await page.screenshot({path:`${output}/02-multinforme.png`,fullPage:true});
-  for(const layout of ['Fichas con imágenes','Tabla comparativa']) {
-    await page.getByLabel(layout,{exact:true}).check();
-    for(const format of ['PDF','Word editable']) {
-      await page.getByLabel(format,{exact:true}).check();
-      const download=page.waitForEvent('download');await page.getByRole('button',{name:format==='PDF'?'Descargar PDF':'Descargar Word',exact:true}).click();
-      const file=await download;await file.saveAs(`${output}/${layout==='Tabla comparativa'?'tabla':'fichas'}.${format==='PDF'?'pdf':'docx'}`);
+  assert.equal(await page.getByRole('button',{name:'Informe para cliente',exact:true}).getAttribute('aria-pressed'),'true');
+  for(const audience of ['cliente','estudio']) {
+    await page.getByRole('button',{name:`Informe para ${audience}`,exact:true}).click();
+    assert.equal(await page.getByRole('button',{name:`Informe para ${audience}`,exact:true}).getAttribute('aria-pressed'),'true');
+    for(const layout of ['Fichas con imágenes','Tabla comparativa']) {
+      await page.getByLabel(layout,{exact:true}).check();
+      for(const format of ['PDF','Word editable']) {
+        await page.getByLabel(format,{exact:true}).check();
+        const download=page.waitForEvent('download');await page.getByRole('button',{name:format==='PDF'?'Descargar PDF':'Descargar Word',exact:true}).click();
+        const file=await download;await file.saveAs(`${output}/${audience}-${layout==='Tabla comparativa'?'tabla':'fichas'}.${format==='PDF'?'pdf':'docx'}`);
+      }
     }
   }
-  assert.equal(modelCalls,2,'Cambiar presentación y descargar no vuelve a analizar');
+  assert.equal(modelCalls,2,'Cambiar destinatario, presentación y descargar no vuelve a analizar');
   // A failed model response must remain visible and block export.
   await page.getByRole('button',{name:'Nuevo estudio',exact:true}).click();await page.getByRole('button',{name:'Informe',exact:true}).click();await page.getByLabel('Nombre de la marca').fill('Prueba de fallo');await page.locator('#proposal-class').selectOption('30');
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();await page.locator('.feasibility-selection-bar').getByRole('button',{name:'Siguiente',exact:true}).click();
@@ -85,6 +90,6 @@ try {
   await page.getByRole('button',{name:'Generar conclusión con IA - Buho Marc',exact:true}).click();await page.waitForFunction(()=>{const button=Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Descargar Word');return button&&!button.disabled;});
   assert.equal(await page.getByRole('article').getByText('Se recomienda presentar la solicitud',{exact:true}).count(),1);
   assert.deepEqual(errors,[]);await page.setViewportSize({width:390,height:844});await page.screenshot({path:`${output}/04-movil.png`,fullPage:true});
-  await writeFile(`${output}/browser-qa.json`,JSON.stringify({searchCalls,modelCalls,errors,formats:['PDF','Word'],layouts:['table','cards'],result:'passed'},null,2));
-  console.log('QA de multinforme aprobada: dos clases, cuatro descargas, reutilización y fallo visible.');
+  await writeFile(`${output}/browser-qa.json`,JSON.stringify({searchCalls,modelCalls,errors,formats:['PDF','Word'],layouts:['table','cards'],audiences:['client','study'],result:'passed'},null,2));
+  console.log('QA de multinforme aprobada: dos clases, ocho descargas y dos destinatarios, reutilización y fallo visible.');
 } finally {await browser.close();}
