@@ -1,6 +1,13 @@
 # Despliegue y operación en Railway
 
-Actualizado el 9 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+Actualizado el 11 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+
+## Pulido de factibilidad · 11 de octubre
+
+- [PR #20](https://github.com/joseibietasepulveda/Buho-Marc/pull/20), exclusivamente Dev `c8ff459a4c42a2eb183c3ed38716c2e8c2bec341`; Railway `6f5b7742-acab-4d48-baa3-54bc471ed833` **SUCCESS**, SHA exacto confirmado. Compilación y arranque correctos; no hay migraciones, dependencias ni credenciales nuevas.
+- Antecedentes contados por marca y titular, conclusión de IA únicamente para la clase activa y el detalle seleccionado, edición directa/autollenado, presentación pública IA - Buho Marc. Tabla centrada Marca/Logo y fichas; acciones, textos y notas simplificados. [Contrato vigente](FACTIBILIDAD_MULTINFORME_2026-10-09.md) y [traspaso](handoffs/2026-10-11-factibilidad-pulido.md).
+- 32/32 pruebas dirigidas, TypeScript, lint y compilación local aprobados. Recorrido local de navegador/API/base/OpenRouter con registros históricos y logos reales; cuatro descargas y doce páginas finales revisadas. No hubo una búsqueda nueva de INAPI para esta QA.
+- Salud remota 200/base conectada/motor DeQuiénEs; perfil, búsqueda y conclusiones 401 sin sesión; `/app` redirige a ingresar. La QA autenticada completa se hizo en local, sin operaciones remotas sobre carteras reales. Main permaneció en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior solo actualiza documentación.
 
 ## Factibilidad por clase y nuevos informes · 9 de octubre
 
@@ -124,7 +131,7 @@ Las migraciones actuales incluyen `0011_notification_dismissal.sql` y `0012_feas
 | `APP_PUBLIC_ORIGIN` o `RAILWAY_PUBLIC_DOMAIN` | Origen validado para acciones del navegador. |
 | `MONITORING_SCHEDULER_ENABLED` | Habilita el supervisor; respeta el modo automático/a pedido de cada organización. |
 | `MONITORING_CRON_SECRET` | Credencial interna del worker; el supervisor puede generarla. |
-| `OPENROUTER_API_KEY` | Activa las conclusiones asistidas; configurada en Dev. El nuevo flujo por clase exige revisión del texto del modelo o del autor y no exporta un respaldo automático. |
+| `OPENROUTER_API_KEY` | Activa las conclusiones asistidas; configurada en Dev. El flujo por clase exige una conclusión preparada o escrita por el autor; permite editarla directamente y no exporta un respaldo automático. |
 | `OPENROUTER_MODEL` | Opcional, predeterminado `openai/gpt-4.1-mini`. |
 | `PORT`, `NODE_ENV` | Configurados por el entorno de ejecución. |
 

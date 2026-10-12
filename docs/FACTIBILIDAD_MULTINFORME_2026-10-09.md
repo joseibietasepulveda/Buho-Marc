@@ -2,6 +2,8 @@
 
 Estado: integrado exclusivamente en Dev por [PR #18](https://github.com/joseibietasepulveda/Buho-Marc/pull/18), commit `b78d204e7d2a42dc1c01b633c6ed2cf3f1077247`; Railway confirmó SUCCESS en el despliegue `39007126-edc7-4e7e-897f-f800ef1ea29d`. Rama de implementación `codex/factibilidad-multinforme`, base `156e172`. Sin promoción a producción. Se verificaron conclusiones reales de OpenRouter con datos ficticios locales; el problema de autenticación se resolvió usando una clave de inferencia independiente. El ajuste visual definitivo espera el informe de referencia del usuario.
 
+Pulido del 11 de octubre integrado mediante [PR #20](https://github.com/joseibietasepulveda/Buho-Marc/pull/20), Dev `c8ff459a4c42a2eb183c3ed38716c2e8c2bec341`. Railway confirmó SUCCESS en `6f5b7742-acab-4d48-baa3-54bc471ed833`, salud 200 y base conectada. El contrato de esta página incorpora los ajustes de selección, conclusiones y presentación; [traspaso y verificación](handoffs/2026-10-11-factibilidad-pulido.md).
+
 ## Flujo vigente
 
 Al comenzar, elegir **Informe** o **Multinforme**. Ambos requieren exactamente una clase Niza por búsqueda. Informe genera un estudio de una clase; Multinforme reúne varios análisis independientes de la misma marca. La denominación y la imagen propuesta se conservan mientras se agregan clases.
