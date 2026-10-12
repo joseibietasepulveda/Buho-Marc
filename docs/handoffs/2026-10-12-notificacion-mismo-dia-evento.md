@@ -4,7 +4,7 @@
 - Estado: listo para revisión; no integrado ni publicado.
 - Rama y base: `codex/notificaciones-fecha-evento`; `origin/dev` actualizado, base `b8495b6`.
 - Carpeta: `/Users/rosariovial/.codex/worktrees/notificaciones-fecha-evento/Monitoreador Logos`.
-- PR y commit de entrega: pendientes.
+- PR: [#24 hacia Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/24). Commit funcional y documental: `af0af7c`. No integrado ni publicado.
 
 ## Objetivo y alcance
 
