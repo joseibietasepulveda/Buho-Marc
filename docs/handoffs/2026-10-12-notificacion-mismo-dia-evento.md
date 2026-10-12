@@ -1,10 +1,10 @@
 # Traspaso: notificación asumida el mismo día de la actuación
 
-- Actualizado: 2026-10-12, America/Santiago.
-- Estado: listo para revisión; no integrado ni publicado.
-- Rama y base: `codex/notificaciones-fecha-evento`; `origin/dev` actualizado, base `b8495b6`.
+- Actualizado: 2026-10-12 14:14, America/Santiago.
+- Estado: integrado y publicado en Dev.
+- Rama y base: implementación `codex/notificaciones-fecha-evento`, base Dev `b8495b6`; cierre documental `codex/notificaciones-fecha-evento-cierre` desde la integración `c6d91f7`.
 - Carpeta: `/Users/rosariovial/.codex/worktrees/notificaciones-fecha-evento/Monitoreador Logos`.
-- PR: [#24 hacia Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/24). Commit funcional y documental: `af0af7c`. No integrado ni publicado.
+- PR: [#24 integrado en Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/24). Commit funcional y documental: `af0af7c`; integración `c6d91f796c9b560bae540f526ecf5776bf60599a`. Railway Dev confirmado en `SUCCESS`.
 
 ## Objetivo y alcance
 
@@ -13,6 +13,7 @@ Decisión explícita del usuario del 12/10: el proyecto asumirá que las notific
 ## Decisiones y motivos
 
 - Usuario: convención de notificación el mismo día del evento para completar cálculos.
+- Usuario: integrar y publicar esta entrega únicamente en Dev, autorizado el 12/10 con «súbelo a dev si no lo has subido».
 - Agente: conservar prioridad de una fecha de notificación acreditada y de un vencimiento explícito válido. Marcar cada cálculo que usa la convención; no alterar el historial original ni fabricar constancias.
 - Agente: la convención corresponde a notificación. Publicación efectiva, ejecutoria, renovación, cumplimiento, suspensión y rol siguen sus reglas; no se presume ejecutoria con la aceptación.
 
@@ -36,6 +37,10 @@ La documentación canónica es [notificación el día del evento](../NOTIFICACIO
 - Lecturas SQL en transacciones de sólo lectura de Main (16:50:42 UTC) y Dev (16:50:52 UTC), 12/10/2026. Reproyección idéntica a `GET /api/registrations`, comparación de la política anterior/nueva sobre los mismos registros y pruebas. Main: 71 de 75 obligaciones legales pendientes recuperan fecha; Dev: 55 de 57. No sumar ambientes como expedientes únicos. Quedan 3 cálculos anteriores al calendario validado y procedimientos de nulidad/incidente que necesitan reglas específicas.
 - Cero consultas nuevas a INAPI/DeQuiénEs y cero escrituras en bases alojadas. Acceso SSH temporal registrado y retirado; claves eliminadas. Evidencia privada y listado por cartera en `output/notificacion-fecha-evento-2026-10-12/`, excluidos de Git; no se versionan datos personales ni respuestas completas.
 
+- Publicación funcional: Railway Dev `3a3f152d-6309-4f97-9fd9-7edb304b0010`, SHA exacto `c6d91f796c9b560bae540f526ecf5776bf60599a`, rama `dev`, estado `SUCCESS`. Build y TypeScript remotos aprobados; migraciones existentes y arranque correctos. Sin nuevas migraciones, cambios de variables ni operaciones de traslado/reproyección persistente.
+- Verificación remota: `/api/health` 200, base conectada, fuente INAPI configurada y motor DeQuiénEs; `/api/registrations` 401 sin sesión; `/app` 307 a `/ingresar`. La QA autenticada fue local con fixtures, no una operación sobre carteras alojadas.
+- Main conserva `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior sólo actualiza documentación.
+
 ## Pendientes y siguiente paso
 
-Revisar e integrar este cambio en Dev. No requiere reproyección persistente, migraciones, `--apply --queue` ni nuevas extracciones: las lecturas/fichas/agenda derivan los plazos del historial guardado. Confirmar estado de publicación antes de decir que los clientes ya ven las nuevas fechas. Promoción a Main pendiente de autorización para esta entrega, según la sección 2 de las instrucciones del repositorio aportadas por el usuario. Al publicar, conservar cada base y verificar salud/commit; no trasladar carteras ni regenerar avisos históricos. Ampliar calendario 2020–2022 y mapear incidentes/nulidad son trabajo posterior, con sus antecedentes y reglas propias.
+Sin pendientes de implementación/publicación funcional en Dev para este alcance. No requiere reproyección persistente, migraciones, `--apply --queue` ni nuevas extracciones: las lecturas/fichas/agenda derivan los plazos del historial guardado. Las carteras de Dev consumen ya la convención desde el historial guardado. Promoción a Main pendiente de autorización para esta entrega, según la sección 2 de las instrucciones del repositorio aportadas por el usuario. Al publicar, conservar cada base y verificar salud/commit; no trasladar carteras ni regenerar avisos históricos. Ampliar calendario 2020–2022 y mapear incidentes/nulidad son trabajo posterior, con sus antecedentes y reglas propias.
