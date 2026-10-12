@@ -7,8 +7,17 @@ import { watchPage } from '../lib/watch-page.ts';
 
 test('FA presentation capabilities use a stable tenant slug', () => {
   assert.deepEqual(workspacePolicy('fa-abogados'), { sourceAdmin:false, about:false, changePassword:false });
-  assert.deepEqual(workspacePolicy('estudio-ibieta-ip'), { sourceAdmin:true, about:true, changePassword:true });
+  assert.deepEqual(workspacePolicy('estudio-ibieta-ip'), { sourceAdmin:true, about:true, changePassword:true, internalExamples:true });
   assert.equal(workspacePolicy().changePassword, true);
+});
+test('Tv Elqui is the first selected own brand, with Copihue second only in Ibieta', () => {
+  assert.equal(featuredWatchRank('1572142','1670929'),1);
+  assert.equal(featuredWatchRank('1552147','1672680'),2);
+  assert.equal(featuredWatchRank('1670929','1572142'),undefined);
+  assert.equal(featuredWatchRank('1572142','1670929','barros-errazuriz'),1);
+  assert.equal(featuredWatchRank('1552147','1672680','barros-errazuriz'),undefined);
+  assert.equal(featuredWatchRank('1572142','1670929','fa-abogados'),undefined);
+  assert.equal(featuredWatchRank('1572142','1670929','daniel-morales'),undefined);
 });
 test('complete portfolio rows go first without treating word marks or pending registrations as missing', () => {
   const complete={name:'Marca',owner:'Titular',rut:'76123456-7',applicationNumber:'123456',type:'Mixta',classes:'35',legalStatus:'registered',registrationState:'Registrada',registration:'7890',logo:'/logo.png',matches:1,status:'En monitoreo'};
