@@ -3,7 +3,7 @@
 - Actualizado: 2026-10-12, America/Santiago
 - Estado: listo para revisión
 - Rama y base: `codex/fix-scroll-superior`; base inicial `dev` en `9b99acb`; actualizada a `9d87694e58162c0b0481f49374ab44c43aae5bc2` mediante `14a0886`.
-- PR: pendiente de apertura hacia `dev`. Arreglo funcional: `bc428b8`. Commit del cierre documental: consultar `git log -1 --format=%H -- docs/handoffs/2026-10-11-scroll-superior.md`.
+- PR hacia `dev`: [#26](https://github.com/joseibietasepulveda/Buho-Marc/pull/26). Arreglo funcional: `bc428b8`; compatibilidad verificada: `b1be4ad`. Estado y SHA de integración disponibles en ese PR.
 
 ## Objetivo y alcance
 Corregir el espacio vacío que aparece sobre la cabecera de Mis marcas al desplazar hacia arriba. Preservar el desplazamiento del contenido y la navegación independiente.
@@ -42,7 +42,7 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, Chrome local con Playwright, Postgre
 Para reproducir manualmente: iniciar demo con los puertos/directorio anteriores, ingresar con la cuenta local QA, posponer la bienvenida y abrir Mis marcas. Desplazar hacia abajo, regresar al inicio e insistir hacia arriba; comprobar que la cabecera no se separa del límite. Repetir al final, en 820 y 390 px y con desplazamiento horizontal de la tabla. No usar carteras alojadas ni iniciar revisiones de vigilancia para este ajuste.
 
 ## Pendientes y siguiente paso
-Incorporar la rama verificada a `dev` mediante PR y registrar su resultado. No se autorizaron promoción a `main` ni producción. No requiere otras ramas ni migraciones. Confirmar también el gesto físico del trackpad al revisar la entrega en el navegador del usuario.
+Incorporación a `dev` preparada en PR #26; consultar su estado antes de volver a aplicar el arreglo. No se autorizaron promoción a `main` ni producción. No requiere otras ramas ni migraciones. Confirmar también el gesto físico del trackpad al revisar la entrega en el navegador del usuario. El despliegue remoto no forma parte de la verificación local descrita aquí.
 
 ### Verificación conjunta del 12/10
 - `node --import ./tests/ts-loader.mjs --test tests/feasibility-study.test.mjs tests/feasibility-conclusion.test.mjs tests/feasibility-report.test.mjs tests/similarity.test.mjs tests/notification-event-assumption.test.mjs tests/registration-procedure.test.mjs tests/registration-evidence.test.mjs tests/inapi-procedure.test.mjs tests/inapi-recovery.test.mjs tests/inapi-recovery-integration.test.mjs`: 88/88 aprobadas; incluye PostgreSQL aislado para recuperación, prioridad de fechas acreditadas, obligaciones concurrentes y ambos destinatarios de informes.
