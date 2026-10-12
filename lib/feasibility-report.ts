@@ -1,7 +1,7 @@
 import { requireReviewedConclusion, type FeasibilityClassAnalysis } from './feasibility-study';
 import { reportCoverage } from './report-coverage';
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
-import { selectReportHits } from './report-selection';
+import { selectReportHits, reportMarkGroups, conclusionText } from './report-selection';
 import type { SimilarityResult } from './similarity-contract';
 import { filterFeasibility, uncertainState, type FeasibilityStatus } from './feasibility-policy';
 import { reportRecommendation, type ReportRecommendation } from './feasibility-recommendation';
@@ -23,7 +23,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const result={...input.result,results:input.result.results.map(applyVerifiedDecision)};
   const allHits=filterFeasibility(result.results,status), hits=selectReportHits(allHits,input.selectedIds);
   const analyses = input.analyses?.map(analysis=>({...analysis, conclusion:requireReviewedConclusion(analysis.conclusion)})) ?? [{proposal, result, selectedIds:input.selectedIds, conclusion:input.conclusion}];
-  const detailed = analyses.map(analysis=>({...analysis,hits:selectReportHits(filterFeasibility(analysis.result.results,status),analysis.selectedIds)}));
+  const detailed = analyses.map(analysis=>{const hits=selectReportHits(filterFeasibility(analysis.result.results,status),analysis.selectedIds);return {...analysis,hits,marks:reportMarkGroups(hits)};});
   const recommendation=reportRecommendation(result,input.recommendation,input.explanation,proposal.coverage.map(c=>c.nice_class));
   const author=input.author?.trim() || profile?.lawyerName.trim();
   const pdf=await PDFDocument.create();
@@ -93,80 +93,93 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   if(input.image){const image=input.imageType==='jpeg'?await pdf.embedJpg(input.image):await pdf.embedPng(input.image);const size=image.scaleToFit(180,110);ensure(size.height+22);page.drawImage(image,{x:left,y:y-size.height,...size});y-=size.height+18;}
   heading('II.    Antecedentes registrales relevantes.');
   for(const analysis of detailed) {
-    text(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ') || 'sin definir'}: ${analysis.result.results.length} ${analysis.result.results.length===1?'antecedente recuperado':'antecedentes recuperados'} y ${analysis.hits.length} ${analysis.hits.length===1?'incluido':'incluidos'} en detalle.`);
+    text(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ') || 'sin definir'}: ${analysis.marks.length} ${analysis.marks.length===1?'antecedente relevante':'antecedentes relevantes'}.`);
     if(analysis.conclusion)text(analysis.conclusion.title,10.5,{strong:true});
   }
   const images=new Map<string,Awaited<ReturnType<typeof pdf.embedPng>>>();
   for(const hit of detailed.flatMap(analysis=>analysis.hits)){const bytes=input.resultImages?.[hit.applicationId];if(bytes)try{images.set(hit.applicationId,await pdf.embedPng(bytes));}catch{/* Keep an explicit unavailable label. */}}
-  function findingHeight(hit:typeof hits[number]){
+  function findingHeight(hit:typeof hits[number],members:typeof hits=[hit]){
     const values=[hit.name,`Estado: ${hit.status}`,`Solicitud: ${hit.applicationId}`,...(hit.registrationId?[`Registro: ${hit.registrationId}`]:[]),`Titular: ${hit.holders.map(h=>h.name).join('; ')||'No informado'}`];
-    const image=images.get(hit.applicationId),coverage=hit.classes[0]?.coverage_text||'Productos o servicios no informados';
-    return Math.min(360,25+values.reduce((sum,value)=>sum+lines(value,regular,10.5,width).length*15.75+3,0)+(image?image.scaleToFit(140,75).height+31:22)+Math.min(2,lines(coverage,regular,10.5,width).length)*15.75+12);
+    const image=members.map(member=>images.get(member.applicationId)).find(Boolean);
+    const coverageRows=reportCoverage([...new Map(members.flatMap(member=>member.classes).map(row=>[JSON.stringify(row),row])).values()]);
+    return Math.min(360,25+values.reduce((sum,value)=>sum+lines(value,regular,10.5,width).length*15.75+3,0)+(image?image.scaleToFit(140,75).height+31:22)+coverageRows.reduce((sum,row)=>sum+lines(`${row.label}: ${row.value}`,regular,10.5,width).length*15.75+3,0)+12);
   }
-  heading('III.   Resultados de la búsqueda.');
+  const firstTableHeight=detailed[0].marks.reduce((sum,mark)=>sum+Math.max(90,lines(mark.hit.name,bold,11,264).length*16+32),0)+130;
+  const usableHeight=headerBottom-26-bottom;
+  const firstMark=detailed[0].marks[0];
+  ensure(input.layout==='table'?(firstTableHeight<usableHeight?firstTableHeight:120):(firstMark?Math.min(usableHeight,105+findingHeight(firstMark.hit,firstMark.members)):120));heading('III.   Antecedentes relevantes.');
   function table(analysis: typeof detailed[number]) {
-    const widths=[120,80,85,211],labels=['Marca / titular','Solicitud / registro','Estado','Clases y cobertura'];
-    function row(cells:string[][],header=false) {
-      let remaining=cells.map(cell=>[...cell]);
-      while(remaining.some(cell=>cell.length)) {
-        ensure(42);
-        const count=Math.max(1,Math.floor((y-bottom-16)/12));
-        const chunks=remaining.map(cell=>cell.slice(0,count));remaining=remaining.map(cell=>cell.slice(count));
-        const height=Math.max(...chunks.map(cell=>cell.length),1)*12+14;
-        let x=left;
-        chunks.forEach((cell,index)=>{
-          page.drawRectangle({x,y:y-height,width:widths[index],height,borderColor:header?accent:rule,borderWidth:.4,color:header?accent:rgb(.98,.985,.99)});
-          cell.forEach((value,line)=>page.drawText(value,{x:x+6,y:y-14-line*12,size:8.5,font:header?bold:regular,color:header?rgb(1,1,1):ink}));x+=widths[index];
-        });y-=height;
-        if(remaining.some(cell=>cell.length))newPage();
-      }
+    const widths=[300,140],tableWidth=440,tableLeft=left+(width-tableWidth)/2;
+    const border=rgb(.85,.85,.85);
+    function header() {
+      ensure(125);let x=tableLeft;
+      ['Marca','Logo'].forEach((label,index)=>{
+        page.drawRectangle({x,y:y-30,width:widths[index],height:30,borderColor:border,borderWidth:.5,color:accent});
+        page.drawText(label,{x:x+(widths[index]-bold.widthOfTextAtSize(label,10))/2,y:y-19,size:10,font:bold,color:rgb(1,1,1)});x+=widths[index];
+      });y-=30;
     }
-    row(labels.map((label,index)=>lines(label,bold,8.5,widths[index]-12)),true);
-    for(const hit of analysis.hits) {
-      const values=[`${hit.name} / ${hit.holders.map(holder=>holder.name).join('; ')||'Titular no informado'}`,`${hit.applicationId}${hit.registrationId?' / '+hit.registrationId:''}`,uncertainState(hit.status)?'Estado por confirmar':hit.status,reportCoverage(hit.classes).map(item=>`${item.label}: ${item.value}`).join('; ')];
-      if(y-bottom<65){newPage();row(labels.map((label,index)=>lines(label,bold,8.5,widths[index]-12)),true);}
-      row(values.map((value,index)=>lines(value,regular,8.5,widths[index]-12)));
+    if(!analysis.marks.length)return;
+    header();
+    for(const [index,mark] of analysis.marks.entries()) {
+      const rows=lines(mark.hit.name,bold,11,widths[0]-36),height=Math.max(90,rows.length*16+32);
+      if(y-height<bottom){newPage();header();}
+      let x=tableLeft;
+      for(const column of widths){page.drawRectangle({x,y:y-height,width:column,height,borderColor:border,borderWidth:.5,color:index%2?rgb(.97,.98,.985):rgb(1,1,1)});x+=column;}
+      rows.forEach((row,i)=>page.drawText(row,{x:tableLeft+(widths[0]-bold.widthOfTextAtSize(row,11))/2,y:y-height/2+(rows.length-1)*8-i*16-4,size:11,font:bold,color:ink}));
+      const image=mark.members.map(member=>images.get(member.applicationId)).find(Boolean);
+      if(image){const size=image.scaleToFit(102,65);page.drawImage(image,{x:tableLeft+widths[0]+(widths[1]-size.width)/2,y:y-height/2-size.height/2,...size});}
+      else {const label='Sin imagen disponible';page.drawText(label,{x:tableLeft+widths[0]+(widths[1]-regular.widthOfTextAtSize(label,8))/2,y:y-height/2-3,size:8,font:regular,color:muted});}
+      y-=height;
     }
-    y-=12;
+    y-=18;
   }
   for(const analysis of detailed) {
-    if(detailed.length>1){ensure(input.layout==='table'?120:Math.min(420,65+(analysis.hits[0]?findingHeight(analysis.hits[0]):50)));text(`Clase ${analysis.proposal.coverage[0].nice_class}`,12,{strong:true});}
-    if(!analysis.hits.length)text('No hay antecedentes con el filtro elegido. Este resultado no acredita la disponibilidad de la marca; conviene completar la revisión.');
+    if(detailed.length>1){ensure(!analysis.marks.length?60:input.layout==='table'?120:Math.min(420,65+findingHeight(analysis.marks[0].hit,analysis.marks[0].members)));text(`Clase ${analysis.proposal.coverage[0].nice_class}`,12,{strong:true});}
+    if(!analysis.hits.length)text('No se incluyeron antecedentes relevantes para esta clase.');
     if(input.layout==='table')table(analysis);
-    else for(const [index,hit]of analysis.hits.entries()){
-      ensure(findingHeight(hit));y-=12;text(`${index+1}. ${hit.name}`,11,{strong:true,color:accent,gap:7});
-      field('Estado',uncertainState(hit.status)?'Estado por confirmar':hit.status);
-      field('Solicitud',hit.applicationId);if(hit.registrationId)field('Registro',hit.registrationId);
+    else for(const [index,mark]of analysis.marks.entries()){
+      const hit=mark.hit;
+      ensure(findingHeight(hit,mark.members));y-=12;text(`${index+1}. ${hit.name}`,11,{strong:true,color:accent,gap:7});
+      field('Estado',[...new Set(mark.members.map(member=>uncertainState(member.status)?'Estado por confirmar':member.status))].join(' · '));
+      field(mark.members.length===1?'Solicitud':'Solicitudes asociadas',mark.members.map(member=>member.applicationId).join(' · '));const registrations=[...new Set(mark.members.map(member=>member.registrationId).filter(Boolean))];if(registrations.length)field('Registro',registrations.join(' · '));
       field('Titular',hit.holders.map(h=>h.name).join('; ')||'No informado');
-      const image=images.get(hit.applicationId);
+      const image=mark.members.map(member=>images.get(member.applicationId)).find(Boolean);
       if(image){const size=image.scaleToFit(140,75);ensure(size.height+32);text('Etiqueta:',10.5,{strong:true,gap:5});page.drawImage(image,{x:left,y:y-size.height,...size});y-=size.height+10;}
       else field('Etiqueta',hit.image?'Imagen no disponible':'No registra imagen en los antecedentes recuperados');
-      for(const row of reportCoverage(hit.classes))field(row.label,row.value);
+      for(const row of reportCoverage([...new Map(mark.members.flatMap(member=>member.classes).map(row=>[JSON.stringify(row),row])).values()]))field(row.label,row.value);
       if(hit.officialDecision)text(`Decisión firme desde el ${date(hit.officialDecision.firmAt)}.`,9,{color:muted});
       else if(uncertainState(hit.status)||hit.dataWarnings?.length)text('Hay datos de esta solicitud que deben confirmarse.',9,{color:muted});
+      y-=12;
     }
-    if(input.includeAppendix){heading(`Anexo de resultados · Clase ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ')}.`);for(const hit of analysis.result.results){ensure(48);text(`${hit.name} · Solicitud ${hit.applicationId} · ${hit.status}`,10);for(const row of reportCoverage(hit.classes))field(row.label,row.value);}}
+    if(input.includeAppendix && !input.analyses){heading(`Anexo de resultados · Clase ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ')}.`);for(const hit of analysis.result.results){ensure(48);text(`${hit.name} · Solicitud ${hit.applicationId} · ${hit.status}`,10);for(const row of reportCoverage(hit.classes))field(row.label,row.value);}}
   }
   const paragraphs=detailed.flatMap(analysis=>analysis.conclusion?.paragraphs??[recommendation.explanation.replace(/\d+(?:[.,]\d+)?%/g,'semejanza relevante')]);
-  const note=result.sourceType==='fixture'?'Datos simulados para pruebas locales de presentación. Este documento no corresponde a una búsqueda real de INAPI.':`Nota: el análisis se basa en los antecedentes de INAPI entregados por DeQuiénEs, consultados el ${date(result.fetchedAt)}, y en hasta ${result.searchScope?.limit??50} candidatos recuperados. No garantiza el resultado del examen de INAPI ni excluye oposiciones de terceros.`;
-  const hasWarnings=!!(result.warnings.length||hits.some(h=>h.dataWarnings?.length));
-  const endingHeight=lines(note,regular,9,width).length*13.5+10+(hasWarnings?24:0)+(replacedGlyph?40:0)+(author?lines(author,regular,11,width).length*16.5+40:0);
-  const totalHeight=80+endingHeight+paragraphs.reduce((sum,value)=>sum+lines(value,regular,11,width).length*16.5+10,0);
-  if(totalHeight<headerBottom-26-bottom-15)ensure(totalHeight);
+  const endingHeight=(replacedGlyph?40:0)+(author?lines(author,regular,11,width).length*16.5+40:0);
+  const conclusionHeight=(analysis:typeof detailed[number])=>(detailed.length>1?23:0)+35+(analysis.conclusion?.paragraphs??paragraphs).reduce((sum,value)=>sum+lines(conclusionText(value),regular,11,width).length*16.5+10,0)+20;
+  const totalHeight=65+endingHeight+detailed.reduce((sum,analysis)=>sum+conclusionHeight(analysis),0);
+  if(totalHeight<usableHeight)ensure(totalHeight);
+  else ensure(Math.min(usableHeight,65+conclusionHeight(detailed[0])));
   heading('IV.    Conclusión.');
   for(const analysis of detailed) {
-    ensure(70+Math.min(260,lines(analysis.conclusion?.paragraphs[0]??'',regular,11,width).length*16.5));
+    const classHeight=conclusionHeight(analysis);
+    ensure(classHeight<usableHeight?classHeight:70+Math.min(260,lines(analysis.conclusion?.paragraphs[0]??'',regular,11,width).length*16.5));
     if(detailed.length>1)text(`Clase ${analysis.proposal.coverage[0].nice_class}`,11,{strong:true});
     text(analysis.conclusion?.title||recommendation.title,11,{strong:true,gap:10});
-    for(const paragraph of analysis.conclusion?.paragraphs??paragraphs){const height=lines(paragraph,regular,11,width).length*16.5+10;if(height<350)ensure(height);text(paragraph,11,{gap:10});}
+    for(const paragraph of analysis.conclusion?.paragraphs??paragraphs){const height=lines(paragraph,regular,11,width).length*16.5+10;if(height<350)ensure(height);text(conclusionText(paragraph),11,{gap:10});}
     y-=8;
   }
   ensure(endingHeight);
-  text(note,9,{gap:10});
-  if(hasWarnings)text('Los datos incompletos o inconsistentes deben confirmarse antes de presentar.',9,{color:muted});
   if(replacedGlyph)text('El respaldo adjunto conserva la escritura original de los caracteres que este PDF muestra como ?.',9,{color:muted});
   if(author){ensure(48);y-=10;text(author,11,{gap:0});text('Abogado',10);}
-  await pdf.attach(new TextEncoder().encode(JSON.stringify({version:5,analyses:input.analyses,layout:input.layout,proposal,filter:status,selectedIds:hits.map(h=>h.applicationId),recommendation,conclusion:input.conclusion,studio:profile?{...profile,logo:undefined}:undefined,result:{...result,results:input.includeAppendix?allHits:hits,groups:[]}},null,2)),'antecedentes-consulta.json',{mimeType:'application/json',description:'Antecedentes, fuentes y alcance del informe'});
+  const evidence=input.analyses ? {
+    version:6,layout:input.layout,proposal,studio:profile?{...profile,logo:undefined}:undefined,
+    analyses:detailed.map(analysis=>({proposal:analysis.proposal,conclusion:analysis.conclusion,queriedAt:analysis.result.fetchedAt,
+      selectedIds:analysis.hits.map(hit=>hit.applicationId),
+      relevantMarks:analysis.marks.map(mark=>({name:mark.hit.name,applicationIds:mark.members.map(member=>member.applicationId)})),
+      records:analysis.hits.map(hit=>Object.fromEntries(Object.entries(hit).filter(([key])=>!['score','channels','sourceEvidence'].includes(key)))),
+    })),
+  } : {version:5,layout:input.layout,proposal,filter:status,selectedIds:hits.map(h=>h.applicationId),recommendation,conclusion:input.conclusion,studio:profile?{...profile,logo:undefined}:undefined,result:{...result,results:input.includeAppendix?allHits:hits,groups:[]}};
+  await pdf.attach(new TextEncoder().encode(JSON.stringify(evidence,null,2)),'antecedentes-consulta.json',{mimeType:'application/json',description:'Antecedentes relevantes incluidos en el informe'});
   const pages=pdf.getPages();pages.forEach((p,index)=>{
     p.drawLine({start:{x:left,y:bottom-14},end:{x:right,y:bottom-14},thickness:.5,color:rule});
     footerRows.forEach((row,i)=>p.drawText(row,{x:left+(width-regular.widthOfTextAtSize(row,8.5))/2,y:29+(footerRows.length-1-i)*11,size:8.5,font:regular,color:ink}));

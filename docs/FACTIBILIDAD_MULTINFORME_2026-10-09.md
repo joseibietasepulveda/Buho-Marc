@@ -2,21 +2,25 @@
 
 Estado: integrado exclusivamente en Dev por [PR #18](https://github.com/joseibietasepulveda/Buho-Marc/pull/18), commit `b78d204e7d2a42dc1c01b633c6ed2cf3f1077247`; Railway confirmó SUCCESS en el despliegue `39007126-edc7-4e7e-897f-f800ef1ea29d`. Rama de implementación `codex/factibilidad-multinforme`, base `156e172`. Sin promoción a producción. Se verificaron conclusiones reales de OpenRouter con datos ficticios locales; el problema de autenticación se resolvió usando una clave de inferencia independiente. El ajuste visual definitivo espera el informe de referencia del usuario.
 
-## Flujo vigente en esta rama
+## Flujo vigente
 
 Al comenzar, elegir **Informe** o **Multinforme**. Ambos requieren exactamente una clase Niza por búsqueda. Informe genera un estudio de una clase; Multinforme reúne varios análisis independientes de la misma marca. La denominación y la imagen propuesta se conservan mientras se agregan clases.
 
 En Buscar se elige una clase y sus criterios. La fuente recibe la cobertura en su contrato existente; el adaptador filtra el lote por clase antes de recuperar expedientes. No se añade un parámetro remoto no documentado. Se incluyen marcas que tengan la clase solicitada, aunque también estén inscritas en otras clases. Se conservan sus coberturas completas. Filtrar hasta 100 candidatos recuperados no acredita exhaustividad.
 
-Revisar resultados mantiene selección, comparación, grupos y filtros. Preparar informe conserva el análisis y, en Multinforme, permite **Agregar otro análisis por clase de Niza**. Un contador y botones de clase muestran los análisis guardados y sus conclusiones. Se puede volver a una clase, editarla o quitarla; no se duplica una clase. Nuevo estudio vacía este borrador.
+Revisar resultados mantiene selección, comparación, grupos y filtros. **Siguiente** conserva el análisis y, en Multinforme, permite **Agregar otro análisis por clase de Niza**. Un contador y botones de clase muestran los análisis guardados y sus conclusiones. Se puede volver a una clase, editarla o quitarla; no se duplica una clase. Nuevo estudio vacía este borrador.
+
+Los contadores y el detalle agrupan la misma denominación del mismo conjunto de titulares como un antecedente con expedientes asociados. No se fusionan titulares diferentes, denominaciones diferentes ni registros sin titular informado ni marcas figurativas sin denominación. La selección inicial incluye hasta cinco marcas con sus expedientes; una selección vacía explícita permanece vacía. La fila agrupada selecciona o retira todos sus expedientes; al expandir se pueden revisar individualmente.
 
 Los análisis completos viven en memoria del navegador durante el estudio. La persistencia existente conserva generaciones de conclusiones por organización; no constituye un archivo de estudios y no preserva el borrador completo después de recargar.
 
 ## Conclusiones
 
-**Generar conclusiones con OpenRouter** analiza por separado todos los hallazgos recuperados de cada clase, incluso los no seleccionados para el detalle. El contexto contiene texto, estados, titulares, coberturas e historial; excluye campos de imágenes y la evaluación determinista previa. La identidad, titularidad y cobertura propuestas provienen del formulario del autor, evitando inferencias desde el eco de consulta de la fuente. El prompt distingue datos ausentes de hechos negativos confirmados. Los índices de semejanza son señales técnicas, no probabilidades jurídicas.
+**Generar conclusión con IA - Buho Marc** trabaja únicamente sobre la clase activa y los antecedentes relevantes incluidos en su detalle. OpenRouter sigue siendo el proveedor interno; su nombre no aparece en este flujo público. El contexto contiene textos, estados, titulares, coberturas e historial de los expedientes seleccionados y una agrupación por marca; excluye imágenes, expedientes no seleccionados, totales recuperados y evaluación determinista previa. La cobertura de otras clases no se atribuye a la clase activa. La identidad, titularidad y cobertura propuestas provienen del formulario del autor.
 
-Cada clase recibe una decisión: recomendar presentar, recomendar presentar con riesgo moderado de oposición, no recomendar presentar o completar antecedentes antes de decidir. Los argumentos deben apoyarse en la consulta. Una búsqueda vacía exige completar antecedentes. La validación rechaza porcentajes, solicitudes ajenas y decisiones incoherentes; conserva una decisión explícita del abogado. El abogado puede editar o redactar su conclusión sin porcentajes.
+La generación llena «Conclusión del abogado · Clase X (opcional)» y la vista previa. Ambos recuadros permiten editar el mismo texto directamente. Cambiar el texto o la decisión conserva las otras clases. Para generar una clase distinta se debe abordarla expresamente desde los botones de análisis guardados. Agregar otro análisis está disponible tanto junto al generador como debajo de la vista previa.
+
+Cada clase recibe una decisión: recomendar presentar, presentar con riesgo moderado de oposición, no presentar o completar antecedentes. Sin antecedentes relevantes incluidos se recomienda presentar para la cobertura propuesta, explicando que no se incluyeron antecedentes; no se afirma que la búsqueda demostró inexistencia de derechos o conflictos. Esta decisión explícita del 11 de octubre reemplaza la regla anterior de exigir «insuficiente» ante búsqueda/selección vacía. La validación rechaza porcentajes, referencias a expedientes no seleccionados y decisiones incoherentes; conserva la decisión expresa del abogado. El prompt vigente tiene versión 8.
 
 No se exporta un respaldo determinista como conclusión del modelo. Un error conserva el estudio y permite reintentar inmediatamente en este flujo por clase; los consumidores antiguos sin `proposal.niceClass` mantienen su comportamiento de respaldo y caché de cinco minutos. La deduplicación distingue clase, contexto, perfil, modelo, versión del prompt y credencial. Las conclusiones ya obtenidas se conservan si falla otra clase.
 
@@ -24,9 +28,13 @@ Esta decisión sustituye, para el flujo nuevo, el respaldo exportable y la evalu
 
 ## Informe
 
-Antes de descargar se elige **Tabla comparativa** o **Fichas con imágenes**, luego PDF o Word editable. Se revisan las conclusiones de todas las clases y se confirma la revisión. Las descargas reutilizan esas conclusiones; cambiar presentación no vuelve a llamar al modelo.
+Antes de descargar se elige **Tabla comparativa** o **Fichas con imágenes**, luego PDF o Word editable. Cada clase debe tener una conclusión preparada o escrita por el abogado. No se exige una casilla adicional de revisión. Las descargas reutilizan esas conclusiones; cambiar presentación no vuelve a llamar al modelo.
 
-Ambos formatos usan Carta, encabezado/logo opcionales, cuatro secciones, coberturas completas y firma opcional. La petición posterior de una presentación elegante se implementa con título de marca destacado, tipografía consistente, azul sobrio, separadores finos y tablas con encabezado oscuro; Word conserva los títulos de clase junto a sus conclusiones y las filas de cobertura unidas. La referencia visual definitiva sigue pendiente. Agrupan hallazgos y conclusiones por clase. No muestran índices de semejanza ni porcentajes de riesgo. El anexo opcional también omite esos índices. La tabla incluye marca/titular, solicitud/registro, estado y clases/cobertura; las fichas mantienen imágenes disponibles. La interfaz de resultados conserva su índice orientativo.
+Ambos formatos usan Carta, encabezado/logo y firma opcionales, cuatro secciones, tipografía consistente, azul sobrio y separadores finos. La tabla tiene exclusivamente **Marca** y **Logo**, queda centrada y respeta la proporción de las imágenes. Los nombres y logos están centrados vertical y horizontalmente; las filas alternan blanco y gris suave. Las tablas pequeñas permanecen juntas y las largas repiten encabezado. Las fichas conservan estados, expedientes asociados, titulares y coberturas completas.
+
+El cliente ve únicamente el número de antecedentes relevantes incluidos por clase. Se retiraron la opción de anexo, la atribución debajo del recuadro, el botón intermedio de edición, la nota final sobre candidatos recuperados y el aviso general sobre datos incompletos. No se muestran índices ni porcentajes de riesgo. La vista previa se titula **Vista previa de las conclusiones**. Las descargas no llaman al proveedor. El respaldo JSON adjunto al PDF nuevo usa versión 6 y contiene exclusivamente registros seleccionados y su procedencia temporal, sin totales recuperados, índices ni el payload remoto completo. Los escritores conservan compatibilidad para consumidores antiguos sin `analyses`; allí la selección omitida aún toma cinco resultados, pero `[]` incluye cero, y el argumento histórico de anexo permanece solo para ese contrato.
+
+La preparación de imágenes intenta un logo por marca y prueba otro expediente asociado si falla el primero; informa faltantes por marca. Comprobaciones y límites del pulido: [traspaso del 11 de octubre](handoffs/2026-10-11-factibilidad-pulido.md).
 
 ## Configuración y reproducción local
 
@@ -43,9 +51,9 @@ OPENROUTER_CONFIG_FILE="/ruta/a/configuracion-privada-local" \
 npm run dev:local
 ~~~
 
-El fixture se genera con el script de QA, utiliza **Marca de prueba** y clases **30 y 43**. El cargador exige desarrollo, fuente simulada y origen local 127.0.0.1. En producción o con fuente real queda desactivado. Los resultados e informes indican que son datos simulados. El fixture evita consultas a INAPI; no sustituye las conclusiones reales de OpenRouter.
+El fixture se genera con el script de QA, utiliza **Marca de prueba** y clases **30 y 43**. El cargador exige desarrollo, fuente simulada y origen local 127.0.0.1. En producción o con fuente real queda desactivado. Los resultados identifican la simulación; los documentos de QA deben presentarse como ejemplos ficticios al entregarlos. El texto de advertencia general ya no se incorpora al informe del cliente. El fixture evita consultas a INAPI; no sustituye las conclusiones reales de OpenRouter.
 
-`scripts/verify-feasibility-study.mjs` requiere Playwright (paquete o ruta en `BUHO_PLAYWRIGHT_MODULE`), navegador disponible y una sesión de una cuenta de QA local en `work/study-qa/session.json` como `{"token":"<sesión local>"}`. No guardar ese archivo en Git. `BUHO_BROWSER_EXECUTABLE` permite indicar Chrome. El script intercepta únicamente las solicitudes del navegador de prueba y genera cuatro descargas, capturas y el fixture, sin consultar fuentes ni OpenRouter reales.
+`scripts/verify-feasibility-study.mjs` requiere Playwright (paquete o ruta en `BUHO_PLAYWRIGHT_MODULE`), navegador disponible y una sesión de una cuenta de QA local en `work/study-qa/session.json` como `{"token":"<sesión local>"}`. No guardar ese archivo en Git. `BUHO_BROWSER_EXECUTABLE` permite indicar Chrome. El script intercepta únicamente las solicitudes del navegador de prueba y genera cuatro descargas, capturas y el fixture, sin consultar fuentes ni OpenRouter reales. Comprueba tres expedientes como una marca, selección agrupada, contador vacío centrado, generación solo de la clase activa, edición sincronizada, selección vacía favorable y fallo del proveedor que bloquea descarga.
 
 ~~~sh
 node --import ./tests/ts-loader.mjs --test tests/feasibility-study.test.mjs tests/feasibility-conclusion.test.mjs tests/feasibility-report.test.mjs tests/similarity.test.mjs

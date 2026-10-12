@@ -101,3 +101,20 @@ test('Word retains the supplied conclusion, full coverages and optional study de
  const pdf=await createFeasibilityReport({proposal:{name:'Marca propuesta',coverage:[],grouped:true},result,status:'all',conclusion});
  assert.ok((await PDFDocument.load(pdf)).getPageCount()>=2);
 });
+test('new table groups one mark, embeds its logo and includes only selected relevant evidence',async()=>{
+ const tiny=new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXioAAAAASUVORK5CYII=','base64'));
+ const records=['1','2','3'].map(applicationId=>hit({applicationId,name:'CIOCCOLATA',holders:[{name:'Titular de prueba'}],classes:[{nice_class:4,coverage_text:'Velas'}]}));
+ const result={query:hit(),results:[...records,hit({applicationId:'4',name:'Marca no incluida',holders:[{name:'Otro titular'}],classes:[{nice_class:4}]})],groups:[],warnings:['Datos incompletos'],candidateCount:100,elapsedSeconds:1,fetchedAt:'2026-10-11T12:00:00Z'};
+ const proposal={name:'cioccolati',niceClass:4,coverage:[{nice_class:4,text:'Velas'}],grouped:true};
+ const conclusion={title:'Se recomienda presentar con riesgo moderado de oposición',recommendation:'review',decision:'moderate',source:'author',paragraphs:['El antecedente “CIOCCOLATA”,todos sus expedientes incluidos, requiere comparar las coberturas de esta clase.'],evidenceApplicationIds:['1','2','3']};
+ const analysis={proposal,result,selectedIds:['1','2','3'],conclusion};
+ const input={proposal,result,status:'all',layout:'table',analyses:[analysis],selectedIds:analysis.selectedIds,resultImages:{'2':tiny},includeAppendix:true};
+ const zip=await JSZip.loadAsync(await(await createFeasibilityDocx(input)).arrayBuffer()),xml=await zip.file('word/document.xml').async('string');
+ assert.equal((xml.match(/<w:tc>/g)||[]).length,4);assert.match(xml,/1 antecedente relevante/);assert.match(xml,/w:jc w:val="center"/);assert.match(xml,/w:vAlign w:val="center"/);
+ assert.match(xml,/CIOCCOLATA.*, todos/);assert.equal(xml.includes('Marca no incluida'),false);assert.equal(xml.includes('Anexo de resultados'),false);
+ assert.equal(xml.includes('antecedentes recuperados'),false);assert.equal(xml.includes('Nota: el análisis'),false);assert.equal(xml.includes('Los datos incompletos'),false);
+ assert.equal(Object.keys(zip.files).filter(name=>name.startsWith('word/media/')&&!zip.files[name].dir).length,1);
+ const emptyZip=await JSZip.loadAsync(await(await createFeasibilityDocx({...input,analyses:[{...analysis,selectedIds:[]}]})).arrayBuffer()),empty=await emptyZip.file('word/document.xml').async('string');
+ assert.match(empty,/0 antecedentes relevantes/);assert.equal(empty.includes('<w:tbl>'),false);
+ assert.ok((await PDFDocument.load(await createFeasibilityReport(input))).getPageCount()>=1);
+});

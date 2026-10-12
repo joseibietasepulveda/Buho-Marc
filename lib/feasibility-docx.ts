@@ -1,8 +1,8 @@
 import { requireReviewedConclusion } from './feasibility-study';
 import { reportCoverage } from './report-coverage';
-import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, PageNumber, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from 'docx';
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, VerticalAlign, PageNumber, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from 'docx';
 import type { FeasibilityReportInput } from './feasibility-report';
-import { selectReportHits } from './report-selection';
+import { selectReportHits, reportMarkGroups, conclusionText } from './report-selection';
 import { filterFeasibility, uncertainState } from './feasibility-policy';
 import { reportRecommendation } from './feasibility-recommendation';
 import { applyVerifiedDecision } from './verified-decisions';
@@ -11,9 +11,8 @@ const pngSize=(bytes:Uint8Array,maxWidth:number,maxHeight:number)=>{const view=n
 export async function createFeasibilityDocx(input:FeasibilityReportInput):Promise<Blob>{
   const{proposal,status,studioProfile:profile}=input;
   const result={...input.result,results:input.result.results.map(applyVerifiedDecision)};
-  const allHits=filterFeasibility(result.results,status),hits=selectReportHits(allHits,input.selectedIds);
   const analyses=input.analyses?.map(analysis=>({...analysis,conclusion:requireReviewedConclusion(analysis.conclusion)}))??[{proposal,result,selectedIds:input.selectedIds,conclusion:input.conclusion}];
-  const detailed=analyses.map(analysis=>({...analysis,hits:selectReportHits(filterFeasibility(analysis.result.results,status),analysis.selectedIds)}));
+  const detailed=analyses.map(analysis=>{const hits=selectReportHits(filterFeasibility(analysis.result.results,status),analysis.selectedIds);return {...analysis,hits,marks:reportMarkGroups(hits)};});
   const recommendation=reportRecommendation(result,input.recommendation,input.explanation,proposal.coverage.map(c=>c.nice_class));
   const author=input.author?.trim()||profile?.lawyerName.trim();
   const body:(Paragraph|Table)[]=[];
@@ -31,38 +30,45 @@ export async function createFeasibilityDocx(input:FeasibilityReportInput):Promis
   for(const c of proposal.coverage)if(c.text.trim())body.push(field(`Cobertura propuesta · Clase ${c.nice_class}`,c.text.trim()));
   if(input.image)body.push(picture(input.image,210,140));
   body.push(heading('II.    Antecedentes registrales relevantes.'));
-  for(const analysis of detailed){body.push(paragraph(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ')||'sin definir'}: ${analysis.result.results.length} ${analysis.result.results.length===1?'antecedente recuperado':'antecedentes recuperados'} y ${analysis.hits.length} ${analysis.hits.length===1?'incluido':'incluidos'} en detalle.`));if(analysis.conclusion)body.push(paragraph(analysis.conclusion.title,{bold:true}));}
-  body.push(heading('III.   Resultados de la búsqueda.'));
+  for(const analysis of detailed){body.push(paragraph(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ')||'sin definir'}: ${analysis.marks.length} ${analysis.marks.length===1?'antecedente relevante':'antecedentes relevantes'}.`));if(analysis.conclusion)body.push(paragraph(analysis.conclusion.title,{bold:true}));}
+  body.push(heading('III.   Antecedentes relevantes.'));
   for(const analysis of detailed) {
   if(detailed.length>1)body.push(heading(`Clase ${analysis.proposal.coverage[0].nice_class}`));
-  if(!analysis.hits.length)body.push(paragraph('No hay antecedentes con el filtro elegido. Este resultado no acredita la disponibilidad de la marca; conviene completar la revisión.'));
+  if(!analysis.hits.length)body.push(paragraph('No se incluyeron antecedentes relevantes para esta clase.'));
   if(input.layout==='table') {
-    const cells=(values:string[],header=false)=>new TableRow({tableHeader:header,cantSplit:header,children:values.map(value=>new TableCell({shading:{fill:header?'1F384A':'FAFBFC'},margins:{top:90,bottom:90,left:100,right:100},borders:Object.fromEntries(['top','bottom','left','right'].map(side=>[side,{style:BorderStyle.SINGLE,size:4,color:header?'1F384A':'CCD6DB'}])),children:[paragraph(value,{bold:header,small:true,color:header?'FFFFFF':'242E38',after:0})]}))});
-    body.push(new Table({width:{size:9940,type:WidthType.DXA},columnWidths:[2400,1600,1700,4240],rows:[cells(['Marca / titular','Solicitud / registro','Estado','Clases y cobertura'],true),...analysis.hits.map(hit=>cells([`${hit.name} / ${hit.holders.map(h=>h.name).join('; ')||'Titular no informado'}`,`${hit.applicationId}${hit.registrationId?' / '+hit.registrationId:''}`,uncertainState(hit.status)?'Estado por confirmar':hit.status,reportCoverage(hit.classes).map(row=>`${row.label}: ${row.value}`).join('; ')]))]}));
-  } else for(const[index,hit]of analysis.hits.entries()){
+    const widths=[6000,2800],borders=Object.fromEntries(['top','bottom','left','right'].map(side=>[side,{style:BorderStyle.SINGLE,size:4,color:'D9D9D9'}]));
+    const cell=(children:Paragraph[],index:number,fill:string)=>new TableCell({width:{size:widths[index],type:WidthType.DXA},verticalAlign:VerticalAlign.CENTER,shading:{fill},margins:{top:200,bottom:200,left:220,right:220},borders,children});
+    const header=new TableRow({tableHeader:true,cantSplit:true,children:['Marca','Logo'].map((value,index)=>cell([paragraph(value,{bold:true,size:20,color:'FFFFFF',after:0,keepNext:true,align:AlignmentType.CENTER})],index,'1F384A'))});
+    const rows=analysis.marks.map((mark,index)=>{
+      const keepNext=analysis.marks.length<=4&&index<analysis.marks.length-1;
+      const fill=index%2?'F7FAFB':'FFFFFF',bytes=mark.members.map(member=>input.resultImages?.[member.applicationId]).find(Boolean);
+      const logo=bytes?new Paragraph({children:[new ImageRun({type:'png',data:bytes,transformation:pngSize(bytes,102,65),altText:{name:mark.hit.name,title:mark.hit.name,description:`Logo de ${mark.hit.name}`}})],alignment:AlignmentType.CENTER,keepNext,spacing:{after:0}}):paragraph('Sin imagen disponible',{small:true,after:0,keepNext,align:AlignmentType.CENTER});
+      return new TableRow({cantSplit:true,children:[cell([paragraph(mark.hit.name,{bold:true,after:0,keepNext,align:AlignmentType.CENTER})],0,fill),cell([logo],1,fill)]});
+    });
+    if(rows.length){body.push(new Table({alignment:AlignmentType.CENTER,width:{size:8800,type:WidthType.DXA},columnWidths:widths,rows:[header,...rows]}));body.push(paragraph('',{after:180}));}
+  } else for(const[index,mark]of analysis.marks.entries()){
+    const hit=mark.hit;
     body.push(new Paragraph({heading:HeadingLevel.HEADING_2,children:[new TextRun({text:`${index+1}. ${hit.name}`,bold:true,font:'Arial',size:22,color:'1F384A'})],spacing:{before:260,after:120},keepNext:true}));
-    body.push(field('Estado',uncertainState(hit.status)?'Estado por confirmar':hit.status,true));
-    body.push(field('Solicitud',hit.applicationId,true));if(hit.registrationId)body.push(field('Registro',hit.registrationId,true));
+    body.push(field('Estado',[...new Set(mark.members.map(member=>uncertainState(member.status)?'Estado por confirmar':member.status))].join(' · '),true));
+    body.push(field(mark.members.length===1?'Solicitud':'Solicitudes asociadas',mark.members.map(member=>member.applicationId).join(' · '),true));const registrations=[...new Set(mark.members.map(member=>member.registrationId).filter(Boolean))];if(registrations.length)body.push(field('Registro',registrations.join(' · '),true));
     body.push(field('Titular',hit.holders.map(h=>h.name).join('; ')||'No informado',true));
-    const bytes=input.resultImages?.[hit.applicationId];
+    const bytes=mark.members.map(member=>input.resultImages?.[member.applicationId]).find(Boolean);
     if(bytes){body.push(paragraph('Etiqueta:',{bold:true,after:50,keepNext:true}));body.push(picture(bytes,180,115,true));}
     else body.push(field('Etiqueta',hit.image?'Imagen no disponible':'No registra imagen en los antecedentes recuperados',true));
-    const coverageRows=reportCoverage(hit.classes);
+    const coverageRows=reportCoverage([...new Map(mark.members.flatMap(member=>member.classes).map(row=>[JSON.stringify(row),row])).values()]);
     for(const[index,row]of coverageRows.entries())body.push(field(row.label,row.value,index<coverageRows.length-1));
     if(hit.officialDecision)body.push(paragraph(`Decisión firme desde el ${date(hit.officialDecision.firmAt)}.`,{small:true}));
     else if(uncertainState(hit.status)||hit.dataWarnings?.length)body.push(paragraph('Hay datos de esta solicitud que deben confirmarse.',{small:true}));
   }
-  if(input.includeAppendix){body.push(heading('Anexo de resultados.'));for(const hit of analysis.result.results){body.push(paragraph(`${hit.name} · Solicitud ${hit.applicationId} · ${hit.status}`,{keepNext:!!hit.classes.length}));for(const row of reportCoverage(hit.classes))body.push(field(row.label,row.value));}}
+  if(input.includeAppendix && !input.analyses){body.push(heading('Anexo de resultados.'));for(const hit of analysis.result.results){body.push(paragraph(`${hit.name} · Solicitud ${hit.applicationId} · ${hit.status}`,{keepNext:!!hit.classes.length}));for(const row of reportCoverage(hit.classes))body.push(field(row.label,row.value));}}
   }
   body.push(heading('IV.    Conclusión.'));
   for(const analysis of detailed) {
   if(detailed.length>1)body.push(paragraph(`Clase ${analysis.proposal.coverage[0].nice_class}`,{bold:true,keepNext:true}));
   body.push(paragraph(analysis.conclusion?.title||recommendation.title,{bold:true,keepNext:true}));
   const conclusionParagraphs=analysis.conclusion?.paragraphs??[recommendation.explanation.replace(/\d+(?:[.,]\d+)?%/g,'semejanza relevante')],shortConclusion=conclusionParagraphs.join(' ').length<1600;
-  for(const[index,value]of conclusionParagraphs.entries())body.push(paragraph(value,{keepNext:shortConclusion&&index<conclusionParagraphs.length-1,after:180}));
+  for(const[index,value]of conclusionParagraphs.entries())body.push(paragraph(conclusionText(value),{keepNext:shortConclusion&&index<conclusionParagraphs.length-1,after:180}));
   }
-  body.push(paragraph(result.sourceType==='fixture'?'Datos simulados para pruebas locales de presentación. Este documento no corresponde a una búsqueda real de INAPI.':`Nota: el análisis se basa en los antecedentes de INAPI entregados por DeQuiénEs, consultados el ${date(result.fetchedAt)}, y en hasta ${result.searchScope?.limit??50} candidatos recuperados. No garantiza el resultado del examen de INAPI ni excluye oposiciones de terceros.`,{small:true}));
-  if(result.warnings.length||hits.some(h=>h.dataWarnings?.length))body.push(paragraph('Los datos incompletos o inconsistentes deben confirmarse antes de presentar.',{small:true}));
   if(author){body.push(paragraph(author,{after:0,keepNext:true}));body.push(paragraph('Abogado',{after:0}));}
   const headerText=profile?.headerText?.trim()||profile?.studioName.trim()||'';
   const headerRows=headerText.split('\n').filter(Boolean);
