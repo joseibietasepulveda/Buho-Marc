@@ -20,4 +20,6 @@ No se añadió el botón ni se modificó la búsqueda. DeQuiénEs forma parte de
 
 Se actualizan los README, guía vigente, integración INAPI, hoja de ruta y registros de publicación; las guías históricas se identifican como tales. Base de este cierre: Dev `e346a26`, incluyendo los PR #28 y #29 de Vigilancia. No hay cambios de aplicación, migraciones, variables, credenciales ni escrituras nuevas de datos. La publicación solicitada es únicamente a Dev; su resultado exacto se registra en el PR de cierre después de comprobar Railway y salud.
 
+Durante el cierre se comprobó una promoción posterior realizada desde otro chat: [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30) y [PR #31](https://github.com/joseibietasepulveda/Buho-Marc/pull/31). Main está en `0d28c4ad80bfe2f9f439c1e58ed4bf6b6decbad3` y Railway production `d3213ea5-911f-484a-83d8-33fede70bfe9` informa SUCCESS. Las afirmaciones de publicación exclusivamente Dev del PR #27 corresponden a su corte histórico, anterior a esa promoción. Este cierre no modifica Main ni production.
+
 Los ejemplos y capturas revisados permanecen en la carpeta local ignorada `work/feasibility-ui-2026-10-12/`. El contrato público consultado se conserva en `work/feasibility-ver-mas/source-spec-2026-10-12.json`. No versionar artefactos privados, sesiones ni datos crudos de clientes.

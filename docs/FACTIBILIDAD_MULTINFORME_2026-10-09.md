@@ -6,6 +6,8 @@ Pulido del 11 de octubre integrado mediante [PR #20](https://github.com/joseibie
 
 Pulido del 12 de octubre integrado por [PR #27](https://github.com/joseibietasepulveda/Buho-Marc/pull/27), Dev `816c5eaad7e8cdb89890ee524378b7cd367d6c2f`; Railway `f8ce295d-6fbb-4f34-9908-c3663cb7d067` confirmó SUCCESS. Incluye tipografía, Parte Figurativa, selector estable y combobox; [verificación y avisos reales acotados](handoffs/2026-10-12-interfaz-informes-notificaciones.md). Los registros anteriores describen cada corte de entrega.
 
+Estado posterior comprobado al cerrar la documentación: la promoción a Main se completó mediante [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30) y su registro [PR #31](https://github.com/joseibietasepulveda/Buho-Marc/pull/31). Esta actualización documental se publica solo en Dev; [corte y ambientes](handoffs/2026-10-12-cierre-factibilidad.md).
+
 ## Flujo vigente
 
 Al comenzar, elegir **Informe** o **Multinforme**. Ambos requieren exactamente una clase Niza por búsqueda. Informe genera un estudio de una clase; Multinforme reúne varios análisis independientes de la misma marca. La denominación y la imagen propuesta se conservan mientras se agregan clases.

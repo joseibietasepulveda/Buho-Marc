@@ -27,7 +27,7 @@
 - [ ] «Ver más» en factibilidad: aplazado por acuerdo del usuario; requiere continuación documentada del buscador y coordinación con DeQuiénEs. [Decisión del 12 de octubre](handoffs/2026-10-12-cierre-factibilidad.md).
 - [ ] Filtro de estados previo a recuperar candidatos en la fuente, catálogo de estados y mejora de exhaustividad/cargas tardías.
 - [ ] Calibración de semejanza con revisión humana, operación a escala, respaldos/observabilidad, correo externo e invitaciones/permisos avanzados.
-- [ ] Promoción del multinforme y pulidos del 9–12 de octubre a producción, solo cuando se solicite expresamente. La promoción del 8 de octubre ya está registrada.
+La promoción del multinforme y pulidos del 9–12 de octubre a producción se completó desde otro chat mediante [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30), con cierre en [PR #31](https://github.com/joseibietasepulveda/Buho-Marc/pull/31). Esta entrega documental se integra únicamente a Dev.
 
 > Historial del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
 
