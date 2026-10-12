@@ -1,6 +1,13 @@
 # Despliegue y operación en Railway
 
-Actualizado el 11 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+Actualizado el 12 de octubre de 2026. **Dev vigente fue promovido a Main/production y Railway confirmó SUCCESS**. [Promoción y verificación del 12/10](handoffs/2026-10-12-promocion-dev-main.md). El [respaldo, ensayo y conservación comprobada del 8/10](handoffs/2026-10-08-promocion-produccion.md) describe aquella operación histórica.
+
+## Promoción de Dev a Main · 12 de octubre
+
+- [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30), integración Main `01a8b0e523656bf72961070053dafddec57a67c9`, desde Dev `e346a2620ee7b5461f3e3cd30a18b1dc5f525fc8`. Conserva los ancestros exclusivos de Main; el código funcional coincide íntegramente con Dev.
+- Producción: despliegue `7b4b8c7e-45c7-4f20-acea-567af6b3dcc1`, **SUCCESS**, SHA y rama exactos comprobados. Compilación, TypeScript y arranque correctos; salud con base conectada y motor DeQuiénEs. Vigilancia/perfil 401 sin sesión y `/app` 307.
+- Incluye multinforme por clase, informes de cliente/estudio, convención de notificación desde la actuación, pulido de notificaciones y controles, desplazamiento y cajas compactas de Vigilancia. Las menciones «exclusivamente Dev» de las entregas históricas siguientes describen su publicación inicial y quedan complementadas por esta promoción.
+- 99/99 pruebas conjuntas aprobadas con proveedores y PostgreSQL aislados. Sin migraciones nuevas, cambios de dependencias/variables ni traslado o sustitución de bases. No se ejecutó un nuevo inventario fila por fila ni una sesión visual sobre cuentas reales; ver alcance y límites en el traspaso. El cierre posterior solo registra documentación.
 
 ## Notificación asumida el día del evento · 12 de octubre
 

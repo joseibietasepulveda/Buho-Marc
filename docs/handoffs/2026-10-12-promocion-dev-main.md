@@ -1,10 +1,10 @@
 # Traspaso: promoción de Dev a Main del 12 de octubre
 
-- Actualizado: 2026-10-12, America/Santiago
-- Estado: listo para integrar en Main; promoción autorizada
+- Actualizado: 2026-10-12 19:36, America/Santiago
+- Estado: integrado en Main y publicado en producción
 - Rama y base: `codex/promocion-dev-main-octubre12`, desde Dev `e346a2620ee7b5461f3e3cd30a18b1dc5f525fc8`.
 - Main inicial: `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`.
-- PR y commit de entrega: pendientes.
+- PR de promoción: [#30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30). Entrega `8686bebe14f44c225119163cfd75a0e2fa130095`; integración en Main `01a8b0e523656bf72961070053dafddec57a67c9`.
 
 ## Objetivo y alcance
 El usuario autoriza expresamente «sube dev a main» tras aprobar las cajas de Vigilancia. Promover toda la versión vigente de Dev y comprobar su publicación en producción, conservando la base y la configuración existentes.
@@ -23,13 +23,16 @@ No hay diferencias de migraciones, esquema ni dependencias entre Main y Dev. Los
 La promoción afecta componentes compartidos de `app/app/`, informes en `lib/`, lectura de similitudes y cálculo de plazos. Cada contrato ya fue integrado y comprobado en Dev; no hay migraciones nuevas ni orden de aplicación especial. La nota de las cajas conserva el contexto de su entrega inicial a Dev y queda complementada por esta promoción.
 
 ## Verificación
-- Dev funcional de Vigilancia: despliegue `6ab613a4-9253-4446-9b05-efbbb52cceed`, SHA `f1d8c12`, SUCCESS. El cierre documental de Dev `e346a26` estaba en construcción al iniciar esta promoción.
+- Dev: despliegue `b56d1450-2dab-4137-8854-3577cb15873f`, SHA exacto `e346a2620ee7b5461f3e3cd30a18b1dc5f525fc8`, SUCCESS confirmado antes de integrar. Vigilancia funcional ya estaba publicada en `6ab613a4-9253-4446-9b05-efbbb52cceed`, SHA `f1d8c12`, SUCCESS.
 - Producción inicial: despliegue `94718a9f-e979-4501-8cd3-980c162be484`, SHA exacto Main `59d3c7a`, SUCCESS.
 - Build/TypeScript, lint, 11 pruebas de vigilancia y QA HTTP/Chrome de las cajas aprobados en este mismo checkout, antes de la promoción. Ver [traspaso de Vigilancia](2026-10-12-vigilancia-cajas-compactas.md).
 - `node --import ./tests/ts-loader.mjs --test tests/feasibility-study.test.mjs tests/feasibility-conclusion.test.mjs tests/feasibility-report.test.mjs tests/similarity.test.mjs tests/notification-event-assumption.test.mjs tests/registration-procedure.test.mjs tests/registration-evidence.test.mjs tests/inapi-procedure.test.mjs tests/inapi-recovery.test.mjs tests/inapi-recovery-integration.test.mjs tests/watch-view-state.test.mjs tests/watch-page.test.mjs tests/watch-feedback.test.mjs`: **99/99 aprobadas**, incluyendo PostgreSQL aislado, PDF/Word, clases, destinatarios, evidencia, fechas confirmadas/asumidas y seguimiento. macOS, Node 24.14.0. Proveedores simulados, sin llamadas reales a fuentes u OpenRouter.
 - Main se incorporó como ancestro sin conflictos (`3a1ab5718c0b0be11c2b0df190a18aae82cd6f49`). `git diff origin/dev HEAD -- app lib db scripts drizzle package.json package-lock.json` vacío: el código promovido es idéntico al Dev compilado y revisado visualmente en la entrega previa. No se repite una compilación de ese mismo árbol por el único documento nuevo.
 - `git diff --check`: aprobado. No hay diferencias de migraciones, dependencias ni arranque entre los ambientes; la promoción no añade scripts de provisión.
-- Pendiente únicamente integración y despliegue exacto/salud de producción.
+- PR #30 integrado en Main. `git diff e346a2620ee7b5461f3e3cd30a18b1dc5f525fc8 01a8b0e523656bf72961070053dafddec57a67c9 --name-only` devuelve únicamente esta nota: se conservó íntegro el código de Dev.
+- Railway production, servicio `buho-marc-web` del proyecto `heartfelt-magic`: despliegue `7b4b8c7e-45c7-4f20-acea-567af6b3dcc1`, SHA exacto `01a8b0e523656bf72961070053dafddec57a67c9`, rama `main`, **SUCCESS**. CLI y logs confirman compilación, TypeScript, empaquetado y arranque (`Ready in 107ms`).
+- `curl --silent --show-error --max-time 20 https://buho-marc-web-production.up.railway.app/api/health`: `ok:true`, `database:connected`, `engine:dequienes`, fuente configurada. Vigilancia y perfil del estudio responden 401 sin sesión; `/app` responde 307. Estas comprobaciones no modifican datos ni solicitan revisiones externas.
+- No se modificaron variables, credenciales ni conexiones de base. No se hizo inventario fila por fila, respaldo nuevo ni una revisión visual autenticada de carteras de producción; no se certifican esas operaciones. Los controles visuales e informes fueron comprobados localmente en las entregas de Dev.
 
 ## Pendientes y siguiente paso
-Conservar ancestros de Main, ejecutar verificaciones conjuntas, abrir y adjuntar PR hacia Main, integrar por autorización del usuario y comprobar Railway production. Actualizar esta nota con commit/PR y resultados reales. No certificar conservación fila por fila de la base sin un inventario específico; esta entrega promueve código sin sustituir la base.
+Promoción completada. El cierre posterior cambia exclusivamente esta documentación y la guía de despliegue; no cambia el árbol funcional ya verificado. Dev permanece en `e346a2620ee7b5461f3e3cd30a18b1dc5f525fc8`; el código de ambos ambientes coincide. Las mejoras pendientes documentadas en cada entrega siguen vigentes y no se resuelven por promover la rama.
