@@ -1,9 +1,9 @@
 # Traspaso: pulido de factibilidad y antecedentes relevantes
 
-- Actualizado: 2026-10-11 23:09, America/Santiago
-- Estado: listo para revisión e integración en Dev
+- Actualizado: 2026-10-11 23:14, America/Santiago
+- Estado: integrado y desplegado exclusivamente en Dev
 - Rama y base: `codex/factibilidad-pulido-octubre11`; `dev` en `9b99acb7212f1ce94635cd2e9c95a2547bba8c87`
-- PR y commit de entrega: pendiente
+- PR y commit de entrega: [PR #20](https://github.com/joseibietasepulveda/Buho-Marc/pull/20); funcional `7e1735257e1161c0302546759985ac5277bba8c3`; integración Dev `c8ff459a4c42a2eb183c3ed38716c2e8c2bec341`
 
 ## Objetivo y alcance
 Corregir los contadores de marcas con varios expedientes; simplificar el informe y la edición de conclusiones; pulir tablas PDF/Word con marcas e imágenes reales. Continuar la experiencia de Informe/Multinforme integrada mediante PR #18.
@@ -33,8 +33,13 @@ Contrato compartido de selección: distinguir lista vacía explícita de selecci
 - Extracción de ambos PDF: sin OpenRouter, porcentajes, candidatos recuperados ni las dos notas retiradas.
 
 
+## Integración y despliegue
+- [PR #20](https://github.com/joseibietasepulveda/Buho-Marc/pull/20) integrado; Railway Dev `6f5b7742-acab-4d48-baa3-54bc471ed833` SUCCESS, SHA exacto `c8ff459a4c42a2eb183c3ed38716c2e8c2bec341` comprobado. Compilación remota y arranque correctos, migraciones existentes aplicadas sin cambios de esquema.
+- Salud HTTP 200, `ok: true`, base conectada y motor DeQuiénEs; perfil, búsqueda y conclusiones 401 sin sesión; `/app` redirige a `/ingresar`. No se ejecutaron búsquedas nuevas ni generaciones remotas sobre carteras reales para esta comprobación. La QA autenticada completa corresponde al piloto local.
+- Main comprobado antes y después sin cambios en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`. Configuración de clave/modelo preservada. El cierre posterior solo cambia documentación.
+
 ## Pendientes y siguiente paso
-Publicación exclusiva en Dev; registrar PR, commit integrado y salud remota. No hay migraciones ni secretos nuevos.
+Entrega funcional terminada en Dev. Continuar con los ajustes que indique el usuario; los ejemplos descargables y la base aislada quedan en este worktree. No hay migraciones ni secretos nuevos. La promoción a producción requiere una petición explícita.
 
 ## Interfaces compartidas
 - `lib/report-selection.ts`: `reportMarkGroups` conserva cada expediente y agrupa por denominación normalizada (mayúsculas/espacios/NFC, preservando acentos) y titulares; no fusiona el nombre genérico «Marca figurativa sin denominación»; `selectReportHits` distingue selección omitida de `[]`. `conclusionText` añade el espacio omitido tras una coma textual sin alterar comas numéricas.
