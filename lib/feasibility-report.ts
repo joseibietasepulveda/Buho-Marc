@@ -31,7 +31,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const pdf=await PDFDocument.create();
   pdf.setTitle(`Informe de factibilidad - ${reportBrand(proposal.name) || 'MARCA SIN NOMBRE'}`);
   pdf.setAuthor(author || profile?.studioName || ''); pdf.setLanguage('es-CL');
-  const regular=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+  const regular=await pdf.embedFont(StandardFonts.TimesRoman),bold=await pdf.embedFont(StandardFonts.TimesRomanBold);
   const ink=rgb(.14,.18,.22),muted=rgb(.40,.45,.49),accent=rgb(.12,.22,.29),rule=rgb(.80,.84,.86);
   const logo=input.studioLogo ? await pdf.embedPng(input.studioLogo) : undefined;
   const left=58,right=554,width=right-left;
@@ -61,7 +61,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   function newPage(){page=pdf.addPage([612,792]);y=headerBottom-26;drawHeader();}
   function ensure(height:number){if(y-height<bottom)newPage();}
   type Run={text:string;strong?:boolean};
-  function text(runs:string|Run[],size=11,options:{strong?:boolean;align?:'left'|'center'|'right';gap?:number;underline?:boolean;color?:ReturnType<typeof rgb>}={}) {
+  function text(runs:string|Run[],size=11,options:{strong?:boolean;align?:'left'|'center'|'right'|'justify';gap?:number;underline?:boolean;color?:ReturnType<typeof rgb>}={}) {
     const tokens:{value:string;font:PDFFont;width:number}[][]=[[]];let rowWidth=0;
     for(const run of typeof runs==='string' ? [{text:runs,strong:options.strong}] : runs) {
       const font=run.strong?bold:regular;
@@ -72,10 +72,13 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
         else for(const c of token){const w=font.widthOfTextAtSize(c,size);if(rowWidth+w>width){tokens.push([]);rowWidth=0;}tokens.at(-1)!.push({value:c,font,width:w});rowWidth+=w;}
       }
     }
-    const rows=tokens.filter(row=>row.length);
+    const rows=tokens.filter(row=>row.length).map(row=>row.map((token,index)=>index===row.length-1?{...token,value:token.value.trimEnd(),width:token.font.widthOfTextAtSize(token.value.trimEnd(),size)}:token));
     ensure(Math.min(2,rows.length)*size*1.5);
-    for(const row of rows){ensure(size*1.5);const rowWidth=row.reduce((sum,t)=>sum+t.width,0);let x=options.align==='right'?right-rowWidth:options.align==='center'?left+(width-rowWidth)/2:left;
-      const start=x;for(const token of row){page.drawText(token.value,{x,y,size,font:token.font,color:options.color??ink});x+=token.width;}
+    const align=options.align??(options.strong?'left':'justify');
+    for(const [index,row]of rows.entries()){ensure(size*1.5);const rowWidth=row.reduce((sum,t)=>sum+t.width,0);let x=align==='right'?right-rowWidth:align==='center'?left+(width-rowWidth)/2:left;
+      const spaces=row.reduce((sum,token)=>sum+(token.value.match(/\s/g)?.length??0),0);
+      const expansion=align==='justify'&&index<rows.length-1&&spaces?(width-rowWidth)/spaces:0;
+      const start=x;for(const token of row){page.drawText(token.value,{x,y,size,font:token.font,color:options.color??ink});x+=token.width+expansion*(token.value.match(/\s/g)?.length??0);}
       if(options.underline)page.drawLine({start:{x:start,y:y-2},end:{x,y:y-2},thickness:.6,color:ink});
       y-=size*1.5;
     }
@@ -115,7 +118,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
     const border=rgb(.85,.85,.85);
     function header() {
       ensure(125);let x=tableLeft;
-      ['Marca','Logo'].forEach((label,index)=>{
+      ['Marca','Parte Figurativa'].forEach((label,index)=>{
         page.drawRectangle({x,y:y-30,width:widths[index],height:30,borderColor:border,borderWidth:.5,color:accent});
         page.drawText(label,{x:x+(widths[index]-bold.widthOfTextAtSize(label,10))/2,y:y-19,size:10,font:bold,color:rgb(1,1,1)});x+=widths[index];
       });y-=30;

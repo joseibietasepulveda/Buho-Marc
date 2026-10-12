@@ -599,3 +599,9 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
  .buho-drawer .buho-match-summary > a { grid-column:1/-1; justify-self:start; }
  .buho-drawer .buho-match-summary > div strong { font-size:20px; }
 }
+
+/* Uniform registration filter row with its search label visible. */
+.buho-app .trademark-toolbar>label{display:grid;gap:6px;align-content:end}
+.buho-app .trademark-toolbar .trademark-search{display:flex;gap:10px;align-items:center;height:44px;min-height:44px;padding:0 12px;box-sizing:border-box}
+.buho-app .trademark-toolbar .trademark-search input{height:42px;min-height:0;padding:0;flex:1;width:100%}
+.buho-app .trademark-toolbar select,.buho-app .trademark-toolbar .trademark-clear-filters{height:44px;min-height:44px;box-sizing:border-box}

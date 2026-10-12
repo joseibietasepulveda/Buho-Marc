@@ -3,9 +3,10 @@ import styles from "./startup-loading.module.css";
 
 const words = ["BUHO", "MARC"];
 
-export default function StartupLoading() {
+export default function StartupLoading({inline=false,status="Cargando tu cartera…"}:{inline?:boolean;status?:string}) {
+  const Container=inline?'div':'main';
   return (
-    <main className={styles.screen} aria-busy="true">
+    <Container className={`${styles.screen}${inline?` ${styles.inline}`:''}`} aria-busy="true">
       <div className={styles.content}>
         <div className={styles.wordmark} aria-label="BUHO MARC">
           {words.map((word, wordIndex) => (
@@ -30,8 +31,8 @@ export default function StartupLoading() {
           <span />
           <span />
         </div>
-        <p className={styles.status} role="status">Cargando tu cartera…</p>
+        <p className={styles.status} role="status">{status}</p>
       </div>
-    </main>
+    </Container>
   );
 }
