@@ -72,7 +72,7 @@ Clientes ofrece ficha con teléfono, cartera solicitud/imagen/nombre/estado e in
 
 ### Desplazamiento del espacio de trabajo · 11 de octubre
 
-El panel central se detiene en sus límites superior e inferior sin rebote vertical que descubra espacio vacío sobre la cabecera. Conserva el desplazamiento normal, la navegación lateral independiente y el desplazamiento horizontal de tablas. Ajuste local en `codex/fix-scroll-superior`, pendiente de integración y publicación; alcance y verificación en el [traspaso](handoffs/2026-10-11-scroll-superior.md).
+El panel central se detiene en sus límites superior e inferior sin rebote vertical que descubra espacio vacío sobre la cabecera. Conserva el desplazamiento normal, la navegación lateral independiente y el desplazamiento horizontal de tablas. El 12/10 se comprobó junto con informes para cliente/estudio y notificaciones asumidas: ambos comportamientos se conservan. Alcance, integración y verificación en el [traspaso](handoffs/2026-10-11-scroll-superior.md).
 
 ### Verificación de la entrega del 5 de octubre
 

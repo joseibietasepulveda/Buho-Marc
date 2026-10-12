@@ -1,9 +1,9 @@
 # Traspaso: espacio vacío al desplazar hacia arriba
 
-- Actualizado: 2026-10-11 22:32, America/Santiago
+- Actualizado: 2026-10-12, America/Santiago
 - Estado: listo para revisión
-- Rama y base: `codex/fix-scroll-superior`; `dev` en `9b99acb7212f1ce94635cd2e9c95a2547bba8c87`
-- PR: pendiente (rama local, sin publicar). Commit de entrega: el que incorpora esta nota; consultar `git log -1 --format=%H -- docs/handoffs/2026-10-11-scroll-superior.md`.
+- Rama y base: `codex/fix-scroll-superior`; base inicial `dev` en `9b99acb`; actualizada a `9d87694e58162c0b0481f49374ab44c43aae5bc2` mediante `14a0886`.
+- PR: pendiente de apertura hacia `dev`. Arreglo funcional: `bc428b8`. Commit del cierre documental: consultar `git log -1 --format=%H -- docs/handoffs/2026-10-11-scroll-superior.md`.
 
 ## Objetivo y alcance
 Corregir el espacio vacío que aparece sobre la cabecera de Mis marcas al desplazar hacia arriba. Preservar el desplazamiento del contenido y la navegación independiente.
@@ -14,13 +14,19 @@ Corregir el espacio vacío que aparece sobre la cabecera de Mis marcas al despla
 
 ## Decisiones y motivos
 - Usuario: trabajar en una rama y carpeta aisladas porque ejecutará otro agente.
+- Usuario, 12/10: revisar compatibilidad de los dos cambios recientes e incorporar este arreglo. Se identificaron las entregas funcionales `426739c` (informes para cliente/estudio) y `af0af7c` (notificación el día de la actuación); sus cierres documentales también están en la base.
 - Agente: base limpia desde el remoto de `dev`. Los archivos de la carpeta original están marcados como `dataless` por iCloud; `git status` termina con señal 10 y las lecturas quedan bloqueadas. No se modificaron sus archivos.
 - Diagnóstico: la captura del usuario es compatible con el rebote del contenedor central. Se confirmó en navegador local que la regla anterior computaba `contain`; el cambio computa `none`. [MDN: valores de overscroll-behavior](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overscroll-behavior#values) documenta que `contain` permite el rebote y `none` lo impide. No se introducen manejadores de rueda ni bloqueos de teclado.
 
 ## Coordinación e integración
 Worktree: `/Users/rosariovial/.codex/worktrees/scroll-superior/Buho-Marc`, asociado al clon `/Users/rosariovial/.codex/scroll-fix-source`. El creador administrado de Codex falló con `Git ref lookup failed` (`7836b943-f91f-4862-810b-c85ff7a551bc`); se utilizó un worktree Git desde el clon. La herramienta de adjuntar lo rechaza porque no está administrado. Sin cambios de API, datos, dependencias ni migraciones.
 
-El único archivo de código compartido es `app/app/design-refresh.css`; afecta a todos los apartados que usan `.buho-workspace`. Mantener esta propiedad al integrar cambios visuales de otros agentes. No se modificaron medidas, zoom, padding ni reglas móviles. `git fetch origin dev` confirmó que la base remota seguía en `9b99acb` durante el cierre.
+El único archivo de código compartido del arreglo es `app/app/design-refresh.css`; afecta a todos los apartados que usan `.buho-workspace`. Mantener esta propiedad al integrar cambios visuales de otros agentes. No se modificaron medidas, zoom, padding ni reglas móviles. El 12/10 se incorporó `origin/dev` sin conflictos; la comparación con esa base contiene únicamente el CSS del arreglo y sus dos documentos.
+
+### Compatibilidad revisada el 12/10
+- Informes: `audience` afecta a la presentación de PDF/Word y no cambia selección, conclusión guardada ni evidencia original. Descargar para ambos destinatarios reutiliza las conclusiones de cada clase.
+- Plazos: `notificationDateAssumed` se deriva de la actuación procedimental; una notificación acreditada conserva prioridad. No se escriben fechas asumidas al historial ni se alteran estados usados por factibilidad.
+- No hay importaciones entre los escritores de factibilidad y `registration-procedure.ts`, cambios de contrato incompatibles ni migraciones entre ambas entregas. Se mantienen los dos comportamientos al actualizar la rama; el arreglo de desplazamiento es común a sus pantallas.
 
 ## Verificación
 Ambiente: macOS, Node 24.14.0, Next 16.3.5, Chrome local con Playwright, PostgreSQL aislado de demostración. Sin consultas nuevas a INAPI ni llamadas OpenRouter.
@@ -36,6 +42,14 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, Chrome local con Playwright, Postgre
 Para reproducir manualmente: iniciar demo con los puertos/directorio anteriores, ingresar con la cuenta local QA, posponer la bienvenida y abrir Mis marcas. Desplazar hacia abajo, regresar al inicio e insistir hacia arriba; comprobar que la cabecera no se separa del límite. Repetir al final, en 820 y 390 px y con desplazamiento horizontal de la tabla. No usar carteras alojadas ni iniciar revisiones de vigilancia para este ajuste.
 
 ## Pendientes y siguiente paso
-Cambio local: pendiente de revisión, integración y publicación; no se autorizaron promoción a `main` ni producción. Para recuperar la rama desde otro checkout, ejecutar `git fetch /Users/rosariovial/.codex/scroll-fix-source codex/fix-scroll-superior` y revisar `FETCH_HEAD` antes de incorporarlo. No requiere otras ramas ni migraciones. Confirmar también el gesto físico del trackpad al revisar la entrega en el navegador del usuario.
+Incorporar la rama verificada a `dev` mediante PR y registrar su resultado. No se autorizaron promoción a `main` ni producción. No requiere otras ramas ni migraciones. Confirmar también el gesto físico del trackpad al revisar la entrega en el navegador del usuario.
+
+### Verificación conjunta del 12/10
+- `node --import ./tests/ts-loader.mjs --test tests/feasibility-study.test.mjs tests/feasibility-conclusion.test.mjs tests/feasibility-report.test.mjs tests/similarity.test.mjs tests/notification-event-assumption.test.mjs tests/registration-procedure.test.mjs tests/registration-evidence.test.mjs tests/inapi-procedure.test.mjs tests/inapi-recovery.test.mjs tests/inapi-recovery-integration.test.mjs`: 88/88 aprobadas; incluye PostgreSQL aislado para recuperación, prioridad de fechas acreditadas, obligaciones concurrentes y ambos destinatarios de informes.
+- `scripts/verify-feasibility-study.mjs`, con `BUHO_QA_ORIGIN=http://127.0.0.1:3427`, `BUHO_PLAYWRIGHT_MODULE` apuntando al runtime de Codex y `BUHO_BROWSER_EXECUTABLE` a Chrome: aprobado; dos clases, ocho descargas y dos destinatarios, reutilización de conclusiones y fallo visible. Fuente/modelo simulados en el navegador, sin llamadas reales.
+- `node outputs/scroll-superior/check.mjs`: aprobado sobre el nuevo `dev` en escritorio, tablet y móvil; se repitieron topes superior/inferior, navegación y tabla horizontal.
+- `NODE_OPTIONS=--dns-result-order=ipv4first npm run build -- --webpack`: aprobado en la combinación completa, incluido TypeScript y empaquetado final.
+- `npx eslint app/app/feasibility-review.tsx app/app/registrations.tsx app/app/page.tsx app/app/registration-evidence-editor.tsx lib/registration-procedure.ts lib/feasibility-report-presentation.ts lib/feasibility-report.ts lib/feasibility-docx.ts`: aprobado, sin errores ni advertencias.
+- `git diff --check`: aprobado. Logs ignorados en `outputs/scroll-superior/*-2026-10-12.*`; exportaciones de fixtures en `work/study-qa/`. No se modificó el checkout original ni bases alojadas. Servidor/base QA detenidos; se retiró el archivo de sesión local del verificador.
 
 Next generó `AGENTS.md` y `CLAUDE.md` al iniciar el servidor; se retiraron esos dos archivos temporales después de detenerlo, porque no pertenecen al ajuste. No confundirlos con las instrucciones del usuario que rigen este trabajo.
