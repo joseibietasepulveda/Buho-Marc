@@ -1,5 +1,7 @@
 # Decisiones vigentes de UX y operación · 24 de septiembre de 2026
 
+**Decisión posterior confirmada · 12/10/2026:** el usuario dispone que el proyecto asuma la notificación el día del cambio de estado. Se interpreta como fecha de la actuación habilitante, con prioridad de pruebas/vencimientos válidos e indicación visible de la suposición. Reemplaza la política de dejar siempre pendiente la notificación no acreditada. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
+
 > Continuidad: [correcciones del 29/09](UX_IMPORTACIONES_2026-09-29.md), [UI/UX del 02/10](UX_OCTUBRE_2026.md) e [informes del 02/10](INFORMES_FACTIBILIDAD_2026-10-02.md). Los puntos siguientes incorporan las actualizaciones de octubre; los registros de entrega antiguos conservan su fecha.
 
 Este documento consolida las decisiones de la conversación y las contrasta con el código actual. Prevalece sobre los textos históricos del 21 y 22 de septiembre cuando hay diferencias. No implica que se hayan repetido todas las pruebas de aquellas entregas.
@@ -14,6 +16,7 @@ Este documento consolida las decisiones de la conversación y las contrasta con 
 
 ## Presentación de vigilancia
 
+- Actualización del 12/10: las cajas de cruces abren comparación, coberturas e historial al pulsar su contenido; el nombre permite abrirlas también con teclado. Se retiran los botones de comparación y coberturas, y la etiqueta «Nueva publicación», manteniendo la fecha real y los avisos de seguimiento. Convertir en caso, Pasar a seguimiento y Descartar aparecen en ese orden, en una fila de igual altura en escritorio; en pantallas pequeñas pueden repartirse para conservar acceso. Las valoraciones, imágenes ampliables y demás controles interiores conservan su acción propia. [Alcance y verificación](handoffs/2026-10-12-vigilancia-cajas-compactas.md).
 - Índices visibles como porcentajes, destacados en negrita. Los umbrales iniciales de Vigilancia vigentes son 70%/55%, según `DEFAULT_WATCH_SETTINGS`; las preferencias anteriores de cada organización se conservan. Los valores 65%/45% siguen perteneciendo a la evaluación de factibilidad, no a la configuración inicial de Vigilancia. El control es amplio, con dos puntos en pasos de 5%, leyenda roja/amarilla/verde y explicación del extremo 100%. Los ajustes anteriores de cada organización se conservan.
 - Por revisar muestra alta y media, con selección de niveles. Orden normal: marcas propias según su mayor índice de la categoría y coincidencias de mayor a menor. En seguimiento usa una tabla independiente, sin índice ni filtro de similitud.
 - Actualización posterior: Vigilancia excluye concedidas/registradas de sus pestañas y contadores. Los flags vigentes en `lib/watch-policy.ts` son `showRegistered: false`, `showLapsed: false`, `showExpired: false`; estados terminales o ambiguos quedan fuera de novedades/antecedentes. Un seguimiento elegido se conserva en la base aunque su estado deje de ser visible. Factibilidad mantiene su selección independiente de estados.

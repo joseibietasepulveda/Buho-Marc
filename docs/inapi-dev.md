@@ -1,5 +1,7 @@
 # Integración INAPI · actualización del 7 de octubre de 2026
 
+**Convención de cálculo · 12/10/2026:** notificación asumida el mismo día de la actuación habilitante cuando falta una fecha informada. Usar `events[].event_date`, nunca extracción/detección; conservar prioridad de constancias y vencimientos explícitos válidos. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
+
 Entrega publicada en Dev el 07/10 mediante [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6): [recuperación puntual de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md) y [API pública observada](INAPI_API_PUBLICA.md). Sustituye el aplazamiento de la consulta directa. La fuente habitual continúa siendo DeQuiénEs. Migración y configuración verificadas; 222 registros guardados reproyectados y cola preparada. La primera conexión pública falló y activó la pausa; no se afirma haber recuperado fechas nuevas. [Registro de publicación y límite operativo](RAILWAY_DEPLOYMENT.md).
 
 

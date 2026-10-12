@@ -25,7 +25,13 @@ test('persistent recovery: global pacing, shared deduplication, single attempt, 
     const migration = postgres(process.env.DATABASE_URL, { max: 1, onnotice() {} });
     await migrate(drizzle(migration), { migrationsFolder: 'drizzle' }); await migration.end();
     sql = getSql();
-    const base = fixture();
+    // Notification is calculable from a dated act and must not enqueue a request.
+    const dated = fixture();
+    const [datedSource] = await sql`INSERT INTO source_records (application_number, data) VALUES ('999000', ${sql.json({ ...dated, applicationNumber: '999000' })}) RETURNING id`;
+    await sql.begin(tx => enqueueInapiRecovery(tx, datedSource.id, { ...dated, applicationNumber: '999000' }));
+    assert.equal((await sql`SELECT count(*)::int AS count FROM inapi_recovery_jobs`)[0].count, 0);
+    // A genuinely missing publication still warrants one recovery.
+    const base = { ...fixture(), publicationDate: null };
     const [source] = await sql`INSERT INTO source_records (application_number, data) VALUES (${base.applicationNumber}, ${sql.json(base)}) RETURNING id`;
     for (const name of ['A', 'B']) {
       const [org] = await sql`INSERT INTO organizations (name, slug) VALUES (${name}, ${name.toLowerCase()}) RETURNING id`;
@@ -38,7 +44,7 @@ test('persistent recovery: global pacing, shared deduplication, single attempt, 
     process.env.INAPI_DIRECT_RECOVERY_DAILY_LIMIT = '0';
     assert.equal((await processInapiRecovery(() => { throw new Error('zero budget must not fetch'); })).reason, 'daily-limit');
     delete process.env.INAPI_DIRECT_RECOVERY_DAILY_LIMIT;
-    const starts = []; const mock = officialFetcher();
+    const starts = []; const mock = officialFetcher({ publicationDate: '' });
     const results = await Promise.all([processInapiRecovery(async (...args) => { starts.push(Date.now()); return mock.fetcher(...args); }), processInapiRecovery(() => { throw new Error('second worker must not fetch'); })]);
     assert.equal(results.filter(result => result.completed).length, 1);
     assert.equal(results.filter(result => result.skipped).length, 1);
@@ -69,9 +75,9 @@ test('persistent recovery: global pacing, shared deduplication, single attempt, 
 
     // Completing one obligation does not repeat another obligation from the
     // same earlier recovery. A genuinely new act creates a new attempt.
-    const mixed = fixture([act('Traslado de oposición y observaciones de fondo', 'mixed')]);
+    const mixed = fixture([act('Traslado de oposición y observaciones de fondo', 'mixed', null)]);
     await sql.begin(tx => enqueueInapiRecovery(tx, source.id, mixed));
-    const remaining = fixture([act('Traslado de oposición y observaciones de fondo', 'mixed'), act('Cumplimiento de observaciones de fondo', 'answer', '2026-07-02')]);
+    const remaining = fixture([act('Traslado de oposición y observaciones de fondo', 'mixed', null), act('Cumplimiento de observaciones de fondo', 'answer', '2026-07-02')]);
     await sql.begin(tx => enqueueInapiRecovery(tx, source.id, remaining));
     assert.equal((await sql`SELECT count(*)::int AS count FROM inapi_recovery_jobs`)[0].count, 2);
     await sql`UPDATE source_records SET data = ${sql.json(remaining)} WHERE id = ${source.id}`;
@@ -81,7 +87,7 @@ test('persistent recovery: global pacing, shared deduplication, single attempt, 
     assert.equal((await sql`SELECT count(*)::int AS count FROM inapi_recovery_jobs WHERE status = 'failed'`)[0].count, 1);
     await sql`UPDATE inapi_request_clock SET blocked_until = NULL WHERE id = 1`;
 
-    const newAct = fixture([act('Observaciones de fondo', 'new', '2026-08-01')]);
+    const newAct = fixture([act('Observaciones de fondo', 'new', null)]);
     await sql`UPDATE source_records SET data = ${sql.json(newAct)} WHERE id = ${source.id}`;
     await sql.begin(tx => enqueueInapiRecovery(tx, source.id, newAct));
     const proof = { version: 1, act_id: 'new', kind: 'notification', date: '2026-08-03', object: 'substantive-examination', recipient_role: 'applicant', method: 'inapi-inbox', reference: 'Ficticio', document_url: 'https://example.org/proof' };

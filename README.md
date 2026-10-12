@@ -1,5 +1,7 @@
 # Buho Marc · v1.0
 
+**Plazos publicados en Dev · 12/10/2026:** cuando falta la fecha de notificación, el proyecto asume que ocurrió el mismo día de la actuación que origina cada obligación (`events[].event_date`). Una fecha acreditada tiene prioridad; publicación y ejecutoria conservan sus activadores. Integración [PR #24](https://github.com/joseibietasepulveda/Buho-Marc/pull/24), Railway Dev `SUCCESS`; esta entrega no se promovió a Main. [Regla, alcance y procedencia](docs/NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md). [Estado de implementación y publicación](docs/handoffs/2026-10-12-notificacion-mismo-dia-evento.md).
+
 **Producción actualizada · 8 de octubre:** Dev se promovió a Main mediante [PR #11](https://github.com/joseibietasepulveda/Buho-Marc/pull/11); Railway confirmó SUCCESS. Las 33 tablas preexistentes de producción coinciden fila por fila antes/después. Se conserva cada base y cartera en su ambiente. Respaldo cifrado con restauración ensayada y [evidencia de publicación y conservación](docs/handoffs/2026-10-08-promocion-produccion.md). La bienvenida de dos pasos se incorpora a la aplicación; véase [experiencia y traslado puntual de la cartera Búho Marc](docs/BIENVENIDA_Y_CARTERA_BUHO_2026-10-08.md) y su [estado de entrega](docs/handoffs/2026-10-08-buho-main-bienvenida.md).
 
 **Búho Marc en Main:** la cartera de Dev se trasladó mediante una operación separada y verificada, conservando los registros exclusivos de Main y las demás cuentas. La bienvenida «¡Buenas noticias!» ya está publicada: dos pasos con casillas de lectura y aceptación una vez por usuario. [Entrega y comprobaciones](docs/handoffs/2026-10-08-buho-main-bienvenida.md).
@@ -29,6 +31,8 @@ Ante un HTTP 403 de la fuente, la vigilancia espera 20 segundos y reintenta hast
 Las decisiones y los pendientes de esta revisión están en [Vigilancia · 28 de septiembre](docs/VIGILANCIA_REVISION_2026-09-28.md).
 
 ## Factibilidad e informes
+
+Actualización integrada y desplegada exclusivamente en Dev el 9 de octubre de 2026 (PR #18): [Informe y Multinforme por clase Niza](docs/FACTIBILIDAD_MULTINFORME_2026-10-09.md). Cada búsqueda requiere una clase; Multinforme reúne análisis de la misma marca con conclusiones independientes. Permite tabla o fichas, omite porcentajes en la exportación y bloquea la descarga si falla OpenRouter. Los párrafos siguientes conservan el contexto de la versión publicada anterior.
 
 Nombre, imagen o ambos; clases y coberturas opcionales; estados y porcentaje mínimo elegidos antes de Buscar. La nueva interfaz ofrece **Buscar / Revisar resultados / Preparar informe**. La agrupación está activada inicialmente junto al desplegable Niza por número o significado. Solicitud desde, Publicación DO desde y Registro desde se envían a la fuente. Contiene, palabra completa, prefijo y sufijo se envían como `name_match` al canal de denominación; Similar usa la búsqueda por semejanza. Exacto filtra localmente el lote recuperado después de una consulta remota contiene. Estados e índice mínimo se aplican al lote de hasta 100 candidatos, con paginación de 10/25/50/100. Por defecto se consideran registradas y en trámite. El índice se muestra en porcentaje y **no expresa probabilidad de conflicto ni de registro**. Las imágenes se transmiten a la fuente para la consulta y no se guardan como estudios permanentes en esta versión.
 
@@ -147,7 +151,7 @@ La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](doc
 - [Control de consumo y programación por cartera](docs/COST_CONTROL.md): Daniel automático, Búho a pedido.
 
 
-La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. Activar OpenRouter en Dev requiere configurar una clave real.
+La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. OpenRouter quedó activado en Dev con una clave de inferencia exclusiva; su activación en producción continúa pendiente.
 
 ### Backlog · Registro de marcas
 
@@ -238,7 +242,7 @@ Mis marcas recupera automáticamente cargas fallidas de su parte figurativa, sin
 
 La revisión habitual mantiene a DeQuiénEs como servicio de datos. Una importación/revisión con fechas jurídicas faltantes puede preparar **un intento por antecedente** en una cola persistente, compartida por solicitud entre carteras. El supervisor consulta un expediente por turno, con **mínimo tres segundos después de cada petición HTTP**, bloqueo global entre réplicas y un presupuesto global de **200 expedientes/día**, actualizado por petición del usuario. Una consulta completa requiere como máximo tres peticiones. Fallar pausa la cola una hora; el mismo antecedente no se reintenta automáticamente.
 
-La API pública aporta estado e historial, pero no garantiza notificación ni ejecutoria. Si siguen ausentes, se muestra el antecedente concreto pendiente. Las nuevas reglas distinguen petición/resolución/escrito, conservan oposición y fondo concurrentes, separan incidentes y nulidad, reconocen desistimiento total y pago final y utilizan el calendario nacional revisado 2023–2027. La ficha del administrador distingue consulta exitosa, cambio detectado, lectura oficial informada y completitud declarada.
+La API pública aporta estado e historial, pero no garantiza constancia de notificación ni ejecutoria. Desde el 12/10, una actuación reconocida y fechada permite calcular los plazos de notificación bajo la convención del proyecto; se indica la suposición sin fabricar pruebas. Si falta la fecha del acto, la publicación o la ejecutoria necesaria, se muestra el antecedente pendiente. Las nuevas reglas distinguen petición/resolución/escrito, conservan oposición y fondo concurrentes, separan incidentes y nulidad, reconocen desistimiento total y pago final y utilizan el calendario nacional revisado 2023–2027. La ficha del administrador distingue consulta exitosa, cambio detectado, lectura oficial informada y completitud declarada.
 
 - [Endpoints y adaptación de la API pública](docs/INAPI_API_PUBLICA.md).
 - [Funcionamiento, variables, evidencia y campos preparados para Víctor](docs/INAPI_RECUPERACION_ANTECEDENTES.md).

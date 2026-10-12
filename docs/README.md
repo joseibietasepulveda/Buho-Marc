@@ -1,11 +1,15 @@
 # Documentación de Buho Marc
 
+**Publicación en Dev · 12/10/2026:** el proyecto asume la notificación el día de la actuación cuando no hay una fecha informada; fechas acreditadas y vencimientos explícitos válidos tienen prioridad. Integrado por PR #24 y publicado en Railway Dev (`SUCCESS`); esta entrega no se promovió a Main. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md) y su [traspaso](handoffs/2026-10-12-notificacion-mismo-dia-evento.md). Los registros de publicación siguientes conservan su fecha de corte.
+
 Actualizada el 5 de octubre de 2026. La ronda más reciente implementa las maquetas aprobadas, los tres pasos de factibilidad, .xls antiguo, feedback de vigilancia, Clientes, Usuarios y Bitácora. Se publicó **únicamente en Railway Dev**: despliegue `3857245e-4072-4785-b9f0-698bb3c8cd90`, estado `SUCCESS`, migraciones correctas y salud 200/base conectada. Producción conserva su despliegue anterior. La entrega de informes del día 2 cargó los perfiles de los tres estudios. El informe de protección registra ahora una copia puntual cifrada de Dev, creada y comprobada antes de publicar con acceso SSH temporal ya retirado; automatización, restauración de ensayo y protección de producción siguen pendientes.
 
 ## Guías vigentes
 
 | Documento | Contenido |
 | --- | --- |
+| [Interfaz, informes y avisos reales · 12 de octubre](handoffs/2026-10-12-interfaz-informes-notificaciones.md) | Combobox Niza, tipografía y tabla, controles estables, loading y avisos reales acotados a Dev/admin y producción/Barros & Errázuriz. |
+| [Notificación el día del evento](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md) | Convención vigente, plazos afectados, prioridad de pruebas y límites. |
 | [README del proyecto](../README.md) | Funciones, inicio local, configuración y límites actuales. |
 | [Implementación de maquetas · 4 de octubre](UX_IMPLEMENTACION_OCTUBRE_2026.md) | Alcance aprobado, tres pasos, Excel antiguo, feedback, directorios, auditoría y verificación local. |
 | [Comparador e informe UI/UX](../output/implementacion-ux-2026-10-04/comparador-ui-ux.html) | A/B y pantalla anterior, recorridos, capturas, móvil y exportaciones reales de prueba. |

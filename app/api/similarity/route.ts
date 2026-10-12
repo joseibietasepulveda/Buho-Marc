@@ -7,6 +7,7 @@ import { organizationId } from "@/lib/tenant-context";
 import { getSql } from "@/db";
 import { proposalSchema } from "@/lib/similarity-contract";
 import { searchSimilar, SimilarityError } from "@/lib/similarity-provider";
+import { localFeasibilityFixture } from "@/lib/feasibility-local-fixture";
 export const runtime = "nodejs";
 export const maxDuration = 180;
 export const POST = withSession(async request => {
@@ -36,7 +37,7 @@ export const POST = withSession(async request => {
     const acquired = await sql`INSERT INTO similarity_search_locks (organization_id, token, expires_at) VALUES (${organizationId()}, ${token}, now() + interval '3 minutes') ON CONFLICT (organization_id) DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at WHERE similarity_search_locks.expires_at < now() RETURNING token`;
     if (!acquired.length) throw new SimilarityError("Ya hay una búsqueda en curso en tu organización. Espera a que termine.", 429);
     locked = true;
-    const result = await searchSimilar({ ...input, include: ["coverage", "label_description", "protection"] }, image);
+    const result = await localFeasibilityFixture(input) ?? await searchSimilar({ ...input, include: ["coverage", "label_description", "protection"] }, image);
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json({ message: error instanceof SimilarityError ? error.message : "Revisa los datos de búsqueda e inténtalo nuevamente." }, { status: error instanceof SimilarityError ? error.status : error instanceof z.ZodError || error instanceof SyntaxError ? 400 : 500 });

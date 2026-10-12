@@ -20,6 +20,9 @@
   animation: appear 450ms ease-out both;
 }
 
+.screen.inline { position:static; inset:auto; z-index:auto; min-height:360px; height:100%; width:100%; background:transparent; }
+.inline .wordmark { font-size:clamp(30px,4vw,56px); }
+
 .wordmark {
   display: flex;
   flex-wrap: wrap;

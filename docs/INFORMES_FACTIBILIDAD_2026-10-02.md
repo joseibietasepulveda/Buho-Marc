@@ -1,5 +1,7 @@
 # Informes de factibilidad · 2 de octubre de 2026
 
+Actualización funcional del 9 de octubre: [Factibilidad por clase y Multinforme](FACTIBILIDAD_MULTINFORME_2026-10-09.md) cambia el flujo a una clase por análisis, incorpora tabla/fichas y conclusiones independientes sin porcentajes. En esa rama un fallo del modelo bloquea la exportación; la descripción histórica de respaldo siguiente corresponde a los consumidores anteriores. La nueva ronda aún no está integrada ni desplegada.
+
 Actualización de interfaz posterior: [Implementación de maquetas](UX_IMPLEMENTACION_OCTUBRE_2026.md) integra estos generadores en Buscar / Revisar resultados / Preparar informe. Requiere selección explícita cuando hay antecedentes y confirmar la revisión; una edición relevante invalida esa confirmación. En el piloto local se descargaron PDF y Word con la misma consulta, dos solicitudes seleccionadas y conclusión. Ambos se renderizaron (dos páginas cada uno) y sus cuatro páginas se inspeccionaron individualmente. Esta comprobación y sus archivos no constituyen un despliegue nuevo ni una llamada real al proveedor.
 
 Esta decisión reemplaza la generación exclusivamente determinista y el logo genérico descritos el 24 de septiembre. La publicación de esta ronda está autorizada únicamente en Dev.

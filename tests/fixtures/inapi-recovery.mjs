@@ -7,7 +7,7 @@ export function fixture(events = [act('Resolución de observaciones de fondo')])
   return normalizeInapi({ application_id: 999001, registration_number: null, name: 'Ejemplo ficticio', status: { code: '016', description: 'En Trámite' }, dates: { filed_at: '2026-01-01', published_at: '2026-03-01', registered_at: null, expires_at: null, last_changed_at: null }, trademark: { sign_type: 'Denominativa' }, holders: [{ name: 'Titular ficticio', country: 'CL' }], representatives: [], classes: [{ nice_class: 35 }], events, annotations: [], source: {} });
 }
 export const application = record => updatedApplication({ id: 'fixture', applicationNumber: record.applicationNumber, name: record.name, type: record.type, filedAt: '', statusId: record.status, recentEvent: '', niceClasses: '', holderRut: '', holder: '', client: '', history: [] }, record, '');
-export function officialFetcher({ extraActs = [], status = 'En Trámite', failAt, wrongId = false } = {}) {
+export function officialFetcher({ extraActs = [], status = 'En Trámite', publicationDate = '01/03/2026', failAt, wrongId = false } = {}) {
   let calls = 0;
   const fetcher = async (url, init) => {
     calls++;
@@ -22,7 +22,7 @@ export function officialFetcher({ extraActs = [], status = 'En Trámite', failAt
       return Response.json({ d: JSON.stringify({ Hash: 'next', ErrorMessage: null, Marcas: [{ cell: ['999001', '', '', '', '', '', 'M', 'A', '999001', '2026'] }] }) });
     }
     assert.equal(body.numeroSolicitud, '999001'); assert.equal(body.Hash, 'next'); assert.equal(body.numeroSerie, '2026');
-    return Response.json({ d: JSON.stringify({ ErrorMessage: null, Marca: { NumeroSolicitud: wrongId ? '999002' : '999001', NumeroRegistro: null, Estado: '016', EstadoDescripcion: status, FechaPresentacion: '01/01/2026', FechaPublicacion: '01/03/2026', FechaRegistro: '', FechaVencimiento: '', Instancias: [{ Numero: '1', Fecha: '01/07/2026', EstadoCodigo: '647', EstadoDescripcion: 'Resolución de observaciones de fondo', FechaVencimiento: '', Observacion: '' }, ...extraActs] } }) });
+    return Response.json({ d: JSON.stringify({ ErrorMessage: null, Marca: { NumeroSolicitud: wrongId ? '999002' : '999001', NumeroRegistro: null, Estado: '016', EstadoDescripcion: status, FechaPresentacion: '01/01/2026', FechaPublicacion: publicationDate, FechaRegistro: '', FechaVencimiento: '', Instancias: [{ Numero: '1', Fecha: '01/07/2026', EstadoCodigo: '647', EstadoDescripcion: 'Resolución de observaciones de fondo', FechaVencimiento: '', Observacion: '' }, ...extraActs] } }) });
   };
   return { fetcher, calls: () => calls };
 }

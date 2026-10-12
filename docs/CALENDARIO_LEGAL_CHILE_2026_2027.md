@@ -1,5 +1,7 @@
 # Calendario nacional de días hábiles: 2023–2027
 
+**Activador vigente · 12/10/2026:** para los plazos de notificación reconocidos, el proyecto asume notificación el día de la actuación cuando falta una fecha informada. La cobertura y los feriados de este calendario se conservan. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
+
 Ampliación histórica revisada: **7 de octubre de 2026**. Versión: `CL-LPI-LBPA-NATIONAL-2023-2027-v2`. Se conserva la ruta del documento para no romper enlaces. La versión anterior cubría 2026–2027.
 
 ## Alcance

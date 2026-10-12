@@ -26,15 +26,19 @@ test('all 19 publicly verified acceptances bind to exact acts and recover dates 
   assert.equal(verifiedDailyNotice('not-verified', {}), undefined);
 });
 
-test('substance requires notification evidence; a public daily list and an act date do not activate it', () => {
+test('act date supports the project assumption without creating notification proof; confirmed evidence overrides it', () => {
   const input = app();
-  assert.equal(deadlineInfo(input, today).attention, 'pending');
+  assert.equal(deadlineInfo(input, today).notificationDateAssumed, true);
+  assert.equal(deadlineInfo(input, today).sourceDate, '2026-09-04');
+  assert.equal(input.procedure.notifiedAt, undefined);
   assert.equal(evidenceKindAllowed(input, evidence({ method:'daily-state' })), false);
   assert.equal(applyRegistrationEvidence({ ...input, legalEvidence:[evidence({ method:'daily-state' })] }, today).procedure.notifiedAt, undefined);
   const confirmed = applyRegistrationEvidence({ ...input, legalEvidence:[evidence()] }, today);
   assert.equal(confirmed.procedure.notifiedAt, '2026-09-07');
   assert.equal(confirmed.procedure.notificationProof.verifiedBy, 'team');
   assert.equal(deadlineInfo(confirmed, today).days, 30);
+  assert.equal(deadlineInfo(confirmed, today).sourceDate, '2026-09-07');
+  assert.equal(deadlineInfo(confirmed, today).notificationDateAssumed, undefined);
   assert.ok(deadlineInfo(confirmed, today).dueDate);
 });
 
