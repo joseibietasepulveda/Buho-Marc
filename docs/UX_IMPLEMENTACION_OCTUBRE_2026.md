@@ -70,6 +70,12 @@ Clientes ofrece ficha con teléfono, cartera solicitud/imagen/nombre/estado e in
 
 ## Comprobaciones y operación
 
+### Desplazamiento del espacio de trabajo · 11 de octubre
+
+El panel central se detiene en sus límites superior e inferior sin rebote vertical que descubra espacio vacío sobre la cabecera. Conserva el desplazamiento normal, la navegación lateral independiente y el desplazamiento horizontal de tablas. El 12/10 se comprobó junto con informes para cliente/estudio y notificaciones asumidas: ambos comportamientos se conservan. Alcance, integración y verificación en el [traspaso](handoffs/2026-10-11-scroll-superior.md).
+
+### Verificación de la entrega del 5 de octubre
+
 - Compilación/TypeScript y ESLint de 37 archivos aprobados; 39 pruebas dirigidas y cinco comprobaciones estructurales aprobadas.
 - Piloto por rutas reales: prioridades/tareas persistentes, representante/paginación, cliente/rol, incorporación/deduplicación, conservación de asignaciones, informes y notificaciones; aislamiento por organización.
 - Segundo recorrido: feedback confiable, ACK, caída/reintento, auditoría completa/filtrada y carga multipart .xls con hoja/encabezado libres, números como texto y duplicado.
