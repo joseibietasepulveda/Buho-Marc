@@ -6,7 +6,7 @@ import { currentActMatches, evidenceKindAllowed } from "@/lib/registration-evide
 import { chileToday } from "@/lib/work-priorities";
 
 const kinds: Record<LegalEvidence["kind"], { title: string; help: string }> = {
-  notification: { title: "Fecha de notificación", help: "Revisa la constancia del medio correspondiente. La fecha de la resolución y el correo de cortesía no bastan para acreditar el depósito en casilla." },
+  notification: { title: "Fecha de notificación", help: "El proyecto asume la notificación el día de la actuación cuando falta una fecha informada. Puedes registrar aquí una fecha acreditada para recalcular con ella; revisa la constancia del medio correspondiente." },
   finality: { title: "Ejecutoria de la resolución", help: "Revisa el documento que acredita que la aceptación quedó firme, incluidos los recursos que correspondan. No se presume sumando días a la resolución." },
   "ready-to-resolve": { title: "Certificación de estar en estado de resolver", help: "Debe ser la certificación solicitada por el interesado a la que se refiere el artículo 24 de la Ley 19.880. Activa un control de INAPI, no un vencimiento del abogado." },
   "certificate-payment": { title: "Validación del pago de un certificado", help: "Sólo para un certificado solicitado y pagado. No es el título gratuito ni el pago final del registro. Activa el control de emisión de 10 días hábiles." },

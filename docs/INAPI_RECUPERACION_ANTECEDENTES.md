@@ -1,5 +1,7 @@
 # Recuperación de antecedentes y reconocimiento de actuaciones
 
+**Regla de cálculo · 12/10/2026:** el proyecto asume notificación el mismo día de la actuación habilitante cuando falta una fecha informada. Se calcula sin crear una constancia y sin consultar INAPI si el historial guardado ya tiene el activador. Una fecha acreditada tiene prioridad; publicación y ejecutoria conservan sus reglas. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
+
 Actualizado: 8 de octubre de 2026. Integración inicial en `dev` mediante [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6) y publicada en Railway Dev. Migración, salud y configuración comprobadas. [Traspaso y verificaciones](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
 
 El 8 de octubre el código y la migración se publicaron también en producción mediante [PR #11](https://github.com/joseibietasepulveda/Buho-Marc/pull/11). **La recuperación directa queda desactivada en producción** (`INAPI_DIRECT_RECOVERY_ENABLED=false`); el único trabajador público habilitado está en Dev, con 200 expedientes diarios y mínimo 3 segundos. El bloqueo/reloj se comparte entre réplicas de una misma base, no entre las bases independientes de Dev y producción. Antes de habilitar ambas se necesita coordinación global, o mantener un único trabajador. La consulta habitual por DeQuiénEs continúa activa. [Registro de promoción](handoffs/2026-10-08-promocion-produccion.md).
@@ -8,7 +10,7 @@ En Dev se ejecutaron la vista previa y `--apply --queue`: 222 registros guardado
 
 ## Funcionamiento
 
-La consulta habitual sigue usando DeQuiénEs. Después de incorporar o revisar una solicitud propia, Buho Marc reinterpreta el historial y sus pruebas guardadas. Si una obligación reconocida necesita una fecha de notificación, publicación o ejecutoria que aún no tiene, prepara una recuperación puntual desde el [buscador público de INAPI](INAPI_API_PUBLICA.md). Los casos con expediente propio de seguimiento pueden preparar la misma recuperación, sin cambiar el rol del cliente.
+La consulta habitual sigue usando DeQuiénEs. Después de incorporar o revisar una solicitud propia, Buho Marc reinterpreta el historial y sus pruebas guardadas. Si una obligación reconocida sigue indeterminada después de aplicar la convención del 12/10 —por falta de fecha de actuación, publicación o ejecutoria— prepara una recuperación puntual desde el [buscador público de INAPI](INAPI_API_PUBLICA.md). Los casos con expediente propio de seguimiento pueden preparar la misma recuperación, sin cambiar el rol del cliente.
 
 El supervisor procesa **un expediente por turno**, normalmente cada 30 segundos. El trabajo queda guardado en `inapi_recovery_jobs`; se identifica por solicitud y antecedente concreto pendiente. Dos carteras que siguen el mismo expediente comparten la consulta pública. Un antecedente ya consultado, fallido o todavía no resuelto no vuelve a consultarse por abrir la ficha ni por recibir la misma respuesta de DeQuiénEs. Si aparece una nueva actuación que necesita otro antecedente, puede prepararse un nuevo intento. Completar una de varias obligaciones no repite la consulta de las restantes ya intentadas.
 
@@ -39,7 +41,7 @@ La ficha del administrador distingue `retrieval.lastSuccessfulQueryAt`, `lastCha
 | Antecedente | Interpretación |
 | --- | --- |
 | Solicita abrir término probatorio | Petición; no abre prueba ni activa su plazo. |
-| Resolución de apertura/recepción de causa a prueba | Período probatorio; falta su notificación si no se acredita. |
+| Resolución de apertura/recepción de causa a prueba | Período probatorio; usa notificación acreditada o, en su ausencia, la fecha de esa resolución bajo la convención. |
 | Por contestado/no contestado el traslado **con recepción a prueba** | Reconoce la apertura; no abre otra contestación. |
 | Contestación del traslado de demanda de oposición | Respuesta presentada; no declara ganada la oposición. |
 | Traslado de oposición y observaciones de fondo | Conserva ambas obligaciones y sus actos/pruebas por separado. |
@@ -87,7 +89,7 @@ En cada evento puede agregarse `legal_facts`, con constancias vinculadas al acto
 
 `kind`: `notification` o `finality`; `date`: fecha jurídica civil ISO, no extracción. `object`: `application`, `opposition`, `substantive-examination`, `nullity` o `incident`. `recipient_role`: `applicant`, `registrant`, `opponent` o `respondent`. `method`: `daily-state`, `inapi-inbox`, `personal` u `official-document`.
 
-Para usar una fecha se exige identificación del acto, documento HTTPS y referencia, objeto/destinatario compatibles, canal correspondiente y fecha válida, igual o posterior al acto y no futura. Las constancias dirigidas al oponente no se convierten en plazos del solicitante. La fecha de ejecutoria necesita `official-document`. Las obligaciones concurrentes reciben únicamente sus constancias respectivas. Las pruebas públicas comprobadas y las entradas del equipo conservan su tratamiento; no se eliminan al incorporar la información del servicio.
+Para acreditar una fecha mediante este contrato se exige identificación del acto, documento HTTPS y referencia, objeto/destinatario compatibles, canal correspondiente y fecha válida, igual o posterior al acto y no futura. Las constancias dirigidas al oponente no se convierten en plazos del solicitante. La fecha de ejecutoria necesita `official-document`. Las obligaciones concurrentes reciben únicamente sus constancias respectivas. Las pruebas públicas comprobadas y las entradas del equipo conservan su tratamiento; no se eliminan al incorporar la información del servicio.
 
 Nulidades, múltiples oponentes, incidentes y efectos parciales necesitan resolver destinatarios y alcance de cada actuación. Se conserva la información, pero no se afirma haber implementado sus plazos específicos CPC. Antes de poner nuevos códigos en producción, incorporar ejemplos y revisar su equivalencia; no deducir un código jurídico de una etiqueta aislada.
 
