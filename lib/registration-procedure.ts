@@ -10,6 +10,7 @@ export type ProcedureDeadline = {
   label: string; attention: Attention; explanation: string; trigger: string;
   days?: number; sourceDate?: string; dueDate?: string; nominalDate?: string; deadline?: Date; remaining?: number;
   origin: "source" | "calculated" | "simulated" | "unavailable";
+  notificationDateAssumed?: boolean;
   kind?: "legal" | "institutional" | "milestone";
   fatal?: boolean;
 };
@@ -59,6 +60,14 @@ const triggers: Partial<Record<RegistrationStatusId, string>> = {
   "partial-appeal": "Notificación de la aceptación parcial apelable",
 };
 
+// Product decision, 12/10/2026: absent an explicit notification date, use the
+// date of the act opening this obligation. This is a calculation convention,
+// not source evidence; publication and finality retain their own triggers.
+const notificationStages = new Set<RegistrationStatusId>([
+  "form-observation", "accepted-publication", "opposition-answer",
+  "evidence-period", "substantive-objection", "rejected-appeal", "partial-appeal",
+]);
+
 export function procedureContext(application: RegistrationApplication): string {
   const { statusId: s, procedure: p } = application;
   if (s === "accepted-publication") return p?.publicationRequestedAt
@@ -82,19 +91,22 @@ export function procedureContext(application: RegistrationApplication): string {
 
 function primaryDeadline(a: RegistrationApplication, today: string): ProcedureDeadline {
   const status = STATUS_BY_ID[a.statusId];
-  const base: ProcedureDeadline = { key: a.statusId, label: status.deadlineLabel ?? status.label, attention: "none", explanation: procedureContext(a), trigger: triggers[a.statusId] ?? "", origin: "unavailable", kind: "legal", fatal: Boolean(status.deadlineDays) };
+  const p = a.procedure;
+  const assumedNotificationDate = a.provider === "inapi" && notificationStages.has(a.statusId) && !p?.notifiedAt ? parseWorkDate(p?.sourceActDate) : null;
+  const notificationDate = parseWorkDate(p?.notifiedAt) ?? assumedNotificationDate;
+  const assumption = assumedNotificationDate ? `Notificación asumida el ${assumedNotificationDate}, el mismo día de la actuación, según la regla del proyecto. ` : "";
+  const base: ProcedureDeadline = { key: a.statusId, label: status.deadlineLabel ?? status.label, attention: "none", explanation: assumption + procedureContext(a), trigger: triggers[a.statusId] ?? "", origin: "unavailable", kind: "legal", fatal: Boolean(status.deadlineDays), ...(assumedNotificationDate ? { notificationDateAssumed: true } : {}) };
   if (status.terminal) return { ...base, attention: "terminal" };
   if (!status.deadlineDays) return base;
-  const p = a.procedure;
   const completed = (value?: string, trigger?: string) => {
     const date = parseWorkDate(value), filed = parseWorkDate(a.filedAt), activated = parseWorkDate(trigger);
     return Boolean(date && date <= today && (!filed || date >= filed) && (!activated || date >= activated));
   };
-  if (a.statusId === "accepted-publication" && completed(p?.publicationRequestedAt, p?.notifiedAt)) return { ...base, label: "Esperando publicación efectiva" };
-  if (["form-observation", "substantive-objection", "opposition-answer"].includes(a.statusId) && completed(p?.responseFiledAt, p?.notifiedAt)) return { ...base, label: "Respuesta presentada · pendiente de pronunciamiento" };
+  if (a.statusId === "accepted-publication" && completed(p?.publicationRequestedAt, notificationDate ?? undefined)) return { ...base, label: "Esperando publicación efectiva" };
+  if (["form-observation", "substantive-objection", "opposition-answer"].includes(a.statusId) && completed(p?.responseFiledAt, notificationDate ?? undefined)) return { ...base, label: "Respuesta presentada · pendiente de pronunciamiento" };
   if (["accepted-payment", "partial-payment"].includes(a.statusId) && completed(p?.paymentAccreditedAt, p?.finalAt)) return { ...base, label: "Pago acreditado · esperando registro" };
   const payment = ["accepted-payment", "partial-payment"].includes(a.statusId);
-  const sourceDate = parseWorkDate(a.statusId === "opposition-window" ? a.publishedAt : payment ? p?.finalAt : p?.notifiedAt) ?? (!a.provider && !payment && a.statusId !== "opposition-window" ? parseWorkDate(a.deadlineSource) : null);
+  const sourceDate = (a.statusId === "opposition-window" ? parseWorkDate(a.publishedAt) : payment ? parseWorkDate(p?.finalAt) : notificationDate) ?? (!a.provider && !payment && a.statusId !== "opposition-window" ? parseWorkDate(a.deadlineSource) : null);
   let days = status.deadlineDays;
   if (a.statusId === "evidence-period" && p?.evidenceExtensionDays !== undefined) {
     if (!Number.isInteger(p.evidenceExtensionDays) || p.evidenceExtensionDays < 0 || p.evidenceExtensionDays > 30) return { ...base, attention: "pending", explanation: "La prórroga probatoria informada no es válida. Revisar la resolución que la concede." };
@@ -107,7 +119,7 @@ function primaryDeadline(a: RegistrationApplication, today: string): ProcedureDe
   const official = parseWorkDate(a.officialDeadline);
   if (a.officialDeadline && (!official || (sourceDate && official < sourceDate) || (parseWorkDate(a.filedAt) && official < a.filedAt.slice(0, 10)))) return { ...pending, explanation: "El vencimiento informado es inválido o anterior a la solicitud o al hecho que lo activa." };
   const dueDate = official ?? (sourceDate ? addProcedureDays(sourceDate, days) : undefined);
-  if (!dueDate) return { ...pending, explanation: sourceDate ? "El cómputo requiere un calendario fuera del período cubierto (2023–2027). No se estima una fecha." : `${base.trigger} no informada. ${p?.sourceActDate ? "Consta la fecha de la actuación, que no se presume como notificación o ejecutoria. " : ""}El vencimiento de esta gestión no está determinado.` };
+  if (!dueDate) return { ...pending, explanation: sourceDate ? assumption + "El cómputo requiere un calendario fuera del período cubierto (2023–2027). No se estima una fecha." : `${base.trigger} no informada. ${payment && p?.sourceActDate ? "Consta la fecha de la actuación, pero falta su ejecutoria. " : ""}El vencimiento de esta gestión no está determinado.` };
   const remaining = remainingDays(today, dueDate);
   if (a.statusId === "opposition-window" && dueDate < today) return { ...base, label: "Ventana de oposición finalizada", days, sourceDate: sourceDate ?? undefined, dueDate, deadline: new Date(`${dueDate}T12:00:00`), remaining, attention: "none", fatal: false, kind: "milestone", origin: a.provider ? official ? "source" : "calculated" : "simulated", explanation: hasContestedProceeding(a) ? "El período de oposición terminó y constan actuaciones contenciosas en el historial. Revisar su tramitación y las siguientes resoluciones de INAPI." : "El período de oposición terminó. No constan oposiciones en el historial disponible; su completitud no está acreditada. Se esperan las siguientes actuaciones de INAPI. No implica ausencia de oposición ni registro concedido." };
   // Date ordering is authoritative: a past weekend must not become “Vence hoy”.

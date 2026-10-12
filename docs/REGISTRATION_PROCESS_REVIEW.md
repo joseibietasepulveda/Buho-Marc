@@ -1,5 +1,7 @@
 # Revisión del procedimiento de registro de marcas
 
+**Actualización de producto · 12/10/2026:** para calcular cuando falta notificación informada, el proyecto asume que ésta ocurrió el día de la actuación habilitante (`event_date`). Se distingue la suposición de una constancia acreditada; una fecha acreditada tiene prioridad. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md). La matriz normativa y los diagnósticos fechados conservan su contexto.
+
 Reglas jurídicas revisadas el 7 de septiembre de 2026; interpretación y recuperación ampliadas el 7 de octubre de 2026. Véase [comportamiento vigente y contrato de antecedentes](INAPI_RECUPERACION_ANTECEDENTES.md).
 
 Este documento registra las reglas contrastadas con fuentes oficiales y el alcance de la corrección del seguimiento de inscripciones. El bosquejo aportado por el usuario sirve de referencia funcional; las reglas se contrastaron con las Directrices de Marcas INAPI 2026 y la Ley 19.039, cuyo texto refundido está contenido en el DFL 4 de 2022.
@@ -8,7 +10,7 @@ Este documento registra las reglas contrastadas con fuentes oficiales y el alcan
 
 La afirmación de que antes de la publicación no hay un plazo activo era demasiado amplia. Deben distinguirse dos gestiones: desde la notificación de la aceptación a trámite existen 20 días hábiles para requerir y pagar la publicación; desde la publicación efectiva del extracto existen 30 días hábiles para deducir oposición. Requerir y pagar no equivale a publicar. Si ya se cumplió aquella gestión y la publicación sigue pendiente, todavía no comienza la ventana de oposición. [Publicación, Directrices 2026][publicacion]
 
-Por ello, una solicitud aceptada a trámite puede tener una gestión aplicable cuyo vencimiento aún no pueda determinarse por falta de la fecha de notificación. La presentación de ese caso debe identificar la gestión y el antecedente que falta, en lugar de mostrar una fecha genérica por confirmar o afirmar que no existe plazo alguno.
+Por ello, una solicitud aceptada a trámite tiene una gestión aplicable. Desde la convención del 12/10 se calcula desde la aceptación fechada cuando falta notificación informada; sólo sigue indeterminada si falta también la fecha habilitante o ésta no permite el cómputo. La presentación de ese caso debe identificar la gestión y el antecedente que falta, en lugar de mostrar una fecha genérica por confirmar o afirmar que no existe plazo alguno.
 
 ## Matriz de reglas verificadas
 
@@ -32,7 +34,7 @@ Los días de esta tabla corresponden a las reglas de la LPI/RLPI: lunes a vierne
 ## Invariantes corregidos
 
 - **La publicación tiene sus propios hitos.** Una gestión de requerimiento o pago no activa la oposición. La publicación efectiva puede recuperarse de una actuación que la identifique cuando el campo resumen de la fuente esté vacío.
-- **La fecha del acto no se presume como notificación.** Se conserva el acto que sustenta la etapa. Un vencimiento calculado necesita su fecha base específica; los vencimientos explícitos y válidos aportados por la fuente conservan su procedencia.
+- **Notificación asumida para el cálculo.** Desde la decisión del 12/10 se usa la fecha del acto habilitante cuando no hay fecha de notificación informada, con indicación expresa de la suposición. La evidencia y los vencimientos explícitos válidos tienen prioridad; no se fabrica una constancia.
 - **El hecho de que pase una fecha no dicta una resolución.** Un plazo transcurrido se presenta para revisar su cumplimiento o la actuación posterior. No convierte automáticamente la solicitud en abandonada, rechazada, inscrita o firme.
 - **Las respuestas no conceden la marca.** Un cumplimiento o contestación presentado permite identificar la gestión realizada y esperar el pronunciamiento correspondiente.
 - **Oposición y fondo pueden coexistir.** El seguimiento conserva gestiones concurrentes en lugar de forzar una única rama excluyente.

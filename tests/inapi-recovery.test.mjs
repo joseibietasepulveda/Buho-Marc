@@ -55,7 +55,8 @@ test('official adapter carries its own context, validates identifiers and never 
   assert.equal(official.retrieval.historyComplete, undefined);
   const merged = mergeOfficialEvidence(base, official, official.retrieval.officialCheckedAt);
   assert.equal(application(merged).procedure.notifiedAt, undefined);
-  assert.equal(recoveryNeeds(merged, '2026-10-07').length, 1);
+  assert.deepEqual(recoveryNeeds(merged, '2026-10-07'), []);
+  assert.equal(registrationDeadlines(application(merged), '2026-10-07')[0].notificationDateAssumed, true);
   assert.equal(base.officialEvidence, undefined);
   assert.deepEqual(merged.officialEvidence.providerRecord, JSON.parse(JSON.stringify(base)));
   const transportOnly = { ...merged, retrieval: { ...merged.retrieval, lastSuccessfulQueryAt: '2026-10-07T23:00:00Z' }, officialEvidence: { ...merged.officialEvidence, checkedAt: '2026-10-07T23:00:00Z' } };
@@ -74,9 +75,10 @@ test('official outages and mismatched dossiers stop without retry or modifying s
 });
 
 test('missing need identity survives transport metadata and old history reorder; a new act has a new key', () => {
-  const base = fixture(); const original = recoveryNeeds(base, '2026-10-07');
+  const base = fixture([act('Resolución de observaciones de fondo', '1', null)]); const original = recoveryNeeds(base, '2026-10-07');
+  assert.ok(original.length > 0);
   assert.equal(recoveryKey(original), recoveryKey(recoveryNeeds({ ...base, retrieval: { lastSuccessfulQueryAt: '2026-10-07T12:00:00Z' } }, '2026-10-07')));
-  assert.notEqual(recoveryKey(original), recoveryKey(recoveryNeeds(fixture([act('Resolución de observaciones de fondo', '2', '2026-08-01')]), '2026-10-07')));
+  assert.notEqual(recoveryKey(original), recoveryKey(recoveryNeeds(fixture([act('Resolución de observaciones de fondo', '2', null)]), '2026-10-07')));
   assert.deepEqual(recoveryNeeds(fixture([act('Oposición - Solicita se abra término probatorio')]), '2026-10-07'), []);
 });
 

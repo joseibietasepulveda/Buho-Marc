@@ -1,5 +1,7 @@
 # Recorrido y plazos de una marca comercial en Chile
 
+**Actualización de producto · 12/10/2026:** para calcular cuando falta notificación informada, el proyecto asume que ésta ocurrió el día de la actuación habilitante (`event_date`). Se distingue la suposición de una constancia acreditada; una fecha acreditada tiene prioridad. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md). La matriz normativa y los diagnósticos fechados conservan su contexto.
+
 Fecha de revisión normativa: **10 de septiembre de 2026**.
 
 Este documento reúne el recorrido de una solicitud nacional ante INAPI, sus principales bifurcaciones y los antecedentes necesarios para calcular sus plazos. Distingue las obligaciones del solicitante y de terceros, los tiempos de actuación institucional y el estado oficialmente acreditado del expediente.
@@ -63,7 +65,7 @@ Conservar, cuando existan, por separado:
 - Fecha de concesión/asignación de registro, expedición del título y expiración.
 - Fecha de consulta o sincronización de la plataforma.
 
-La fecha en que Buho Marc detecta una actuación no inicia su plazo legal. Un correo de cortesía no es necesariamente la notificación. El identificador y año de una resolución tampoco sustituyen su fecha. La fecha de un renglón del buscador público no debe tratarse automáticamente como fecha de notificación. [Notificaciones 2026, pp. 3–7 y 11][notificaciones].
+La fecha en que Buho Marc detecta una actuación no inicia su plazo legal. Un correo de cortesía no es necesariamente la notificación. El identificador y año de una resolución tampoco sustituyen su fecha. La fecha de un renglón del buscador público no acredita por sí sola la notificación. Para el cálculo operativo vigente, la convención del 12/10 utiliza la fecha de la actuación habilitante y la identifica expresamente como notificación asumida. [Notificaciones 2026, pp. 3–7 y 11][notificaciones].
 
 ## 4. Preparación e ingreso de la solicitud
 
@@ -308,7 +310,7 @@ Estas correcciones se desarrollan y citan en las secciones 5–14. La revisión 
 - Estado principal: último hito oficial relevante; “fin de plazo” no debe ocultar aceptación, observación, oposición, concesión o título.
 - Próxima gestión: verbo concreto, responsable, origen, fecha y evidencia. Ejemplos: “Requerir publicación”, “Contestar observación”, “Verificar pago final”.
 - Fechas confirmadas y provisionales deben ser distinguibles sin abrir el detalle. No usar solamente color.
-- Si falta algo, nombrarlo: “Falta confirmar notificación electrónica”, “Falta constancia de ejecutoria” o “Publicación pagada; pendiente fecha efectiva”.
+- Si falta algo, nombrarlo: “Falta fecha de la actuación”, “Falta constancia de ejecutoria” o “Publicación pagada; pendiente fecha efectiva”. Cuando existe una actuación habilitante fechada y falta notificación informada, calcular bajo la convención y mostrar “Notificación asumida el día de la actuación”.
 - Un plazo terminado sin decisión posterior se muestra como revisión pendiente; no modifica por sí solo el estado oficial.
 - En calendarios, separar tareas internas, gestiones INAPI y gestiones Diario Oficial. El origen de un evento y el órgano ante el que se actúa no siempre son iguales: la publicación DO activa oposición ante INAPI.
 - El detalle de cada hito debe permitir ver identificador, fecha, canal, fuente y cálculo, dejando la explicación operativa como primera lectura.

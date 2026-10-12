@@ -214,7 +214,7 @@ function RegistrationCard({ application, onSelect }: { application: Registration
 }
 
 function ProcedureDeadlinePanel({ deadline: d, today, application, detailed = false }: { deadline: ProcedureDeadline; today?: string; application: RegistrationApplication; detailed?: boolean }) {
-  const origin = d.origin === "source" ? "Informado por la fuente" : d.origin === "calculated" ? d.kind === "institutional" ? "Control administrativo calculado · no es un vencimiento del abogado" : "Calculado desde el antecedente indicado" : d.origin === "simulated" ? "Fecha de demostración · no corresponde a un expediente real" : "";
+  const origin = d.notificationDateAssumed ? `${d.origin === "source" ? "Vencimiento informado por la fuente · " : ""}Notificación asumida el día de la actuación` : d.origin === "source" ? "Informado por la fuente" : d.origin === "calculated" ? d.kind === "institutional" ? "Control administrativo calculado · no es un vencimiento del abogado" : "Calculado desde el antecedente indicado" : d.origin === "simulated" ? "Fecha de demostración · no corresponde a un expediente real" : "";
   if (d.attention === "pending") {
     const act = d.key === application.statusId ? application.procedure : application.procedure?.concurrent?.find(item => item.statusId === d.key);
     const missing = !d.sourceDate ? `${d.trigger}: fecha no disponible en la fuente` : "Cómputo pendiente de revisión";

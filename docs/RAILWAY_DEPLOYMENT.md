@@ -1,6 +1,28 @@
 # Despliegue y operación en Railway
 
-Actualizado el 9 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+Actualizado el 11 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+
+## Notificación asumida el día del evento · 12 de octubre
+
+- [PR #24](https://github.com/joseibietasepulveda/Buho-Marc/pull/24), exclusivamente Dev `c6d91f796c9b560bae540f526ecf5776bf60599a`; Railway `3a3f152d-6309-4f97-9fd9-7edb304b0010` **SUCCESS**, rama y SHA exactos confirmados. Compilación, TypeScript, migraciones existentes y arranque correctos. Sin migraciones nuevas ni cambios de variables.
+- El cálculo asume notificación el día de la actuación habilitante cuando falta fecha informada, con prioridad de fechas acreditadas y vencimientos válidos. Tarjetas/detalle/resumen indican la suposición. No fabrica pruebas, presume ejecutoria ni cambia tareas/avisos históricos. La recuperación deja de consultar cuando basta la actuación guardada; conserva 200 expedientes diarios y mínimo tres segundos. [Regla vigente](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md) y [traspaso](handoffs/2026-10-12-notificacion-mismo-dia-evento.md).
+- 74 pruebas aprobadas, build/TypeScript, ESLint y QA visual local con fixtures. Un test HTTP optativo omitido por puertos fijos ajenos a la instancia aislada. El recálculo de carteras guardadas de Dev completa 55 de 57 obligaciones legales indeterminadas al corte; no requiere una nueva extracción ni escritura/reproyección de la base.
+- Salud remota 200/base conectada/motor DeQuiénEs; registros 401 sin sesión; `/app` 307 a ingresar. QA autenticada local. No se trasladaron datos ni se dispararon búsquedas de fuentes para verificar el despliegue.
+- Main permanece en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior sólo registra documentación.
+
+## Informes para cliente y estudio · 12 de octubre
+
+- [PR #22](https://github.com/joseibietasepulveda/Buho-Marc/pull/22), exclusivamente Dev `e78b18d05fc45b2e436069518e3b4f445dbcf052`; Railway `3deae247-7fea-4fd7-85e4-0e53a96b209b` **SUCCESS**, SHA exacto confirmado. Compilación, TypeScript, migraciones existentes y arranque correctos. Sin migraciones, dependencias ni credenciales nuevas.
+- Descarga con destinatario cliente inicial y estudio opcional; cliente omite números oficiales y cobertura, estudio los conserva. Encabezado ordenado, referencias de marca en mayúsculas y logo de estudio reducido un 20%. Ninguna presentación incluye factor de similitud. [Contrato vigente](FACTIBILIDAD_MULTINFORME_2026-10-09.md) y [traspaso](handoffs/2026-10-12-factibilidad-cliente-estudio.md).
+- 33/33 pruebas dirigidas, TypeScript, lint y compilación local aprobados. Ocho exportaciones simuladas y diez con registros/logos del PDF histórico; 23 páginas revisadas, tabla y fichas en PDF/Word, escritorio y móvil. Sin consultas nuevas a INAPI ni llamadas al modelo para esta maquetación.
+- Salud 200/base conectada/motor DeQuiénEs; perfil, búsqueda y conclusiones 401 sin sesión; `/app` redirige a ingresar. La QA autenticada completa se hizo en local. Main permanece en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior solo actualiza documentación.
+
+## Pulido de factibilidad · 11 de octubre
+
+- [PR #20](https://github.com/joseibietasepulveda/Buho-Marc/pull/20), exclusivamente Dev `c8ff459a4c42a2eb183c3ed38716c2e8c2bec341`; Railway `6f5b7742-acab-4d48-baa3-54bc471ed833` **SUCCESS**, SHA exacto confirmado. Compilación y arranque correctos; no hay migraciones, dependencias ni credenciales nuevas.
+- Antecedentes contados por marca y titular, conclusión de IA únicamente para la clase activa y el detalle seleccionado, edición directa/autollenado, presentación pública IA - Buho Marc. Tabla centrada Marca/Logo y fichas; acciones, textos y notas simplificados. [Contrato vigente](FACTIBILIDAD_MULTINFORME_2026-10-09.md) y [traspaso](handoffs/2026-10-11-factibilidad-pulido.md).
+- 32/32 pruebas dirigidas, TypeScript, lint y compilación local aprobados. Recorrido local de navegador/API/base/OpenRouter con registros históricos y logos reales; cuatro descargas y doce páginas finales revisadas. No hubo una búsqueda nueva de INAPI para esta QA.
+- Salud remota 200/base conectada/motor DeQuiénEs; perfil, búsqueda y conclusiones 401 sin sesión; `/app` redirige a ingresar. La QA autenticada completa se hizo en local, sin operaciones remotas sobre carteras reales. Main permaneció en `59d3c7ae5ffb61a50ed5c0c990db96dc416fa272`; producción no fue promovida. El cierre posterior solo actualiza documentación.
 
 ## Factibilidad por clase y nuevos informes · 9 de octubre
 
@@ -124,7 +146,7 @@ Las migraciones actuales incluyen `0011_notification_dismissal.sql` y `0012_feas
 | `APP_PUBLIC_ORIGIN` o `RAILWAY_PUBLIC_DOMAIN` | Origen validado para acciones del navegador. |
 | `MONITORING_SCHEDULER_ENABLED` | Habilita el supervisor; respeta el modo automático/a pedido de cada organización. |
 | `MONITORING_CRON_SECRET` | Credencial interna del worker; el supervisor puede generarla. |
-| `OPENROUTER_API_KEY` | Activa las conclusiones asistidas; configurada en Dev. El nuevo flujo por clase exige revisión del texto del modelo o del autor y no exporta un respaldo automático. |
+| `OPENROUTER_API_KEY` | Activa las conclusiones asistidas; configurada en Dev. El flujo por clase exige una conclusión preparada o escrita por el autor; permite editarla directamente y no exporta un respaldo automático. |
 | `OPENROUTER_MODEL` | Opcional, predeterminado `openai/gpt-4.1-mini`. |
 | `PORT`, `NODE_ENV` | Configurados por el entorno de ejecución. |
 

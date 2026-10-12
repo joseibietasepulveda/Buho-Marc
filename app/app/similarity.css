@@ -102,10 +102,21 @@ img[role=button]{cursor:zoom-in}img[role=button]:focus-visible{outline:3px solid
 .feasibility-report-mode button[aria-pressed=true]{background:#3c235c;color:#fff}
 .feasibility-report-mode button:disabled{cursor:default;opacity:.75}
 .feasibility-study-progress{padding:16px;margin-bottom:18px;background:#fff;border:1px solid #ddd7e7;border-radius:8px}
+.feasibility-study-progress>strong{display:block;line-height:1.5}
 .feasibility-study-progress>div{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 .feasibility-study-progress span{display:flex;border:1px solid #ddd7e7;border-radius:6px;overflow:hidden}
 .feasibility-study-progress span.is-active{border-color:#8051b2;background:#f6f0fc}
 .feasibility-study-progress button{background:transparent;border:0;padding:9px 12px;cursor:pointer}
 .feasibility-study-progress button:disabled{opacity:.55;cursor:default}
 .feasibility-paper-preview article>section{margin-top:18px;padding-top:14px;border-top:1px solid #e5dfeb}
+.feasibility-workflow .feasibility-preview-editor{display:block;width:100%;min-height:140px;margin-top:12px;padding:14px 16px;border:1px solid #ded9e4;border-radius:6px;background:#fff;font:inherit;line-height:1.7;color:#242e38;resize:vertical;overflow:hidden}
+.feasibility-workflow .feasibility-preview-editor:focus{outline:2px solid #8051b2;outline-offset:2px}
+.feasibility-add-analysis-bottom{margin-top:20px}
 @media(max-width:700px){.feasibility-study-header{align-items:flex-start;gap:12px}.feasibility-study-header p{flex-basis:100%}}
+
+.feasibility-audience-switch{display:grid;grid-template-columns:1fr 1fr;border:1px solid #d7cee2;border-radius:7px;overflow:hidden}
+.feasibility-audience-switch button{min-width:0;padding:11px 9px;border:0;background:#fff;color:#5e526b;font:inherit;font-size:14px;line-height:1.4;cursor:pointer}
+.feasibility-audience-switch button+button{border-left:1px solid #d7cee2}
+.feasibility-audience-switch button[aria-pressed=true]{background:#6c3f91;color:#fff;font-weight:600}
+.feasibility-audience-switch button:focus-visible{outline:2px solid #40235c;outline-offset:-3px}
+.feasibility-audience-switch button:disabled{opacity:.65;cursor:default}

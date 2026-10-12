@@ -1,5 +1,7 @@
 # Decisiones vigentes de UX y operación · 24 de septiembre de 2026
 
+**Decisión posterior confirmada · 12/10/2026:** el usuario dispone que el proyecto asuma la notificación el día del cambio de estado. Se interpreta como fecha de la actuación habilitante, con prioridad de pruebas/vencimientos válidos e indicación visible de la suposición. Reemplaza la política de dejar siempre pendiente la notificación no acreditada. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
+
 > Continuidad: [correcciones del 29/09](UX_IMPORTACIONES_2026-09-29.md), [UI/UX del 02/10](UX_OCTUBRE_2026.md) e [informes del 02/10](INFORMES_FACTIBILIDAD_2026-10-02.md). Los puntos siguientes incorporan las actualizaciones de octubre; los registros de entrega antiguos conservan su fecha.
 
 Este documento consolida las decisiones de la conversación y las contrasta con el código actual. Prevalece sobre los textos históricos del 21 y 22 de septiembre cuando hay diferencias. No implica que se hayan repetido todas las pruebas de aquellas entregas.
