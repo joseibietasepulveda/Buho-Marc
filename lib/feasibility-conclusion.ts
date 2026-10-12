@@ -4,6 +4,7 @@ import { proposalSchema, type SimilarityResult } from './similarity-contract';
 import { reportRecommendation, REPORT_RECOMMENDATIONS, type ReportRecommendation } from './feasibility-recommendation';
 import { applyVerifiedDecision } from './verified-decisions';
 import { reportProfileText, type ReportProfile } from './report-profile';
+import { selectReportHits, reportMarkGroups, conclusionText } from './report-selection';
 
 // Bounds cover the complete retrieved search, including full coverage and history.
 const text=z.string().max(30000),nullable=text.nullable();
@@ -31,8 +32,11 @@ export function conclusionContext(input:ConclusionInput,profile:ReportProfile){
     const facts=Object.fromEntries(Object.entries(context).filter(([key])=>!['deterministicAssessment','interpretation'].includes(key)));
     // Proposed ownership and coverage come from the author, not a source query echo.
     const query = { ...result.query, name: input.proposal.name, holders: input.proposal.holders ?? [], classes: input.proposal.coverage.map(c => ({nice_class:c.nice_class,coverage_text:c.text})) };
-    // Strip image fields even inside the original source payload: the model receives text only.
-    return JSON.parse(JSON.stringify({ ...facts, search:{...result,query}, interpretation: { scope: 'Solo antecedentes de la clase indicada; analizar todos los resultados y comparar sus coberturas concretas. Sin evaluación automática previa. No se han enviado imágenes.' } }, (key, value) => /^(image|image_url|logo|imageData|dataUrl)$/i.test(key) ? undefined : value));
+    const selected = selectReportHits(result.results, input.selectedIds);
+    // Do not expose retrieval totals, unselected dossiers or image fields to the model.
+    const search = {query, results:selected, fetchedAt:result.fetchedAt};
+    const relevantMarks = reportMarkGroups(selected).map(({hit,members})=>({name:hit.name,holders:hit.holders,applicationIds:members.map(member=>member.applicationId)}));
+    return JSON.parse(JSON.stringify({ ...facts, search, relevantMarks, interpretation: { scope: 'Solo antecedentes relevantes incluidos en el detalle de la clase activa. Una marca del mismo titular es un antecedente con varios expedientes asociados. Comparar exclusivamente la cobertura de la clase activa. Sin evaluación automática previa. No se han enviado imágenes.' } }, (key, value) => /^(image|image_url|logo|imageData|dataUrl)$/i.test(key) ? undefined : value));
   }
   return context;
 }
@@ -51,15 +55,16 @@ export function deterministicConclusion(input:ConclusionInput):ReportConclusion{
 export const conclusionResponseSchema=z.object({decision:z.enum(['proceed','moderate','avoid','insufficient']).optional(),recommendation:z.enum(['review','proceed','adjust']),paragraphs:z.array(z.string().trim().min(20).max(2400)).min(1).max(6),evidenceApplicationIds:z.array(z.string().max(30)).max(100)}).strict();
 export function validateModelConclusion(value:unknown,input:ConclusionInput):ReportConclusion{
   const parsed=conclusionResponseSchema.parse(value);
-  if(parsed.evidenceApplicationIds.some(id=>!input.result.results.some(h=>h.applicationId===id)))throw new Error('Referencia ajena a la consulta');
+  const evidence = input.proposal.niceClass === undefined ? input.result.results : selectReportHits(input.result.results,input.selectedIds);
+  if(parsed.evidenceApplicationIds.some(id=>!evidence.some(h=>h.applicationId===id)))throw new Error('Referencia ajena a los antecedentes incluidos');
   if (hasPercentages(parsed.paragraphs.join(' '))) throw new Error('La conclusión contiene porcentajes');
   if (input.proposal.niceClass !== undefined) {
     if (!parsed.decision) throw new Error('Falta la decisión para esta clase');
     const recommendations = { proceed: 'proceed', moderate: 'review', avoid: 'adjust', insufficient: 'review' } as const;
     if (recommendations[parsed.decision] !== parsed.recommendation) throw new Error('Decisión y recomendación inconsistentes');
-    if (!input.result.results.length && parsed.decision !== 'insufficient') throw new Error('Una búsqueda vacía no permite afirmar disponibilidad');
+    if (!evidence.length && !input.decision && !input.recommendation && parsed.decision !== 'proceed') throw new Error('Sin antecedentes relevantes incluidos se debe recomendar presentar');
   }
   if(input.decision&&parsed.decision!==input.decision)throw new Error('La respuesta cambió la decisión por clase del autor');
   if(input.recommendation&&parsed.recommendation!==input.recommendation)throw new Error('La respuesta cambió la decisión del autor');
-  return {...parsed,title:parsed.decision ? CLASS_DECISIONS[parsed.decision] : REPORT_RECOMMENDATIONS[parsed.recommendation],source:'openrouter'};
+  return {...parsed,paragraphs:parsed.paragraphs.map(conclusionText),title:parsed.decision ? CLASS_DECISIONS[parsed.decision] : REPORT_RECOMMENDATIONS[parsed.recommendation],source:'openrouter'};
 }

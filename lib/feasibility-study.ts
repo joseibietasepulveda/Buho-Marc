@@ -40,7 +40,7 @@ export function hasPercentages(value: string) {
   return /%|\bpor\s+ciento\b|\bporcent(?:aje|ual)/i.test(value);
 }
 export function requireReviewedConclusion(conclusion?: ReportConclusion) {
-  if (!conclusion || !['openrouter', 'author'].includes(conclusion.source)) throw new Error('Prepara y revisa la conclusión de cada clase antes de generar el informe.');
+  if (!conclusion || !conclusion.paragraphs.some(value=>value.trim()) || !['openrouter', 'author'].includes(conclusion.source)) throw new Error('Prepara la conclusión de cada clase antes de generar el informe.');
   if (hasPercentages([conclusion.title, ...conclusion.paragraphs].join(' '))) throw new Error('Las conclusiones del informe deben expresarse sin porcentajes.');
   return conclusion;
 }

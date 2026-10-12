@@ -67,21 +67,24 @@ test('study replaces an edited class and preserves the other class and its concl
   const changed=upsertClassAnalysis(analyses,{...second,selectedIds:[]});assert.deepEqual(changed[0],first);assert.equal(changed.length,2);assert.equal(analysisClass(changed[1]),43);
   assert.throws(()=>upsertClassAnalysis(analyses,{...first,result:fixtureResult(43)}),/otra clase/);
 });
-test('OpenRouter receives only text, all class evidence and no deterministic recommendation as its starting conclusion',async()=>{
+test('OpenRouter receives only text, selected class evidence and no deterministic recommendation as its starting conclusion',async()=>{
   const analysis=input(30);analysis.result.results.push({...fixtureHit('10031'),image:'data:image/png;base64,secret',sourceEvidence:{search:{image_url:'https://example.test/image',label_description:'Texto factual'}}});
   let calls=0;
   const generated=await generateConclusion(analysis,EMPTY_REPORT_PROFILE,config,async(url,options)=>{
     calls++;const request=JSON.parse(options.body),context=JSON.parse(request.messages[1].content);
-    assert.equal(typeof request.messages[1].content,'string');assert.equal(context.search.results.length,2);assert.equal('deterministicAssessment' in context,false);assert.equal('image' in context.search.results[1],false);assert.equal('image_url' in context.search.results[1].sourceEvidence.search,false);
+    assert.equal(typeof request.messages[1].content,'string');assert.equal(context.search.results.length,1);assert.equal('candidateCount' in context.search,false);assert.equal('searchScope' in context.search,false);assert.equal(context.relevantMarks.length,1);assert.equal('deterministicAssessment' in context,false);assert.equal('image' in context.search.results[0],false);assert.equal(JSON.stringify(context).includes('secret'),false);
     assert.deepEqual(context.search.query.holders,[]);assert.deepEqual(context.search.query.classes,[{nice_class:30,coverage_text:'Confites'}]);assert.equal(context.search.query.name,'Marca de prueba');
     assert.ok(request.response_format.json_schema.schema.required.includes('decision'));
     return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(model)}}]});
   });
   assert.equal(calls,1);assert.equal(generated.conclusion.source,'openrouter');assert.equal(generated.conclusion.decision,'moderate');
 });
-test('class conclusions reject percentages, foreign evidence, inconsistent decisions and ungrounded empty-search availability',()=>{
+test('class conclusions reject percentages, foreign evidence, inconsistent decisions and unselected evidence',()=>{
   for(const output of [{...model,paragraphs:['Existe un 80% de riesgo al presentar.']},{...model,paragraphs:['Existe un ochenta por ciento de riesgo.']},{...model,evidenceApplicationIds:['999']},{...model,decision:'proceed'},{...model,decision:undefined}])assert.throws(()=>validateModelConclusion(output,input(30)));
-  assert.throws(()=>validateModelConclusion({...model,decision:'proceed',recommendation:'proceed',evidenceApplicationIds:[]},{...input(30),result:{...fixtureResult(30),results:[]}}),/vacía/);
+  const empty={...input(30),selectedIds:[]};
+  assert.equal(validateModelConclusion({...model,decision:'proceed',recommendation:'proceed',evidenceApplicationIds:[]},empty).decision,'proceed');
+  assert.throws(()=>validateModelConclusion({...model,evidenceApplicationIds:['10030']},empty),/incluidos/);
+  assert.throws(()=>validateModelConclusion({...model,evidenceApplicationIds:[]},empty),/recomendar presentar/);
   assert.throws(()=>requireReviewedConclusion({source:'deterministic',title:'Revisar',paragraphs:[]}),/Prepara/);
   assert.equal(conclusionInputSchema.safeParse({...input(30),result:fixtureResult(43)}).success,false);
 });
@@ -94,4 +97,16 @@ test('both writers include all classes, use prepared conclusions and refuse to e
   }
   await assert.rejects(createFeasibilityReport({...report,analyses:[{...analyses[0],conclusion:undefined}]}),/Prepara/);
   await assert.rejects(createFeasibilityDocx({...report,analyses:[{...analyses[0],conclusion:{...analyses[0].conclusion,source:'deterministic'}}]}),/Prepara/);
+});
+
+test('logical marks retain associated applications and an explicit empty selection stays empty', async()=>{
+  const {reportMarkGroups,selectReportHits,conclusionText}=await import('../lib/report-selection.ts');
+  const first={...fixtureHit('1'),name:'CIOCCOLATA'},second={...fixtureHit('2'),name:'cioccolata'},third={...fixtureHit('3'),name:' CIOCCOLATA '};
+  const groups=reportMarkGroups([first,second,third]);assert.equal(groups.length,1);assert.deepEqual(groups[0].members.map(hit=>hit.applicationId),['1','2','3']);
+  assert.equal(reportMarkGroups([first,{...second,holders:[{name:'Otro titular'}]}]).length,2);
+  assert.equal(reportMarkGroups([first,{...second,name:'Otra marca'}]).length,2);
+  assert.equal(reportMarkGroups([{...first,holders:[]},{...second,holders:[]}]).length,2);
+  assert.equal(reportMarkGroups([{...first,name:'Marca figurativa sin denominación'},{...second,name:'Marca figurativa sin denominación'}]).length,2);
+  assert.deepEqual(selectReportHits([first,second],[]),[]);assert.equal(selectReportHits([first,second]).length,2);
+  assert.equal(conclusionText('“CIOCCOLATA”,todos los registros: 1,5.'),'“CIOCCOLATA”, todos los registros: 1,5.');
 });

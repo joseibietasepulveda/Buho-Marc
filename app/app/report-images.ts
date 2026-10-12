@@ -1,26 +1,35 @@
 import { trademarkImageSrc } from "@/lib/trademark-image";
 import { type SimilarityHit } from "@/lib/similarity-contract";
+import { reportMarkGroups } from '@/lib/report-selection';
 export async function reportImages(hits:SimilarityHit[]) {
   const images:Record<string,Uint8Array>={}, missing:string[]=[];
+  const marks=reportMarkGroups(hits);
   let index=0; const deadline=Date.now()+45000;
-  await Promise.all(Array.from({length:Math.min(4,hits.length)},async()=>{
+  await Promise.all(Array.from({length:Math.min(4,marks.length)},async()=>{
     for(;;){
-      const hit=hits[index++]; if(!hit) return;
-      const src=trademarkImageSrc(hit.image, hit.applicationId); if(!src) continue;
-      if(Date.now()>=deadline){missing.push(hit.name);continue;}
-      try {
-        const response=await fetch(src,{signal:AbortSignal.timeout(Math.min(16000,Math.max(1,deadline-Date.now())))});
-        if(!response.ok) throw new Error();
-        const bitmap=await createImageBitmap(await response.blob());
+      const mark=marks[index++]; if(!mark) return;
+      let loaded=false,hasImage=false;
+      for(const hit of mark.members){
+        const src=trademarkImageSrc(hit.image, hit.applicationId); if(!src) continue;
+        hasImage=true;
+        if(Date.now()>=deadline)break;
         try {
-          const scale=Math.min(1,600/Math.max(bitmap.width,bitmap.height));
-          const canvas=document.createElement("canvas");canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);
-          const context=canvas.getContext("2d");if(!context)throw new Error();
-          context.fillStyle="#fff";context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(bitmap,0,0,canvas.width,canvas.height);
-          const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error()),"image/png"));
-          images[hit.applicationId]=new Uint8Array(await blob.arrayBuffer());
-        } finally {bitmap.close();}
-      } catch {missing.push(hit.name);}
+          const response=await fetch(src,{signal:AbortSignal.timeout(Math.min(16000,Math.max(1,deadline-Date.now())))});
+          if(!response.ok) throw new Error();
+          const bitmap=await createImageBitmap(await response.blob());
+          try {
+            const scale=Math.min(1,600/Math.max(bitmap.width,bitmap.height));
+            const canvas=document.createElement("canvas");canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);
+            const context=canvas.getContext("2d");if(!context)throw new Error();
+            context.fillStyle="#fff";context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+            const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error()),"image/png"));
+            images[hit.applicationId]=new Uint8Array(await blob.arrayBuffer());
+            loaded=true;
+          } finally {bitmap.close();}
+        } catch { /* Try another associated application before reporting a missing mark logo. */ }
+        if(loaded)break;
+      }
+      if(hasImage&&!loaded)missing.push(mark.hit.name);
     }
   }));
   return {images,missing};
