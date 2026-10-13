@@ -42,7 +42,7 @@ Los informes PDF y Word editable siguen el ejemplo revisado por el cliente: tama
 
 La conclusión puede redactarse mediante OpenRouter. Sin clave, error, tiempo agotado o respuesta inválida, el informe usa una conclusión determinista. Cada generación guarda su contexto, resultado e identificador, además del uso y costo cuando el proveedor los entrega. PDF y Word reutilizan la misma conclusión. La integración fue probada con un proveedor aislado; no se realizó una llamada con una clave real.
 
-Para uso local, copia [openrouter.example.txt](openrouter.example.txt) a `openrouter.private.txt` y completa `OPENROUTER_API_KEY`. El archivo privado queda fuera de Git. Modelo predeterminado: `openai/gpt-4.1-mini`, modificable con `OPENROUTER_MODEL`. En Railway, configura esas variables privadas en el servicio web de Dev: el archivo local no se publica. Las variables del servidor tienen prioridad.
+Para uso local, copia [openrouter.example.txt](openrouter.example.txt) a `openrouter.private.txt` y completa `OPENROUTER_API_KEY`. El archivo privado queda fuera de Git. Modelo predeterminado: `openai/gpt-4.1-mini`, modificable con `OPENROUTER_MODEL`. En Railway, esas variables privadas se configuran por ambiente en el servicio `buho-marc-web`: el archivo local no se publica. Dev y producción tienen configurada la misma clave de inferencia por petición del usuario; [ubicación y operación](docs/handoffs/2026-10-12-openrouter-produccion.md). Las variables del servidor tienen prioridad.
 
 Las fichas de clientes ofrecen informes de cartera en Excel (formato inicial), Word y PDF con columnas seleccionables y los datos guardados disponibles, sin iniciar otra consulta a INAPI.
 
@@ -151,7 +151,7 @@ La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](doc
 - [Control de consumo y programación por cartera](docs/COST_CONTROL.md): Daniel automático, Búho a pedido.
 
 
-La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. OpenRouter quedó activado en Dev con una clave de inferencia exclusiva; su activación en producción continúa pendiente.
+La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. OpenRouter quedó activado en Dev con una clave de inferencia exclusiva; producción reutiliza esa clave desde el 12 de octubre por autorización explícita, conservando el modelo y presupuesto compartido.
 
 ### Backlog · Registro de marcas
 
