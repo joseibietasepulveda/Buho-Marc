@@ -2,7 +2,7 @@
 
 - Actualizado: 2026-10-13, America/Santiago.
 - Estado: listo para revisión; implementación y QA locales completas.
-- Rama y base: `codex/resumen-plazos-futuros`; Dev `aed6392ba5073eca7578eeae3cc30c16b937a61e` (PR #60, columnas del resumen).
+- Rama y base: `codex/resumen-plazos-futuros`; inicio en Dev `aed6392ba5073eca7578eeae3cc30c16b937a61e` (PR #60, columnas del resumen), actualizado mediante rebase a `ced9eee` (PR #62, cierre documental). Commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`.
 - Carpeta aislada: `/tmp/buho-resumen-plazos-worktree-20261013`, worktree del clon `/tmp/buho-resumen-plazos-20261013`. La creación administrada desde el checkout original falló por lookup de Git; sus archivos dataless y cambios ajenos no se modifican. El intento de adjuntar la carpeta mediante Codex también fue rechazado porque no es un worktree administrado.
 - PR y commit de entrega: pendientes. El usuario confirmó que terminó el otro agente; se prepara la subida y PR hacia Dev, con merge pendiente de revisión.
 
@@ -24,7 +24,7 @@ Usuario: cuando «Atención de tus solicitudes» tenga menos de cinco eventos en
 
 ## Coordinación e integración
 
-Archivos compartidos: `app/app/page.tsx` y `app/app/design-refresh.css`. Cambios limitados a `RegistrationsSummary` y una regla CSS local; preservar columnas del PR #60 y cambios de otros chats. Sin API, contratos persistentes, migraciones ni dependencias nuevas. La agenda de octubre conserva su filtro mensual; el panel Atención admite próximos meses. Dev avanzó a `ced9eee` (PR #62, cierre documental de columnas); incorporar antes de subir. Producción no está autorizada.
+Archivos compartidos: `app/app/page.tsx` y `app/app/design-refresh.css`. Cambios limitados a `RegistrationsSummary` y una regla CSS local; preservar columnas del PR #60 y cambios de otros chats. Sin API, contratos persistentes, migraciones ni dependencias nuevas. La agenda de octubre conserva su filtro mensual; el panel Atención admite próximos meses. Dev `ced9eee` incorporado por rebase sin conflictos: únicamente avanzó `docs/handoffs/2026-10-12-resumen-registros-columnas.md`. No hay cambios funcionales adicionales que justifiquen repetir build/QA; `git diff --check origin/dev` aprobado después del rebase. Producción no está autorizada.
 
 ## Verificación
 
