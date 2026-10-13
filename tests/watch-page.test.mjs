@@ -40,12 +40,12 @@ test('followed results outside the current stock stay accessible without duplica
  assert.equal(watchPage(data,new URLSearchParams({followState:'Convertida en caso'})).followed.length,0);
 });
 
-test('baseline, commercial filters and paused targets stay out of new counts without deleting access',()=>{
+test('initial and later findings share the inbox, retain commercial filtering and paused history',()=>{
  const [one,two,three,four]=targets[0].results;
  const data={...snapshot,targets:[{...targets[0],results:[{...one,discoveryKind:'baseline'},{...two,commercialRelevance:'unrelated'},{...three,commercialRelevance:'unknown'},four]}]};
- const page=watchPage(data,new URLSearchParams());assert.equal(page.count,2);assert.equal(page.baselineCount,1);
- const history=watchPage(data,new URLSearchParams({scope:'baseline'}));assert.equal(history.groups[0].rows[0].hits[0].applicationId,one.applicationId);
- assert.equal(watchPage(data,new URLSearchParams({relevance:'all'})).count,3);
- assert.equal(watchPage({...data,targets:[{...data.targets[0],paused:true}]},new URLSearchParams()).count,0);
+ const page=watchPage(data,new URLSearchParams());assert.equal(page.count,3);assert.equal(page.baselineCount,0);
+ const history=watchPage(data,new URLSearchParams({scope:'baseline'}));assert.equal(history.count,3);assert.deepEqual(history.groups,page.groups);
+ assert.equal(watchPage(data,new URLSearchParams({relevance:'all'})).count,4);
+ assert.equal(watchPage({...data,targets:[{...data.targets[0],paused:true}]},new URLSearchParams()).count,1);
  assert.equal(data.targets[0].results.length,4);
 });

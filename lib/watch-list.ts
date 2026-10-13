@@ -35,7 +35,7 @@ export function matchesPublication(hit: Pick<SimilarityHit, 'publishedAt'>, filt
   if (source === 'official' && !day) return false;
   return (!filter.from || !!day && day >= filter.from) && (!filter.to || !!day && day <= filter.to);
 }
-export type DiscoveryScope = 'new' | 'baseline';
+export type DiscoveryScope = 'all' | 'new' | 'baseline';
 export function featuredGroups(targets: WatchTarget[], query: string, publication = DEFAULT_PUBLICATION_FILTER) {
   return filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
     const visible = hits.filter(hit => hit.featuredRank !== undefined && matchesPublication(hit, publication))
@@ -43,10 +43,10 @@ export function featuredGroups(targets: WatchTarget[], query: string, publicatio
     return visible.length ? [{ target, hits: visible }] : [];
   }).sort((a, b) => a.hits[0].featuredRank! - b.hits[0].featuredRank!);
 }
-export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings, publication = DEFAULT_PUBLICATION_FILTER, scope: DiscoveryScope = 'new', relevance: 'related' | 'all' = 'related') {
+export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings, publication = DEFAULT_PUBLICATION_FILTER, scope: DiscoveryScope = 'all', relevance: 'related' | 'all' = 'related') {
   return (['Alta', 'Media'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
-    const visible = hits.filter(hit => hit.featuredRank === undefined && (scope === 'baseline' || !target.paused) &&
-      ((hit.discoveryKind ?? 'baseline') === 'baseline') === (scope === 'baseline') &&
+    const visible = hits.filter(hit => hit.featuredRank === undefined && (!target.paused || (hit.discoveryKind ?? 'baseline') === 'baseline') &&
+      (scope === 'all' || ((hit.discoveryKind ?? 'baseline') === 'baseline') === (scope === 'baseline')) &&
       (relevance === 'all' || hit.commercialRelevance !== 'unrelated') &&
       !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
     return visible.length ? [{ target, hits: visible }] : [];

@@ -11,13 +11,12 @@ export function watchPage(snapshot: WatchSnapshot, params: URLSearchParams) {
     from: params.get("from") || "", to: params.get("to") || "",
   };
   const groupLimit = positive(params.get("groups"), 10, 2000);
-  const scope = params.get('scope') === 'baseline' ? 'baseline' : 'new';
+  // Legacy scope parameters are aliases of the unified inbox.
+  const scope = 'new' as const;
   const relevance = params.get('relevance') === 'all' ? 'all' : 'related';
-  const newGroups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication, 'new', relevance);
-  const baselineGroups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication, 'baseline', relevance);
-  const groups = scope === 'baseline' ? baselineGroups : newGroups;
+  const groups = discoveryGroups(snapshot.targets, params.get("q") || "", settings, publication, 'all', relevance);
   const featured = featuredGroups(snapshot.targets, params.get("q") || "", publication);
-  const groupCount = (groups: typeof newGroups) => groups.reduce((n, g) => n + g.rows.reduce((m, r) => m + r.hits.length, 0), 0);
+  const groupCount = (bands: typeof groups) => bands.reduce((n, g) => n + g.rows.reduce((m, r) => m + r.hits.length, 0), 0);
   const followed = followedGroups(snapshot.targets, params.get("q") || "", publication);
   const pageRows = (rows: typeof followed, band: string) => rows.slice(0, groupLimit).map(row => ({
     ...row, total: row.hits.length,
@@ -33,7 +32,7 @@ export function watchPage(snapshot: WatchSnapshot, params: URLSearchParams) {
     total: ownTargets.length, reviewed: ownTargets.filter(t => t.reviewedAt).length,
     pending: ownTargets.filter(t => ["queued", "running", "retry"].includes(t.status) && !t.paused).length,
     reviewedAt: ownTargets.reduce<string | null>((latest, t) => t.reviewedAt && (!latest || t.reviewedAt > latest) ? t.reviewedAt : latest, null),
-    scope, relevance, count: groupCount(newGroups), baselineCount: groupCount(baselineGroups),
+    scope, relevance, count: groupCount(groups) + featured.reduce((n, row) => n + row.hits.length, 0), baselineCount: 0,
     followedCount: followed.reduce((n, r) => n + r.hits.length, 0),
     groups: groups.map(g => ({ level: g.level, totalGroups: g.rows.length, rows: pageRows(g.rows, g.level) })),
     featured: featured.map(row => ({ ...row, total: row.hits.length, target: { ...row.target, results: [], savedResults: [] } })),
