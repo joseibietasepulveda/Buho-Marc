@@ -1,7 +1,7 @@
 # Traspaso: completar atención con próximos plazos
 
 - Actualizado: 2026-10-13, America/Santiago.
-- Estado: listo para revisión; implementación y QA locales completas.
+- Estado: actualización e integración en Dev en curso; PR #64 recuperado y actualizado sobre Dev vigente.
 - Rama y base: `codex/resumen-plazos-futuros`; inicio en Dev `aed6392ba5073eca7578eeae3cc30c16b937a61e` (PR #60, columnas del resumen), actualizado mediante rebase a `ced9eee` (PR #62, cierre documental). Commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`.
 - Carpeta aislada: `/tmp/buho-resumen-plazos-worktree-20261013`, worktree del clon `/tmp/buho-resumen-plazos-20261013`. La creación administrada desde el checkout original falló por lookup de Git; sus archivos dataless y cambios ajenos no se modifican. El intento de adjuntar la carpeta mediante Codex también fue rechazado porque no es un worktree administrado.
 - PR de entrega: [#64](https://github.com/joseibietasepulveda/Buho-Marc/pull/64), abierto hacia Dev y adjunto al chat; commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`. El usuario confirmó que terminó el otro agente; rama subida, merge pendiente de revisión.
@@ -42,3 +42,13 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, dependencias instaladas con `npm ci 
 ## Pendientes y siguiente paso
 
 Revisar y, cuando esté autorizado, integrar PR #64. Si Dev vuelve a avanzar, actualizar antes del merge y repetir verificaciones afectadas. Después de integrarlo verificar Railway Dev y documentar la integración. No promover a Main ni desplegar producción.
+
+## Continuación: publicación preservando los nuevos commits de Dev
+
+- Usuario: solicita subir el cambio resguardando los commits posteriores de otros chats, tras comprobar que el PR continuaba abierto. Se procede a actualizar e integrar en Dev; Main/producción no se promueven sin petición explícita.
+- La carpeta temporal anterior ya no existe. Se recuperó la rama publicada `23d4884` en un worktree durable propio: `/Users/rosariovial/.codex/worktrees/resumen-plazos-integracion-20261013`, clon base `/Users/rosariovial/.codex/checkouts/buho-resumen-plazos-20261013`. Otro intento de creación administrada devolvió `Git ref lookup failed`; la carpeta original permanece intacta.
+- Base vigente incorporada por merge sin conflictos: Dev `4929795e07758c0db6d57fd0e05f543aa8b1395b`, con PR #65/#67 (recuperación de conclusiones) y #69/#71 (flecha Niza y sus cierres documentales).
+- Se comprobó que Dev es ancestro de la rama y que los archivos nuevos de factibilidad, Niza, estilos del selector y lógica de conclusiones son idénticos a Dev. La diferencia funcional pendiente sigue limitada a `RegistrationsSummary` y una regla CSS del panel.
+- Verificación conjunta repetida sobre la versión combinada: `npm ci --no-audit --no-fund`; build con webpack, TypeScript y 36 páginas aprobado; ESLint de `app/app/page.tsx` y diff aprobados; 33 pruebas de procedimiento, renovación y conclusiones (`tests/registration-procedure.test.mjs`, `tests/registration-renewal.test.mjs`, `tests/feasibility-conclusion.test.mjs`) aprobadas, con proveedor de IA simulado y sin llamadas externas.
+- `node --import ./tests/ts-loader.mjs outputs/verify-registration-summary.mjs`: comprobación de la selección extraída del componente vigente, con escenarios B&E, prioridad/relleno, límite de cinco, frontera cinco/seis días hábiles, exclusiones, vacío y datos intactos. Aprobada. `app/app/page.tsx` y `app/app/design-refresh.css` no tienen diferencias frente al commit probado visualmente `23d4884`; no se repite la QA visual anterior sin un cambio de esas superficies.
+- Referencias de integración y despliegue: pendientes.
