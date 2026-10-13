@@ -4,7 +4,7 @@
 - Estado: listo para revisión; implementación y QA locales completas.
 - Rama y base: `codex/resumen-plazos-futuros`; inicio en Dev `aed6392ba5073eca7578eeae3cc30c16b937a61e` (PR #60, columnas del resumen), actualizado mediante rebase a `ced9eee` (PR #62, cierre documental). Commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`.
 - Carpeta aislada: `/tmp/buho-resumen-plazos-worktree-20261013`, worktree del clon `/tmp/buho-resumen-plazos-20261013`. La creación administrada desde el checkout original falló por lookup de Git; sus archivos dataless y cambios ajenos no se modifican. El intento de adjuntar la carpeta mediante Codex también fue rechazado porque no es un worktree administrado.
-- PR y commit de entrega: pendientes. El usuario confirmó que terminó el otro agente; se prepara la subida y PR hacia Dev, con merge pendiente de revisión.
+- PR de entrega: [#64](https://github.com/joseibietasepulveda/Buho-Marc/pull/64), abierto hacia Dev y adjunto al chat; commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`. El usuario confirmó que terminó el otro agente; rama subida, merge pendiente de revisión.
 
 ## Objetivo y alcance
 
@@ -37,7 +37,8 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, dependencias instaladas con `npm ci 
 - Primer fixture de vacío falló porque incluía un cierre de renovación legal futuro válido; se corrigió la expectativa del fixture usando una renovación fuera del calendario cubierto, sin cambiar las reglas de producto para ocultar plazos legales válidos.
 - Revisión visual con CUA del render local y CSS real a 1280×900 y 390×844: etiquetas violetas para futuros, urgentes conservadas, nombres/fechas legibles y página sin desbordamiento horizontal. Cinco filas verificadas en el render; los elementos inferiores siguen disponibles mediante desplazamiento. Evidencia local ignorada en `outputs/resumen-plazos-*.png` y `outputs/registration-summary-qa.json`.
 - QA visual sirve un render estático del componente con datos simulados; no acredita persistencia, navegación de botones ni consultas HTTP de la aplicación completa. Esas interfaces no cambiaron. No hubo consultas INAPI, OpenRouter, escrituras en carteras reales ni despliegues.
+- Servidor de fixtures local detenido al terminar la revisión; no queda una aplicación ni base de QA activa de este ajuste.
 
 ## Pendientes y siguiente paso
 
-Incorporar el cierre documental de Dev, subir la rama y abrir PR. Merge pendiente de revisión; después de integrarlo verificar Railway Dev y documentar la integración. No promover a Main ni desplegar producción.
+Revisar y, cuando esté autorizado, integrar PR #64. Si Dev vuelve a avanzar, actualizar antes del merge y repetir verificaciones afectadas. Después de integrarlo verificar Railway Dev y documentar la integración. No promover a Main ni desplegar producción.
