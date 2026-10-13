@@ -1,0 +1,60 @@
+.buho-app .buho-metrics.has-domain-metrics { grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; }
+.buho-app .buho-metrics.has-domain-metrics button { padding:16px; }
+.buho-app .buho-metrics.has-domain-metrics button>span { display:flex; align-items:center; gap:6px; }
+.domains-preview { min-width:0; }
+.domain-mock-note { padding:12px 16px; border:1px solid #e5dbf5; border-radius:8px; background:#f7f3fd; color:#625477; font-size:13px; }
+.domain-mock-note>span { font-weight:650; margin-right:8px; color:#713b9c; }
+.domain-tabs { display:flex; gap:6px; margin:22px 0; border-bottom:1px solid #e7e2eb; overflow:auto; }
+.domain-tabs button { border:0; border-bottom:3px solid transparent; padding:12px 18px; color:#716b7a; background:transparent; font:inherit; cursor:pointer; white-space:nowrap; }
+.domain-tabs button[aria-selected="true"] { color:#7549aa; border-bottom-color:#a855f7; font-weight:600; }
+.domain-toolbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; }
+.domain-toolbar label,.domain-form label,.domain-feasibility form>label { display:flex; flex-direction:column; gap:8px; font-size:13px; font-weight:500; }
+.domain-toolbar input,.domain-form input,.domain-form select,.domain-feasibility form>label input,.domain-inline-form input { background:#fff; color:#251b32; border:1px solid #ddd6e5; border-radius:7px; padding:12px 14px; font:inherit; min-width:0; }
+.domain-toolbar input { width:min(360px,100%); }
+.domain-table-wrap { border:1px solid #e7e2eb; background:#fff; border-radius:12px; overflow:auto; }
+.domain-table { width:100%; min-width:740px; border-collapse:collapse; font-size:14px; }
+.domain-table th { text-align:left; padding:14px 18px; background:#faf9fc; color:#777080; font-size:12px; font-weight:500; }
+.domain-table td { padding:20px 18px; border-top:1px solid #eeeaf2; }
+.domain-name { border:0; background:transparent; color:#6d3e99; cursor:pointer; font:inherit; font-weight:600; padding:4px 0; }
+.domain-name:hover { text-decoration:underline; }
+.domain-status { display:inline-block; font-size:11px; color:#78539c; background:#f3edf9; border:1px solid #e7dcf4; padding:5px 8px; border-radius:5px; white-space:nowrap; }
+.domain-status.is-available { background:#e9f5ef; color:#2b7e58; border-color:#d5eadd; }
+.domain-footnote,.domain-empty { font-size:13px; color:#7d7387; line-height:1.7; }
+.domain-empty { padding:25px; background:#fff; border:1px dashed #ded6e8; border-radius:8px; }
+.domain-brand-section { margin:20px 0; padding:20px; border:1px solid #e5dbf5; border-radius:9px; background:#fcfaff; }
+.domain-brand-section header { display:flex; gap:15px; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.domain-brand-section h3 { font-size:16px; margin:0; }
+.domain-brand-section p { color:#776c80; font-size:13px; margin:7px 0; }
+.domain-unassociated,.domain-associated { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+.domain-associated small { flex-basis:100%; color:#776c80; }
+.domain-associated>button { border:0; background:transparent; font:inherit; color:#764b9e; cursor:pointer; }
+.domain-inline-form { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.domain-inline-form input { flex:1; min-width:170px; }
+.domain-error { color:#ad3550 !important; }
+.domain-dialog.review-dialog { width:min(560px,calc(100vw - 32px)); }
+.domain-form { display:flex; flex-direction:column; gap:18px; padding:24px; font-size:14px; }
+.domain-form p { color:#766a80; line-height:1.6; margin:0; }
+.domain-dialog .domain-form footer { display:flex; justify-content:flex-end; gap:10px; min-height:0; background:transparent; padding:16px 0 0; margin:0; border-top:1px solid #eee7f4; }
+.domain-dialog .buho-primary,.domain-dialog .buho-secondary { padding:11px 16px; border-radius:7px; border:1px solid #ddd6e5; font:inherit; cursor:pointer; }
+.domain-dialog .buho-primary { background:#a855f7; color:#fff; border-color:#a855f7; }
+.domain-dialog .buho-secondary { background:#fff; color:#574566; }
+.domain-detail { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:0; }
+.domain-detail dt { color:#887b91; font-size:12px; }
+.domain-detail dd { margin:7px 0 0; }
+.domain-form a,.domain-feasibility a { color:#7844a7; }
+.domain-feasibility { padding:28px; border:1px solid #e7e2eb; border-radius:12px; background:#fff; }
+.domain-feasibility h2 { font-size:20px; margin:0 0 10px; }
+.domain-feasibility>p { color:#776c80; font-size:14px; line-height:1.6; }
+.domain-feasibility form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:20px; margin:25px 0 18px; }
+.domain-feasibility form>label { flex:1; min-width:220px; }
+.domain-feasibility fieldset { border:0; padding:0; margin:0; display:flex; gap:18px; }
+.domain-feasibility legend { margin-bottom:12px; color:#776c80; font-size:12px; }
+.domain-feasibility fieldset label { display:flex; align-items:center; gap:7px; font-size:13px; }
+.domain-feasibility input[type="radio"] { appearance:auto; accent-color:#a855f7; width:16px; height:16px; }
+.domain-search-results article,.domain-notices article { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px; margin-top:14px; border:1px solid #e7e2eb; border-radius:9px; background:#fff; }
+.domain-search-results h3,.domain-notices h3 { margin:8px 0 12px; font-size:16px; }
+.domain-search-results p,.domain-notices p { color:#7d7387; font-size:13px; margin:8px 0; }
+.domain-notices button:disabled,.domain-search-results button:disabled { opacity:.65; cursor:default; }
+.domain-table button:focus-visible,.domain-tabs button:focus-visible,.domains-preview input:focus-visible,.domain-brand-section input:focus-visible { outline:2px solid #a855f7; outline-offset:3px; }
+@media(max-width:1200px) { .buho-app .buho-metrics.has-domain-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:700px) { .buho-app .buho-metrics.has-domain-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .domain-toolbar,.domain-search-results article,.domain-notices article { align-items:stretch; flex-direction:column; } .domain-feasibility { padding:18px; } .domain-brand-section header { flex-wrap:wrap; } }

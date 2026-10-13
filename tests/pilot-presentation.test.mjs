@@ -7,7 +7,7 @@ import { watchPage } from '../lib/watch-page.ts';
 
 test('FA presentation capabilities use a stable tenant slug', () => {
   assert.deepEqual(workspacePolicy('fa-abogados'), { sourceAdmin:false, about:false, changePassword:false });
-  assert.deepEqual(workspacePolicy('estudio-ibieta-ip', 'admin'), { sourceAdmin:true, about:true, changePassword:true, internalExamples:true });
+  assert.deepEqual(workspacePolicy('estudio-ibieta-ip', 'admin'), { sourceAdmin:true, about:true, changePassword:true, internalExamples:true, domainsPreview:true });
   assert.equal(workspacePolicy().changePassword, false);
 });
 test('only the Buho admin receives internal capabilities',()=>{
