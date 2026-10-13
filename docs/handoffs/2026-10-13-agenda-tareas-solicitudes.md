@@ -2,8 +2,8 @@
 
 - Actualizado: 2026-10-13, America/Santiago.
 - Estado: listo para integración; verificación local aprobada.
-- Rama y base: `codex/agenda-tareas-solicitudes`; Dev `7db36ad1e3fa8269096db1d67bfa522a3e5b53d6`.
-- PR y commit de entrega: pendiente.
+- Rama y base: Dev `codex/agenda-tareas-solicitudes`, base `7db36ad1e3fa8269096db1d67bfa522a3e5b53d6`; Main `codex/agenda-tareas-solicitudes-main`, base `a40352adb07efd34d35f99b3a7fb9a380b6c1d49`.
+- PR y commit de entrega: [Dev #74](https://github.com/joseibietasepulveda/Buho-Marc/pull/74), funcional `07a8a50a2dd323b27f91038340b80634bdca872a`, integrado en `8bccfe07e5b61a72283e7c2f1362869c43380fa2`. Main: traslado funcional `e3e2adf`, PR pendiente.
 
 ## Objetivo y alcance
 
@@ -44,3 +44,11 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, Chromium 1243/Playwright del runtime
 ## Pendientes y siguiente paso
 
 Abrir/adjuntar PR a Dev e integrar; trasladar el mismo ajuste a la base actual de Main, verificar versión combinada y publicar; comprobar SHA/estado Railway y salud de ambos ambientes. Actualizar esta nota con las referencias definitivas.
+
+## Integración y verificación de Main
+
+- PR #74 integrado en Dev con HEAD exacto y base sin avances posteriores; se preserva el Dev anterior `7db36ad`. Publicación automática Railway en curso al preparar Main.
+- Main recibe únicamente el commit del ajuste por cherry-pick sin conflictos sobre `a40352a`. Su `RegistrationsSummary` se conserva idéntico a su base; no se incorpora el relleno de cinco plazos de otra entrega Dev.
+- Worktree propio Main: `/Users/rosariovial/.codex/worktrees/agenda-tareas-solicitudes-main-20261013`. `package-lock.json` idéntico; reutiliza dependencias instaladas sin modificación mediante enlace de `node_modules`, con `.next` independiente.
+- Sobre Main: 23/23 pruebas de tareas/procedimiento/renovación, ESLint y build/TypeScript/36 páginas aprobados. Diff y consumidores compartidos (`lib/agenda.ts`, `legal-agenda.tsx`, `registrations.tsx`) comprobados. Dashboard/callbacks y esos consumidores coinciden con Dev probado en navegador; las diferencias restantes de `page.tsx` están exclusivamente en el resumen de registros no afectado. No se repite el recorrido visual sin diferencias de su superficie.
+- Sin migraciones, variables o cambios de base; se conservan los ambientes y carteras propios. Pendiente confirmar ambos SHA desplegados y salud remota; ninguna comprobación local acredita todavía el despliegue Main.
