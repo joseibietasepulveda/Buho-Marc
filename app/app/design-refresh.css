@@ -432,6 +432,7 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .dashboard-attention-item header { display:flex; justify-content:space-between; align-items:center; gap:10px; }
 .dashboard-attention-item h3 { font-size:16px; margin:0; }
 .dashboard-attention-item header>span { font-size:12px; background:#f9eaf0; color:#a83d56; border-radius:6px; padding:5px 9px; }
+.registrations-dashboard .dashboard-attention-item header>span[data-attention="normal"] { background:#f3eef8; color:#70468b; }
 .dashboard-attention-item>p { margin:7px 0 12px; font-size:14px; color:#72697d; }
 .dashboard-publication-note { background:#f3edf8; border:1px solid #e1dce8; border-radius:8px; padding:13px 15px; font-size:13px; line-height:1.6; }
 .dashboard-attention-item footer { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; font-size:14px; }
