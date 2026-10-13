@@ -50,6 +50,14 @@ Para uso local, copia [openrouter.example.txt](openrouter.example.txt) a `openro
 
 Las fichas de clientes ofrecen informes de cartera en Excel (formato inicial), Word y PDF con columnas seleccionables y los datos guardados disponibles, sin iniciar otra consulta a INAPI.
 
+## Preparación de presentación B&E
+
+Vigilancia usa una escala local más compacta en escritorio. Sus bandejas comparten datos ya cargados. Las opciones Administrador de fuente, Acerca de esta versión y Cambiar clave sólo están habilitadas para el administrador de Búho Marc; la API aplica la misma autorización por organización y rol.
+
+En factibilidad, cambiar la recomendación borra la conclusión anterior. Al generar nuevamente, IA - Buho Marc redacta argumentos coherentes y termina con la decisión elegida por el abogado. Generada por IA permite que la IA decida. Los cambios de formato y las descargas siguen reutilizando la conclusión preparada.
+
+B&E incorpora BRANDON METRICS, Boretek y BRUMA con sus registros y cruces reales. El resumen prioriza TV ELQUI, BRANDON METRICS y Boretek; BRUMA también queda destacada en Vigilancia. [Alcance, evidencia y pruebas](docs/handoffs/2026-10-12-presentacion-barros-errazuriz.md).
+
 ## Ambiente y documentos
 
 - [Aplicación producción](https://buho-marc-web-production.up.railway.app/app).
