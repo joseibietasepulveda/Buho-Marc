@@ -449,6 +449,10 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .buho-app .buho-brands-table .buho-brand-cell strong { font-size:14px!important; line-height:1.4; }
 .buho-app .buho-brands-table .buho-brand-cell small { font-size:12px!important; line-height:1.5; }
 .buho-app .buho-brands-table :is(.client-brand-link,.buho-client-cell,.portfolio-watch-count,.buho-status-cell) { font-size:13px!important; }
+.buho-app .buho-view-brands select.buho-status-trigger.buho-monitoring-select { width:auto; min-height:34px; padding:5px 10px; padding-right:28px!important; border-radius:99px; background-position:right 8px center!important; font-size:13px; font-weight:820; }
+.buho-app .buho-view-brands select.buho-status-trigger.buho-monitoring-select.is-active { color:#2b7c56; border-color:#a9d7b9; background-color:#e1f4e7; }
+.buho-app .buho-view-brands select.buho-status-trigger.buho-monitoring-select.is-off { color:#62616a; border-color:#c8c5cd; background-color:#ecebef; }
+.buho-monitoring-select option { color:#241b29; background:#fffdfa; }
 .buho-app .brand-portfolio-actions label { display:grid; gap:7px; height:auto; align-content:end; }
 .buho-app .brand-portfolio-actions label>span { margin:0; text-transform:none; letter-spacing:0; font-family:inherit; font-size:12px; line-height:1.4; color:#72697d; font-weight:600; }
 .buho-app .brand-portfolio-actions :is(select,input) { height:44px!important; min-height:44px!important; }
