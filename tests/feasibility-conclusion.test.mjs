@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { generateConclusion } from '../lib/openrouter-conclusion.ts';
 import { conclusionInputSchema, deterministicConclusion, conclusionContext } from '../lib/feasibility-conclusion.ts';
 import { EMPTY_REPORT_PROFILE, reportProfileSchema } from '../lib/report-profile.ts';
+import { conclusionFailureMessage } from '../lib/conclusion-failure.ts';
 const mark = (id, score=.8) => ({applicationId:id,registrationId:null,name:`Marca ${id}`,type:'Denominativa',image:'',holders:[{name:'Titular'}],classes:[{nice_class:30,coverage_text:'Confites y caramelos'}],filedAt:'2026-01-01',publishedAt:null,registeredAt:null,status:'En Trámite',statusCode:'P',score,channels:{name:{rank:1}},history:[{date:'2026-01-01',title:'Presentación',detail:'Antecedente textual completo'}],sourceEvidence:{search:{label_description:'Descripción de etiqueta'},dossier:{representatives:[{name:'Representante'}]}}});
 const input = conclusionInputSchema.parse({proposal:{name:'Marca propuesta',coverage:[{nice_class:30,text:'Confites'}]},result:{query:mark(''),results:[mark('123'),mark('124')],groups:[],warnings:['Datos por verificar'],candidateCount:50,elapsedSeconds:1,fetchedAt:'2026-10-02T12:00:00Z'},selectedIds:['123']});
 const config={apiKey:'fixture-key',model:'openai/gpt-4.1-mini'};
@@ -87,4 +88,85 @@ test('a correct chosen title cannot mask contrary prose in an earlier paragraph'
  const chosen={...input,proposal:{...input.proposal,niceClass:30},decision:'proceed',recommendation:'proceed'};
  const generated=await generateConclusion(chosen,EMPTY_REPORT_PROFILE,config,async()=>response({decision:'proceed',recommendation:'proceed',paragraphs:['Por lo tanto, se recomienda evitar la presentación de la marca en la clase 30.', 'Se recomienda presentar la solicitud para los productos de la clase activa.'],evidenceApplicationIds:['123']}));
  assert.equal(generated.conclusion.reason,'invalid_response');
+});
+
+test('the second class recovers a rejected ending without changing the first class or its evidence',async()=>{
+  const firstInput={...input,proposal:{...input.proposal,niceClass:30}};
+  const first=await generateConclusion(firstInput,EMPTY_REPORT_PROFILE,config,async()=>response({decision:'avoid',recommendation:'adjust',paragraphs:['Los antecedentes de esta clase justifican revisar la denominación antes de presentar.'],evidenceApplicationIds:['123']}));
+  const saved=JSON.stringify(first);
+  const secondInput={...firstInput,proposal:{...firstInput.proposal,niceClass:29,coverage:[{nice_class:29,text:'Productos de prueba'}]},result:{...input.result,results:input.result.results.map(hit=>({...hit,classes:[{nice_class:29}]}))},decision:'moderate',recommendation:'review'};
+  const good={decision:'moderate',recommendation:'review',paragraphs:['Los antecedentes seleccionados requieren comparar los productos concretos de esta clase.', 'Se recomienda presentar con riesgo moderado de oposición para la cobertura propuesta.'],evidenceApplicationIds:['123']};
+  const requests=[];
+  const recovered=await generateConclusion(secondInput,EMPTY_REPORT_PROFILE,config,async(url,options)=>{
+    const request=JSON.parse(options.body);requests.push({request,signal:options.signal});
+    return response(requests.length===1?{...good,paragraphs:['Conviene presentar con condiciones tras comparar los antecedentes seleccionados.']}:good,{id:'attempt-'+requests.length});
+  });
+  assert.equal(requests.length,2);assert.equal(requests[0].signal,requests[1].signal);
+  assert.equal(requests[0].request.provider.require_parameters,true);
+  assert.equal(requests[0].request.messages[1].content,requests[1].request.messages[1].content);
+  const context=JSON.parse(requests[1].request.messages[1].content);
+  assert.equal(context.proposal.niceClass,29);assert.deepEqual(context.search.results.map(hit=>hit.applicationId),['123']);
+  assert.match(requests[1].request.messages[0].content,/Comienza el último párrafo exactamente/);
+  assert.deepEqual(requests[1].request.response_format.json_schema.schema.properties.evidenceApplicationIds.items.enum,['123']);
+  assert.equal(recovered.conclusion.source,'openrouter');assert.equal(recovered.conclusion.generationAttempts,2);
+  assert.equal(recovered.conclusion.decision,'moderate');assert.equal(recovered.providerId,'attempt-2');
+  assert.equal(recovered.usage.attempts[0].failureCode,'author_ending_missing');
+  assert.equal(recovered.cost,.00024);assert.equal(recovered.usage.prompt_tokens,200);
+  assert.equal(JSON.stringify(first),saved);
+});
+
+test('recovery is bounded and never accepts invented references, percentages or changed author decisions',async()=>{
+  const analysis={...input,proposal:{...input.proposal,niceClass:30}};
+  for(const output of [
+    {decision:'avoid',recommendation:'adjust',paragraphs:['El riesgo de esta solicitud es del 80% según los antecedentes.'],evidenceApplicationIds:['123']},
+    {decision:'avoid',recommendation:'adjust',paragraphs:['Los antecedentes incluidos justifican revisar la denominación propuesta.'],evidenceApplicationIds:['999']},
+  ]) {
+    let calls=0;
+    const result=await generateConclusion(analysis,EMPTY_REPORT_PROFILE,config,async()=>{calls++;return response(output);});
+    assert.equal(calls,2);assert.equal(result.conclusion.reason,'invalid_response');assert.equal(result.conclusion.source,'deterministic');
+    assert.equal(result.conclusion.generationAttempts,2);assert.ok(['percentages','foreign_evidence'].includes(result.conclusion.failureCode));
+  }
+  let calls=0;
+  const result=await generateConclusion({...analysis,decision:'moderate',recommendation:'review'},EMPTY_REPORT_PROFILE,config,async()=>{calls++;return response({decision:'avoid',recommendation:'adjust',paragraphs:['Los antecedentes incluidos justifican evitar presentar esta solicitud.'],evidenceApplicationIds:['123']});});
+  assert.equal(calls,2);assert.equal(result.conclusion.source,'deterministic');
+  assert.match(conclusionFailureMessage(result.conclusion,30),/después de dos intentos/);
+});
+
+test('permanent provider errors and timeouts do not trigger another billable attempt',async()=>{
+  const analysis={...input,proposal:{...input.proposal,niceClass:30}};
+  for(const status of [400,401,402,403]) {
+    let calls=0;
+    const result=await generateConclusion(analysis,EMPTY_REPORT_PROFILE,config,async()=>{calls++;return new Response('private error body',{status});});
+    assert.equal(calls,1);assert.equal(result.conclusion.providerStatus,status);
+    assert.equal(result.conclusion.failureCode,'provider_http');assert.equal(JSON.stringify(result).includes('private error body'),false);
+  }
+  let calls=0;
+  const result=await generateConclusion(analysis,EMPTY_REPORT_PROFILE,config,async()=>{calls++;throw new DOMException('timeout','TimeoutError');});
+  assert.equal(calls,1);assert.equal(result.conclusion.reason,'timeout');
+});
+
+test('transient network, malformed JSON and HTTP 503 can recover within the same attempt budget',async()=>{
+  const analysis={...input,proposal:{...input.proposal,niceClass:30}};
+  const good={decision:'avoid',recommendation:'adjust',paragraphs:['Los antecedentes seleccionados justifican revisar la marca propuesta antes de presentar.'],evidenceApplicationIds:['123']};
+  for(const failure of [async()=>{throw new Error('connection');},async()=>new Response('broken JSON'),async()=>new Response('busy',{status:503})]) {
+    let calls=0;
+    const result=await generateConclusion(analysis,EMPTY_REPORT_PROFILE,config,async()=>++calls===1?failure():response(good));
+    assert.equal(calls,2);assert.equal(result.conclusion.source,'openrouter');
+    assert.equal(result.cost,undefined);assert.equal(result.usage.cost,undefined);
+    assert.equal(result.usage.attempts[1].cost,.00012);
+  }
+});
+
+test('a Retry-After beyond the total time budget is not retried immediately',async()=>{
+  let calls=0;
+  const result=await generateConclusion({...input,proposal:{...input.proposal,niceClass:30}},EMPTY_REPORT_PROFILE,config,async()=>{calls++;return new Response('busy',{status:429,headers:{'Retry-After':'120'}});});
+  assert.equal(calls,1);assert.equal(result.conclusion.providerStatus,429);
+});
+
+test('the UI distinguishes unavailable configuration, credit limits and invalid conclusions',()=>{
+  const fallback=deterministicConclusion(input);
+  assert.match(conclusionFailureMessage({...fallback,reason:'not_configured'},29),/no está configurada/);
+  assert.doesNotMatch(conclusionFailureMessage({...fallback,reason:'not_configured'},29),/reintenta/i);
+  assert.match(conclusionFailureMessage({...fallback,reason:'provider_error',providerStatus:402},29),/límite de gasto o saldo/);
+  assert.match(conclusionFailureMessage({...fallback,reason:'invalid_response',generationAttempts:2},29),/otras clases se conservan/);
 });

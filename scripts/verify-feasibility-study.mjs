@@ -22,7 +22,7 @@ await page.route('**/api/similarity',async route=>{
 });
 await page.route('**/api/feasibility/conclusions',async route=>{
   modelCalls++;const {proposal,selectedIds}=route.request().postDataJSON();const number=proposal.niceClass;generatedClasses.push(number);const empty=selectedIds.length===0;
-  await route.fulfill({json:{conclusion:{title:providerFails?'Respaldo automático':empty?'Se recomienda presentar la solicitud':'Se recomienda presentar con riesgo moderado de oposición',decision:empty?'proceed':'moderate',recommendation:empty?'proceed':'review',source:providerFails?'deterministic':'openrouter',paragraphs:[`En la clase ${number}, los antecedentes muestran cercanía entre las denominaciones y sus coberturas. Conviene evaluar la solicitud ${10000+number} antes de presentar.`, 'La recomendación depende de confirmar las coberturas; el resultado del examen corresponde a INAPI.'],evidenceApplicationIds:empty?[]:[String(10000+number)]}}});
+  await route.fulfill({json:{conclusion:{title:providerFails?'Respaldo automático':empty?'Se recomienda presentar la solicitud':'Se recomienda presentar con riesgo moderado de oposición',decision:empty?'proceed':'moderate',recommendation:empty?'proceed':'review',source:providerFails?'deterministic':'openrouter',...(providerFails?{reason:'invalid_response',generationAttempts:2}:{}),paragraphs:[`En la clase ${number}, los antecedentes muestran cercanía entre las denominaciones y sus coberturas. Conviene evaluar la solicitud ${10000+number} antes de presentar.`, 'La recomendación depende de confirmar las coberturas; el resultado del examen corresponde a INAPI.'],evidenceApplicationIds:empty?[]:[String(10000+number)]}}});
 });
 await writeFile(`${output}/local-fixture.json`,JSON.stringify({sourceType:'fixture',query:{...hit(30),name:'Marca de prueba'},results:[hit(30),hit(43)],groups:[],warnings:[],candidateCount:2,elapsedSeconds:0,fetchedAt:'2026-10-09T12:00:00Z'},null,2));
 async function chooseClass(number){await page.getByRole('combobox',{name:'Clase Niza',exact:true}).fill(String(number));await page.getByRole('option',{name:new RegExp('^'+number+' ·')}).click();}
@@ -49,22 +49,30 @@ try {
   await chooseClass(43);
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();
   await page.locator('.feasibility-selection-bar').getByRole('button',{name:'Siguiente',exact:true}).click();
+  providerFails=true;
+  await page.getByRole('button',{name:'Generar conclusión con IA - Buho Marc',exact:true}).click();
+  await page.getByRole('alert').filter({hasText:'después de dos intentos'}).waitFor();
+  assert.match(await page.getByLabel('Editar conclusión de clase 30',{exact:true}).inputValue(),/En la clase 30/);
+  assert.ok(await page.getByRole('button',{name:'Descargar PDF',exact:true}).isDisabled());
+  await page.getByRole('alert').filter({hasText:'después de dos intentos'}).scrollIntoViewIfNeeded();
+  await page.screenshot({path:`${output}/02-fallo-segunda-clase.png`,fullPage:true});
+  providerFails=false;
   await page.getByRole('button',{name:'Generar conclusión con IA - Buho Marc',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('.feasibility-report-card textarea').value.includes('En la clase 43'));
-  assert.deepEqual(generatedClasses,[30,43]);
+  assert.deepEqual(generatedClasses,[30,43,43]);
   assert.equal(await page.getByText(/OpenRouter/).count(),0);
   assert.equal(await page.getByLabel('Agregar un anexo con todos los resultados de la búsqueda').count(),0);
   const edited='La conclusión de clase 43 se edita directamente, conservando el análisis y las coberturas de esta clase.';
   await page.getByLabel('Editar conclusión de clase 43',{exact:true}).fill(edited);
   assert.equal(await page.getByLabel('Conclusión del abogado · Clase 43 (opcional)',{exact:true}).inputValue(),edited);
-  assert.equal(modelCalls,2);assert.equal(searchCalls,2);
+  assert.equal(modelCalls,3);assert.equal(searchCalls,2);
   await page.getByRole('button',{name:'Clase 30 · Con conclusión',exact:true}).click();
   assert.equal(await page.locator('#proposal-class').count(),0);
   await page.getByRole('navigation',{name:'Pasos de factibilidad'}).getByRole('button',{name:/Buscar/}).click();
   assert.equal(await page.locator('#proposal-class').inputValue(),NICE_CLASSES.find(item=>item.number===30).number+' · '+NICE_CLASSES.find(item=>item.number===30).meaning);
   await page.getByRole('navigation',{name:'Pasos de factibilidad'}).getByRole('button',{name:/Preparar informe/}).click();
   await page.getByRole('button',{name:'Clase 43 · Con conclusión',exact:true}).click();
-  assert.equal(modelCalls,2,'Navegar entre clases conserva las conclusiones');
+  assert.equal(modelCalls,3,'Navegar entre clases conserva las conclusiones');
 
   await page.screenshot({path:`${output}/02-multinforme.png`,fullPage:true});
   assert.equal(await page.getByRole('button',{name:'Informe para cliente',exact:true}).getAttribute('aria-pressed'),'true');
@@ -80,12 +88,12 @@ try {
       }
     }
   }
-  assert.equal(modelCalls,2,'Cambiar destinatario, presentación y descargar no vuelve a analizar');
+  assert.equal(modelCalls,3,'Cambiar destinatario, presentación y descargar no vuelve a analizar');
   // A failed model response must remain visible and block export.
   await page.getByRole('button',{name:'Nuevo estudio',exact:true}).click();await page.getByRole('button',{name:'Informe',exact:true}).click();await page.getByLabel('Nombre de la marca').fill('Prueba de fallo');await chooseClass(30);
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();await page.locator('.feasibility-selection-bar').getByRole('button',{name:'Siguiente',exact:true}).click();
   assert.equal(await page.getByRole('button',{name:'Agregar otro análisis por clase de Niza',exact:true}).count(),0);providerFails=true;await page.getByRole('button',{name:'Generar conclusión con IA - Buho Marc',exact:true}).click();
-  await page.getByRole('alert').filter({hasText:'IA - Buho Marc no pudo concluir'}).waitFor();assert.ok(await page.getByRole('button',{name:'Descargar Word',exact:true}).isDisabled());
+  await page.getByRole('alert').filter({hasText:'no cumplió las validaciones del informe'}).waitFor();assert.ok(await page.getByRole('button',{name:'Descargar Word',exact:true}).isDisabled());
   await page.screenshot({path:`${output}/03-fallo-openrouter.png`,fullPage:true});
   providerFails=false;await page.getByRole('button',{name:'Nuevo estudio',exact:true}).click();await page.getByLabel('Nombre de la marca').fill('Sin antecedentes relevantes');await chooseClass(30);
   await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).click();await page.getByRole('button',{name:'Limpiar selección',exact:true}).click();await page.locator('.feasibility-selection-bar').getByRole('button',{name:'Siguiente',exact:true}).click();
