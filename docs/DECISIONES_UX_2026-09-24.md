@@ -93,3 +93,7 @@ La presentación identifica petición frente a resolución, oposición presentad
 ## Seguimiento en Mis marcas · corrección del 12 de octubre
 
 La píldora de seguimiento usa un selector nativo con En monitoreo y Sin monitoreo para evitar el recorte del menú por la tabla, incluida la última fila y pantallas estrechas. Conserva la pausa/reactivación y su persistencia. Enter/Espacio abre la ficha sólo cuando la fila tiene foco; los controles interiores mantienen su acción. [Entrega y verificación](handoffs/2026-10-12-mis-marcas-menu-seguimiento.md).
+
+## Tabla del resumen de registros · corrección del 12 de octubre
+
+Últimos movimientos reserva ancho para solicitud y expediente: números, Expediente y Abrir no se parten. En pantallas estrechas se desplazan las columnas dentro de la tarjeta; Expediente permanece fijada al borde interior y Abrir no sale de la caja. Textos extensos se ajustan en sus celdas sin ampliar la página. [Entrega y verificación](handoffs/2026-10-12-resumen-registros-columnas.md).
