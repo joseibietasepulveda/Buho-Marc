@@ -1,5 +1,5 @@
 import type { FieldChange } from "./source-contract";
-type Notice = { title: string; urgency: string; kind?: string; changeDetail?: { changes: FieldChange[] } };
+type Notice = { title: string; urgency: string; kind?: string; changeDetail?: { changes: FieldChange[]; kind?: string } };
 const fold = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const administrative = /cambio.*titular|actualiz.*titular|cambio.*representante|actualiz.*representante|transferencia.*titular|anotacion.*titular/;
 const decisive = /presentacion.*solicitud|acepta|observacion|objecion|oposicion|concesion|conced|rechaz|abandono|abandonad|resolucion|ejecutoria|apelacion|termino probatorio|recib[ei].*prueba|publicacion.*diario|publicad.*diario|pago.*publicacion|pago.*final|constatacion.*pago|plazo|vencim|vence|vencido/;
@@ -15,7 +15,7 @@ export function eventDescriptions(changes: FieldChange[]): string[] {
     (Array.isArray(change.after) ? change.after : []).flatMap(entry => entry && typeof entry === "object" && !Array.isArray(entry) && typeof entry.status_description === "string" ? [entry.status_description] : []));
 }
 export function isPriorityNotice(notice: Notice): boolean {
-  if (notice.kind === "title-issued" || notice.kind === "deadline") return true;
+  if (notice.kind === "title-issued" || notice.kind === "deadline" || notice.changeDetail?.kind === "renewal-reminder") return true;
   const changes = notice.changeDetail?.changes;
   if (changes) {
     if (changes.some(change => ["status", "publicationDate", "registrationNumber"].includes(change.field) && change.after)) return true;
