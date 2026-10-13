@@ -361,6 +361,19 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .buho-app .registration-recent-table>header h2 { margin:0; font-size:18px; }
 .buho-app .registration-recent-table>header p { margin:5px 0 0; color:#72697d; font-size:13px; }
 .buho-app .registration-recent-table td>img { object-fit:contain; }
+.buho-app .registration-recent-table .buho-table-wrap { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+.buho-app .registration-recent-table table { min-width:1100px; table-layout:fixed; }
+.buho-app .registration-recent-table th { overflow-wrap:normal; word-break:normal; }
+.buho-app .registration-recent-table th:nth-child(1) { width:112px; }
+.buho-app .registration-recent-table th:nth-child(2) { width:112px; }
+.buho-app .registration-recent-table th:nth-child(3) { width:24%; }
+.buho-app .registration-recent-table th:nth-child(4) { width:136px; }
+.buho-app .registration-recent-table th:nth-child(6) { width:148px; }
+.buho-app .registration-recent-table th:nth-child(7) { width:116px; }
+.buho-app .registration-recent-table :is(th,td):first-child { white-space:nowrap; }
+.buho-app .registration-recent-table :is(th,td):last-child { position:sticky; right:0; z-index:1; white-space:nowrap; background:#fff; box-shadow:-1px 0 #eee9f2; }
+.buho-app .registration-recent-table th:last-child { background:#f8f6fb; }
+.buho-app .registration-recent-table td:last-child .buho-secondary { display:inline-flex; justify-content:center; min-width:0; max-width:100%; box-sizing:border-box; white-space:nowrap; }
 .buho-app .trademark-toolbar { background:#fff; border:1px solid #e1dce8; border-radius:10px; padding:16px; gap:12px; }
 .buho-app .trademark-phase { background:#edeaf1; border-color:#e0dae7; }
 .buho-app .trademark-phase>header { background:#f4f0f8; border-color:#e0dae7; }
