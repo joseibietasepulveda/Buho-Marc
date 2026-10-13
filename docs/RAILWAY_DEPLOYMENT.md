@@ -153,11 +153,11 @@ Las migraciones actuales incluyen `0011_notification_dismissal.sql` y `0012_feas
 | `APP_PUBLIC_ORIGIN` o `RAILWAY_PUBLIC_DOMAIN` | Origen validado para acciones del navegador. |
 | `MONITORING_SCHEDULER_ENABLED` | Habilita el supervisor; respeta el modo automático/a pedido de cada organización. |
 | `MONITORING_CRON_SECRET` | Credencial interna del worker; el supervisor puede generarla. |
-| `OPENROUTER_API_KEY` | Activa las conclusiones asistidas; configurada en Dev. El flujo por clase exige una conclusión preparada o escrita por el autor; permite editarla directamente y no exporta un respaldo automático. |
+| `OPENROUTER_API_KEY` | Activa las conclusiones asistidas; configurada en Dev y producción. El flujo por clase exige una conclusión preparada o escrita por el autor; permite editarla directamente y no exporta un respaldo automático. |
 | `OPENROUTER_MODEL` | Opcional, predeterminado `openai/gpt-4.1-mini`. |
 | `PORT`, `NODE_ENV` | Configurados por el entorno de ejecución. |
 
-En local, [openrouter.example.txt](../openrouter.example.txt) se copia como `openrouter.private.txt`. Ese archivo está ignorado por Git y no se publica en Railway. Las variables del servidor tienen prioridad. No incluir valores reales de claves en documentación, commits, navegador o registros de generaciones.
+En local, [openrouter.example.txt](../openrouter.example.txt) se copia como `openrouter.private.txt`. Ese archivo está ignorado por Git y no se publica en Railway. Las variables del servidor tienen prioridad. Para editar la clave en Railway: proyecto `heartfelt-magic` → ambiente `production` → servicio `buho-marc-web` → **Variables** → `OPENROUTER_API_KEY`; modelo en `OPENROUTER_MODEL`. Aplicar los cambios inicia un nuevo despliegue. Dev y producción reutilizan la misma clave por autorización del usuario; comparten su presupuesto. No incluir valores reales de claves en documentación, commits, navegador o registros de generaciones.
 
 Las variables temporales de provisión de cuentas/correcciones solo se utilizan cuando la operación y el ambiente fueron autorizados; se retiran después de verificarla. Sus contraseñas no se documentan. Los perfiles de los tres estudios no necesitan una contraseña nueva.
 
@@ -182,7 +182,7 @@ El usuario autorizó un acceso SSH temporal para una primera copia lógica de De
 
 Daniel conserva la revisión diaria a las 12:30 de `America/Santiago`; `estudio-ibieta-ip` permanece a pedido. Consultar [control de consumo](COST_CONTROL.md) y la cola para conocer el progreso. Un health check exitoso no acredita la finalización de trabajos.
 
-OpenRouter quedó activado en Dev el 9 de octubre; el proveedor real se verificó en local con datos ficticios. Continúan pendientes su activación en producción, permisos/invitaciones avanzados, almacenamiento general de adjuntos y estudios completos, envío de correos, métricas, respaldos con restauración probada y capacidad a escala. Autenticación piloto, aislamiento, motor de similitud e informes PDF/Word ya están implementados.
+OpenRouter quedó activado en Dev el 9 de octubre; el proveedor real se verificó en local con datos ficticios. Producción reutiliza desde el 12 de octubre la clave de inferencia Dev por petición explícita, sin modificar su límite ni modelo; véase [traspaso de configuración](handoffs/2026-10-12-openrouter-produccion.md). Continúan pendientes permisos/invitaciones avanzados, almacenamiento general de adjuntos y estudios completos, envío de correos, métricas, respaldos con restauración probada y capacidad a escala. Autenticación piloto, aislamiento, motor de similitud e informes PDF/Word ya están implementados.
 
 La CLI de Railway advirtió durante esta entrega que `railway.json`/`railway.toml` quedarán obsoletos el 1 de diciembre de 2026. La migración de configuración se mantiene como tarea independiente; no se realizó en esta ronda.
 

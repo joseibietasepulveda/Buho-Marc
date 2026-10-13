@@ -44,9 +44,9 @@ Estados e índice mínimo se aplican al lote de hasta 100 candidatos; el filtro 
 
 **Agregar la información de tu estudio**, en la tarjeta derecha sobre el logo de la marca, abre un formulario con nombre del estudio, dirección, abogado, texto del encabezado, correo, teléfono, web y logo. Todos son opcionales; se guardan por organización, sobreviven a la recarga y se pueden editar. En Dev quedaron precargados **Zamora IP**, **De Las Heras Abogados para Daniel Morales** y **Flores Acevedo Abogados**, sin cambiar cuentas ni claves. El logo de FA se restauró desde la imagen entregada por el usuario.
 
-OpenRouter está activado en Dev con una clave de inferencia exclusiva de factibilidad, sin expiración y con tope US$1 autorizado. Se comprobaron generaciones reales con antecedentes ficticios locales. Cada generación persiste contexto, resultado e identificador, además del uso y costo cuando el proveedor los entrega. Las credenciales quedan fuera de Git y del navegador; la configuración local no se publica automáticamente en Railway.
+OpenRouter está configurado en Dev y producción con una clave de inferencia exclusiva de factibilidad, sin expiración y con tope US$1 autorizado. Se comprobaron generaciones reales con antecedentes ficticios locales. Cada generación persiste contexto, resultado e identificador, además del uso y costo cuando el proveedor los entrega. Las credenciales quedan fuera de Git y del navegador; la configuración local no se publica automáticamente en Railway.
 
-Para uso local, copia [openrouter.example.txt](openrouter.example.txt) a `openrouter.private.txt` y completa `OPENROUTER_API_KEY`. El archivo privado queda fuera de Git. Modelo predeterminado: `openai/gpt-4.1-mini`, modificable con `OPENROUTER_MODEL`. En Railway, configura esas variables privadas en el servicio web de Dev: el archivo local no se publica. Las variables del servidor tienen prioridad.
+Para uso local, copia [openrouter.example.txt](openrouter.example.txt) a `openrouter.private.txt` y completa `OPENROUTER_API_KEY`. El archivo privado queda fuera de Git. Modelo predeterminado: `openai/gpt-4.1-mini`, modificable con `OPENROUTER_MODEL`. En Railway, esas variables privadas se configuran por ambiente en el servicio `buho-marc-web`: el archivo local no se publica. Dev y producción tienen configurada la misma clave de inferencia por petición del usuario; [ubicación y operación](docs/handoffs/2026-10-12-openrouter-produccion.md). Las variables del servidor tienen prioridad.
 
 Las fichas de clientes ofrecen informes de cartera en Excel (formato inicial), Word y PDF con columnas seleccionables y los datos guardados disponibles, sin iniciar otra consulta a INAPI.
 
@@ -156,7 +156,7 @@ La revisión ampliada de v0.5 está en [Proceso y plazos de marcas en Chile](doc
 - [Control de consumo y programación por cartera](docs/COST_CONTROL.md): Daniel automático, Búho a pedido.
 
 
-La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. OpenRouter quedó activado en Dev con una clave de inferencia exclusiva; su activación en producción continúa pendiente.
+La lista vigente se interpreta junto con [las entregas de octubre](docs/README.md) y [v1.0](docs/V1_0_RELEASE.md#próximas-versiones). Incluye filtro y catálogo de estados en la fuente, calibración, cargas tardías y exhaustividad, operación a escala, adjuntos y archivo completo de estudios. Los informes PDF/Word, el buscador general y la importación por titular/representante ya están implementados. OpenRouter quedó activado en Dev con una clave de inferencia exclusiva; producción reutiliza esa clave desde el 12 de octubre por autorización explícita, conservando el modelo y presupuesto compartido.
 
 ### Backlog · Registro de marcas
 
