@@ -1,9 +1,9 @@
 # Traspaso: configuración de OpenRouter en producción
 
 - Actualizado: 2026-10-12 21:18, America/Santiago.
-- Estado: configuración aplicada y despliegue verificado; documentación lista para integrar.
+- Estado: configuración aplicada y verificada; documentación entregada en PRs.
 - Rama y base: `codex/openrouter-production-config`; Dev `ead0de1f4c88cd8f5773b4ee0895ea0d8640ff15`.
-- PR y commit de entrega: pendiente.
+- Documentación: [PR #43](https://github.com/joseibietasepulveda/Buho-Marc/pull/43) hacia Dev, entrega `a26bf86`; [PR #44](https://github.com/joseibietasepulveda/Buho-Marc/pull/44) hacia Main, entrega `45082a3`. La configuración externa ya está aplicada y verificada.
 
 ## Objetivo y alcance
 El usuario reporta un fallo al preparar la conclusión de factibilidad en producción y autoriza reutilizar la clave actualmente configurada en Dev. Copiar únicamente `OPENROUTER_API_KEY` y `OPENROUTER_MODEL` al servicio `buho-marc-web` del ambiente `production` en Railway; indicar la ubicación de edición. No modificar claves ni límites en OpenRouter, carteras o datos de clientes.
@@ -21,7 +21,7 @@ Sin cambios de contratos de aplicación. Rama documental desde Dev actualizado; 
 Lectura privada Railway: Dev tiene clave legible y modelo `openai/gpt-4.1-mini`; producción carece de ambas variables. Los valores secretos no se imprimieron. La documentación histórica de Dev registra una clave de inferencia exclusiva sin vencimiento y tope US$1; esa configuración no se cambia ni se vuelve a consultar al proveedor en este encargo.
 
 ## Pendientes y siguiente paso
-Publicar documentación en Dev y Main. El usuario debe reintentar la conclusión en su estudio conservado; no fue regenerado durante la configuración.
+El usuario debe reintentar la conclusión en su estudio conservado; no fue regenerado durante la configuración.
 
 ## Operación y cierre · 2026-10-12 21:21
 
@@ -31,3 +31,5 @@ Publicar documentación en Dev y Main. El usuario debe reintentar la conclusión
 - `db/feasibility-conclusions.ts` incluye la credencial en el hash de caché: una conclusión antigua `not_configured` no bloquea el nuevo intento con clave configurada. No se borraron intentos ni datos.
 - Lugar de edición: Railway → `heartfelt-magic` → `production` → `buho-marc-web` → Variables → `OPENROUTER_API_KEY`. Modelo: `OPENROUTER_MODEL`.
 - Documentación: README y guía Railway enlazan esta nota y retiran el pendiente de activar producción. Referencias locales y `git diff --check` aprobados. Sin cambios de aplicación/esquema; no corresponde repetir pruebas generales por configuración/documentación.
+
+- Promoción documental: conflicto en README resuelto conservando el párrafo histórico de Main; se incorporó exclusivamente la ubicación/estado de configuración actual. Sin promover otras diferencias documentales de Dev.
