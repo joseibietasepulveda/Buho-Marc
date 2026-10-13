@@ -18,10 +18,11 @@ try {
     await runAs(identity, async () => {
       const rows = await sql`SELECT r.data FROM brands b JOIN source_snapshots s ON s.entity_id = b.id AND s.entity_type = 'brand' AND s.organization_id = b.organization_id JOIN source_records r ON r.id = s.source_id WHERE b.organization_id = ${org.id} AND b.archived_at IS NULL AND COALESCE(b.monitoring_config->>'watchOnly', 'false') <> 'true'`;
       const upcoming = rows.filter(row => renewalReminder(row.data as SourceRecord));
-      let added = false;
+      let added = false, externalRequests = 0;
       if (!upcoming.length && slug === "estudio-ibieta-ip") {
         if (!apply) { console.log(JSON.stringify({ slug, apply: false, upcoming: 0, exampleApplication: "1204333", externalRequests: 0 })); return; }
         // Explicit one-off operation. Never runs at startup or while viewing UI.
+        externalRequests++;
         const response = await fetchSource({ applicationIds: ["1204333"], registrationIds: [] });
         const record = response.records.find(r => r.applicationNumber === "1204333");
         if (!record || !renewalReminder(record)) throw new Error("El registro de ejemplo ya no cumple la vigencia requerida; no se incorpora");
@@ -35,7 +36,7 @@ try {
           added = true;
         });
       }
-      console.log(JSON.stringify({ slug, apply, upcoming: upcoming.length, added, ...(apply ? await generateRenewalNotices() : { externalRequests: 0 }) }));
+      console.log(JSON.stringify({ slug, apply, upcoming: upcoming.length, added, ...(apply ? await generateRenewalNotices() : {}), externalRequests }));
     });
   }
 } finally { await sql.end(); }
