@@ -2,17 +2,18 @@
 import "./notification-center.css";
 import { Bell, Check, CaretRight, MagnifyingGlass, Trash, X, ArrowsOutSimple } from "@phosphor-icons/react";
 import { dismissDialogBackdrop } from "./dialog-dismiss";
-import { legalText, legalFieldLabel } from "@/lib/legal-language";
-import { noticePresentation } from "@/lib/work-priorities";
+import { legalText } from "@/lib/legal-language";
+import { noticePresentation, displayWorkDate, parseWorkDate } from "@/lib/work-priorities";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { isPriorityNotice, isTitleIssued } from "@/lib/notification-policy";
-import { displayValue, statusLabel, type FieldChange } from "@/lib/source-contract";
+import { statusLabel, type FieldChange } from "@/lib/source-contract";
 import type { RegistrationApplication } from "@/lib/registration-data";
 import { buildNotificationTimeline, conciseNoticeTitle, priorityNoticeSummary, type TimelineBrand } from "@/lib/notification-timeline";
 import { notificationPage } from "@/lib/notification-page";
+import { notificationEvidenceFields, type EvidenceField } from "@/lib/notification-evidence";
 
-type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { kind?: string; applicationNumber?: string; officialUrl?: string; lastSuccessfulQueryAt?: string; historical?: boolean; caseId?: string; changes: FieldChange[]; source?: string; summary: string } };
+type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { kind?: string; applicationNumber?: string; registrationNumber?: string; expirationDate?: string; expiryOrigin?: string; officialUrl?: string; lastSuccessfulQueryAt?: string; historical?: boolean; caseId?: string; changes: FieldChange[]; source?: string; summary: string } };
 const emptyApplications: RegistrationApplication[] = [];
 const emptyBrands: TimelineBrand[] = [];
 const countFormat = new Intl.NumberFormat("es-CL");
@@ -90,18 +91,22 @@ function noticeSource(notice: Notice) {
   return notice.changeDetail?.source === "inapi" ? "INAPI" : notice.changeDetail?.source === "simulated" ? "Demostración" : "Seguimiento";
 }
 
-const detailLabels: Record<string, string> = { event_id: "ID de la actuación", eventId: "ID de la actuación", status_code: "Código INAPI", code: "Código INAPI", status_description: "Descripción completa", status: "Descripción completa", title: "Descripción completa", event_date: "Fecha de actuación", date: "Fecha de actuación", observation: "Observaciones", detail: "Observaciones", due_date: "Vencimiento informado por la fuente", intake: "Ingreso de solicitud" };
-function EvidenceDetails({ entries }: { entries: Record<string, unknown>[] }) {
-  const fields = new Map<string, { label: string; value: string }>();
-  for (const entry of entries) for (const [key, value] of Object.entries(entry)) {
-    if (value === undefined || value === null || value === "" || key === "Referencia del aviso") continue;
-    const label = detailLabels[key] ?? legalFieldLabel(key);
-    const text = typeof value === "object" ? displayValue(value) : String(value);
-    // Projections and raw acts may repeat the same date/title/ID. Display each
-    // value once while retaining every distinct observation or previous value.
-    fields.set(`${label}:${text}`, { label, value: text });
-  }
-  return <dl className="priority-evidence-fields">{[...fields].map(([key, field]) => <div key={key}><dt>{field.label}</dt><dd>{field.value}</dd></div>)}</dl>;
+function EvidenceDetails({ entries, fields = notificationEvidenceFields(entries ?? []) }: { entries?: Record<string, unknown>[]; fields?: EvidenceField[] }) {
+  return <dl className="priority-evidence-fields">{fields.map(field => <div key={`${field.label}:${field.value}`}><dt>{field.label}</dt><dd>{field.value}</dd></div>)}</dl>;
+}
+function TimelineDetails({ entry }: { entry: ReturnType<typeof buildNotificationTimeline>["entries"][number] }) {
+  const fields = notificationEvidenceFields(entry.details, entry);
+  return fields.length ? <details><summary>Ver detalle y referencias <span aria-hidden>⌄</span></summary><EvidenceDetails fields={fields}/></details> : null;
+}
+function RenewalDetails({ notice }: { notice: Notice }) {
+  const detail = notice.changeDetail;
+  if (detail?.kind !== "renewal-reminder") return null;
+  const expiry = parseWorkDate(detail.expirationDate ?? notice.deadline);
+  return <section className="priority-renewal-facts" aria-label="Datos de renovación">
+    <dl>{detail.registrationNumber && <div><dt>Registro</dt><dd>{detail.registrationNumber}</dd></div>}{detail.applicationNumber && <div><dt>Solicitud</dt><dd>{detail.applicationNumber}</dd></div>}{expiry && <div><dt>Vencimiento del registro</dt><dd>{displayWorkDate(expiry)}</dd></div>}</dl>
+    <p>Recordatorio para revisar la renovación del registro.</p>
+    {detail.expiryOrigin === "source" && <small>Vencimiento informado por la fuente.</small>}{detail.expiryOrigin === "calculated" && <small>Vencimiento calculado: diez años desde la fecha de registro guardada.</small>}
+  </section>;
 }
 
 function timelineDate(date: string) {
@@ -128,11 +133,11 @@ function PriorityNoticeDrawer({ inline=false, onExpand, notice, notices, applica
   const content=<>
     <header><div><span>NOTIFICACIÓN · {noticeSource(notice)}</span><h2 id={titleId}>{notice.brand}</h2></div>{inline&&<button type="button" aria-label="Ampliar notificación" onClick={onExpand}><ArrowsOutSimple size={20} aria-hidden/></button>}<button type="button" aria-label="Cerrar notificación" onClick={onClose}><X size={22} aria-hidden/></button></header>
     <div className="priority-notice-scroll">
-      <section className="priority-notice-highlight"><small>Aviso detectado: {notice.date}</small><h3>{title}</h3><p>{notice.status === "Pendiente" ? "Pendiente de revisión" : "Notificación revisada"}</p>{notice.changeDetail?.historical && <p>Actuación incorporada desde el historial guardado de INAPI.</p>}{display.kind === "deadline" && <p>{display.label}. Confirma el vencimiento y su antecedente en el expediente.</p>}{isTitleIssued(title) && <p>Revisa el título emitido para completar la entrega al cliente.</p>}</section>
+      <section className="priority-notice-highlight"><small>Aviso detectado: {notice.date}</small><h3>{title}</h3><p>{notice.status === "Pendiente" ? "Pendiente de revisión" : "Notificación revisada"}</p>{notice.changeDetail?.historical && <p>Actuación incorporada desde el historial guardado de INAPI.</p>}{display.kind === "deadline" && <p>{display.label}. Confirma el vencimiento y su antecedente en el expediente.</p>}{isTitleIssued(title) && <p>Revisa el título emitido para completar la entrega al cliente.</p>}<RenewalDetails notice={notice}/></section>
       <section className="priority-notice-history"><header><h3>{timeline.kind === "acts" ? "Historia del expediente" : "Historia del seguimiento"}</h3><span>{timeline.entries.length} {timeline.kind === "acts" ? timeline.entries.length === 1 ? "hito disponible" : "hitos disponibles" : timeline.entries.length === 1 ? "aviso disponible" : "avisos disponibles"}</span></header>
         <p>{timeline.official ? "Fechas de las actuaciones informadas por INAPI. No equivalen por sí solas a su fecha de notificación legal." : timeline.kind === "acts" ? timeline.simulated ? "Antecedentes de demostración disponibles en la plataforma; no constituyen actuaciones oficiales." : "Historia disponible en la plataforma. Confirma la procedencia y las notificaciones en el expediente." : "Avisos de la plataforma relacionados con este seguimiento. No constituyen un historial oficial de INAPI."} {timeline.kind === "acts" && "Los hitos de este aviso se señalan en morado."}</p>
         {timeline.ambiguous && <p className="priority-history-warning">Hay expedientes con el mismo nombre. Para evitar mezclar sus historias, aquí solo se muestran los antecedentes identificados en este aviso.</p>}
-        <ol className="priority-timeline">{timeline.entries.map(entry => <li key={entry.key} className={entry.current ? "is-current" : ""}><span className="priority-timeline-dot" aria-hidden /><div><small>{entry.kind === "act" ? "Actuación" : "Aviso"} · {timelineDate(entry.date)}</small><h4>{entry.title}</h4>{entry.current && <span className="priority-timeline-tag">Incluido en este aviso</span>}{entry.previous && <p className="priority-history-warning">Antecedente anterior al cambio. No se presenta como una actuación vigente.</p>}<details><summary>Ver detalle y referencias <span aria-hidden>⌄</span></summary><EvidenceDetails entries={entry.details} /></details></div></li>)}</ol>
+        <ol className="priority-timeline">{timeline.entries.map(entry => <li key={entry.key} className={entry.current ? "is-current" : ""}><span className="priority-timeline-dot" aria-hidden /><div><small>{entry.kind === "act" ? "Actuación" : "Aviso"} · {timelineDate(entry.date)}</small><h4>{entry.title}</h4>{entry.current && <span className="priority-timeline-tag">Incluido en este aviso</span>}{entry.previous && <p className="priority-history-warning">Antecedente anterior al cambio. No se presenta como una actuación vigente.</p>}<TimelineDetails entry={entry}/></div></li>)}</ol>
       </section>
       {changes.length > 0 && <section className="priority-other-changes"><h3>Otros antecedentes del aviso</h3>{changes.map((change, index) => <details key={`${change.field}-${index}`}><summary>{legalText(change.label)}<span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ Antes: change.field === "status" ? statusLabel(String(change.before)) : change.before, Ahora: change.field === "status" ? statusLabel(String(change.after)) : change.after }]} /></details>)}</section>}
       <details className="priority-notice-reference"><summary>Datos de la notificación <span aria-hidden>⌄</span></summary><EvidenceDetails entries={[{ "Título del aviso": legalText(notice.title), "Fecha de incorporación del aviso": notice.date, "Solicitud": notice.changeDetail?.applicationNumber, "Fuente": notice.changeDetail?.source === "inapi" ? "INAPI" : undefined, "Enlace al expediente": notice.changeDetail?.officialUrl, "Última consulta guardada": notice.changeDetail?.lastSuccessfulQueryAt }]} /></details>

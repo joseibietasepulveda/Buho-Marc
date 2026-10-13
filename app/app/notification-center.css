@@ -123,3 +123,9 @@
 .priority-notice-reader{cursor:zoom-in}
 .priority-notice-reader>header>div{flex:1}
 .priority-notice-reader :is(button,a,summary){cursor:pointer}
+
+.priority-renewal-facts { margin-top:16px; padding-top:15px; border-top:1px solid #d8c6e5; }
+.priority-renewal-facts dl { display:flex; flex-wrap:wrap; gap:16px 24px; margin:0; }
+.priority-renewal-facts dt { font-size:13px; color:#7a6388; }
+.priority-renewal-facts dd { margin:4px 0 0; font-size:16px; font-weight:700; }
+.priority-renewal-facts small { display:block; margin-top:8px; }

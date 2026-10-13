@@ -1,4 +1,4 @@
-import type { FieldChange } from "./source-contract";
+import type { FieldChange, SourceRecord } from "./source-contract";
 import type { RegistrationApplication } from "./registration-data";
 
 export type TimelineNotice = {
@@ -8,7 +8,7 @@ export type TimelineNotice = {
 };
 export type TimelineBrand = {
   id?: string; name: string; applicationNumber?: string; provider?: string;
-  sourceHistory?: { date: string; title: string; detail?: string; eventId?: string; code?: string }[];
+  sourceHistory?: { date: string; title: string; detail?: string; eventId?: string; code?: string; [key: string]: unknown }[];
 };
 export type NotificationTimelineEntry = {
   key: string;
@@ -37,6 +37,12 @@ const rawTitle = (entry: RawEntry) => string(entry.status_description) || string
 const rawDate = (entry: RawEntry) => dateOnly(entry.event_date ?? entry.date);
 const eventId = (entry: RawEntry) => string(entry.event_id ?? entry.eventId);
 const signature = (entry: RawEntry) => `${rawDate(entry)}|${fold(rawTitle(entry))}`;
+
+// Read saved canonical evidence, including optional observations/references.
+// Does not write portfolio configuration or consult the external source.
+export function notificationSourceHistory(record: SourceRecord) {
+  return objects(record.inapi?.events).filter(entry => rawDate(entry) && string(entry.status_description)).map(entry => ({ ...entry, date: rawDate(entry), title: rawTitle(entry) })).sort((a, b) => a.date.localeCompare(b.date));
+}
 
 export function conciseNoticeTitle(value: string, brand = ""): string {
   let title = value.trim();
