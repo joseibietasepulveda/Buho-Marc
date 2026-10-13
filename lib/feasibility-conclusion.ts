@@ -66,5 +66,14 @@ export function validateModelConclusion(value:unknown,input:ConclusionInput):Rep
   }
   if(input.decision&&parsed.decision!==input.decision)throw new Error('La respuesta cambió la decisión por clase del autor');
   if(input.recommendation&&parsed.recommendation!==input.recommendation)throw new Error('La respuesta cambió la decisión del autor');
+  if (input.decision) {
+    const ending = parsed.paragraphs.at(-1)?.trim() ?? '';
+    if (!ending.toLocaleLowerCase('es').startsWith(CLASS_DECISIONS[input.decision].toLocaleLowerCase('es'))) throw new Error('Los párrafos no concluyen con la decisión del abogado');
+    const prose = parsed.paragraphs.join(' ');
+    const contrary = input.decision === 'proceed' || input.decision === 'moderate'
+      ? /(?:no se recomienda|se recomienda (?:evitar|no presentar)|conviene evitar)\s+(?:la\s+)?presenta(?:r|ción)/i
+      : input.decision === 'avoid' ? /(?:por (?:lo )?tanto|en conclusión)[,.]?\s+se recomienda presentar/i : null;
+    if (contrary?.test(prose)) throw new Error('Los párrafos contradicen la decisión del abogado');
+  }
   return {...parsed,paragraphs:parsed.paragraphs.map(conclusionText),title:parsed.decision ? CLASS_DECISIONS[parsed.decision] : REPORT_RECOMMENDATIONS[parsed.recommendation],source:'openrouter'};
 }

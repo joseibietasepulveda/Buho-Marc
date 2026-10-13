@@ -1,9 +1,10 @@
 export type WorkspacePolicy = { internalExamples?: boolean; sourceAdmin: boolean; about: boolean; changePassword: boolean };
-export const DEFAULT_WORKSPACE_POLICY: WorkspacePolicy = { sourceAdmin: true, about: true, changePassword: true };
+export const DEFAULT_WORKSPACE_POLICY: WorkspacePolicy = { sourceAdmin: false, about: false, changePassword: false };
 
-/** Tenant presentation/access choices; never infer them from a mutable display name. */
-export function workspacePolicy(slug?: string): WorkspacePolicy {
-  return slug === "fa-abogados"
-    ? { sourceAdmin: false, about: false, changePassword: false }
-    : { ...DEFAULT_WORKSPACE_POLICY, internalExamples:slug === "estudio-ibieta-ip" };
+/** Internal capabilities require both the stable Buho tenant and its administrator role. */
+export function workspacePolicy(slug?: string, role?: string): WorkspacePolicy {
+  const internalAdmin = slug === "estudio-ibieta-ip" && role === "admin";
+  return internalAdmin
+    ? { sourceAdmin: true, about: true, changePassword: true, internalExamples: true }
+    : { ...DEFAULT_WORKSPACE_POLICY };
 }
