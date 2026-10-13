@@ -1,9 +1,9 @@
 # Traspaso: selector de seguimiento en Mis marcas
 
 - Actualizado: 2026-10-12, America/Santiago.
-- Estado: listo para integración.
+- Estado: integrado y publicado en Dev y Main/producción.
 - Rama y base: `codex/mis-marcas-menu-seguimiento`; Dev `6a0b96e75ef49c410df1d0697cded7061039e7d8`.
-- PR y commit de entrega: pendiente.
+- Entrega: `f2d574f`; [PR 54 Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/54), [PR 55 Main](https://github.com/joseibietasepulveda/Buho-Marc/pull/55).
 
 ## Objetivo y alcance
 Corregir el menú recortado al cambiar En monitoreo en Mis marcas. Usuario autoriza probar, integrar en Dev y promover a Main/producción.
@@ -27,4 +27,11 @@ Usuario: reparar el error mostrado y publicar Dev/Main. Agente: menú del navega
 - Sin consultas reales de fuente ni OpenRouter, sin cambios a marcas remotas.
 
 ## Pendientes y siguiente paso
-Crear PR Dev, comprobar despliegue y salud; promover a Main y comprobar publicación. Registrar referencias y resultados.
+Sin pendientes funcionales. Recargar la aplicación para cargar el nuevo selector. No volver a probar pause/reactivación sobre datos reales sólo para repetir la QA; el recorrido de escritura/persistencia se comprobó en PostgreSQL local aislado.
+
+## Integración y publicación comprobadas
+- Dev: PR 54, merge `5dc132813477049532f7941581374919f077c327`; Railway `ec3fca46-5871-40bf-92ef-bb757d6add05`, SUCCESS. Salud pública HTTP 200, ok true, database connected.
+- Main: PR 55, merge `05cb3f6786ef3115bc5e1916cc25eaa2c776a852`; Railway producción `9eb69a9f-55e9-4c1a-9e1a-977265ad58b6`, SUCCESS. Salud pública HTTP 200, ok true, database connected.
+- Merge ensayado conserva documentación exclusiva de Main. `git diff origin/dev origin/main -- app db lib scripts tests` vacío tras promoción: código funcional idéntico al probado.
+- Las verificaciones autenticadas y de guardado son locales; en los ambientes alojados se comprobó publicación del SHA exacto y salud, sin cambiar seguimiento de clientes reales.
+- Servidor/PostgreSQL de QA retirados. Actualización final de esta nota sólo documental, sin cambiar el código verificado.
