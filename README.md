@@ -50,6 +50,10 @@ Para uso local, copia [openrouter.example.txt](openrouter.example.txt) a `openro
 
 Las fichas de clientes ofrecen informes de cartera en Excel (formato inicial), Word y PDF con columnas seleccionables y los datos guardados disponibles, sin iniciar otra consulta a INAPI.
 
+## Dominios · vista de prueba para Búho Marc
+
+El administrador de Búho Marc dispone de Dominios entre Solicitudes de registro y Notificaciones, asociación opcional desde la ficha de marca, alta independiente, tabla y Factibilidad dominio con búsqueda Exacta/Contenga. El resumen muestra Dominios vigilados y Avisos de dominios junto a los KPIs existentes. Todo es simulado y se reinicia al recargar; titular y nuevas fechas de creación quedan pendientes de API. Miembros y otros estudios conservan su interfaz. [Contrato y límites](docs/DOMINIOS_PREVIEW_2026-10-13.md), [entrega y verificación](docs/handoffs/2026-10-13-revision-dominios-admin.md). Estado: implementado en rama, pendiente de integración/publicación.
+
 ## Preparación de presentación B&E
 
 Vigilancia usa una escala local más compacta en escritorio. Sus bandejas comparten datos ya cargados. Las opciones Administrador de fuente, Acerca de esta versión y Cambiar clave sólo están habilitadas para el administrador de Búho Marc; la API aplica la misma autorización por organización y rol.
