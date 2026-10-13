@@ -13,6 +13,7 @@ import type { SourceRecord } from "../lib/source-contract";
 import { migrateDemoV05 } from "./demo-v05";
 import { DEMO_V05_CASE_DATES, DEMO_V05_MATCH_DATES } from "../lib/demo-v05-data";
 import { reconcileReceivedOppositions } from "./received-oppositions";
+import { notificationSourceHistory } from "../lib/notification-timeline";
 
 export const DEMO_ORG_ID = "10000000-0000-4000-8000-000000000001";
 export const DEMO_PLAN_ID = "10000000-0000-4000-8000-000000000010";
@@ -189,7 +190,7 @@ export async function getDemoSnapshot() {
       const source = config.provider === "inapi" ? projectedSources.get(row.id) : undefined;
       const legalStatus = source?.status ?? config.legalStatus ?? "registered";
       const registrationState = source ? ["registered", "expired", "cancelled"].includes(legalStatus) ? "Registrada" : legalStatus.startsWith("rejected") || legalStatus.startsWith("abandoned") || legalStatus === "not-filed" ? "Rechazada" : "En trámite" : config.registrationState ?? "Registrada";
-      return { ...(config.provider === "inapi" ? {} : demoBrandDetails(row.public_code)), ...config, provider: config.provider === "inapi" ? "inapi" : "mock", registrationState, legalStatus, id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: config.provider === "inapi" ? visibleFindingCounts.get(row.id) ?? 0 : Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: config.inapiUrl ?? "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
+      return { ...(config.provider === "inapi" ? {} : demoBrandDetails(row.public_code)), ...config, ...(source && Array.isArray(source.inapi?.events) ? { sourceHistory: notificationSourceHistory(source) } : {}), provider: config.provider === "inapi" ? "inapi" : "mock", registrationState, legalStatus, id: row.public_code, name: row.name, owner: row.owner_name, registration: row.registration_number ?? "Pendiente", classes: row.classes, country: row.jurisdiction, status: row.status === "Pausada" ? "Sin monitoreo" : "En monitoreo", type: config.type, matches: config.provider === "inapi" ? visibleFindingCounts.get(row.id) ?? 0 : Number(row.matches_count), cases: Number(row.cases_count), updated: shortDate(row.updated_at, true), rut: config.rut ?? `77.100.${String(row.public_code).replace(/\D/g, "").padStart(3, "0")}-1`, inapiUrl: config.inapiUrl ?? "https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx", visual: config.visual ?? row.name.slice(0, 6) };
     }),
     matches: matchRows.map((row) => {
       const config = (row.monitoring_config ?? {}) as { rut?: string; type?: string; applicationNumber?: string; logo?: string };
