@@ -18,4 +18,4 @@ Solicitud del usuario: añadir revisión de dominios con datos mock exclusivamen
 
 Para conectar la API: acordar fuente, contrato y permisos; persistir por organización, mantener un dominio opcional por marca, distinguir fechas de registro/alta y datos ausentes, guardar procedencia, definir avisos y programación autorizada. No interpretar este prototipo como disponibilidad comprobada ni promesa de monitoreo activo.
 
-Código local listo para revisión; pendiente de integración y despliegue. [Traspaso con pruebas y siguientes pasos](handoffs/2026-10-13-revision-dominios-admin.md).
+Integrado en Dev por [PR #78](https://github.com/joseibietasepulveda/Buho-Marc/pull/78) y publicado en Railway Dev (`92a55a13a85636c5963fd49c3e5fe396045582c4`, despliegue SUCCESS `8f697aad-bde7-4463-bf8b-e9a39b886c55`). Permisos y flujos verificados con sesiones admin Búho/miembro/admin externo. Producción conserva su versión. [Traspaso con pruebas y siguientes pasos](handoffs/2026-10-13-revision-dominios-admin.md).

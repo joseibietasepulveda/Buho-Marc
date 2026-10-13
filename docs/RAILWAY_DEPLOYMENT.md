@@ -2,6 +2,13 @@
 
 Actualizado el 11 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
 
+## Dominios simulados para administrador Búho Marc · 13 de octubre
+
+- [PR #78](https://github.com/joseibietasepulveda/Buho-Marc/pull/78), exclusivamente Dev `92a55a13a85636c5963fd49c3e5fe396045582c4`; Railway `8f697aad-bde7-4463-bf8b-e9a39b886c55` **SUCCESS**, rama y SHA exactos confirmados. Build/TypeScript remotos, migraciones existentes, arranque y salud 200/base conectada aprobados. Sin cambios de esquema o variables.
+- Dominio opcional desde ficha de marca, alta independiente, tabla, Factibilidad Exacta/Contenga y dos KPIs. Datos en memoria, titulares pendientes de API y avisos separados de notificaciones reales. [Contrato](DOMINIOS_PREVIEW_2026-10-13.md).
+- Once pruebas dirigidas repetidas antes del merge. QA publicada con admin Búho, miembro y administrador externo: permiso sólo slug `estudio-ibieta-ip`/rol `admin`; acceso directo también denegado para terceros. Alta/asociación/desvinculación, búsqueda, aviso/KPIs y reinicio al recargar verificados, sin errores de página ni escrituras API del módulo. [Evidencia y límites](handoffs/2026-10-13-revision-dominios-admin.md).
+- Main `0c43e2b51e9ef47641290f8a8e941cd498a7f078` conservado; no se promovió esta funcionalidad a producción. No se hicieron consultas externas de prueba ni inferencias.
+
 ## Interfaz, informes y avisos reales · 12 de octubre
 
 - [PR #27](https://github.com/joseibietasepulveda/Buho-Marc/pull/27), Dev `816c5eaad7e8cdb89890ee524378b7cd367d6c2f`; Railway `f8ce295d-6fbb-4f34-9908-c3663cb7d067` **SUCCESS** para el SHA exacto. Compilación/TypeScript y salud 200/base conectada comprobadas.
