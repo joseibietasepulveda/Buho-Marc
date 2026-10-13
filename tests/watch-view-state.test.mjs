@@ -45,3 +45,13 @@ test('a server-confirmed removal does not resurrect a converted card or a delete
   assert.equal(retained.groups[0].rows.length, 0);
   assert.equal(retained.followedCount, 0);
 });
+
+for (const extra of [{discoveryKind:'baseline'}, {discoveryKind:'baseline', featuredRank:1}]) {
+ test('reviewing an initial finding updates the unified pending count once '+JSON.stringify(extra),()=>{
+  const p=watchPage({...snapshot,targets:[{...target,results:[{...hit,...extra}]}]},new URLSearchParams());
+  assert.equal(p.count,1);
+  const next=updateWatchPage(p,hit.matchId,{reviewStatus:'En seguimiento'});
+  assert.equal(next.count,0);assert.equal(next.followedCount,1);assert.equal(next.baselineCount,0);
+  assert.equal(updateWatchPage(next,hit.matchId,{reviewStatus:'En seguimiento'}).count,0);
+ });
+}

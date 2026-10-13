@@ -1,3 +1,4 @@
+import { createRenewalNotices } from "./renewal-notices";
 import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { organizationId, actorId } from "../lib/tenant-context";
 import { getSql } from "./index";
@@ -115,6 +116,8 @@ export async function syncSource(trigger: "manual" | "scheduled", provider = fet
           notices++;
         }
       }
+      const renewals = await createRenewalNotices(tx, now);
+      notices += renewals.created;
       await tx`UPDATE source_sync_runs SET status = 'success', completed_at = now(), received = ${response.records.length}, changed = ${changed}, notifications = ${notices}, detail = ${tx.json(detail)} WHERE id = ${runId}`;
       return { skipped: false, runId, requested: input!.applicationIds.length, received: response.records.length, changed, notifications: notices };
     });

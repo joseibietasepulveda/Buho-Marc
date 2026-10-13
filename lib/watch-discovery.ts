@@ -35,6 +35,6 @@ export function discoveryKind(hit: SimilarityHit, startedDay: string, previous?:
 }
 
 export const discoveryLabels: Record<DiscoveryKind, string> = {
-  baseline: 'Antecedente anterior a la vigilancia', filing: 'Nueva solicitud',
+  baseline: 'Hallazgo de la revisión inicial', filing: 'Nueva solicitud',
   publication: 'Nueva publicación', 'status-change': 'Cambio de estado',
 };

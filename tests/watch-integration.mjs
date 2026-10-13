@@ -47,8 +47,9 @@ try {
  await runAs(identities[0],async()=>{
   let snapshot=await watchSnapshot();assert.equal(snapshot.targets[0].results.length,50);
   assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,0);
-  assert.equal(watchPage(snapshot,new URLSearchParams()).count,0);
-  assert.equal(watchPage(snapshot,new URLSearchParams({scope:'baseline'})).baselineCount,46);
+  assert.equal(watchPage(snapshot,new URLSearchParams()).count,46);
+  assert.equal(watchPage(snapshot,new URLSearchParams({scope:'baseline'})).count,46);
+  assert.equal(watchPage(snapshot,new URLSearchParams()).baselineCount,0);
 const target=snapshot.targets[0];const id=target.results[0].matchId;
   await followWatch(id,true);await followWatch(id,true);
   assert.equal((await watchSnapshot()).targets[0].results[0].watchPublication,true);
@@ -206,6 +207,7 @@ const target=snapshot.targets[0];const id=target.results[0].matchId;
  await sql`UPDATE monitoring_jobs SET status='cancelled' WHERE status IN ('queued','retry','running')`;
  await runAs(identities[1],async()=>{
   const target=(await watchSnapshot()).targets[0];
+  const pendingBefore=watchPage(await watchSnapshot(),new URLSearchParams()).count;
   const recent={...query,applicationId:'900',name:'Novedad seleccionable',filedAt:new Date().toISOString().slice(0,10),score:.9,channels:{},history:[]};
   let results=[recent];
   const selectedSearch=async()=>({query,results,groups:[],warnings:[],candidateCount:1,elapsedSeconds:.1,fetchedAt:new Date().toISOString()});
@@ -214,9 +216,9 @@ const target=snapshot.targets[0];const id=target.results[0].matchId;
   let current=await watchSnapshot();const id=current.targets[0].results[0].matchId;
   const notices=async()=>Number((await sql`SELECT count(*)::int AS n FROM notifications WHERE organization_id=${identities[1].organizationId}`)[0].n);
   assert.equal(await notices(),0);
-  assert.equal(watchPage(current,new URLSearchParams()).count,1);
+  assert.equal(watchPage(current,new URLSearchParams()).count,pendingBefore+1);
   results=[];await review();current=await watchSnapshot();
-  assert.equal(watchPage(current,new URLSearchParams()).count,1,'pending new event survives leaving current results');
+  assert.equal(watchPage(current,new URLSearchParams()).count,pendingBefore+1,'pending new event survives leaving current results');
   await sql`UPDATE matches SET review_status='Convertida en caso' WHERE public_code=${id} AND organization_id=${identities[1].organizationId}`;
   results=[{...recent,publishedAt:'2026-09-29'}];await review();assert.equal(await notices(),0,'direct conversion is not notification consent');
   await followWatch(id);await review();assert.equal(await notices(),0,'following never sends retrospective publication');
