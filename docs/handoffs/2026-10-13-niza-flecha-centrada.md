@@ -1,9 +1,9 @@
 # Traspaso: flecha centrada del selector Niza
 
-- Actualizado: 2026-10-13 00:46, America/Santiago.
-- Estado: listo para publicar; verificación visual aprobada.
+- Actualizado: 2026-10-13 00:53, America/Santiago.
+- Estado: integrado en Dev y Main; desplegado y verificado en ambos ambientes.
 - Rama y base: `codex/niza-flecha-centrada`; Dev `8e1869a36d475bee39f267f2770d8cfa4cbc3f90`.
-- PR y entrega: pendientes.
+- PR y entrega: [#69 → Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/69), [#70 → Main](https://github.com/joseibietasepulveda/Buho-Marc/pull/70). Cambio `3de6c211cdc8244f13d49b5ad0d3e6ad5d0d94a8`; integración Dev `709d7f66b418178c4a63fd7a9103e68795a6b65a`; Main `a05e1605f9f9fe41f729e631d3aea49c5aee188c`.
 
 ## Objetivo y alcance
 Centrar verticalmente la flecha del buscador de clase Niza de Factibilidad, con el aspecto de los demás controles. Cambio visual puntual; conservar búsqueda por número/significado, apertura, teclado y selección.
@@ -25,5 +25,8 @@ Se reutiliza el worktree aislado de este chat, limpio, con una rama nueva desde 
 - Reproducción: abrir Factibilidad/Buscar; medir centros de `#proposal-class` y `.nice-class-combobox button > svg` con `getBoundingClientRect()` a las tres anchuras. La diferencia debe ser menor a 0,5 px; pulsar Mostrar clases de Niza, filtrar 30, seleccionar con Enter y volver a abrir/cerrar con Escape.
 - ESLint del componente, `tsc --noEmit --incremental false` y `git diff --check`: aprobados. `npm run build -- --webpack` aprobado: compilación/TypeScript y 36 páginas. No se añadieron pruebas unitarias que duplicaran este ajuste visual.
 
+- Railway Dev: despliegue `1bba3681-0b04-44b8-95bc-29fd9cb300df`, commit Dev indicado, `SUCCESS`. Producción: `64af21d2-6edc-43f0-a110-bd0443779697`, commit Main indicado, `SUCCESS`. Ambos builds aprobados; `/api/health` devuelve HTTP 200, `ok: true`, base conectada y motor `dequienes`.
+- Comparación entre Dev/Main sin diferencias de código en `app`, `db`, `lib`, `scripts` y `tests`. El cierre documental se publica en ambas ramas sin cambiar código.
+
 ## Pendientes y siguiente paso
-Publicar/verificar en Dev y producción siguiendo la autorización vigente del chat. Registrar PR, commit y despliegues exactos. No ejecutar consultas a INAPI ni OpenRouter para este ajuste.
+Sin pendientes para este ajuste. No se hicieron consultas a INAPI ni OpenRouter. La continuidad adicional de conclusiones con IA sigue diferida en los pendientes del administrador Buho Marc y no forma parte de esta entrega.
