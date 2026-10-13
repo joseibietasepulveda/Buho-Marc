@@ -44,6 +44,10 @@ export function caseDeadlineDescription(value?: string): string {
 
 type NoticeInput = { title: string; brand: string; urgency: string; changeDetail?: unknown };
 export function noticePresentation(notice: NoticeInput, deadline?: string, today = chileToday()) {
+  if (notice.changeDetail && typeof notice.changeDetail === "object" && "kind" in notice.changeDetail && notice.changeDetail.kind === "renewal-reminder") {
+    const due = workDeadline(deadline, false, today);
+    return { title: notice.title, label: `Vence el ${displayWorkDate(deadline)}`, tone: due.tone, kind: "renewal" };
+  }
   if (notice.changeDetail) return { title: notice.title, label: "Novedad del expediente", tone: "neutral", kind: "activity" };
   if (/plazo|vencim|vencid|vence|vencer/i.test(notice.title)) {
     const due = workDeadline(deadline, false, today);

@@ -22,8 +22,8 @@ export function updateWatchPage(page: WatchPage, id: string, patch: Pick<WatchHi
   return { ...page, featured: visibleRows(page.featured), groups: page.groups.map(group => ({ ...group, rows: visibleRows(group.rows), totalGroups: group.totalGroups - (group.rows.length - visibleRows(group.rows).length) })), followed,
     followedCount: Math.max(0, page.followedCount + (nowFollowed ? previouslyFollowed ? 0 : 1 : previouslyFollowed ? -1 : 0)),
     followedTotalGroups: Math.max(page.followedTotalGroups, followed.length),
-    count: Math.max(0, page.count - (wasPending && (prior.discoveryKind ?? "baseline") !== "baseline" ? 1 : 0)),
-    baselineCount: Math.max(0, page.baselineCount - (wasPending && (prior.discoveryKind ?? "baseline") === "baseline" ? 1 : 0)) };
+    count: Math.max(0, page.count - (wasPending && (nowFollowed || patch.reviewStatus === "Descartada") ? 1 : 0)),
+    baselineCount: 0 };
 }
 
 // Keep the new case link in its original card while the same filters are open.

@@ -12,7 +12,7 @@ import type { RegistrationApplication } from "@/lib/registration-data";
 import { buildNotificationTimeline, conciseNoticeTitle, priorityNoticeSummary, type TimelineBrand } from "@/lib/notification-timeline";
 import { notificationPage } from "@/lib/notification-page";
 
-type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { applicationNumber?: string; officialUrl?: string; lastSuccessfulQueryAt?: string; historical?: boolean; caseId?: string; changes: FieldChange[]; source?: string; summary: string } };
+type Notice = { deadline?: string; id: string; title: string; brand: string; urgency: string; status: string; date: string; body: string; matchId?: string; kind?: string; changeDetail?: { kind?: string; applicationNumber?: string; officialUrl?: string; lastSuccessfulQueryAt?: string; historical?: boolean; caseId?: string; changes: FieldChange[]; source?: string; summary: string } };
 const emptyApplications: RegistrationApplication[] = [];
 const emptyBrands: TimelineBrand[] = [];
 const countFormat = new Intl.NumberFormat("es-CL");
@@ -65,7 +65,7 @@ export function NotificationCenter({ notices, applications = emptyApplications, 
       return <article className={`notice-inbox-item ${unread ? "is-unread" : ""} ${selectedId===notice.id?"is-selected":""}`} key={notice.id}>
         <button type="button" className="notice-inbox-row" onClick={() => {setSelectedId(notice.id);setExpanded(false);}} aria-haspopup={wide?undefined:"dialog"} aria-pressed={selectedId===notice.id}>
           <span className="notice-inbox-icon" aria-hidden><Bell size={22}/>{unread && <i/>}</span>
-          <span className="notice-inbox-copy"><span className="notice-inbox-meta"><strong>{notice.brand}</strong><span>{notice.date}</span><span className="notice-inbox-source">{noticeSource(notice)}</span></span><strong className="notice-inbox-title">{title}</strong>{display.kind === "deadline" && <span className="notice-inbox-deadline">{display.label}</span>}</span>
+          <span className="notice-inbox-copy"><span className="notice-inbox-meta"><strong>{notice.brand}</strong><span>{notice.date}</span><span className="notice-inbox-source">{noticeSource(notice)}</span></span><strong className="notice-inbox-title">{title}</strong>{["deadline", "renewal"].includes(display.kind) && <span className="notice-inbox-deadline">{display.label}</span>}</span>
           <span className={`notice-inbox-status ${unread ? "is-pending" : ""}`}>{unread ? "Por revisar" : "Revisada"}</span>
           <CaretRight className="notice-inbox-chevron" size={20} aria-hidden/>
         </button>
@@ -84,6 +84,7 @@ function NoticePagination({ page, pages, total, from, to, onPage }: { page: numb
 
 function noticeSource(notice: Notice) {
   const title = priorityNoticeSummary(notice);
+  if (notice.changeDetail?.kind === "renewal-reminder") return "Recordatorio de renovación";
   if (isTitleIssued(title)) return "Título disponible";
   if (/Diario Oficial/i.test(title) || notice.changeDetail?.changes.some(change => change.field === "publicationDate")) return "Diario Oficial";
   return notice.changeDetail?.source === "inapi" ? "INAPI" : notice.changeDetail?.source === "simulated" ? "Demostración" : "Seguimiento";

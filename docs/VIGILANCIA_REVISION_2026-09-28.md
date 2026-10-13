@@ -1,6 +1,6 @@
 # Decisiones de vigilancia · 28 de septiembre de 2026
 
-- Separar antecedentes anteriores al inicio de vigilancia de solicitudes, publicaciones y cambios de estado nuevos. Los antecedentes siguen accesibles y no se marcan como revisados.
+- Actualización del 12/10: los hallazgos iniciales y posteriores comparten Novedades por revisar; se conserva su procedencia. Se elimina la pestaña Antecedentes, sin marcar automáticamente resultados como revisados. [Contrato vigente](VIGILANCIA_BANDEJAS_Y_RENOVACION_2026-10-12.md).
 - Mantener pendientes nuevos aunque salgan del último lote de resultados.
 - Excluir las coincidencias registradas o concedidas de todas las pestañas de Vigilancia y sus contadores, incluso en seguimiento. Se conservan los registros y decisiones guardados.
 - Priorizar productos y servicios relacionados mediante clases coincidentes, familias amplias de clases o coincidencias de cobertura. Los datos incompletos y la venta minorista sin relación verificable quedan por confirmar, visibles. Es un filtro operativo conservador, no una determinación jurídica. Todos los resultados pueden consultarse.
