@@ -26,6 +26,8 @@ El usuario solicitó «Ver más» para traer nuevos antecedentes desde Revisar r
 
 La pantalla puede mostrar cuatro antecedentes de una clase aunque haya recuperado 100 candidatos antes de aplicar filtros. Los controles de página solo recorren los resultados ya cargados. No se implementó ni publicó «Ver más», ni se cambió el límite o se ejecutaron nuevas búsquedas para esta comprobación. Queda pendiente coordinar continuación en DeQuiénEs, integrante del mismo equipo. Al retomarlo: conservar clase, criterios, selección y resultados anteriores, deduplicar solicitudes y comprobar carga, error y fin de resultados. [Cierre del chat](handoffs/2026-10-12-cierre-factibilidad.md).
 
+El botón de apertura de Clase Niza usa una flecha vectorial centrada verticalmente en el campo, consistente con los demás controles y sin cambiar su navegación por teclado. [Ajuste y verificación visual del 13/10](handoffs/2026-10-13-niza-flecha-centrada.md).
+
 ## Conclusiones
 
 **Generar conclusión con IA - Buho Marc** trabaja únicamente sobre la clase activa y los antecedentes relevantes incluidos en su detalle. OpenRouter sigue siendo el proveedor interno; su nombre no aparece en este flujo público. El contexto contiene textos, estados, titulares, coberturas e historial de los expedientes seleccionados y una agrupación por marca; excluye imágenes, expedientes no seleccionados, totales recuperados y evaluación determinista previa. La cobertura de otras clases no se atribuye a la clase activa. La identidad, titularidad y cobertura propuestas provienen del formulario del autor.

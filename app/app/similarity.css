@@ -133,6 +133,8 @@ img[role=button]{cursor:zoom-in}img[role=button]:focus-visible{outline:3px solid
 .feasibility-study-header .buho-primary{padding:11px 18px;background:#6c3f91;color:#fff;border:1px solid #6c3f91;border-radius:7px;font-weight:600;cursor:pointer}
 .feasibility-study-header .buho-primary:hover{background:#573078}
 .nice-class-combobox [aria-disabled=true]{opacity:.5;cursor:default}
+.nice-class-combobox .brand-combobox-control{display:flex}
+.nice-class-combobox .brand-combobox-control>button{display:grid;place-items:center;padding:0;line-height:1}
 
 /* Densidad solicitada para la presentación: escala local, conserva el resto de la app. */
 @media(min-width:901px){.watch-view{zoom:.8}}
