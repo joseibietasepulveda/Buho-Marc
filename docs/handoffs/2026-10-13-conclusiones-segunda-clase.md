@@ -1,12 +1,12 @@
 # Traspaso: fallo de conclusión en la segunda clase
 
-- Actualizado: 2026-10-13 00:19, America/Santiago.
-- Estado: listo para revisión; verificado localmente, sin publicar.
+- Actualizado: 2026-10-13 00:29, America/Santiago.
+- Estado: publicación autorizada, en preparación.
 - Rama y base: `codex/conclusiones-segunda-clase`; Dev `ced9eeef82d991c34ce9a300a8eea2a392dc81c6`.
-- PR: pendiente de autorización de publicación. Entrega local: HEAD de `codex/conclusiones-segunda-clase`.
+- PR: pendiente de creación. Entrega funcional local: `3cd94de`; rama `codex/conclusiones-segunda-clase`.
 
 ## Objetivo y alcance
-El usuario informa una conclusión exitosa seguida de fallo al generar clase 29 en Multinforme. Autoriza corregirlo y llamar a OpenRouter. Identificar la causa guardada, corregir el flujo y probar clases independientes sin consultas nuevas a INAPI. La autorización no incluye promoción a Main/producción.
+El usuario informa una conclusión exitosa seguida de fallo al generar clase 29 en Multinforme. Autoriza corregirlo y llamar a OpenRouter. Identificar la causa guardada, corregir el flujo y probar clases independientes sin consultas nuevas a INAPI. Posteriormente autoriza integrar en Dev y desplegar en producción y pide aplicar la corrección ya ofrecida, dejando la mayor confiabilidad como pendiente del administrador de Búho Marc.
 
 ## Cambios y archivos relevantes
 - `lib/openrouter-conclusion.ts`: prompt v10, máximo dos intentos por clase dentro de los mismos 45 s, corrección específica por motivo seguro sin reenviar el texto inválido, recuperación transitoria de red/HTTP y respeto de `Retry-After`. No reintenta falta de clave, HTTP 400/401/402/403 ni timeout. Esquema restringe referencias a los antecedentes enviados, límites de párrafos y recomendación elegida; `provider.require_parameters` exige soporte estructurado.
@@ -14,6 +14,7 @@ El usuario informa una conclusión exitosa seguida de fallo al generar clase 29 
 - `lib/conclusion-failure.ts` y `app/app/feasibility-review.tsx`: mensajes diferenciados; el fallo conserva las otras conclusiones y bloquea la exportación de la clase pendiente.
 - `tests/feasibility-conclusion.test.mjs`, `scripts/verify-feasibility-study.mjs` y `scripts/verify-conclusion-recovery.mjs`: recuperación de la segunda clase, máximo dos peticiones, integridad de primera clase/selección, decisiones/evidencia, fallo definitivo, costo desconocido y proveedor permanente. El script de persistencia requiere `BUHO_CONCLUSION_QA_DATABASE_URL` explícito y rechaza hosts remotos o bases distintas de `buho_local`; nunca llama al proveedor real.
 - Documentos funcionales `docs/FACTIBILIDAD_MULTINFORME_2026-10-09.md` y `docs/COST_CONTROL.md` distinguen implementación local de integración.
+- `lib/release-notes.ts`: grupo «Mayor continuidad de las conclusiones con IA» en Próximas versiones de Acerca de esta versión, sección disponible únicamente para admin Búho Marc según `workspacePolicy`. Registra formato independiente de redacción, alternativa ante fallos, estudios recuperables y medición/avisos de gasto. Son pendientes, no funcionalidades implementadas.
 
 ## Decisiones y motivos
 - Usuario: el diagnóstico anterior se implementó desde otro chat; ahora permite reparación e inferencias.
@@ -37,6 +38,7 @@ Persistencia existente `prepareConclusion` guarda automáticamente los nuevos me
 - `BUHO_CONCLUSION_QA_DATABASE_URL=postgresql://postgres:buho-local-only@127.0.0.1:55489/buho_local node --import ./tests/ts-loader.mjs scripts/verify-conclusion-recovery.mjs`: aprobado. PostgreSQL real local, clases 30/29, primera conclusión intacta, segunda recuperada con tres llamadas simuladas totales, metadatos/costo de ambos intentos y caché sin nuevas llamadas. Ejecutar sobre la instancia preparada con `dev:local` y demo cargada; no usar datos de otro chat.
 - Tres inferencias reales autorizadas sobre el contexto seleccionado guardado de clase 29: reproducción con v9, comprobación del nuevo esquema v10 y recuperación v10 después de un primer rechazo simulado. Todas las respuestas reales válidas. Costos informados: US$0,0079664 + US$0,0081772 + US$0,0081612 = US$0,0243048. Ninguna búsqueda nueva a INAPI; no se regeneraron ni escribieron conclusiones remotas.
 - Acceso SSH temporal propio revocado; agente y archivos privados temporales retirados. Sin cambios de claves/límites OpenRouter, variables Railway ni datos remotos. La sesión QA pertenece sólo a la base local.
+- Después de registrar el pendiente administrativo: ESLint de `lib/release-notes.ts`, `git diff --check` y `npm run build -- --webpack` aprobados. Se comprobó el consumidor `AboutVersionView` y su autorización exclusiva de admin Búho; no se cambió la política ni se habilitó esta vista en otras organizaciones.
 
 ## Pendientes y siguiente paso
-Autorizar publicación de la rama/PR hacia Dev, revisar e integrar; validar el despliegue exacto. La promoción a Main/producción requiere petición explícita según AGENTS del usuario. No declarar esta corrección disponible en producción mientras no se publique. No repetir búsquedas ni inferencias reales sólo para verificar documentos. Conservar los borradores de usuario en memoria: recargar su navegador borra el borrador completo según el contrato actual.
+Publicar la rama/PR hacia Dev, integrar y verificar el despliegue exacto; promover esta entrega a Main/producción según autorización vigente. No declarar esta corrección disponible en producción mientras no se publique. No repetir búsquedas ni inferencias reales sólo para verificar documentos. Conservar los borradores de usuario en memoria: recargar su navegador borra el borrador completo según el contrato actual. Las mejoras adicionales de continuidad quedan aplazadas en el pendiente administrativo.
