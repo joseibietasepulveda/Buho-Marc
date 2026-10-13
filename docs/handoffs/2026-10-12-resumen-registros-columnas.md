@@ -1,9 +1,9 @@
 # Traspaso: columnas del resumen de registros
 
-- Actualizado: 2026-10-12, America/Santiago.
-- Estado: listo para integración.
+- Actualizado: 2026-10-13, America/Santiago.
+- Estado: integrado y publicado en Dev y Main/producción.
 - Rama y base: `codex/resumen-registros-columnas`; Dev `07d5083920e71a243b503811ff783419d16fb302`.
-- PR y commit de entrega: pendiente.
+- Entrega: `d3b5a56`; [PR 60 Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/60), [PR 61 Main](https://github.com/joseibietasepulveda/Buho-Marc/pull/61).
 
 ## Objetivo y alcance
 Evitar que Solicitud, sus números, Expediente y Abrir se partan en la tabla Últimos movimientos de tus solicitudes. El botón debe permanecer dentro de la tarjeta. Continuar el flujo autorizado de correcciones en Dev y Main.
@@ -25,4 +25,10 @@ Se conserva el clon aislado y el checkout original intacto. CSS limitado al resu
 - Servidor y PostgreSQL locales detenidos tras QA.
 
 ## Pendientes y siguiente paso
-Integrar Dev, verificar su despliegue y salud, promover a Main y comprobar producción; registrar referencias.
+Sin pendientes funcionales. Recargar la aplicación para cargar la hoja de estilos publicada. No repetir la QA sobre cartera real ni ejecutar búsquedas de fuente para este ajuste visual.
+
+## Integración comprobada
+- Dev: merge `aed6392ba5073eca7578eeae3cc30c16b937a61e`; Railway `0de9ad90-c0a2-4395-846b-512f720e351e`, SUCCESS. Salud pública HTTP 200, ok true y database connected.
+- Main: merge `f90a66316e9c19335eb72952f5d325662c63a08e`; promoción conserva documentación exclusiva de Main (merge ensayado sin conflictos). `git diff origin/dev origin/main -- app db lib scripts tests` vacío: mismo código funcional probado.
+- Producción: Railway `2d510103-d4ea-40df-a44e-da394ae20fd8`, SUCCESS para el merge de Main; salud pública HTTP 200, ok true y database connected. La actualización final de esta nota es sólo documental, sin cambiar el CSS verificado.
+- La revisión visual y apertura del expediente se comprobaron en Chrome local con fixtures; en Railway se comprueba SHA y salud pública, sin modificar cartera ni iniciar consultas remotas.
