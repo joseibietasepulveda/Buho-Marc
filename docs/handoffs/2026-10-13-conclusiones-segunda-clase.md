@@ -1,9 +1,9 @@
 # Traspaso: fallo de conclusión en la segunda clase
 
-- Actualizado: 2026-10-13 00:29, America/Santiago.
-- Estado: publicación autorizada, en preparación.
+- Actualizado: 2026-10-13 00:37, America/Santiago.
+- Estado: integrado y publicado en Dev y producción.
 - Rama y base: `codex/conclusiones-segunda-clase`; Dev `ced9eeef82d991c34ce9a300a8eea2a392dc81c6`.
-- PR: pendiente de creación. Entrega funcional local: `3cd94de`; rama `codex/conclusiones-segunda-clase`.
+- PR y commits: [#65 Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/65), entrega `3cd94de` + `c794a28`, integración `e0809759b4d41405cb9666ed33f74d5e65d2a2c7`; [#66 Main](https://github.com/joseibietasepulveda/Buho-Marc/pull/66), promoción `506bc4ae14c972d5291aeb16d28ce64b08b4e89e`.
 
 ## Objetivo y alcance
 El usuario informa una conclusión exitosa seguida de fallo al generar clase 29 en Multinforme. Autoriza corregirlo y llamar a OpenRouter. Identificar la causa guardada, corregir el flujo y probar clases independientes sin consultas nuevas a INAPI. Posteriormente autoriza integrar en Dev y desplegar en producción y pide aplicar la corrección ya ofrecida, dejando la mayor confiabilidad como pendiente del administrador de Búho Marc.
@@ -41,4 +41,11 @@ Persistencia existente `prepareConclusion` guarda automáticamente los nuevos me
 - Después de registrar el pendiente administrativo: ESLint de `lib/release-notes.ts`, `git diff --check` y `npm run build -- --webpack` aprobados. Se comprobó el consumidor `AboutVersionView` y su autorización exclusiva de admin Búho; no se cambió la política ni se habilitó esta vista en otras organizaciones.
 
 ## Pendientes y siguiente paso
-Publicar la rama/PR hacia Dev, integrar y verificar el despliegue exacto; promover esta entrega a Main/producción según autorización vigente. No declarar esta corrección disponible en producción mientras no se publique. No repetir búsquedas ni inferencias reales sólo para verificar documentos. Conservar los borradores de usuario en memoria: recargar su navegador borra el borrador completo según el contrato actual. Las mejoras adicionales de continuidad quedan aplazadas en el pendiente administrativo.
+Entrega funcional terminada. Las mejoras adicionales de continuidad quedan aplazadas en Acerca de esta versión → Próximas versiones del administrador Búho Marc. No prometer disponibilidad absoluta ni aceptar una respuesta inválida como conclusión. No repetir búsquedas ni inferencias reales sólo para verificar documentos. Conservar los borradores de usuario en memoria: recargar su navegador borra el borrador completo según el contrato actual.
+
+
+## Integración y publicación comprobadas
+- Dev: PR #65; Railway `71202b57-74b6-4bed-b4df-dd81dfae537b`, SHA exacto `e0809759b4d41405cb9666ed33f74d5e65d2a2c7`, SUCCESS. Build/TypeScript y 36 páginas aprobados; salud 200, base conectada, motor DeQuiénEs; conclusiones 401 sin sesión.
+- Producción: PR #66; Railway `ab7d1d36-f65a-4a2c-af25-2f60bd979062`, SHA exacto `506bc4ae14c972d5291aeb16d28ce64b08b4e89e`, SUCCESS. Build/TypeScript y 36 páginas aprobados; salud 200, base conectada, motor DeQuiénEs; conclusiones 401 y `/app` 307 a ingresar sin sesión.
+- Comparación `git diff origin/main origin/dev -- app db lib scripts tests` vacía después de promover: mismo código probado, conservando documentación histórica de Main. Sin migraciones nuevas, variables ni traslados de datos entre ambientes.
+- La QA autenticada completa y la recuperación real del modelo corresponden a las comprobaciones locales descritas arriba. La verificación de publicación no generó nuevos informes ni consultó INAPI/OpenRouter. El cierre siguiente modifica documentación solamente.

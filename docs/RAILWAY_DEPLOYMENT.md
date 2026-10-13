@@ -200,3 +200,12 @@ Los despliegues y comprobaciones anteriores están en [UX_RELEASE_PLAN](UX_RELEA
 ## Pulido visual · 4 de octubre de 2026
 
 La entrega funcional `83386dc` se publicó únicamente en Dev. Despliegue `dc2db98a-0f70-486b-8ab8-2d020a41bfab`: `SUCCESS`, compilación/TypeScript correctos y salud 200/base conectada con `engine: dequienes`. La acción `PATCH /api/notifications` necesita sesión; la limpieza de Prioritarias utiliza campos existentes y no agrega migraciones. Detalle de cambios, contratos y QA en [Pulido del 4 de octubre](UX_PULIDO_2026-10-04.md).
+
+
+## Recuperación de conclusiones por clase · 13 de octubre
+
+- [PR #65 Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/65), SHA `e0809759b4d41405cb9666ed33f74d5e65d2a2c7`; Railway `71202b57-74b6-4bed-b4df-dd81dfae537b` SUCCESS.
+- [PR #66 Main](https://github.com/joseibietasepulveda/Buho-Marc/pull/66), SHA `506bc4ae14c972d5291aeb16d28ce64b08b4e89e`; Railway producción `ab7d1d36-f65a-4a2c-af25-2f60bd979062` SUCCESS. Mismo código de aplicación, DB, librerías, scripts y pruebas en ambos ambientes; documentación histórica conservada.
+- Prompt v10: un segundo intento dirigido para recuperar respuestas inválidas, sin cambiar la clase, evidencia ni decisión expresa del abogado; 45 segundos totales. No exporta el respaldo automático. Se registran motivo, intentos y uso/costo disponible. Sin migraciones ni variables nuevas.
+- Salud 200, base conectada y motor DeQuiénEs en ambos ambientes; conclusiones 401 sin sesión, producción `/app` 307 a ingresar. Compilación/TypeScript remotos aprobados. QA local de PostgreSQL, navegador, 33 pruebas, ocho descargas y recuperación con OpenRouter real autorizada; no hubo nuevas consultas o generaciones para verificar el despliegue.
+- Acerca de esta versión → Próximas versiones del administrador Búho Marc registra la mayor continuidad como pendiente, por petición del usuario. [Traspaso, límites y reproducción](handoffs/2026-10-13-conclusiones-segunda-clase.md).
