@@ -1,11 +1,12 @@
 import { readFile } from 'node:fs/promises';
+import { setTimeout as delay } from 'node:timers/promises';
 import { parseEnv } from 'node:util';
 import { CLASS_DECISIONS } from './feasibility-study';
-import { boundedJson } from './bounded-json';
-import { conclusionContext, deterministicConclusion, validateModelConclusion, type ConclusionInput, type ReportConclusion } from './feasibility-conclusion';
+import { BodyLimitError, boundedJson } from './bounded-json';
+import { ConclusionValidationError, conclusionContext, deterministicConclusion, validateModelConclusion, type ConclusionInput, type ReportConclusion } from './feasibility-conclusion';
 import type { ReportProfile } from './report-profile';
 
-export const CONCLUSION_PROMPT_VERSION = 9;
+export const CONCLUSION_PROMPT_VERSION = 10;
 export type OpenRouterConfig = { apiKey: string; model: string };
 export async function openRouterConfig(): Promise<OpenRouterConfig> {
   let local: Record<string, string | undefined> = {};
@@ -35,38 +36,100 @@ export function authorDecisionInstruction(input: ConclusionInput): string {
   return `\nInstrucción expresa del abogado, validada por el sistema: ${decision ? `decision debe ser exactamente ${decision}; ` : ''}recommendation debe ser exactamente ${recommendation}. La conclusión solicitada es «${title}». Esta decisión prevalece sobre la regla de decidir automáticamente, incluso cuando no se incluyeron antecedentes. Redacta todos los párrafos de forma coherente con ella y comienza el último párrafo con «${title}». Explica los hechos disponibles y las condiciones concretas sin recomendar la alternativa contraria ni inventar argumentos favorables. Si los antecedentes presentan dificultades, descríbelas como condiciones específicas de la decisión elegida. No cambies la decisión del abogado por tu propia evaluación.`;
 }
 export type ConclusionGeneration = { conclusion: ReportConclusion; providerId?: string; usage?: Record<string, unknown>; cost?: number };
+const corrections:Record<NonNullable<ReportConclusion['failureCode']>,string>={
+  schema_invalid:'Respeta todos los campos y límites del esquema; cada párrafo debe tener entre 20 y 2400 caracteres.',
+  foreign_evidence:'Usa únicamente solicitudes incluidas en search.results; no cites solicitudes tomadas del historial como antecedentes separados.',
+  percentages:'Retira todos los porcentajes y probabilidades numéricas, incluso los expresados en palabras.',
+  missing_decision:'Incluye decision para la clase activa.',
+  inconsistent_decision:'Mantén la correspondencia: proceed/proceed, moderate/review, avoid/adjust o insufficient/review.',
+  empty_selection_decision:'Sin antecedentes incluidos y sin decisión del autor, usa decision proceed y recommendation proceed.',
+  author_decision_changed:'Conserva exactamente la decisión expresa del abogado.',
+  author_recommendation_changed:'Conserva exactamente la recomendación expresa del abogado.',
+  author_ending_missing:'Comienza el último párrafo exactamente con el título indicado en la instrucción expresa del abogado.',
+  author_prose_contradiction:'No recomiendes una alternativa contraria a la decisión expresa del abogado en ningún párrafo.',
+  provider_http:'Devuelve la conclusión en el esquema solicitado.',
+  provider_network:'Devuelve la conclusión en el esquema solicitado.',
+  provider_payload:'Devuelve exclusivamente un objeto JSON válido que cumpla el esquema solicitado.',
+  incomplete_response:'Entrega el JSON completo con dos párrafos breves, dentro del límite de salida.',
+};
 export async function generateConclusion(input: ConclusionInput, profile: ReportProfile, config: OpenRouterConfig, fetcher: typeof fetch = fetch): Promise<ConclusionGeneration> {
   const fallback = (reason: ReportConclusion['reason']): ConclusionGeneration => ({ conclusion: { ...deterministicConclusion(input), reason } });
   if (!config.apiKey) return fallback('not_configured');
-  const context = JSON.stringify(conclusionContext(input, profile));
+  const facts=conclusionContext(input, profile),context = JSON.stringify(facts);
   // Never truncate a dossier silently: the local conclusion remains available for oversized searches.
   if (Buffer.byteLength(context) > 2 * 1024 * 1024) return fallback('input_too_large');
-  try {
-    const response = await fetcher('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST', redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(45000),
-      headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json', 'X-OpenRouter-Title': 'Buho Marc' },
-      body: JSON.stringify({ model: config.model, temperature: .2, max_tokens: 2200, stream: false,
-        messages: [{ role: 'system', content: (input.proposal.niceClass === undefined ? system + " No incluyas porcentajes ni probabilidades numéricas." : classSystem) + authorDecisionInstruction(input) }, { role: 'user', content: context }],
+  // A class may recover once, within the original total time budget. Legacy callers keep one attempt.
+  const signal=AbortSignal.timeout(45000),deadline=Date.now()+45000,limit=input.proposal.niceClass===undefined?1:2;
+  const evidenceIds:string[]=facts.search.results.map((hit:{applicationId:string})=>hit.applicationId);
+  const recommendation=input.recommendation??(input.decision==='proceed'?'proceed':input.decision==='avoid'?'adjust':input.decision?'review':undefined);
+  const attempts:{providerId?:string;usage?:Record<string,unknown>;cost?:number;failureCode?:ReportConclusion['failureCode']}[]=[];
+  let last:ConclusionGeneration=fallback('provider_error');
+  for(let attempt=0;attempt<limit;attempt++) {
+    let retryable=false,retryDelay=0;
+    try {
+      const response = await fetcher('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST', redirect: 'error', cache: 'no-store', signal,
+        headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json', 'X-OpenRouter-Title': 'Buho Marc' },
+        body: JSON.stringify({ model: config.model, temperature: .2, max_tokens: 2200, stream: false,
+        ...(input.proposal.niceClass===undefined?{}:{provider:{require_parameters:true}}),
+        messages: [{ role: 'system', content: (input.proposal.niceClass === undefined ? system + " No incluyas porcentajes ni probabilidades numéricas." : classSystem) + authorDecisionInstruction(input) + (attempt?`\nCorrige el intento anterior sin cambiar la clase ni los antecedentes. ${corrections[last.conclusion.failureCode??'provider_payload']}`:'') }, { role: 'user', content: context }],
         response_format: { type: 'json_schema', json_schema: { name: 'feasibility_conclusion', strict: true, schema: {
           type: 'object', additionalProperties: false, required: ['recommendation', 'paragraphs', 'evidenceApplicationIds', ...(input.proposal.niceClass === undefined ? [] : ['decision'])], properties: {
             ...(input.proposal.niceClass === undefined ? {} : { decision: { type: 'string', enum: input.decision ? [input.decision] : ['proceed','moderate','avoid','insufficient'] } }),
-            recommendation: { type: 'string', enum: input.recommendation ? [input.recommendation] : ['review', 'proceed', 'adjust'] },
-            paragraphs: { type: 'array', minItems: 1, maxItems: 6, items: { type: 'string' } },
-            evidenceApplicationIds: { type: 'array', maxItems: 100, items: { type: 'string' } },
+            recommendation: { type: 'string', enum: recommendation ? [recommendation] : ['review', 'proceed', 'adjust'] },
+            paragraphs: { type: 'array', minItems: 1, maxItems: 6, items: { type: 'string', minLength:20, maxLength:2400 } },
+            evidenceApplicationIds: { type: 'array', maxItems: evidenceIds.length?100:0, items: { type: 'string', ...(evidenceIds.length?{enum:evidenceIds}:{}) } },
           },
         } } },
-      }),
-    });
-    if (!response.ok) { await response.body?.cancel(); return fallback('provider_error'); }
-    const raw = await boundedJson(response, 1024 * 1024) as { error?: unknown; id?: string; model?: string; choices?: { error?: unknown; finish_reason?: string; message?: { content?: string } }[]; usage?: Record<string, unknown> };
-    const metadata = { providerId: typeof raw.id === 'string' ? raw.id.slice(0,180) : undefined, usage: raw.usage, cost: typeof raw.usage?.cost === 'number' && Number.isFinite(raw.usage.cost) && raw.usage.cost >= 0 ? raw.usage.cost : undefined };
-    const choice = raw.choices?.[0];
-    if (raw.error || choice?.error || choice?.finish_reason !== 'stop' || typeof choice.message?.content !== 'string') return { ...fallback('invalid_response'), ...metadata };
-    try {
-      const conclusion = validateModelConclusion(JSON.parse(choice.message.content), input);
-      return { conclusion: { ...conclusion, model: typeof raw.model === 'string' ? raw.model.slice(0,180) : config.model }, ...metadata };
-    } catch { return { ...fallback('invalid_response'), ...metadata }; }
-  } catch (error) {
-    return fallback(error instanceof Error && ['TimeoutError','AbortError'].includes(error.name) ? 'timeout' : 'provider_error');
+        }),
+      });
+      if (!response.ok) {
+        await response.body?.cancel();last=fallback('provider_error');last.conclusion.failureCode='provider_http';last.conclusion.providerStatus=response.status;
+        retryable=response.status===429||response.status>=500;
+        const retryAfter=response.headers.get('retry-after');
+        if(retryable&&retryAfter) {
+          retryDelay=Math.max(0,Number.isFinite(Number(retryAfter))?Number(retryAfter)*1000:Date.parse(retryAfter)-Date.now());
+          if(!Number.isFinite(retryDelay))retryDelay=0;
+          if(retryDelay>=deadline-Date.now())retryable=false;
+        }
+      } else {
+        const raw = await boundedJson(response, 1024 * 1024) as { error?: unknown; id?: string; model?: string; choices?: { error?: unknown; finish_reason?: string; message?: { content?: string } }[]; usage?: Record<string, unknown> };
+        if(!raw||typeof raw!=='object')throw new SyntaxError('Respuesta de proveedor inválida');
+        const metadata = { providerId: typeof raw.id === 'string' ? raw.id.slice(0,180) : undefined, usage: raw.usage, cost: typeof raw.usage?.cost === 'number' && Number.isFinite(raw.usage.cost) && raw.usage.cost >= 0 ? raw.usage.cost : undefined };
+        const choice = raw.choices?.[0];
+        if (raw.error || choice?.error || choice?.finish_reason !== 'stop' || typeof choice.message?.content !== 'string') {
+          last={...fallback('invalid_response'),...metadata};last.conclusion.failureCode='incomplete_response';retryable=true;
+        } else {
+          try {
+            const conclusion = validateModelConclusion(JSON.parse(choice.message.content), input);
+            last={ conclusion: { ...conclusion, model: typeof raw.model === 'string' ? raw.model.slice(0,180) : config.model }, ...metadata };
+          } catch(error) {
+            last={...fallback('invalid_response'),...metadata};last.conclusion.failureCode=error instanceof ConclusionValidationError?error.code:'provider_payload';retryable=true;
+          }
+        }
+      }
+    } catch (error) {
+      const timeout=signal.aborted||error instanceof Error&&['TimeoutError','AbortError'].includes(error.name);
+      const invalid=error instanceof SyntaxError||error instanceof BodyLimitError;
+      last=fallback(timeout?'timeout':invalid?'invalid_response':'provider_error');last.conclusion.failureCode=invalid?'provider_payload':'provider_network';retryable=!timeout;
+    }
+    attempts.push({providerId:last.providerId,usage:last.usage,cost:last.cost,failureCode:last.conclusion.failureCode});
+    if(last.conclusion.source==='openrouter'||!retryable||signal.aborted||attempt+1===limit)break;
+    if(retryDelay) {
+      try { await delay(retryDelay,undefined,{signal}); }
+      catch {last.conclusion.reason='timeout';break;}
+    }
   }
+  last.conclusion.generationAttempts=attempts.length;
+  if(attempts.length>1) {
+    // Retain both metered responses; an unknown cost must never be reported as zero.
+    last.usage={...last.usage,attempts};
+    last.cost=attempts.every(item=>item.cost!==undefined)?attempts.reduce((sum,item)=>sum+item.cost!,0):undefined;
+    for(const field of ['prompt_tokens','completion_tokens','total_tokens']) {
+      const values=attempts.map(item=>item.usage?.[field]);
+      if(values.every(value=>typeof value==='number'&&Number.isFinite(value)))last.usage[field]=(values as number[]).reduce((sum,value)=>sum+value,0);
+    }
+    if(last.cost===undefined)delete last.usage.cost;else last.usage.cost=last.cost;
+  }
+  return last;
 }
