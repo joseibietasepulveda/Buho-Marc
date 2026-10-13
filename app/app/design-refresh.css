@@ -623,3 +623,6 @@ html:has(.buho-app) :is(.review-dialog,.priority-notice-drawer) { zoom:1!importa
 .buho-app .trademark-toolbar .trademark-search{display:flex;gap:10px;align-items:center;height:44px;min-height:44px;padding:0 12px;box-sizing:border-box}
 .buho-app .trademark-toolbar .trademark-search input{height:42px;min-height:0;padding:0;flex:1;width:100%}
 .buho-app .trademark-toolbar select,.buho-app .trademark-toolbar .trademark-clear-filters{height:44px;min-height:44px;box-sizing:border-box}
+
+/* Shared agenda opened from the surveillance summary. */
+.review-dialog.dashboard-calendar-dialog { width:min(1100px,calc(100vw - 32px)); max-width:1100px; }
