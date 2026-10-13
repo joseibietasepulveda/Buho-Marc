@@ -7,6 +7,9 @@ import "../ingresar/session.css";
 export default async function ChangePasswordPage() {
   const identity = await sessionIdentity((await cookies()).get(SESSION_COOKIE)?.value);
   if (!identity) redirect("/ingresar");
-  if (!workspacePolicy(identity.organizationSlug).changePassword) redirect("/app");
+  if (!workspacePolicy(identity.organizationSlug, identity.role).changePassword) {
+    if (identity.mustChangePassword) return <main className="session-page"><h1>Tu clave requiere actualización</h1><p>Contacta al administrador de Búho Marc para actualizar tu acceso.</p></main>;
+    redirect("/app");
+  }
   return <LoginForm changePassword />;
 }
