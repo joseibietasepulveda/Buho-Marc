@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
+import { CaretDown } from "@phosphor-icons/react";
 import { NICE_CLASSES } from "@/lib/nice-classes";
 import { foldText } from "@/lib/text-search";
 
@@ -17,7 +18,7 @@ export function NiceClassCombobox({value,onChange,unavailable=[]}:{value:string;
       if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();setOpen(true);setActive(current=>Math.max(0,Math.min(visible.length-1,open?current+(event.key==='ArrowDown'?1:-1):0)));}
       if(event.key==='Enter'&&open){event.preventDefault();if(visible[index])choose(visible[index].number);}
       if(event.key==='Escape'&&open){event.preventDefault();event.stopPropagation();setOpen(false);setQuery('');}
-    }}/><button type="button" aria-label="Mostrar clases de Niza" aria-expanded={open} onClick={()=>{setOpen(current=>!current);setQuery('');setActive(0);}}>⌄</button></div>
+    }}/><button type="button" aria-label="Mostrar clases de Niza" aria-expanded={open} onClick={()=>{setOpen(current=>!current);setQuery('');setActive(0);}}><CaretDown size={18} aria-hidden="true"/></button></div>
     {open&&<div ref={list} id={id} role="listbox" aria-label="Clases de Niza" className="brand-combobox-options">{visible.map((item,i)=><button type="button" role="option" tabIndex={-1} data-index={i} id={`${id}-${i}`} key={item.number} aria-selected={value===String(item.number)} aria-disabled={unavailable.includes(item.number)} className={i===index?'is-highlighted':''} onMouseDown={event=>event.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>choose(item.number)}>{item.number} · {item.meaning}{unavailable.includes(item.number)?' · Ya analizada':''}</button>)}{!visible.length&&<p role="status">No hay clases con esa búsqueda.</p>}</div>}
   </div>;
 }
