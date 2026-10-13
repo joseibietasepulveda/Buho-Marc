@@ -1,6 +1,6 @@
 # Traspaso: bandejas de vigilancia, gestiones próximas y renovación
 
-- Actualizado: 2026-10-12 21:22, America/Santiago.
+- Actualizado: 2026-10-12 21:16, America/Santiago.
 - Estado: integrado y verificado en Dev y producción.
 - Rama y base: `codex/vigilancia-bandejas-plazos`; Dev `99fa7f7`.
 - Carpeta aislada: `/tmp/buho-vigilancia-elqui-recovery`; se reutiliza el clon privado de este chat tras comprobar que estaba limpio. El checkout original tiene packs de Git dataless y la creación administrada ya falló; no se modifica.
