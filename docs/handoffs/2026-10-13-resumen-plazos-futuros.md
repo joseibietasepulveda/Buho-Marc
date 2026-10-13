@@ -1,10 +1,10 @@
 # Traspaso: completar atención con próximos plazos
 
 - Actualizado: 2026-10-13, America/Santiago.
-- Estado: actualización e integración en Dev en curso; PR #64 recuperado y actualizado sobre Dev vigente.
+- Estado: integrado, desplegado y verificado en Dev.
 - Rama y base: `codex/resumen-plazos-futuros`; inicio en Dev `aed6392ba5073eca7578eeae3cc30c16b937a61e` (PR #60, columnas del resumen), actualizado mediante rebase a `ced9eee` (PR #62, cierre documental). Commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`.
 - Carpeta aislada: `/tmp/buho-resumen-plazos-worktree-20261013`, worktree del clon `/tmp/buho-resumen-plazos-20261013`. La creación administrada desde el checkout original falló por lookup de Git; sus archivos dataless y cambios ajenos no se modifican. El intento de adjuntar la carpeta mediante Codex también fue rechazado porque no es un worktree administrado.
-- PR de entrega: [#64](https://github.com/joseibietasepulveda/Buho-Marc/pull/64), abierto hacia Dev y adjunto al chat; commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`. El usuario confirmó que terminó el otro agente; rama subida, merge pendiente de revisión.
+- PR de entrega: [#64](https://github.com/joseibietasepulveda/Buho-Marc/pull/64), integrado en Dev `4a4a8c3956a657df1dd862249aae8a0173443113` y adjunto al chat; commit funcional `f50d9260d5daac9c482d438d1c4ee7c95fb17c2d`. La petición posterior del usuario autoriza la actualización y publicación preservando los commits nuevos; ver la continuación al final.
 
 ## Objetivo y alcance
 
@@ -41,7 +41,7 @@ Ambiente: macOS, Node 24.14.0, Next 16.3.5, dependencias instaladas con `npm ci 
 
 ## Pendientes y siguiente paso
 
-Revisar y, cuando esté autorizado, integrar PR #64. Si Dev vuelve a avanzar, actualizar antes del merge y repetir verificaciones afectadas. Después de integrarlo verificar Railway Dev y documentar la integración. No promover a Main ni desplegar producción.
+La implementación ya está publicada en Dev. Para que B&E la vea en su cartera de producción, falta una promoción a Main/producción explícitamente solicitada. No copiar carteras entre ambientes para probar la interfaz.
 
 ## Continuación: publicación preservando los nuevos commits de Dev
 
@@ -51,4 +51,8 @@ Revisar y, cuando esté autorizado, integrar PR #64. Si Dev vuelve a avanzar, ac
 - Se comprobó que Dev es ancestro de la rama y que los archivos nuevos de factibilidad, Niza, estilos del selector y lógica de conclusiones son idénticos a Dev. La diferencia funcional pendiente sigue limitada a `RegistrationsSummary` y una regla CSS del panel.
 - Verificación conjunta repetida sobre la versión combinada: `npm ci --no-audit --no-fund`; build con webpack, TypeScript y 36 páginas aprobado; ESLint de `app/app/page.tsx` y diff aprobados; 33 pruebas de procedimiento, renovación y conclusiones (`tests/registration-procedure.test.mjs`, `tests/registration-renewal.test.mjs`, `tests/feasibility-conclusion.test.mjs`) aprobadas, con proveedor de IA simulado y sin llamadas externas.
 - `node --import ./tests/ts-loader.mjs outputs/verify-registration-summary.mjs`: comprobación de la selección extraída del componente vigente, con escenarios B&E, prioridad/relleno, límite de cinco, frontera cinco/seis días hábiles, exclusiones, vacío y datos intactos. Aprobada. `app/app/page.tsx` y `app/app/design-refresh.css` no tienen diferencias frente al commit probado visualmente `23d4884`; no se repite la QA visual anterior sin un cambio de esas superficies.
-- Referencias de integración y despliegue: pendientes.
+- PR #64 integrado en Dev el 13/10/2026, commit `4a4a8c3956a657df1dd862249aae8a0173443113`, después de verificar el HEAD exacto del PR `3f271b87a92b15c4436982f36fb7614eaebe9cec` y la base `4929795`. La rama se actualizó sin force-push.
+- Se comprobó después del merge que `4929795` sigue siendo ancestro de Dev y que `app/`, `db/`, `lib/`, `scripts/` y `tests/` coinciden con la versión combinada probada localmente. El PR añade únicamente dos archivos funcionales y dos documentos frente al Dev vigente; conserva los cambios nuevos de los demás chats.
+- Railway Dev: despliegue `d4993ea5-b2e9-4f66-9ca7-b4cb63940d0f`, commit exacto `4a4a8c3956a657df1dd862249aae8a0173443113`, rama `dev`, estado `SUCCESS`. Build remoto y control de salud aprobados; registros de arranque confirman servidor listo.
+- HTTP remoto después de la publicación: `/api/health` 200, `ok: true`, base conectada y motor `dequienes`; `/api/registrations` 401 sin sesión; `/app` 307 a `/ingresar`. Sin consultas manuales a INAPI/OpenRouter ni operaciones sobre carteras reales para estas comprobaciones.
+- La comprobación de despliegue no sustituye la QA visual autenticada: el render del panel con B&E se probó localmente; B&E permanece en producción y este chat sólo publicó Dev. Se conserva la separación de ambientes.
