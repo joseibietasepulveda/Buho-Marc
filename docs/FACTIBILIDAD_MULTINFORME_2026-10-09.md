@@ -4,6 +4,10 @@ Estado: integrado exclusivamente en Dev por [PR #18](https://github.com/joseibie
 
 Pulido del 11 de octubre integrado mediante [PR #20](https://github.com/joseibietasepulveda/Buho-Marc/pull/20), Dev `c8ff459a4c42a2eb183c3ed38716c2e8c2bec341`. Railway confirmó SUCCESS en `6f5b7742-acab-4d48-baa3-54bc471ed833`, salud 200 y base conectada. El contrato de esta página incorpora los ajustes de selección, conclusiones y presentación; [traspaso y verificación](handoffs/2026-10-11-factibilidad-pulido.md).
 
+Pulido del 12 de octubre integrado por [PR #27](https://github.com/joseibietasepulveda/Buho-Marc/pull/27), Dev `816c5eaad7e8cdb89890ee524378b7cd367d6c2f`; Railway `f8ce295d-6fbb-4f34-9908-c3663cb7d067` confirmó SUCCESS. Incluye tipografía, Parte Figurativa, selector estable y combobox; [verificación y avisos reales acotados](handoffs/2026-10-12-interfaz-informes-notificaciones.md). Los registros anteriores describen cada corte de entrega.
+
+Estado posterior comprobado al cerrar la documentación: la promoción a Main se completó mediante [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30) y su registro [PR #31](https://github.com/joseibietasepulveda/Buho-Marc/pull/31). Esta actualización documental se publica solo en Dev; [corte y ambientes](handoffs/2026-10-12-cierre-factibilidad.md).
+
 ## Flujo vigente
 
 Al comenzar, elegir **Informe** o **Multinforme**. Ambos requieren exactamente una clase Niza por búsqueda. Informe genera un estudio de una clase; Multinforme reúne varios análisis independientes de la misma marca. La denominación y la imagen propuesta se conservan mientras se agregan clases.
@@ -15,6 +19,12 @@ Revisar resultados mantiene selección, comparación, grupos y filtros. **Siguie
 Los contadores y el detalle agrupan la misma denominación del mismo conjunto de titulares como un antecedente con expedientes asociados. No se fusionan titulares diferentes, denominaciones diferentes ni registros sin titular informado ni marcas figurativas sin denominación. La selección inicial incluye hasta cinco marcas con sus expedientes; una selección vacía explícita permanece vacía. La fila agrupada selecciona o retira todos sus expedientes; al expandir se pueden revisar individualmente.
 
 Los análisis completos viven en memoria del navegador durante el estudio. La persistencia existente conserva generaciones de conclusiones por organización; no constituye un archivo de estudios y no preserva el borrador completo después de recargar.
+
+## Recuperación adicional: decisión del 12 de octubre
+
+El usuario solicitó «Ver más» para traer nuevos antecedentes desde Revisar resultados y aceptó aplazarlo al conocer el límite. Se comprobó el [contrato público del buscador](https://dequienes.cl/inapi/spec): `SearchRequest.limit` admite hasta 100; no documenta cursor, offset ni exclusión de solicitudes para continuar. `per_channel` amplía candidatos por canal, pero no constituye paginación. La paginación por titular/representante de otro endpoint no se traslada a este buscador.
+
+La pantalla puede mostrar cuatro antecedentes de una clase aunque haya recuperado 100 candidatos antes de aplicar filtros. Los controles de página solo recorren los resultados ya cargados. No se implementó ni publicó «Ver más», ni se cambió el límite o se ejecutaron nuevas búsquedas para esta comprobación. Queda pendiente coordinar continuación en DeQuiénEs, integrante del mismo equipo. Al retomarlo: conservar clase, criterios, selección y resultados anteriores, deduplicar solicitudes y comprobar carga, error y fin de resultados. [Cierre del chat](handoffs/2026-10-12-cierre-factibilidad.md).
 
 ## Conclusiones
 

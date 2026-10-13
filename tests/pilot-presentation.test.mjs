@@ -7,8 +7,15 @@ import { watchPage } from '../lib/watch-page.ts';
 
 test('FA presentation capabilities use a stable tenant slug', () => {
   assert.deepEqual(workspacePolicy('fa-abogados'), { sourceAdmin:false, about:false, changePassword:false });
-  assert.deepEqual(workspacePolicy('estudio-ibieta-ip'), { sourceAdmin:true, about:true, changePassword:true, internalExamples:true });
-  assert.equal(workspacePolicy().changePassword, true);
+  assert.deepEqual(workspacePolicy('estudio-ibieta-ip', 'admin'), { sourceAdmin:true, about:true, changePassword:true, internalExamples:true });
+  assert.equal(workspacePolicy().changePassword, false);
+});
+test('only the Buho admin receives internal capabilities',()=>{
+ for(const [slug,role] of [['barros-errazuriz','admin'],['daniel-morales','admin'],['fa-abogados','admin'],['estudio-ibieta-ip','member'],['estudio-ibieta-ip',undefined],[undefined,'admin']]) assert.deepEqual(workspacePolicy(slug,role),{sourceAdmin:false,about:false,changePassword:false});
+ assert.equal(featuredWatchRank('1320072','1671049','barros-errazuriz'),2);
+ assert.equal(featuredWatchRank('1490801','1670768','barros-errazuriz'),3);
+ assert.equal(featuredWatchRank('1310436','1674156','barros-errazuriz'),4);
+ assert.equal(featuredWatchRank('1320072','1671049','other'),undefined);
 });
 test('Tv Elqui is the first selected own brand, with Copihue second only in Ibieta', () => {
   assert.equal(featuredWatchRank('1572142','1670929'),1);
@@ -34,7 +41,9 @@ test('featured exact pairs retain scores, obey text/date filters and leave norma
   const page=watchPage(snapshot,new URLSearchParams());
   assert.deepEqual(page.featured[0].hits.map(h=>h.applicationId),['1683639','1689486','1658314']);
   assert.equal(page.featured[0].hits[2].score,.357);
-  assert.equal(page.count+page.baselineCount,0,'no duplicate normal rows');
+  assert.equal(page.count,3,'featured findings count once in the unified inbox');
+  assert.equal(page.baselineCount,0);
+  assert.equal(page.groups.flatMap(group=>group.rows).length,0,'no duplicate normal rows');
   assert.equal(watchPage(snapshot,new URLSearchParams('q=unmatched')).featured.length,0);
   assert.equal(watchPage(snapshot,new URLSearchParams('from=2026-10-01')).featured.length,0);
   assert.equal(featuredWatchRank('1659715','unrelated'),undefined);
@@ -45,4 +54,15 @@ test('featured exact pairs retain scores, obey text/date filters and leave norma
   assert.equal(withExample.total,1,'public examples are not counted as owned portfolio targets');
   assert.equal(withExample.reviewTargets.length,1);
   assert.equal(withExample.reviewedAt,null,'cached examples do not change the actual portfolio review date');
+});
+
+test('BE summary prioritizes TV Elqui and two requested new crosses ahead of regular findings',()=>{
+ const pairs=[['1490801','1670768'],['1310436','1674156'],['1320072','1671049'],['1572142','1670929']];
+ const targets=pairs.map(([own,found])=>({id:own,name:own,applicationId:own,image:'',ownStatus:'Registrada',paused:false,status:'success',reviewedAt:null,nextReviewAt:null,warnings:[],results:[{applicationId:found,name:found,score:.34,status:'En Trámite',image:'',holders:[],classes:[],history:[],channels:{},reviewStatus:'Detectada',featuredRank:featuredWatchRank(own,found,'barros-errazuriz')}]}));
+ targets.push({...targets[0],id:'regular',applicationId:'999',results:[{...targets[0].results[0],featuredRank:undefined,score:.99}]});
+ const page=watchPage({configured:true,automaticEnabled:true,settings:{high:.7,medium:.55},targets},new URLSearchParams());
+ assert.deepEqual(page.featured.slice(0,3).map(row=>row.target.applicationId),['1572142','1320072','1490801']);
+ assert.equal(page.featured[3].target.applicationId,'1310436');
+ assert.equal(page.groups[0].rows[0].target.id,'regular','other findings remain in normal vigilance');
+ assert.equal(page.featured[0].hits[0].score,.34,'the presentation never raises a source score');
 });

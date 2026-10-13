@@ -29,7 +29,7 @@ export function withSession(handler: (request: Request) => Promise<Response>, op
     try {
       const identity = await sessionIdentity(requestToken(request));
       if (!identity) return NextResponse.json({ message: "Inicia sesión para continuar" }, { status: 401 });
-      if (options.capability && !workspacePolicy(identity.organizationSlug)[options.capability]) return NextResponse.json({ message: "Esta opción no está disponible en tu espacio" }, { status: 403 });
+      if (options.capability && !workspacePolicy(identity.organizationSlug, identity.role)[options.capability]) return NextResponse.json({ message: "Esta opción no está disponible en tu espacio" }, { status: 403 });
       if (identity.mustChangePassword) return NextResponse.json({ message: "Cambia tu clave temporal para continuar" }, { status: 403 });
       if (options.admin && identity.role !== "admin") return NextResponse.json({ message: "Se requiere un administrador" }, { status: 403 });
       if (!["GET", "HEAD"].includes(request.method) && !sameOrigin(request)) return NextResponse.json({ message: "Origen no permitido" }, { status: 403 });

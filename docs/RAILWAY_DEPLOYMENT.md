@@ -9,6 +9,13 @@ Actualizado el 12 de octubre de 2026. **Dev vigente fue promovido a Main/product
 - Incluye multinforme por clase, informes de cliente/estudio, convención de notificación desde la actuación, pulido de notificaciones y controles, desplazamiento y cajas compactas de Vigilancia. Las menciones «exclusivamente Dev» de las entregas históricas siguientes describen su publicación inicial y quedan complementadas por esta promoción.
 - 99/99 pruebas conjuntas aprobadas con proveedores y PostgreSQL aislados. Sin migraciones nuevas, cambios de dependencias/variables ni traslado o sustitución de bases. No se ejecutó un nuevo inventario fila por fila ni una sesión visual sobre cuentas reales; ver alcance y límites en el traspaso. El cierre posterior solo registra documentación.
 
+## Interfaz, informes y avisos reales · 12 de octubre
+
+- [PR #27](https://github.com/joseibietasepulveda/Buho-Marc/pull/27), Dev `816c5eaad7e8cdb89890ee524378b7cd367d6c2f`; Railway `f8ce295d-6fbb-4f34-9908-c3663cb7d067` **SUCCESS** para el SHA exacto. Compilación/TypeScript y salud 200/base conectada comprobadas.
+- Tabla Parte Figurativa, Word Times New Roman/PDF Times estándar compatible, cuerpo justificado, combobox Niza, controles estables, loading y lector de notificaciones ampliable. 50 pruebas dirigidas, QA de interfaz y multinforme, 23 páginas revisadas y diez descargas comprobadas desde Dev. [Detalle y procedencia de las pruebas](handoffs/2026-10-12-interfaz-informes-notificaciones.md).
+- Doce avisos reales del historial en Dev/admin y doce en production/Barros & Errázuriz, mediante autorización puntual de datos, sin enviar mensajes. Main no recibió este código; sus avisos se verificaron con su interfaz existente. Accesos temporales retirados.
+- «Ver más» queda aplazado por acuerdo del usuario hasta disponer de continuación en el buscador; no representa funcionalidad publicada. [Cierre documental](handoffs/2026-10-12-cierre-factibilidad.md).
+
 ## Notificación asumida el día del evento · 12 de octubre
 
 - [PR #24](https://github.com/joseibietasepulveda/Buho-Marc/pull/24), exclusivamente Dev `c6d91f796c9b560bae540f526ecf5776bf60599a`; Railway `3a3f152d-6309-4f97-9fd9-7edb304b0010` **SUCCESS**, rama y SHA exactos confirmados. Compilación, TypeScript, migraciones existentes y arranque correctos. Sin migraciones nuevas ni cambios de variables.

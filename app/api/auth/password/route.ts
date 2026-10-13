@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const token = requestToken(request);
   const identity = await sessionIdentity(token);
   if (!identity) return NextResponse.json({ message: "Inicia sesión para continuar" }, { status: 401 });
-  if (!workspacePolicy(identity.organizationSlug).changePassword) return NextResponse.json({ message: "El cambio de clave no está disponible en este espacio. Contacta al administrador." }, { status: 403 });
+  if (!workspacePolicy(identity.organizationSlug, identity.role).changePassword) return NextResponse.json({ message: "El cambio de clave no está disponible en este espacio. Contacta al administrador." }, { status: 403 });
   try {
     const input = z.object({ currentPassword: z.string().min(1).max(256), password: z.string().min(12).max(256) }).parse(await request.json());
     const sql = getSql();
