@@ -23,6 +23,7 @@ import { ReportProfileEditor, ReportProfileLauncher } from "./report-profile-edi
 import { analysisClass, upsertClassAnalysis, requireReviewedConclusion, hasPercentages, CLASS_DECISIONS, type FeasibilityClassAnalysis } from '@/lib/feasibility-study';
 import { type SavedReportProfile } from "@/lib/report-profile";
 import { type ConclusionInput, type ReportConclusion } from "@/lib/feasibility-conclusion";
+import { conclusionFailureMessage } from "@/lib/conclusion-failure";
 
 async function fetchReportProfile(signal?: AbortSignal):Promise<SavedReportProfile> {
   const response=await fetch("/api/report-profile",{signal}); const value=await response.json();
@@ -130,7 +131,7 @@ export function FeasibilityReview({onStepChange}:{onStepChange?:(step:number)=>v
       response=await fetch(`/api/feasibility/conclusions/${payload.pending}`,{signal:AbortSignal.any([pollingTimeout,AbortSignal.timeout(15000)])});
       const polled=await response.json();if(!response.ok)throw new Error('No pudimos recuperar la conclusión.');payload={...polled,pending:payload.pending};
     }
-    if(!payload.conclusion || payload.conclusion.source!=='openrouter')throw new Error(`IA - Buho Marc no pudo concluir el análisis de clase ${analysisClass(analysis)}. Los hallazgos se conservan; vuelve a intentarlo.`);
+    if(!payload.conclusion || payload.conclusion.source!=='openrouter')throw new Error(conclusionFailureMessage(payload.conclusion,analysisClass(analysis)));
     const value=requireReviewedConclusion(payload.conclusion);conclusionCache.current.set(key,value);return value;
   }
   async function previewConclusion() {
