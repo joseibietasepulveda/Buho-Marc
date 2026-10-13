@@ -56,3 +56,35 @@ test('every study field can be empty and a website must be a real HTTP URL',()=>
   assert.equal(reportProfileSchema.safeParse({website:'https://'}).success,false);
   assert.equal(reportProfileSchema.safeParse({website:'https://estudio.cl'}).success,true);
 });
+
+test('explicit class choices constrain both the schema and the written ending; auto remains independent',async()=>{
+  const labels={proceed:'Se recomienda presentar la solicitud',moderate:'Se recomienda presentar con riesgo moderado de oposición',avoid:'No se recomienda presentar la solicitud',insufficient:'Completar antecedentes antes de decidir'};
+  const recommendations={proceed:'proceed',moderate:'review',avoid:'adjust',insufficient:'review'};
+  for(const decision of Object.keys(labels)) {
+    const chosen={...input,proposal:{...input.proposal,niceClass:30},decision,recommendation:recommendations[decision]};
+    const output={decision,recommendation:chosen.recommendation,paragraphs:['Los antecedentes incluidos se comparan con la cobertura propuesta para esta clase.',labels[decision]+'. El siguiente paso se ajusta a esta decisión del abogado.'],evidenceApplicationIds:['123']};
+    const generated=await generateConclusion(chosen,EMPTY_REPORT_PROFILE,config,async(url,options)=>{
+      const request=JSON.parse(options.body),schema=request.response_format.json_schema.schema;
+      assert.deepEqual(schema.properties.decision.enum,[decision]);
+      assert.deepEqual(schema.properties.recommendation.enum,[chosen.recommendation]);
+      assert.match(request.messages[0].content,/Instrucción expresa del abogado/);
+      assert.ok(request.messages[0].content.includes(labels[decision]));
+      return response(output);
+    });
+    assert.equal(generated.conclusion.source,'openrouter');assert.equal(generated.conclusion.decision,decision);
+    const wrong=await generateConclusion(chosen,EMPTY_REPORT_PROFILE,config,async()=>response({...output,paragraphs:['Por lo tanto, se recomienda evitar la presentación de la solicitud porque los antecedentes muestran conflictos.']}));
+    assert.equal(wrong.conclusion.reason,'invalid_response');
+  }
+  const auto={...input,proposal:{...input.proposal,niceClass:30}};
+  const generated=await generateConclusion(auto,EMPTY_REPORT_PROFILE,config,async(url,options)=>{
+    const request=JSON.parse(options.body);assert.match(request.messages[0].content,/Modo automático/);
+    assert.deepEqual(request.response_format.json_schema.schema.properties.decision.enum,['proceed','moderate','avoid','insufficient']);
+    return response({decision:'avoid',recommendation:'adjust',paragraphs:['Los antecedentes incluidos justifican evitar la presentación de la marca propuesta.'],evidenceApplicationIds:['123']});
+  });
+  assert.equal(generated.conclusion.source,'openrouter');assert.equal(generated.conclusion.decision,'avoid');
+});
+test('a correct chosen title cannot mask contrary prose in an earlier paragraph',async()=>{
+ const chosen={...input,proposal:{...input.proposal,niceClass:30},decision:'proceed',recommendation:'proceed'};
+ const generated=await generateConclusion(chosen,EMPTY_REPORT_PROFILE,config,async()=>response({decision:'proceed',recommendation:'proceed',paragraphs:['Por lo tanto, se recomienda evitar la presentación de la marca en la clase 30.', 'Se recomienda presentar la solicitud para los productos de la clase activa.'],evidenceApplicationIds:['123']}));
+ assert.equal(generated.conclusion.reason,'invalid_response');
+});

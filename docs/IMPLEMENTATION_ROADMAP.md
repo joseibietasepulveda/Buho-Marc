@@ -1,6 +1,6 @@
 # Hoja de ruta de implementación
 
-**Estado actualizado al 2 de octubre de 2026, ambiente Dev.** Las guías vigentes están en el [índice](README.md), [UI/UX de octubre](UX_OCTUBRE_2026.md) e [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md). [V1_0_RELEASE.md](V1_0_RELEASE.md) conserva la entrega inicial. Las fases históricas siguientes no vuelven a abrir funcionalidades entregadas.
+**Estado de factibilidad actualizado al 12 de octubre de 2026, ambiente Dev.** Las guías vigentes están en el [índice](README.md), [UI/UX de octubre](UX_OCTUBRE_2026.md) e [Informes de factibilidad](INFORMES_FACTIBILIDAD_2026-10-02.md). [V1_0_RELEASE.md](V1_0_RELEASE.md) conserva la entrega inicial. Las fases históricas siguientes no vuelven a abrir funcionalidades entregadas.
 
 ## Entregado en octubre
 
@@ -14,16 +14,20 @@
 - [x] Informe de cliente Excel/Word/PDF con columnas seleccionables y datos completos guardados.
 - [x] Informe de factibilidad PDF/Word según el ejemplo del cliente, coberturas completas y conclusión/firma al final.
 - [x] Perfil opcional del estudio persistente y editable; precarga verificada en Dev para Zamora IP, Daniel/De Las Heras y FA.
-- [x] OpenRouter preparado con contexto completo, registros de generación/uso/costo, deduplicación y respaldo determinista; pruebas con proveedor aislado.
+- [x] Entrega histórica del 2 de octubre: OpenRouter con contexto completo, registros de generación/uso/costo, deduplicación y respaldo determinista; en el flujo vigente por clase se aplica el contrato de multinforme.
 - [x] Compilación, pruebas dirigidas, piloto descartable, revisión de seis variantes PDF/Word y publicación funcional `b42ae34` en Dev.
+- [x] Configurar OpenRouter en Dev con clave exclusiva sin vencimiento/tope US$1 autorizado; autenticación remota y generaciones reales con antecedentes ficticios locales comprobadas.
+- [x] Informe/Multinforme por clase, IA - Buho Marc limitada al detalle de la clase activa, edición directa y selección vacía favorable.
+- [x] Descargas cliente/estudio, tabla Marca/Parte Figurativa y fichas, mayúsculas, logo al 80%, cuerpo justificado, Word Times New Roman/PDF Times compatible y sin factor de similitud.
+- [x] Combobox Niza, selector estable, loading INAPI, filtros de solicitudes alineados y lector de notificaciones ampliable; [entrega verificada](handoffs/2026-10-12-interfaz-informes-notificaciones.md).
 
 ## Pendientes actuales relacionados
 
-- [ ] Configurar una clave real de OpenRouter en Dev y verificar la llamada real; hoy la ausencia de credencial mantiene el respaldo determinista.
 - [ ] Archivo completo de estudios, imágenes propuestas y almacenamiento general de adjuntos; los perfiles y contextos/resultados de conclusiones ya se guardan.
+- [ ] «Ver más» en factibilidad: aplazado por acuerdo del usuario; requiere continuación documentada del buscador y coordinación con DeQuiénEs. [Decisión del 12 de octubre](handoffs/2026-10-12-cierre-factibilidad.md).
 - [ ] Filtro de estados previo a recuperar candidatos en la fuente, catálogo de estados y mejora de exhaustividad/cargas tardías.
 - [ ] Calibración de semejanza con revisión humana, operación a escala, respaldos/observabilidad, correo externo e invitaciones/permisos avanzados.
-- [ ] Promoción de las mejoras de octubre a producción, solo cuando se solicite expresamente.
+La promoción del multinforme y pulidos del 9–12 de octubre a producción se completó desde otro chat mediante [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30), con cierre en [PR #31](https://github.com/joseibietasepulveda/Buho-Marc/pull/31). Esta entrega documental se integra únicamente a Dev.
 
 > Historial del 10 de septiembre de 2026: el alcance vigente y los pendientes de v0.4 están en [V0_4_RELEASE.md](V0_4_RELEASE.md). Este documento conserva el contexto anterior; las restricciones sobre calendarios, cartera, notificaciones y vigilancia quedan reemplazadas por las decisiones de v0.4.
 

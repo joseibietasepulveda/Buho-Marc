@@ -181,7 +181,7 @@ export async function getDemoSnapshot() {
     watchSummary: { ...watchSummary, preview: watchPreview, updatedAt: watchReview?.updated_at ?? null, automaticEnabled: await automaticMonitoringEnabled() },
     audit: auditRows.map(row => ({ id: row.id, date: shortDate(row.occurred_at, true), actor: row.name ?? "Sistema", action: auditAction(row.action, row.after_data), detail: [row.entity_name || auditEntity(row.entity_type), row.after_data?.applicationNumber ? `Solicitud ${row.after_data.applicationNumber}` : "", row.after_data?.stage || "", row.action === "watch.settings_changed" ? `Alta desde ${row.after_data?.high}; media desde ${row.after_data?.medium}` : "", row.after_data?.clientName ? `Cliente: ${row.after_data.clientName}` : ""].filter(Boolean).join(" · ") })),
     organizationName: currentIdentity()?.organizationName ?? "Estudio Ibieta IP",
-    workspacePolicy: workspacePolicy(currentIdentity()?.organizationSlug),
+    workspacePolicy: workspacePolicy(currentIdentity()?.organizationSlug, currentIdentity()?.role),
     demo: isDemoOrganization(),
     currentUserId: actorId(),
     provider: isRealSource() ? "inapi" : "simulated",

@@ -14,6 +14,7 @@ import EmbeddedPostgres from 'embedded-postgres';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { createSession } from '../lib/auth.ts';
 import { hashPassword } from '../lib/password.ts';
 import { getSql } from '../db/index.ts';
 import { runAs } from '../lib/tenant-context.ts';
@@ -31,7 +32,7 @@ try{
  await pg.initialise();await pg.start();await pg.createDatabase('watch_http');
  const migration=postgres(databaseUrl,{max:1});await migrate(drizzle(migration),{migrationsFolder:'drizzle'});await migration.end();
  process.env.DATABASE_URL=databaseUrl;process.env.SOURCE_PROVIDER='inapi';process.env.INAPI_API_KEY='isolated';
- sql=getSql();const [org]=await sql`INSERT INTO organizations(name,slug) VALUES ('QA vigilancia aislada','watch-qa') RETURNING id`;
+ sql=getSql();const [org]=await sql`INSERT INTO organizations(name,slug) VALUES ('QA vigilancia aislada','estudio-ibieta-ip') RETURNING id`;
  const [user]=await sql`INSERT INTO users(name,initials,username,password_hash) VALUES ('QA Vigilancia','QA','qa_vigilancia',${await hashPassword('vigilancia-local-1')}) RETURNING id`;
  await sql`INSERT INTO organization_members(organization_id,user_id,role) VALUES (${org.id},${user.id},'admin')`;
  // Use the saved real sample if present for visual review; otherwise reproducible synthetic contract fixtures.
@@ -71,6 +72,22 @@ try{
  assert.equal((await http('/api/demo',{cookie})).body.data.workspacePolicy.sourceAdmin,true);
  assert.equal((await provisionFaWorkspace(sql,'do-not-overwrite-existing-password')).created,false);
  console.log('PASS: FA login is case-insensitive; empty isolated workspace; source/password capabilities enforced; existing credentials preserved.');
+ const [member]=await sql`INSERT INTO users(name,initials) VALUES ('Buho member','BM') RETURNING id`;
+ await sql`INSERT INTO organization_members(organization_id,user_id,role) VALUES (${org.id},${member.id},'member')`;
+ const otherCookies=['buho_session='+await createSession(member.id,org.id)];
+ for(const slug of ['barros-errazuriz','daniel-morales']) {
+   const [other]=await sql`INSERT INTO organizations(name,slug) VALUES (${slug},${slug}) RETURNING id`;
+   await sql`INSERT INTO organization_members(organization_id,user_id,role) VALUES (${other.id},${member.id},'admin')`;
+   otherCookies.push('buho_session='+await createSession(member.id,other.id));
+ }
+ for(const deniedCookie of otherCookies) {
+   assert.deepEqual((await http('/api/demo',{cookie:deniedCookie})).body.data.workspacePolicy,{sourceAdmin:false,about:false,changePassword:false});
+   assert.equal((await http('/api/source/admin',{cookie:deniedCookie})).status,403);
+   assert.equal((await http('/api/source/admin',{cookie:deniedCookie,body:{action:'advance'}})).status,403);
+   assert.equal((await http('/api/auth/password',{cookie:deniedCookie,body:{currentPassword:'test',password:'another-local-password'}})).status,403);
+   const page=await fetch(base+'/cambiar-clave',{headers:{cookie:deniedCookie},redirect:'manual'});assert.equal(page.status,307);assert.equal(page.headers.get('location'),'/app');
+ }
+ console.log('PASS: Buho members and all external administrators lack internal source/about/password capabilities, enforced by HTTP and page redirects.');
  assert.equal((await http('/api/watch',{cookie,body:{action:'review'},origin:'https://untrusted.test'})).status,403);
  assert.equal((await http('/api/watch/worker',{body:{}})).status,403);
  for(const id of Object.keys(fixture.searches)){void id;const work=await http('/api/watch/worker',{body:{},authorization:'Bearer isolated-watch-cron'});assert.equal(work.status,200);assert.equal(work.body.completed,true,JSON.stringify(work.body));}
