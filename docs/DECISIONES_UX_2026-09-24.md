@@ -89,3 +89,7 @@ La presentación identifica petición frente a resolución, oposición presentad
 - Seleccionar una recomendación manual invalida la conclusión anterior. La IA redacta argumentos coherentes y termina con la decisión elegida; Generada por IA mantiene elección automática. Una respuesta inválida no habilita descarga ni se presenta como conclusión IA.
 - B&E incorpora registros propios BRANDON METRICS 1320072, Boretek 1490801 y BRUMA 1310436. Destacadas prioriza TV ELQUI, BRANDON METRICS/Brandon 1671049, Boretek/B BORTEK INDUSTRIAL SOLUTIONS 1670768 y BRUMA/BRUMAVÉ 1674156. El resumen toma las tres primeras pendientes, conservando evidencia e índices reales. Esta selección afecta sólo B&E y no clasifica automáticamente los hallazgos.
 - [Entrega y verificación](handoffs/2026-10-12-presentacion-barros-errazuriz.md).
+
+## Seguimiento en Mis marcas · corrección del 12 de octubre
+
+La píldora de seguimiento usa un selector nativo con En monitoreo y Sin monitoreo para evitar el recorte del menú por la tabla, incluida la última fila y pantallas estrechas. Conserva la pausa/reactivación y su persistencia. Enter/Espacio abre la ficha sólo cuando la fila tiene foco; los controles interiores mantienen su acción. [Entrega y verificación](handoffs/2026-10-12-mis-marcas-menu-seguimiento.md).
