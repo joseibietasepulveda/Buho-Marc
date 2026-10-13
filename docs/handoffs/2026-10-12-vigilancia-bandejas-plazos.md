@@ -1,10 +1,11 @@
 # Traspaso: bandejas de vigilancia, gestiones próximas y renovación
 
 - Actualizado: 2026-10-12, America/Santiago.
-- Estado: listo para integración; operaciones de revisión real completadas.
+- Estado: integrado; ajuste de fecha en Notificaciones en verificación.
 - Rama y base: `codex/vigilancia-bandejas-plazos`; Dev `99fa7f7`.
 - Carpeta aislada: `/tmp/buho-vigilancia-elqui-recovery`; se reutiliza el clon privado de este chat tras comprobar que estaba limpio. El checkout original tiene packs de Git dataless y la creación administrada ya falló; no se modifica.
-- PR y commit de entrega: pendiente.
+- Entrega principal: PR [37](https://github.com/joseibietasepulveda/Buho-Marc/pull/37), Dev `cf41218`; promoción PR [38](https://github.com/joseibietasepulveda/Buho-Marc/pull/38), Main `7fb9723`.
+- Ajuste de cierre: `codex/vigilancia-bandejas-plazos-cierre`, desde Dev `cf41218`.
 
 ## Objetivo y alcance
 
@@ -16,7 +17,7 @@ Confirmadas por usuario: eliminar la pestaña Antecedentes, conservar búsqueda 
 
 ## Cambios y archivos relevantes
 
-Pendiente tras inspección de `lib/watch-list.ts`, `lib/watch-page.ts`, `lib/watch-view-state.ts`, `app/app/watch-panel.tsx`, `app/app/page.tsx` y proyección INAPI/avisos.
+`lib/watch-list.ts`, `lib/watch-page.ts`, `lib/watch-view-state.ts` y `app/app/watch-panel.tsx`: bandeja y contadores unificados. `app/app/page.tsx`: gestiones próximas y vencimiento propio de notificaciones. `lib/renewal-reminder.ts`, `db/renewal-notices.ts`, `db/source-sync.ts` y supervisor: avisos internos idempotentes. `scripts/provision-renewal-example.ts`: incorporación puntual real, con modo seco por defecto. Documentación funcional en `docs/VIGILANCIA_BANDEJAS_Y_RENOVACION_2026-10-12.md`.
 
 ## Coordinación e integración
 
@@ -24,11 +25,11 @@ Contratos compartidos de vigilancia, resumen y notificaciones; preservar seguimi
 
 ## Verificación
 
-Inspección de README, decisiones UX, vigilancia, consumo, plazos, notificación el día de actuación y Railway. Pendiente pruebas/QA/publicación. Evidencia real privada en outputs (ignorado); no versionar datos de clientes ni respuestas completas.
+Se inspeccionaron README, decisiones UX, vigilancia, consumo, plazos, notificación el día de actuación y Railway. Evidencia real privada en `outputs/` (ignorado); no versionar datos personales de clientes ni respuestas completas. Pruebas y despliegues detallados abajo.
 
 ## Pendientes y siguiente paso
 
-Leer historial real guardado y realizar actualización puntual autorizada de los dos expedientes antes de decidir correcciones; revisar fechas de vencimiento guardadas. Implementar bandeja unificada, KPI y aviso idempotente, verificar e integrar.
+Publicar el ajuste de presentación de fechas, comprobarlo en ambos ambientes y retirar el acceso temporal. No repetir revisión masiva para QA. No existe B&E en Dev; no crear una cuenta nueva para este encargo.
 
 ## Avance de implementación y verificación
 
@@ -42,3 +43,12 @@ Leer historial real guardado y realizar actualización puntual autorizada de los
 - QA autenticada de Dev confirma que las dos solicitudes dejaron la lista de pagos vencidos. Otros pagos pendientes permanecen según la evidencia actual: no se ocultan sólo por parecer antiguos. Falta QA final de código desplegado, operación puntual de ejemplo/avisos y retirar acceso temporal.
 
 - Integración adicional de sincronización aprobada en PostgreSQL aislado: revisión atómica, bloqueo, rollback y programación diaria. El primer ensayo no habilitó el supervisor en su ambiente; se corrigió sólo el runner privado y pasó. La integración de vigilancia ajustó sus expectativas al contador unificado (antes omitía hallazgos iniciales); aprobó cola, reintentos, aislamiento y decisiones.
+
+## Integración y operación verificadas
+
+- Railway Dev `0b5cd1dc-04b3-4e05-90bd-74b4c38525c8`, commit `cf41218`: SUCCESS. Producción `063c3f7f-367e-43f9-b3f3-f201d2a6215c`, commit `7fb9723`: SUCCESS. Compilación/TypeScript y healthchecks de despliegue aprobados; `/api/health` de producción devuelve 200 y base conectada.
+- Las dos solicitudes señaladas dejaron el pago vencido: fuente actual confirma publicación el 2 de octubre y proyección de oposición hasta el 16 de noviembre de 2026. No se desplazaron fechas manualmente.
+- Ibieta no tenía registro próximo en ninguno de los ambientes. CLI puntual incorporó solicitud real `1204333`, respetando titular y evidencia originales; vencimiento `2026-10-28`. Se añadió una marca y un recordatorio por ambiente. B&E producción tenía cinco expiraciones próximas y obtuvo cinco avisos, sin añadir marcas. B&E no existe en Dev.
+- La generación de recordatorios hace cero consultas externas; la incorporación puntual sí consultó una ficha por ambiente. La salida anterior del CLI imprimía el cero del generador encima del contador del importador; el ajuste de cierre corrige ese informe. No altera ni repite las fichas.
+- QA en producción confirmó dos pestañas, el KPI próximo y TV ELQUI.CL propia → ELQUI.CL detectada primero en B&E. Verificación de datos: contador/resumen 47 B&E y 420 Ibieta, `baselineCount=0`; las selecciones destacadas previas conservadas. El registro añadido puede aumentar el contador si la cola genera coincidencias nuevas.
+- La revisión visual encontró que el adaptador antiguo de `NotificationCenter` reemplazaba el vencimiento del recordatorio con `undefined`. El ajuste conserva el vencimiento propio y lo usa también en el drawer. Diez pruebas dirigidas de renovación/prioridades aprobadas nuevamente, ESLint y `npm run build -- --webpack` aprobados. Falta comprobar este ajuste desplegado.
