@@ -120,6 +120,13 @@
       "when": 1791928799823,
       "tag": "0016_watch_digest",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792008000000,
+      "tag": "0017_admin_analytics",
+      "breakpoints": true
     }
   ]
 }

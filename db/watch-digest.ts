@@ -8,7 +8,7 @@ import { digestMarkImage } from '../lib/watch-digest-images';
 import { digestEmail } from '../lib/watch-digest-email';
 import { sendResendEmail, ResendDeliveryError, type ResendEmail } from '../lib/resend-email';
 
-type Run = { id: string; organization_id: string; organization_name: string; status: string; candidate_ids: string[]; cursor: number; evaluated: number; available: number; failures: number; limited: boolean; lease_token: string; email: ResendEmail | null; send_attempts: number; first_send_at: Date | null; delivery_uncertain: boolean; evaluation_input: {batch: DigestCandidate[];images:GlmInputImage[];advance:number} | null };
+type Run = { id: string; organization_id: string; organization_name: string; status: string; candidate_ids: string[]; cursor: number; evaluated: number; available: number; failures: number; limited: boolean; lease_token: string; email: ResendEmail | null; requested_by:string|null; send_attempts: number; first_send_at: Date | null; delivery_uncertain: boolean; evaluation_input: {batch: DigestCandidate[];images:GlmInputImage[];advance:number} | null };
 export class DigestBudgetError extends Error { constructor() { super('Se alcanzó el presupuesto de vigilancia; los cruces restantes siguen pendientes'); } }
 export async function digestOrganizations() {
   return getSql()`SELECT o.id,o.name,o.slug FROM organizations o WHERE o.status='active' AND (EXISTS(SELECT 1 FROM brands b WHERE b.organization_id=o.id AND b.archived_at IS NULL AND b.monitoring_config->>'provider'='inapi') OR EXISTS(SELECT 1 FROM registration_applications a WHERE a.organization_id=o.id AND a.data->>'provider'='inapi' AND COALESCE(a.data->>'portfolioRole','own') <> 'third-party')) ORDER BY o.name`;
@@ -44,8 +44,9 @@ export async function enqueueScheduledDigests(now = new Date()) {
   }
   return count;
 }
-export function digestAccounting(org: string, run: string, now = new Date()): GlmCallAccounting {
+export function digestAccounting(org: string, run: string, now = new Date(),userId:string|null=null): GlmCallAccounting {
   return {
+    telemetryContext:{organizationId:org,userId},
     async lookup(hash) {
       const [r] = await getSql()`SELECT result FROM watch_glm_calls WHERE organization_id=${org} AND run_id=${run} AND request_hash=${hash}`;
       return r ? (r.result as CallResult | null) ?? { error: 'Intento interrumpido; cargo sin confirmar' } : null;
@@ -163,7 +164,7 @@ export async function processDigestJob(options: { now?: Date; fetcher?: typeof f
       }
       batchAdvance = advance;
       if (batch.length) {
-        const decisions = await evaluateDigestGlm(batch,images,digestConfig().glmKey,digestAccounting(run.organization_id,run.id,now),fetcher);
+        const decisions = await evaluateDigestGlm(batch,images,digestConfig().glmKey,digestAccounting(run.organization_id,run.id,now,run.requested_by),fetcher);
         await getSql().begin(async tx => {
           const [lease] = await tx`SELECT id FROM watch_digest_runs WHERE id=${run.id} AND lease_token=${run.lease_token} FOR UPDATE`;
           if (!lease) throw new Error('Se perdió el turno de procesamiento');

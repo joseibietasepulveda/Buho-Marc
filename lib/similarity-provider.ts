@@ -1,3 +1,4 @@
+import {analyticsFetcher} from "./analytics-telemetry";
 import { portfolioImage, dequienesImage } from "./trademark-image";
 import { z } from "zod";
 import { textMatches } from "./text-search";
@@ -36,7 +37,7 @@ export async function searchSimilar(input: Record<string, unknown>, image?: File
     form.set("image", image); body = form;
   } else headers["content-type"] = "application/json";
   let response: Response;
-  try { response = await fetcher("https://dequienes.cl/inapi/trademarks/search", { method: "POST", headers, body, redirect: "error", cache: "no-store", signal: AbortSignal.timeout(90000) }); }
+  try { response = await analyticsFetcher({provider:'dequienes',operation:'search'},fetcher)("https://dequienes.cl/inapi/trademarks/search", { method: "POST", headers, body, redirect: "error", cache: "no-store", signal: AbortSignal.timeout(90000) }); }
   catch { throw new SimilarityError("La búsqueda no respondió a tiempo. Puedes volver a intentarlo; se conservan los resultados anteriores.", 504, true); }
   if (!response.ok) {
     const messages: Record<number, string> = { 401: "Revisa la configuración de acceso a la fuente.", 403: "La fuente no autorizó esta consulta.", 404: "No se encontró la solicitud consultada.", 413: "La imagen supera el límite permitido.", 415: "Usa una imagen JPEG, PNG o WebP.", 422: "La fuente no pudo procesar estos datos de búsqueda.", 429: "La fuente está recibiendo demasiadas consultas. Reintentaremos más tarde.", 503: "El buscador está ocupado. Vuelve a intentarlo en unos minutos." };

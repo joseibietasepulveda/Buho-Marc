@@ -1,0 +1,1 @@
+export const ANALYTICS_MODULES=['dashboard','brands','matches','cases','tasks','registrations','registrationsSummary','feasibility','notifications','users','clients','audit','domains','sourceAdmin','summary','admin','auth'] as const;

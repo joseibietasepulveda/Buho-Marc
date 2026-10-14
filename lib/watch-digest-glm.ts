@@ -1,3 +1,4 @@
+import {analyticsFetcher} from "./analytics-telemetry";
 import { z } from "zod";
 import { boundedJson } from "./bounded-json";
 import { DIGEST_MODEL, DIGEST_PROMPT_VERSION, digestHash, type DigestCandidate, type DigestImage } from "./watch-digest";
@@ -27,7 +28,7 @@ export function parseDigestDecisions(content: string, ids: string[]) {
 }
 export type CallResult = { providerId?: string; usage?: Record<string, unknown>; cost?: number; error?: string; decisions?: GlmDecision[]; transportCode?: string; definitelyNotSent?: boolean };
 export class GlmProviderError extends Error {}
-export type GlmCallAccounting = { reserve: (amount: number, requestHash: string) => Promise<string>; record: (id: string, result: CallResult) => Promise<void>; lookup?: (requestHash: string) => Promise<CallResult | null> };
+export type GlmCallAccounting = { telemetryContext?:{organizationId:string;userId:string|null}; reserve: (amount: number, requestHash: string) => Promise<string>; record: (id: string, result: CallResult) => Promise<void>; lookup?: (requestHash: string) => Promise<CallResult | null> };
 export type GlmInputImage = DigestImage & { markId: string };
 export function buildDigestGlmRequest(candidates: DigestCandidate[], images: GlmInputImage[], correction = false) {
   if (!candidates.length || candidates.length > 5 || candidates.some(c => c.brandId !== candidates[0].brandId)) throw new Error("Un lote debe contener una referencia y hasta cinco candidatas");
@@ -67,7 +68,7 @@ export async function evaluateDigestGlm(candidates: DigestCandidate[], images: G
     let decisions: GlmDecision[] | undefined;
     let retryable = true;
     try {
-      const response = await fetcher("https://openrouter.ai/api/v1/chat/completions", { method: "POST", redirect: "error", cache: "no-store", signal, headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "X-OpenRouter-Title": "Buho Marc · vigilancia semanal" }, body: JSON.stringify(body) });
+      const response = await analyticsFetcher({provider:'openrouter',operation:'watch_glm',model:DIGEST_MODEL,sourceRef:`watch:${callId}`,properties:{billing_source:'watch',attempt},context:accounting.telemetryContext},fetcher)("https://openrouter.ai/api/v1/chat/completions", { method: "POST", redirect: "error", cache: "no-store", signal, headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "X-OpenRouter-Title": "Buho Marc · vigilancia semanal" }, body: JSON.stringify(body) });
       if (!response.ok) { retryable = response.status >= 500; await response.body?.cancel(); throw new GlmProviderError(`GLM HTTP ${response.status}`); }
       const raw = await boundedJson(response, 1024 * 1024) as { id?: string; usage?: Record<string, unknown>; choices?: { finish_reason?: string; message?: { content?: string } }[] };
       metadata.providerId = typeof raw.id === "string" ? raw.id.slice(0, 180) : undefined;

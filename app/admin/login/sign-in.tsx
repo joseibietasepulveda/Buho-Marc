@@ -1,0 +1,7 @@
+'use client';
+import {useState,type FormEvent} from 'react';
+import Link from 'next/link';
+export function AdminLoginForm(){const [busy,setBusy]=useState(false),[error,setError]=useState('');
+ async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setError('');const data=new FormData(event.currentTarget);try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:data.get('username'),password:data.get('password'),destination:'admin'})});const p=await r.json();if(!r.ok)throw new Error(p.message);location.assign(p.redirect);}catch(e){setError(e instanceof Error?e.message:'No se pudo ingresar');setBusy(false);}}
+ return <main className='session-page'><section className='session-card'><Link href='/' className='session-wordmark'>BUHO MARC</Link><p className='session-eyebrow'>ADMINISTRACIÓN</p><h1>Costos, uso y comportamiento</h1><p>Ingresa con una cuenta de administración de Buho Marc.</p><form onSubmit={submit}><label>Usuario<input name='username' autoComplete='username' defaultValue='admin' required maxLength={120}/></label><label>Clave<input name='password' type='password' autoComplete='current-password' required maxLength={256}/></label>{error&&<p role='alert' className='session-error'>{error}</p>}<button disabled={busy}>{busy?'Ingresando…':'Entrar al dashboard'}</button></form><p><Link href='/ingresar'>Ir al acceso de mi estudio</Link></p></section></main>;
+}

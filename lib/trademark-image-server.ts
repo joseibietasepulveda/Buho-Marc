@@ -1,3 +1,4 @@
+import {analyticsFetcher} from "./analytics-telemetry";
 import sharp from "sharp";
 import { dequienesImage } from "./trademark-image";
 
@@ -22,9 +23,9 @@ async function boundedBody(response: Response, limit: number) {
   return Buffer.concat(chunks);
 }
 
-async function image(url: string, fetcher: typeof fetch) {
+async function image(url: string, fetcher: typeof fetch,scope?:string) {
   try {
-    const response = await fetcher(url, { redirect: "error", signal: AbortSignal.timeout(6000), cache: "no-store" });
+    const response = await analyticsFetcher({provider:new URL(url).hostname.endsWith("dequienes.cl")?"dequienes":"inapi",operation:"image",context:{organizationId:scope}},fetcher)(url, { redirect: "error", signal: AbortSignal.timeout(6000), cache: "no-store" });
     if (!response.ok || !/^image\/(png|jpeg|gif|webp)(;|$)/i.test(response.headers.get("content-type") ?? "")) return null;
     const bytes = await boundedBody(response, 8 * 1024 * 1024);
     // Decode before accepting a source: an HTML/error document labelled as an
@@ -33,10 +34,10 @@ async function image(url: string, fetcher: typeof fetch) {
   } catch { return null; }
 }
 
-async function providerSource(id: string, fetcher: typeof fetch) {
+async function providerSource(id: string, fetcher: typeof fetch,scope?:string) {
   if (!process.env.INAPI_API_KEY) return "";
   try {
-    const response = await fetcher("https://dequienes.cl/inapi/trademarks/batch", { method: "POST", headers: { "x-api-key": process.env.INAPI_API_KEY, "content-type": "application/json" }, body: JSON.stringify({ application_ids: [Number(id)] }), redirect: "error", signal: AbortSignal.timeout(4000), cache: "no-store" });
+    const response = await analyticsFetcher({provider:"dequienes",operation:"image_dossier",context:{organizationId:scope}},fetcher)("https://dequienes.cl/inapi/trademarks/batch", { method: "POST", headers: { "x-api-key": process.env.INAPI_API_KEY, "content-type": "application/json" }, body: JSON.stringify({ application_ids: [Number(id)] }), redirect: "error", signal: AbortSignal.timeout(4000), cache: "no-store" });
     if (!response.ok) return "";
     const payload = JSON.parse((await boundedBody(response, 2 * 1024 * 1024)).toString("utf8")) as { documents?: { application_id: number; image_url?: string }[] };
     return dequienesImage(payload.documents?.find(doc => String(doc.application_id) === id)?.image_url);
@@ -57,13 +58,13 @@ export function loadTrademarkImage(options: Options, fetcher: typeof fetch = fet
       if (!primary && options.savedSource) {
         try { primary = dequienesImage(await options.savedSource()); } catch { /* Source API remains available if saved evidence cannot be read. */ }
       }
-      if (!primary && id) primary = await providerSource(id, fetcher);
+      if (!primary && id) primary = await providerSource(id, fetcher,options.scope);
       if (primary) {
-        const body = await image(primary, fetcher);
+        const body = await image(primary, fetcher,options.scope);
         if (body) return { body, provider: "dequienes" as const };
       }
       if (id) {
-        const body = await image(`https://buscadormarcas.inapi.cl/etiqueta/?s=${id}`, fetcher);
+        const body = await image(`https://buscadormarcas.inapi.cl/etiqueta/?s=${id}`, fetcher,options.scope);
         if (body) return { body, provider: "inapi" as const };
       }
       return null;

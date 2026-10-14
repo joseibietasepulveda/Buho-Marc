@@ -1,3 +1,4 @@
+import {analyticsFetcher} from "./analytics-telemetry";
 import { boundedJson } from "./bounded-json";
 import { DIGEST_PILOT_TO } from "./watch-digest";
 import type { DigestAttachment } from "./watch-digest-email";
@@ -13,7 +14,7 @@ export async function sendResendEmail(email: ResendEmail, apiKey: string, idempo
   if (email.to.length !== 1 || email.to[0] !== DIGEST_PILOT_TO || email.reply_to !== DIGEST_PILOT_TO || email.from !== `Buho Marc <${DIGEST_PILOT_TO}>`) throw new Error("El piloto solo permite correo a hola@rcirculo.com");
   if (!idempotencyKey || idempotencyKey.length > 256) throw new Error("Identificador de envío inválido");
   let response: Response;
-  try { response = await fetcher("https://api.resend.com/emails", { method: "POST", redirect: "error", cache: "no-store", signal: AbortSignal.timeout(20000), headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": idempotencyKey }, body: JSON.stringify(email) }); }
+  try { response = await analyticsFetcher({provider:'resend',operation:'send',sourceRef:idempotencyKey,properties:{billing_source:'unknown'}},fetcher)("https://api.resend.com/emails", { method: "POST", redirect: "error", cache: "no-store", signal: AbortSignal.timeout(20000), headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": idempotencyKey }, body: JSON.stringify(email) }); }
   catch { throw new ResendDeliveryError(null, true); }
   if (!response.ok) { await response.body?.cancel(); throw new ResendDeliveryError(response.status, response.status >= 500 || response.status === 409); }
   let data: { id?: unknown };

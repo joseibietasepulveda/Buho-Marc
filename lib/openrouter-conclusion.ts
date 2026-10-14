@@ -1,3 +1,4 @@
+import {analyticsFetcher} from "./analytics-telemetry";
 import { readFile } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { parseEnv } from 'node:util';
@@ -7,7 +8,7 @@ import { ConclusionValidationError, conclusionContext, deterministicConclusion, 
 import type { ReportProfile } from './report-profile';
 
 export const CONCLUSION_PROMPT_VERSION = 10;
-export type OpenRouterConfig = { apiKey: string; model: string };
+export type OpenRouterConfig = { apiKey: string; model: string; sourceRef?:string; telemetryContext?:{organizationId:string;userId:string|null} };
 export async function openRouterConfig(): Promise<OpenRouterConfig> {
   let local: Record<string, string | undefined> = {};
   try { local = parseEnv(await readFile(/* turbopackIgnore: true */ process.env.OPENROUTER_CONFIG_FILE || 'openrouter.private.txt', 'utf8')); } catch { /* Hosted environments use server variables. */ }
@@ -67,7 +68,7 @@ export async function generateConclusion(input: ConclusionInput, profile: Report
   for(let attempt=0;attempt<limit;attempt++) {
     let retryable=false,retryDelay=0;
     try {
-      const response = await fetcher('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await analyticsFetcher({provider:'openrouter',operation:'feasibility',model:config.model,sourceRef:config.sourceRef,properties:{billing_source:'feasibility',attempt},context:config.telemetryContext},fetcher)('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST', redirect: 'error', cache: 'no-store', signal,
         headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json', 'X-OpenRouter-Title': 'Buho Marc' },
         body: JSON.stringify({ model: config.model, temperature: .2, max_tokens: 2200, stream: false,

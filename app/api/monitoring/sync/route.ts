@@ -1,3 +1,4 @@
+import {runAnalyticsContext} from "@/lib/analytics-telemetry";
 import { NextResponse } from "next/server";
 import { generateRenewalNotices } from "@/db/renewal-notices";
 import { syncSource } from "@/db/source-sync";
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     const organizations = await getSql()`SELECT DISTINCT ON (o.id) o.id, o.name, o.automatic_monitoring, u.id AS user_id, u.name AS user_name, m.role FROM organizations o JOIN organization_members m ON m.organization_id = o.id JOIN users u ON u.id = m.user_id WHERE o.status = 'active' AND EXISTS (SELECT 1 FROM source_snapshots s WHERE s.organization_id = o.id) ORDER BY o.id, (m.role = 'admin') DESC, m.created_at`;
     const results = [];
     for (const org of organizations) {
-      try { results.push(await runAs({ organizationId: org.id, organizationName: org.name, userId: org.user_id, name: org.user_name, role: org.role, mustChangePassword: false }, async () => { const renewals = await generateRenewalNotices(); return org.automatic_monitoring ? { ...await syncSource("scheduled"), renewals } : { skipped: true, renewals }; })); }
+      try { results.push(await runAs({ organizationId: org.id, organizationName: org.name, userId: org.user_id, name: org.user_name, role: org.role, mustChangePassword: false }, () => runAnalyticsContext({organizationId:org.id,userId:null,automated:true},async () => { const renewals = await generateRenewalNotices(); return org.automatic_monitoring ? { ...await syncSource("scheduled"), renewals } : { skipped: true, renewals }; }))); }
       catch { results.push({ failed: true }); }
     }
     return NextResponse.json({ results }, { status: results.some(r => "failed" in r) ? 502 : 200 });

@@ -1,4 +1,4 @@
-import { inapiProcedure } from './inapi-provider';
+import { inapiProcedure } from './inapi-procedure';
 import type { SimilarityHit } from './similarity-contract';
 
 const fold = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();

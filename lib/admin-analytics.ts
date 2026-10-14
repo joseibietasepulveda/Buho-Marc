@@ -1,0 +1,31 @@
+/** Serializable dashboard contract; safe to import as a type from client components. */
+export type AnalyticsMetric = { key: string; label: string; value: number | null; unit: 'count' | 'usd' | 'percent' | 'hours'; availability: 'measured' | 'partial' | 'unavailable'; note?: string; source?: string };
+export type AnalyticsScope = { from: string; to: string; organizationId: string | null; userId: string | null };
+export type AnalyticsOrganization = { id: string; name: string };
+export type AnalyticsUser = { id: string; name: string; organizationId: string; organization: string; role: string };
+export type AnalyticsBreakdown = { key: string; label: string; count: number; value?: number; userId?: string; organizationId?: string };
+export type AnalyticsSeriesPoint = { date: string; count: number; value?: number; userId?: string; label?: string; confirmedUsd?: number; estimatedUsd?: number; reservedUsd?: number };
+export type AnalyticsUserRow = AnalyticsUser & { interactions: number; sessions: number; lastActivity: string | null; neverLoggedIn: boolean | null; brandsCreated: number; brandsResponsible: number | null; tasksCreated: number; tasksAssigned: number; tasksCompleted: number; tasksOverdue: number; reviews: number; casesCreated: number; onTimePercent: number | null };
+export type AnalyticsCostRule = { id: string; organizationId: string | null; provider: string; operation: string | null; kind: 'per_call' | 'fixed_monthly' | 'budget_monthly'; amountUsd: number; label: string; effectiveFrom: string; effectiveTo: string | null };
+export type AnalyticsProviderRow = { provider: string; operation: string; model: string | null; calls: number; errors: number; unknownOutcome: number; meanDurationMs: number | null; p95DurationMs: number | null; confirmedUsd: number; estimatedUsd: number; reservedUsd: number; unknownCostCalls: number; inputTokens: number | null; outputTokens: number | null; coverage: string };
+export type AnalyticsApiCall = { id: string; organizationId: string | null; userId: string | null; provider: string; operation: string; model: string | null; startedAt: string; durationMs: number | null; statusCode: number | null; outcome: string; confirmedUsd: number | null; estimatedUsd: number | null; reservedUsd: number; inputTokens: number | null; outputTokens: number | null; source: string };
+export type AnalyticsDeadlineRow = { id: string; organizationId: string; type: string; date: string; status: string; hasResponsible: boolean; hasTask: boolean };
+export type AnalyticsEmailRow = { id: string; organizationId: string; at: string; status: string; alerts: number; tasks: number; delivered: boolean | null; bounced: boolean | null; clicks: number | null; identifiedViews: number | null; actionsAfterEmail: number | null };
+export type AdminDashboardReport = {
+  scope: AnalyticsScope; generatedAt: string; timezone: 'America/Santiago';
+  overview: { metrics: AnalyticsMetric[] };
+  costs: { metrics: AnalyticsMetric[]; daily: AnalyticsSeriesPoint[]; providers: AnalyticsProviderRow[]; organizations: AnalyticsBreakdown[]; byUser: AnalyticsBreakdown[]; rules: AnalyticsCostRule[]; budgetUsd: number | null; projectionUsd: number | null; nextMonthWeeklyEstimateUsd: number | null; coverage: string };
+  users: { metrics: AnalyticsMetric[]; rows: AnalyticsUserRow[]; weekly: AnalyticsSeriesPoint[]; daily: AnalyticsSeriesPoint[] };
+  tasks: { metrics: AnalyticsMetric[]; byUser: AnalyticsUserRow[]; statuses: AnalyticsBreakdown[] };
+  portfolio: { metrics: AnalyticsMetric[]; byUser: AnalyticsUserRow[]; byOrganization: AnalyticsBreakdown[]; assignments: {brandId:string;brandName:string;organizationId:string;createdBy:string|null;responsibleUserId:string|null;watching:boolean}[]; totalBrands:number; detailLimit:number };
+  alerts: { metrics: AnalyticsMetric[]; byUser: AnalyticsUserRow[]; outcomes: AnalyticsBreakdown[] };
+  deadlines: { metrics: AnalyticsMetric[]; rows: AnalyticsDeadlineRow[] };
+  emails: { metrics: AnalyticsMetric[]; rows: AnalyticsEmailRow[]; daily: AnalyticsSeriesPoint[] };
+  apis: { metrics: AnalyticsMetric[]; providers: AnalyticsProviderRow[]; calls: AnalyticsApiCall[]; daily: AnalyticsSeriesPoint[]; totalCalls: number; detailLimit: number };
+  behavior: { metrics: AnalyticsMetric[]; modules: AnalyticsBreakdown[]; actions: AnalyticsBreakdown[]; funnel: AnalyticsBreakdown[] };
+  limitations: string[];
+};
+export type AdminDashboardResponse = { report: AdminDashboardReport | null; scope: AnalyticsScope; organizations: AnalyticsOrganization[]; users: AnalyticsUser[]; snapshot: { status: 'queued' | 'running' | 'ready' | 'failed'; generatedAt: string | null; stale: boolean; error: string | null }; telemetrySince: string | null };
+
+const analyticsLabels:Record<string,string>={dashboard:'Inicio',admin:'Administración',summary:'Resumen semanal',watch:'Vigilancia',brands:'Marcas',feasibility:'Factibilidad',registrations:'Solicitudes y registros',cases:'Casos',tasks:'Tareas',notifications:'Notificaciones',calendar:'Agenda',clients:'Clientes',auth:'Acceso',brand:'Marcas',case:'Casos',task:'Tareas',application:'Solicitudes',notification:'Notificaciones',organization:'Estudio',pending:'Pendientes',completed:'Completadas',archived:'Archivadas',interaction:'Interacciones',module_viewed:'Vistas de módulos',digest_viewed:'Resúmenes abiertos',comparison_opened:'Comparaciones abiertas',search_submitted:'Búsquedas realizadas',report_downloaded:'Informes descargados',login_succeeded:'Inicios de sesión',legacy_login:'Sesiones históricas conservadas','task.created':'Tareas creadas','task.completed':'Tareas completadas','task.reopened':'Tareas reabiertas','task.save':'Tareas actualizadas','task.delete':'Tareas eliminadas','case.created':'Casos creados','case.stage_changed':'Etapas de casos actualizadas','case.priority_changed':'Prioridades de casos actualizadas','brand.monitoring_changed':'Vigilancia activada o pausada','brand.responsible_assigned':'Responsables de marcas asignados','member.added':'Usuarios incorporados','analytics.cost_rule_created':'Tarifas o presupuestos ingresados','analytics.cost_rule_deleted':'Tarifas o presupuestos retirados'};
+export const analyticsLabel=(key:string)=>analyticsLabels[key]??key.replaceAll('_',' ').replaceAll('.',' · ');

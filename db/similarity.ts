@@ -1,3 +1,4 @@
+import {runAnalyticsContext} from "../lib/analytics-telemetry";
 import { discoveryKind, commercialRelevance } from "../lib/watch-discovery";
 import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { applyVerifiedDecision } from "../lib/verified-decisions";
@@ -147,20 +148,23 @@ export async function processWatchJob(searcher = searchSimilar, lookup = fetchIn
   });
   if (!job) return { skipped: true };
   if ('cooldownMs' in job) return { skipped: true, retryDelayMs: job.cooldownMs };
+  const captureContext={organizationId:job.organization_id as string,userId:String(job.idempotency_key).startsWith('manual:')?job.requested_by as string|null:null,automated:!String(job.idempotency_key).startsWith('manual:')};
+  const observedSearch=(...args:Parameters<typeof searcher>)=>runAnalyticsContext(captureContext,()=>searcher(...args));
+  const observedLookup=(...args:Parameters<typeof lookup>)=>runAnalyticsContext(captureContext,()=>lookup(...args));
   try {
     const { since, ...request } = job.request;
-    const responses = [await searcher(request)];
+    const responses = [await observedSearch(request)];
     // Independent windows mean OR, never accidentally AND the two milestones.
     if (since) {
-      responses.push(await searcher({ ...request, filed_after: since }));
-      responses.push(await searcher({ ...request, published_after: since }));
+      responses.push(await observedSearch({ ...request, filed_after: since }));
+      responses.push(await observedSearch({ ...request, published_after: since }));
     }
     const knownIds = new Set(responses.flatMap(r => r.results.map(h => h.applicationId)));
     const followed = await sql`SELECT evidence FROM matches WHERE organization_id = ${job.organization_id} AND brand_id = ${job.brand_id} AND source = 'DeQuiénEs' AND review_status IN ('En seguimiento','Convertida en caso')`;
     const refreshHits = followed.map(row => row.evidence.hit as SimilarityHit).filter(hit => !knownIds.has(hit.applicationId));
     const refreshed: SimilarityHit[] = [];
     if (refreshHits.length) {
-      const { records } = await lookup({ applicationIds: refreshHits.map(h => h.applicationId), registrationIds: [] });
+      const { records } = await observedLookup({ applicationIds: refreshHits.map(h => h.applicationId), registrationIds: [] });
       const byId = new Map(records.map(r => [r.applicationNumber, r]));
       for (const hit of refreshHits) {
         const record = byId.get(hit.applicationId);
