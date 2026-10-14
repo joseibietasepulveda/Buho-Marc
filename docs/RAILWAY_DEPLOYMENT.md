@@ -2,6 +2,12 @@
 
 Actualizado el 14 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
 
+## Pago desde aceptación administrativa · 14 de octubre
+
+- [PR #84 Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/84), SHA `79cd21afbfb1fe43cb243521e633cf845f72e261`, Railway `b9c8c934-a880-4a28-8c19-ec1a510f9063` SUCCESS. [PR #85 Main](https://github.com/joseibietasepulveda/Buho-Marc/pull/85), SHA `ea8fffe04e2e836018fce2e64acdea25a0f58a1e`, Railway `1fc3a8d4-3eee-4eb8-abfe-396c6d9e522b` SUCCESS. Promoción exclusiva de esta regla, sin el resto de funcionalidades pendientes en Dev.
+- Regla solicitada: aceptación administrativa → 60 días hábiles desde aceptación con notificación asumida ese día; oposición → ejecutoria. Aceptaciones parciales mantienen recurso y pago separados. Sin fechas o pruebas ficticias, migraciones ni nuevas consultas de fuentes para recalcular.
+- 76/76 pruebas, build y ESLint aprobados en ambas bases; QA visual local con fixtures. Comprobación posterior completa: Dev 128 solicitudes/261 fuentes; producción 246 solicitudes/670 fuentes; 9 y 16 fechas de pago administrativo nuevas respectivamente. Proyecciones coincidentes y datos originales sin cambios. Salud 200/base conectada; API de solicitudes 401 sin sesión. [Regla y límites](PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md) · [Traspaso y verificación](handoffs/2026-10-14-pago-aceptacion-administrativa.md).
+
 ## Dashboard interno de costos y uso · 14 de octubre
 
 - [PR #82](https://github.com/joseibietasepulveda/Buho-Marc/pull/82), Dev `d0d2879d83efb9f4959fc93c2e050f076a8e05bb`; Railway `3131c88a-3e6f-4ea1-87e2-52abed8ab399` **SUCCESS**, SHA exacto verificado. Migración0017 comprobada por hash: seis tablas nuevas, cinco columnas opcionales de tareas e índices; datos anteriores conservados. Respaldo cifrado de Dev previo a migración, transferencia y descifrado verificados.
