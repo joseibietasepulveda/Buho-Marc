@@ -1,6 +1,13 @@
 # Despliegue y operación en Railway
 
-Actualizado el 11 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+Actualizado el 14 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+
+## Dashboard interno de costos y uso · 14 de octubre
+
+- [PR #82](https://github.com/joseibietasepulveda/Buho-Marc/pull/82), Dev `d0d2879d83efb9f4959fc93c2e050f076a8e05bb`; Railway `3131c88a-3e6f-4ea1-87e2-52abed8ab399` **SUCCESS**, SHA exacto verificado. Migración0017 comprobada por hash: seis tablas nuevas, cinco columnas opcionales de tareas e índices; datos anteriores conservados. Respaldo cifrado de Dev previo a migración, transferencia y descifrado verificados.
+- Siete pestañas en `/app/admin/dashboard`, ingreso dedicado `/admin/login`, permiso exclusivo administrador interno Búho. Cuenta Dev `admin` creada sin cambiar credenciales existentes, con clave temporal privada y cambio obligatorio. `ADMIN_ANALYTICS_CAPTURE_ENABLED=true` únicamente Dev; sin claves nuevas de proveedores.
+- 123 pruebas aprobadas/una HTTP optativa omitida, TypeScript/lint/build y QA local escritorio/móvil. Dev: API401 sin sesión, redirección login, cambio de clave y guardas403, datos/API200 y siete pestañas sin errores JS. Worker1.936ms con comprobación adicional sobre cinco estudios; no benchmark bajo carga. Los ledgers permanecen60 intentos GLM/17 conclusiones; sin nuevas inferencias ni correos de prueba.
+- [Contrato](DASHBOARD_ADMIN_2026-10-14.md), [traspaso](handoffs/2026-10-14-dashboard-admin-uso-costos.md) y [plan PostHog](PLAN_POSTHOG_2026-10-14.md). PostHog no conectado y webhook Resend pendiente de secretoconfigurado. Producción, Main, DNS y Google Workspace no modificados.
 
 ## Dominios simulados para administrador Búho Marc · 13 de octubre
 
