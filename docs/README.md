@@ -12,6 +12,7 @@ Estado de factibilidad actualizado al 12 de octubre de 2026: [contrato vigente](
 | [Factibilidad por clase y multinforme](FACTIBILIDAD_MULTINFORME_2026-10-09.md) | Flujo actual, selección, IA por clase, destinatarios, presentación y reproducción local. |
 | [Interfaz, informes y avisos reales · 12 de octubre](handoffs/2026-10-12-interfaz-informes-notificaciones.md) | Combobox Niza, tipografía y tabla, controles estables, loading y avisos reales acotados a Dev/admin y producción/Barros & Errázuriz. |
 | [Notificación el día del evento](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md) | Convención vigente, plazos afectados, prioridad de pruebas y límites. |
+| [Correo semanal GLM y Resend](CORREO_SEMANAL_GLM_RESEND_2026-10-13.md) | Cinco nuevos por marca, corte 25%, lunes 08:30 Chile, piloto real, costos, cuenta Resend y correo pastel. |
 | [README del proyecto](../README.md) | Funciones, inicio local, configuración y límites actuales. |
 | [Implementación de maquetas · 4 de octubre](UX_IMPLEMENTACION_OCTUBRE_2026.md) | Alcance aprobado, tres pasos, Excel antiguo, feedback, directorios, auditoría y verificación local. |
 | [Comparador e informe UI/UX](../output/implementacion-ux-2026-10-04/comparador-ui-ux.html) | A/B y pantalla anterior, recorridos, capturas, móvil y exportaciones reales de prueba. |

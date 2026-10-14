@@ -73,3 +73,10 @@ La importación o revisión de un expediente con un antecedente jurídico faltan
 Presupuesto global: 200 intentos de expediente por día de Santiago, incluidos fallos, actualizado por petición explícita del usuario el 07/10. `INAPI_DIRECT_RECOVERY_DAILY_LIMIT` admite cero y hasta 200; valor predeterminado 200. Son hasta 600 peticiones HTTP diarias para consultas completas, siempre serializadas y separadas por el intervalo mínimo de tres segundos. `INAPI_DIRECT_RECOVERY_ENABLED=false` desactiva. Un fallo pausa la cola una hora. Deduplicación permanente por solicitud/acto/antecedente: una fecha que siga faltando no provoca reintentos repetidos ni un ciclo de consultas por cada renderizado. Un reinicio conserva intentos, presupuesto y reloj. La carga inicial del historial guardado requiere la opción explícita `--apply --queue` del script de reproyección.
 
 [Contrato, evidencia y operación](INAPI_RECUPERACION_ANTECEDENTES.md) · [API pública](INAPI_API_PUBLICA.md) · [validación local](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+
+
+## Correo semanal con GLM directo · 14 de octubre de 2026
+
+El digest trabaja sobre stock guardado, sin búsquedas DeQuiénEs ni consultas de expedientes: máximo cinco nuevos por marca, índice original ≥25% y botón manual con máximo 150 cruces totales. Decisiones positivas y negativas persistentes evitan pagar otra vez por el mismo cruce; correo preparado y clave Resend fija evitan repetir la inferencia durante un reintento de envío. Presupuestos por ejecución/global mensual incluyen reservas por cargos sin confirmar. Clave `OPENROUTER_WATCH_API_KEY` separada de factibilidad; envío y programación cerrados por defecto.
+
+Piloto expresamente aprobado hasta US$0,10: 141 seleccionados, 131 decisiones válidas, 16 retenidos y diez pendientes; US$0,02870619 confirmado. No acredita precisión jurídica. [Contrato y costos](CORREO_SEMANAL_GLM_RESEND_2026-10-13.md).
