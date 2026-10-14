@@ -80,3 +80,8 @@ Presupuesto global: 200 intentos de expediente por día de Santiago, incluidos f
 El digest trabaja sobre stock guardado, sin búsquedas DeQuiénEs ni consultas de expedientes: máximo cinco nuevos por marca, índice original ≥25% y botón manual con máximo 150 cruces totales. Decisiones positivas y negativas persistentes evitan pagar otra vez por el mismo cruce; correo preparado y clave Resend fija evitan repetir la inferencia durante un reintento de envío. Presupuestos por ejecución/global mensual incluyen reservas por cargos sin confirmar. Clave `OPENROUTER_WATCH_API_KEY` separada de factibilidad; envío y programación cerrados por defecto.
 
 Piloto expresamente aprobado hasta US$0,10: 141 seleccionados, 131 decisiones válidas, 16 retenidos y diez pendientes; US$0,02870619 confirmado. No acredita precisión jurídica. [Contrato y costos](CORREO_SEMANAL_GLM_RESEND_2026-10-13.md).
+
+
+## Consulta directa a pedido · 14 de octubre · Dev
+
+El botón «Consultar INAPI» requiere una solicitud explícita, expediente propio y sesión de la organización. Un índice único por expediente/día civil de Santiago limita pulsaciones, sesiones y clientes que comparten expediente a un intento manual diario, incluidos fallos. Conserva separación mínima de tres segundos y hasta tres peticiones por expediente. `inapi_official_checks` y `inapi_recovery_jobs` comparten el presupuesto de 200 intentos/día. Abrir fichas, refrescar la aplicación o reproyectar datos no inicia consultas; no se añaden tareas ni programación automática. [Contrato](CONSULTA_INAPI_A_PEDIDO_2026-10-14.md).

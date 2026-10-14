@@ -37,11 +37,28 @@ const detailSchema = z.object({ NumeroSolicitud: identifier, NumeroRegistro: ide
   FechaPresentacion: z.string().nullish(), FechaPublicacion: z.string().nullish(), FechaRegistro: z.string().nullish(), FechaVencimiento: z.string().nullish(),
   Instancias: z.array(z.object({ Numero: identifier, Fecha: z.string(), FechaVencimiento: z.string().nullish(), EstadoCodigo: identifier.nullish(), EstadoDescripcion: z.string(), Observacion: z.string().nullish() }).passthrough()).nullable(),
 }).passthrough();
-function hidden(html: string, id: string): string {
+function hidden(html: string, id: string): string | undefined {
   const input = html.match(new RegExp(`<input\\b[^>]*\\bid=["']${id}["'][^>]*>`, "i"))?.[0];
   const value = input?.match(/\bvalue=["']([^"']*)["']/i)?.[1];
-  if (!value) throw new Error("Cambió el contexto del buscador INAPI; se requiere revisar la integración");
-  return value.replaceAll("&quot;", '"').replaceAll("&#39;", "'").replaceAll("&amp;", "&");
+  return value ? value.replaceAll("&quot;", '"').replaceAll("&#39;", "'").replaceAll("&amp;", "&") : undefined;
+}
+
+/** Read the site's literal initialization without executing remote JavaScript. */
+export function officialContext(html: string): { Hash: string; IDW: string } {
+  const Hash = hidden(html, "hdnHash"), IDW = hidden(html, "hdnIDW");
+  if (Hash && IDW) return { Hash, IDW };
+  const pairs = new Map<string, { Hash: string; IDW: string }>();
+  for (const script of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) {
+    // The observed contract uses two nonempty, unescaped string literals.
+    // Unknown expressions or conflicting contexts require integration review.
+    for (const call of script[1].matchAll(/\bsetHash\s*\(\s*(['"])([^'"\\\r\n]+)\1\s*,\s*(['"])([^'"\\\r\n]+)\3\s*\)/g)) {
+      const pair = { Hash: call[2], IDW: call[4] };
+      pairs.set(JSON.stringify(pair), pair);
+    }
+  }
+  const pair = pairs.size === 1 ? [...pairs.values()][0] : undefined;
+  if (!pair || Hash && Hash !== pair.Hash || IDW && IDW !== pair.IDW) throw new Error("Cambió el contexto del buscador INAPI; se requiere revisar la integración");
+  return pair;
 }
 function unwrap(text: string): Record<string, unknown> {
   const wrapper = JSON.parse(text);
@@ -79,9 +96,9 @@ export async function fetchOfficialInapi(base: SourceRecord, gate: OfficialReque
     return Buffer.concat(chunks).toString("utf8");
   });
   const html = await request();
-  const IDW = hidden(html, "hdnIDW");
+  const { Hash, IDW } = officialContext(html);
   const search = unwrap(await request("/FindMarcas", {
-    LastNumSol: 0, Hash: hidden(html, "hdnHash"), IDW, responseCaptcha: "este texto no se validará",
+    LastNumSol: 0, Hash, IDW, responseCaptcha: "este texto no se validará",
     ...Object.fromEntries(Array.from({ length: 17 }, (_, i) => [`param${i + 1}`, i === 0 ? application : i === 16 ? "1" : ""])),
   }));
   const rows = z.array(z.object({ cell: z.array(z.union([z.string(), z.number(), z.null()])).min(10) })).parse(search.Marcas);
@@ -114,7 +131,15 @@ export function mergeOfficialEvidence(base: SourceRecord, official: SourceRecord
   const events = new Map(previous.map(event => [eventKey(event), event]));
   for (const event of current) {
     const old = events.get(eventKey(event));
-    events.set(eventKey(event), old ? { ...event, ...old, event_date: old.event_date || event.event_date, due_date: old.due_date || event.due_date || null, observation: old.observation || event.observation || null } : event);
+    if (!old) { events.set(eventKey(event), event); continue; }
+    const mergedAct: InapiAct = { ...event, ...old, event_date: old.event_date || event.event_date, due_date: old.due_date || event.due_date || null, observation: old.observation || event.observation || null };
+    // Missing and empty optional fields are not new information. Preserve the
+    // saved representation when the official response only adds placeholders.
+    for (const key of Object.keys(mergedAct)) if (mergedAct[key] == null || mergedAct[key] === "") {
+      if (!(key in old)) delete mergedAct[key];
+      else if (old[key] === "") mergedAct[key] = "";
+    }
+    events.set(eventKey(event), mergedAct);
   }
   const latest = (acts: InapiAct[]) => acts.reduce((date, act) => act.event_date && act.event_date > date ? act.event_date : date, "");
   const officialIsCurrent = latest(current) > latest(previous) || latest(current) === latest(previous) && current.length > 0 && previous.filter(event => event.event_date === latest(previous)).every(event => current.some(other => eventKey(other) === eventKey(event)));

@@ -23,7 +23,8 @@ export function recoveryNeeds(record: SourceRecord, today?: string, application?
   const needs = registrationDeadlines(app, today).filter(item => item.kind === "legal" && item.attention === "pending" && !item.sourceDate && !item.dueDate && !["nullity-review", "incident-review"].includes(item.key)).map(item => {
     const payment = ["accepted-payment", "partial-payment"].includes(item.key);
     const obligation = item.key === app.statusId || payment && administrativeAcceptance ? app.procedure : app.procedure?.concurrent?.find(other => other.statusId === item.key);
-    return `${item.key}:${obligation?.sourceActId ?? ""}:${obligation?.sourceActDate ?? ""}:${payment && !administrativeAcceptance ? "finality" : "notification"}`;
+    const missing = item.key === "decision-review" ? "outcome" : item.key === "finality-pending" || payment && !administrativeAcceptance ? "finality" : "notification";
+    return `${item.key}:${obligation?.sourceActId ?? ""}:${obligation?.sourceActDate ?? ""}:${missing}`;
   });
   // A later, recognized stage can establish that publication occurred without
   // carrying its date. Recover that fact once per dossier, not once per stage.
