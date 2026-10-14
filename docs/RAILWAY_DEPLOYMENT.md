@@ -209,3 +209,12 @@ La entrega funcional `83386dc` se publicó únicamente en Dev. Despliegue `dc2db
 - Prompt v10: un segundo intento dirigido para recuperar respuestas inválidas, sin cambiar la clase, evidencia ni decisión expresa del abogado; 45 segundos totales. No exporta el respaldo automático. Se registran motivo, intentos y uso/costo disponible. Sin migraciones ni variables nuevas.
 - Salud 200, base conectada y motor DeQuiénEs en ambos ambientes; conclusiones 401 sin sesión, producción `/app` 307 a ingresar. Compilación/TypeScript remotos aprobados. QA local de PostgreSQL, navegador, 33 pruebas, ocho descargas y recuperación con OpenRouter real autorizada; no hubo nuevas consultas o generaciones para verificar el despliegue.
 - Acerca de esta versión → Próximas versiones del administrador Búho Marc registra la mayor continuidad como pendiente, por petición del usuario. [Traspaso, límites y reproducción](handoffs/2026-10-13-conclusiones-segunda-clase.md).
+
+
+## Correo semanal de vigilancia · 14 de octubre de 2026 · solo Dev
+
+PR #80, merge `4a11daf4dd54feddb1aa68992a3e828575f0086c`, despliegue `8396add3-1044-4886-9c7b-4c801411b7e7` en `SUCCESS`. Migración `0016_watch_digest` aplicada y `/api/health` 200/base conectada; resumen/Admin protegidos (401 sin sesión). Sin cambios de variables, DNS, login ni producción. Resend y programación cerrados hasta que el usuario configure sus claves exclusivas y verifique el primer correo.
+
+Piloto aprobado hasta US$0,10: 141 seleccionados, 131 decisiones válidas, 16 positivas y diez pendientes; US$0,02870619 conciliado. Importado como `prepared` sin enviar: 16 cruces y 53 tareas/plazos en el resumen autenticado. Conserva decisiones y costos para no repetir inferencias. Copia lógica cifrada de Dev previa, con SHA256/descifrado verificados; no restauración de ensayo. [Contrato y pasos Resend](CORREO_SEMANAL_GLM_RESEND_2026-10-13.md), [traspaso](handoffs/2026-10-13-correo-semanal-glm-resend.md).
+
+Acceso SSH temporal propio retirado de Railway y de las copias locales; copia cifrada y clave de recuperación preservadas en carpeta privada.
