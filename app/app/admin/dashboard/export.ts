@@ -4,7 +4,7 @@ import type { DashboardTab } from './views';
 export function reportRows(report: AdminDashboardReport, tab: DashboardTab): unknown[][] {
   const { scope } = report;
   const rows: unknown[][] = [['Buho Marc · dashboard administrativo', tab], ['Desde', scope.from], ['Hasta', scope.to], ['Estudio', scope.organizationId ?? 'Todos'], ['Usuario', scope.userId ?? 'Todos'], ['Generado', report.generatedAt], ['Zona horaria', report.timezone], []];
-  const sectionMetrics = tab === 'costs' ? report.costs.metrics : tab === 'activity' ? report.users.metrics : tab === 'portfolio' ? [...report.portfolio.metrics, ...report.alerts.metrics] : tab === 'tasks' ? [...report.tasks.metrics, ...report.deadlines.metrics] : tab === 'emails' ? report.emails.metrics : tab === 'apis' ? report.apis.metrics : report.behavior.metrics;
+  const sectionMetrics = tab === 'costs' ? report.costs.metrics : tab === 'activity' ? report.users.metrics : tab === 'portfolio' ? [...report.portfolio.metrics, ...report.alerts.metrics] : tab === 'tasks' ? [...report.tasks.metrics, ...report.deadlines.metrics] : tab === 'emails' ? report.emails.metrics : tab === 'apis' ? report.apis.metrics : tab === 'evaluations' ? report.evaluations?.metrics??[] : report.behavior.metrics;
   rows.push(['Indicador', 'Valor', 'Unidad', 'Disponibilidad', 'Nota']);
   rows.push(...sectionMetrics.map(metric => [metric.label, metric.value, metric.unit, metric.availability, metric.note ?? '']));
   rows.push([]);
@@ -19,16 +19,19 @@ export function reportRows(report: AdminDashboardReport, tab: DashboardTab): unk
     rows.push(...report.costs.byUser.map(row => [row.label, row.count, row.value]));
     rows.push([], ['Proveedor', 'Descripción', 'Tipo', 'Monto US$', 'Estudio', 'Operación', 'Desde', 'Hasta']);
     rows.push(...report.costs.rules.map(row => [row.provider, row.label, row.kind, row.amountUsd, row.organizationId, row.operation, row.effectiveFrom, row.effectiveTo]));
+  } else if (tab === 'evaluations') {
+    rows.push(['Abogado','Estudio','Cruces únicos','Evaluaciones','Pulgares positivos','Pulgares negativos','Decisiones formales','Cambios de opinión','Comentarios agregados/editados']);
+    rows.push(...report.users.rows.map(row=>[row.name,row.organization,row.reviewedCrosses,row.reviews,row.thumbsUp,row.thumbsDown,row.formalReviews,row.reviewOpinionChanges,row.reviewCommentUpdates]));
   } else if (tab === 'activity') {
-    rows.push(['Usuario', 'Estudio', 'Rol', 'Interacciones', 'Sesiones', 'Última actividad', 'Nunca ingresó', 'Marcas incorporadas', 'Marcas a cargo', 'Tareas creadas', 'Asignadas', 'Completadas', 'Vencidas', 'Revisiones', 'Casos', 'Cumplimiento %']);
-    rows.push(...report.users.rows.map(row => [row.name, row.organization, row.role, row.interactions, row.sessions, row.lastActivity, row.neverLoggedIn, row.brandsCreated, row.brandsResponsible, row.tasksCreated, row.tasksAssigned, row.tasksCompleted, row.tasksOverdue, row.reviews, row.casesCreated, row.onTimePercent]));
+    rows.push(['Usuario', 'Estudio', 'Rol', 'Interacciones', 'Sesiones', 'Última actividad', 'Nunca ingresó', 'Marcas incorporadas', 'Marcas a cargo', 'Tareas creadas', 'Asignadas', 'Completadas', 'Vencidas', 'Evaluaciones','Cruces únicos evaluados','Cambios de opinión','Comentarios agregados/editados', 'Casos', 'Cumplimiento %']);
+    rows.push(...report.users.rows.map(row => [row.name, row.organization, row.role, row.interactions, row.sessions, row.lastActivity, row.neverLoggedIn, row.brandsCreated, row.brandsResponsible, row.tasksCreated, row.tasksAssigned, row.tasksCompleted, row.tasksOverdue, row.reviews,row.reviewedCrosses,row.reviewOpinionChanges,row.reviewCommentUpdates, row.casesCreated, row.onTimePercent]));
     rows.push([], ['Semana', 'Usuario', 'Interacciones']);
     rows.push(...report.users.weekly.map(row => [row.date, row.label ?? row.userId, row.count]));
     rows.push([], ['Día', 'Usuario', 'Interacciones']);
     rows.push(...report.users.daily.map(row => [row.date, row.label ?? row.userId, row.count]));
   } else if (tab === 'portfolio') {
-    rows.push(['Usuario', 'Estudio', 'Marcas incorporadas', 'Marcas a cargo', 'Revisiones', 'Casos']);
-    rows.push(...report.portfolio.byUser.map(row => [row.name, row.organization, row.brandsCreated, row.brandsResponsible, row.reviews, row.casesCreated]));
+    rows.push(['Usuario', 'Estudio', 'Marcas incorporadas', 'Marcas a cargo','Evaluaciones','Cruces únicos evaluados', 'Casos']);
+    rows.push(...report.portfolio.byUser.map(row => [row.name, row.organization, row.brandsCreated, row.brandsResponsible,row.reviews,row.reviewedCrosses, row.casesCreated]));
     rows.push([], ['Total de marcas del alcance', report.portfolio.totalBrands], ['Límite del detalle de marcas', report.portfolio.detailLimit], ['Marca', 'Estudio', 'Incorporada por', 'Responsable', 'Vigilancia activa']);
     rows.push(...report.portfolio.assignments.map(row => [row.brandName, row.organizationId, row.createdBy, row.responsibleUserId, row.watching]));
     rows.push([], ['Resultado', 'Cantidad']); rows.push(...report.alerts.outcomes.map(row => [row.label, row.count]));
