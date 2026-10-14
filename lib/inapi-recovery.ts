@@ -5,6 +5,8 @@ import { applySourceLegalFacts } from "./inapi-legal-facts";
 import { applyRegistrationEvidence } from "./registration-evidence";
 import { registrationDeadlines } from "./registration-procedure";
 import type { RegistrationApplication } from "./registration-data";
+import { administrativeAcceptanceDate } from "./registration-proceedings";
+import { activityDate } from "./registration-activity";
 
 export function recoveryNeeds(record: SourceRecord, today?: string, application?: RegistrationApplication) {
   if (record.provider !== "inapi") return [];
@@ -13,17 +15,20 @@ export function recoveryNeeds(record: SourceRecord, today?: string, application?
   const app = application ?? applyRegistrationEvidence(applySourceLegalFacts({
     id: "source", applicationNumber: record.applicationNumber, name: record.name, type: record.type, provider: "inapi",
     filedAt: record.filingDate ?? "", publishedAt: record.publicationDate ?? undefined, statusId: record.status,
-    recentEvent: "", niceClasses: "", holderRut: record.ownerRut, holder: record.owner, client: "", history: [],
+    recentEvent: "", niceClasses: "", holderRut: record.ownerRut, holder: record.owner, client: "",
+    history: events.map(event => ({ date: activityDate(event.event_date ?? ""), status: event.status_description ?? undefined, detail: event.observation ?? undefined, code: typeof event.status_code === "string" ? event.status_code : undefined })),
     procedure: projected.procedure, officialDeadline: projected.status === record.status ? projected.sourceAct?.due_date || undefined : undefined,
   }, events, today), today);
+  const administrativeAcceptance = administrativeAcceptanceDate(app) !== undefined;
   const needs = registrationDeadlines(app, today).filter(item => item.kind === "legal" && item.attention === "pending" && !item.sourceDate && !item.dueDate && !["nullity-review", "incident-review"].includes(item.key)).map(item => {
-    const obligation = item.key === app.statusId ? app.procedure : app.procedure?.concurrent?.find(other => other.statusId === item.key);
-    return `${item.key}:${obligation?.sourceActId ?? ""}:${obligation?.sourceActDate ?? ""}:notification`;
+    const payment = ["accepted-payment", "partial-payment"].includes(item.key);
+    const obligation = item.key === app.statusId || payment && administrativeAcceptance ? app.procedure : app.procedure?.concurrent?.find(other => other.statusId === item.key);
+    return `${item.key}:${obligation?.sourceActId ?? ""}:${obligation?.sourceActDate ?? ""}:${payment && !administrativeAcceptance ? "finality" : "notification"}`;
   });
   // A later, recognized stage can establish that publication occurred without
   // carrying its date. Recover that fact once per dossier, not once per stage.
   if (!record.publicationDate && ["opposition-window", "opposition-filed", "opposition-answer", "opposition-answered", "evidence-period", "substantive-exam", "substantive-objection", "decision-pending", "finality-pending", "partial-appeal", "accepted-payment", "partial-payment", "payment-verification", "registered"].includes(record.status)) needs.push(`publication:${record.applicationNumber}`);
-  if (["finality-pending", "partial-appeal"].includes(app.statusId) && !app.procedure?.finalAt) needs.push(`${app.statusId}:${app.procedure?.sourceActId ?? ""}:${app.procedure?.sourceActDate ?? ""}:finality`);
+  if (["finality-pending", "partial-appeal"].includes(app.statusId) && !app.procedure?.finalAt && !administrativeAcceptance) needs.push(`${app.statusId}:${app.procedure?.sourceActId ?? ""}:${app.procedure?.sourceActDate ?? ""}:finality`);
   return [...new Set(needs)].sort();
 }
 export function recoveryKey(needs: string[]) { return createHash("sha256").update(JSON.stringify([...needs].sort())).digest("hex"); }
