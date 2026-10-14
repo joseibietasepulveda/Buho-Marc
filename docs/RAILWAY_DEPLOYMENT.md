@@ -2,6 +2,12 @@
 
 Actualizado el 12 de octubre de 2026. **Dev vigente fue promovido a Main/production y Railway confirmó SUCCESS**. [Promoción y verificación del 12/10](handoffs/2026-10-12-promocion-dev-main.md). El [respaldo, ensayo y conservación comprobada del 8/10](handoffs/2026-10-08-promocion-produccion.md) describe aquella operación histórica.
 
+## Pago desde aceptación administrativa · 14 de octubre
+
+- [PR #84 Dev](https://github.com/joseibietasepulveda/Buho-Marc/pull/84), SHA `79cd21afbfb1fe43cb243521e633cf845f72e261`, Railway `b9c8c934-a880-4a28-8c19-ec1a510f9063` SUCCESS. [PR #85 Main](https://github.com/joseibietasepulveda/Buho-Marc/pull/85), SHA `ea8fffe04e2e836018fce2e64acdea25a0f58a1e`, Railway `1fc3a8d4-3eee-4eb8-abfe-396c6d9e522b` SUCCESS. Promoción exclusiva de esta regla, sin el resto de funcionalidades pendientes en Dev.
+- Regla solicitada: aceptación administrativa → 60 días hábiles desde aceptación con notificación asumida ese día; oposición → ejecutoria. Aceptaciones parciales mantienen recurso y pago separados. Sin fechas o pruebas ficticias, migraciones ni nuevas consultas de fuentes para recalcular.
+- 76/76 pruebas, build y ESLint aprobados en ambas bases; QA visual local con fixtures. Comprobación posterior completa: Dev 128 solicitudes/261 fuentes; producción 246 solicitudes/670 fuentes; 9 y 16 fechas de pago administrativo nuevas respectivamente. Proyecciones coincidentes y datos originales sin cambios. Salud 200/base conectada; API de solicitudes 401 sin sesión. [Regla y límites](PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md) · [Traspaso y verificación](handoffs/2026-10-14-pago-aceptacion-administrativa.md).
+
 ## Promoción de Dev a Main · 12 de octubre
 
 - [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30), integración Main `01a8b0e523656bf72961070053dafddec57a67c9`, desde Dev `e346a2620ee7b5461f3e3cd30a18b1dc5f525fc8`. Conserva los ancestros exclusivos de Main; el código funcional coincide íntegramente con Dev.

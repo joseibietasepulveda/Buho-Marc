@@ -1,9 +1,9 @@
 # Traspaso: pago desde aceptación administrativa
 
-- Actualizado: 2026-10-14, America/Santiago
-- Estado: listo para revisión
+- Actualizado: 2026-10-14 13:24, America/Santiago
+- Estado: integrado y verificado en Dev y producción
 - Rama y base: `codex/pago-aceptacion-administrativa`; `origin/dev` `56d7c7e57fbaf688feaffc9146fce1ea3fd3eb4d`.
-- PR y commit de entrega: Dev [#84](https://github.com/joseibietasepulveda/Buho-Marc/pull/84), commit `0c48e662073f2d954d2d3c976ed1fe9ab992efa7`, integración `79cd21afbfb1fe43cb243521e633cf845f72e261`. Producción: promoción exclusiva de ese commit sobre `main` `0c43e2b51e9ef47641290f8a8e941cd498a7f078`; Dev verificado; promoción a producción preparada.
+- PR y commit de entrega: Dev [#84](https://github.com/joseibietasepulveda/Buho-Marc/pull/84), commit `0c48e662073f2d954d2d3c976ed1fe9ab992efa7`, integración `79cd21afbfb1fe43cb243521e633cf845f72e261`. Producción: promoción exclusiva de ese commit sobre `main` `0c43e2b51e9ef47641290f8a8e941cd498a7f078`; Dev y producción verificados. PR Main [#85](https://github.com/joseibietasepulveda/Buho-Marc/pull/85), integración `ea8fffe04e2e836018fce2e64acdea25a0f58a1e`.
 
 ## Objetivo y alcance
 
@@ -40,8 +40,12 @@ Compatibilidad con `main`: cherry-pick sin conflictos de este único cambio, 76/
 
 Dev publicado: Railway `b9c8c934-a880-4a28-8c19-ec1a510f9063`, SUCCESS y SHA exacto `79cd21afbfb1fe43cb243521e633cf845f72e261`. Salud 200/base conectada, solicitudes 401 sin sesión. Lectura completa posterior: 128/128 proyecciones coinciden con la regla, nueve fechas administrativas nuevas, 261/261 fuentes y todos los datos de solicitudes/fuentes sin cambios respecto de la lectura anterior. La comparación normaliza JSON y TZ=UTC del servidor.
 
-Pendiente al corte: publicación/comprobación en producción por PR [#85](https://github.com/joseibietasepulveda/Buho-Marc/pull/85).
+Producción publicada: Railway `1fc3a8d4-3eee-4eb8-abfe-396c6d9e522b`, SUCCESS y SHA exacto `ea8fffe04e2e836018fce2e64acdea25a0f58a1e`. Salud de `rcirculo.com` 200/base conectada y solicitudes 401 sin sesión. Lectura posterior completa: 246/246 proyecciones coinciden con la regla publicada; 16 pagos administrativos con fecha (14 completos y dos parciales), tres organizaciones afectadas. Datos de las 246 solicitudes y de las 670 fuentes vinculadas, incluidos eventos y pruebas, iguales a la lectura previa. Sin escrituras de cartera, tareas o notificaciones y sin llamadas nuevas a INAPI, DeQuiénEs u OpenRouter para este recálculo. El acceso SSH temporal fue revocado al completar la comprobación. Los archivos de consulta son privados y temporales; no se incorporan al repositorio.
+
+Este cierre solo actualiza documentación; no cambia el código que produjo esos resultados.
 
 ## Pendientes y siguiente paso
 
-Implementar, verificar y publicar únicamente esta regla. Aplicar/revisar el recálculo de todas las organizaciones con la misma proyección que usa la API, informar cantidades y fechas pendientes que sigan requiriendo ejecutoria. Registrar commits, PR, despliegues y limitaciones reales al cerrar.
+No quedan pendientes de esta regla ni migraciones. Para reproducir el cómputo, ejecutar las pruebas registradas arriba; el calendario sigue limitado a 2023–2027. La comprobación autenticada de interfaz fue local con fixtures; en ambientes reales se comprobó el código publicado, salud, protección de API y la proyección completa de cada cartera mediante lectura SQL. No se infiere una notificación, ejecutoria, ausencia universal de oposición o completitud del historial.
+
+Fuera de alcance: reparar el Git de la carpeta principal y el parser de acceso público INAPI detectado durante la investigación previa. Su HTML entrega contexto en `setHash(...)` y los inputs iniciales carecen de `value`; esa limitación no se corrigió en este cambio. La regla opera sobre antecedentes ya guardados y no depende de una extracción nueva. Los worktrees limpios permanecen disponibles para continuar sin tocar los cambios de otros chats.
