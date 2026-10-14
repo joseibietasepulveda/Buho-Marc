@@ -206,7 +206,7 @@ export const registrationTasks = pgTable("registration_tasks", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   applicationId: uuid("application_id").notNull().references(() => registrationApplications.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 255 }).notNull(), status: varchar("status", { length: 30 }).default("pending").notNull(),
-  priority: varchar("priority", { length: 10 }).default("Media").notNull(), dueDate: date("due_date"), assigneeId: uuid("assignee_id").references(() => users.id), ...timestamps,
+  priority: varchar("priority", { length: 10 }).default("Media").notNull(), dueDate: date("due_date"), assigneeId: uuid("assignee_id").references(() => users.id), createdBy:uuid('created_by').references(()=>users.id),completedBy:uuid('completed_by').references(()=>users.id),completedAt:timestamp('completed_at',{withTimezone:true}), ...timestamps,
 }, table => [index("registration_tasks_application_idx").on(table.organizationId, table.applicationId), check("registration_tasks_priority_check", sql`${table.priority} IN ('Alta', 'Media', 'Baja')`)]);
 
 export const caseMembers = pgTable("case_members", {
@@ -217,7 +217,7 @@ export const caseTasks = pgTable("case_tasks", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   caseId: uuid("case_id").notNull().references(() => cases.id, { onDelete: "cascade" }), title: varchar("title", { length: 255 }).notNull(),
   status: varchar("status", { length: 30 }).default("pending").notNull(), assigneeId: uuid("assignee_id").references(() => users.id),
-  priority: varchar("priority", { length: 10 }).default("Media").notNull(), dueAt: timestamp("due_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), ...timestamps,
+  priority: varchar("priority", { length: 10 }).default("Media").notNull(), dueAt: timestamp("due_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), createdBy:uuid('created_by').references(()=>users.id),completedBy:uuid('completed_by').references(()=>users.id), ...timestamps,
 }, (table) => [index("case_tasks_case_status_idx").on(table.organizationId, table.caseId, table.status), check("case_tasks_priority_check", sql`${table.priority} IN ('Alta', 'Media', 'Baja')`)]);
 
 export const legalDeadlines = pgTable("legal_deadlines", {
@@ -313,3 +313,24 @@ export const watchGlmCalls = pgTable("watch_glm_calls", {
 export const watchDigestImages = pgTable("watch_digest_images", {
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }), key: text("key").notNull(), content: text("content").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, t => [primaryKey({ columns: [t.organizationId, t.key] })]);
+
+export const analyticsEvents = pgTable('analytics_events', {
+ id:uuid('id').defaultRandom().primaryKey(),organizationId:uuid('organization_id').notNull().references(()=>organizations.id,{onDelete:'cascade'}),userId:uuid('user_id').references(()=>users.id,{onDelete:'set null'}),
+ module:text('module').notNull(),eventName:text('event_name').notNull(),sessionId:uuid('session_id'),occurredAt:timestamp('occurred_at',{withTimezone:true}).defaultNow().notNull(),properties:jsonb('properties').default({}).notNull(),
+},t=>[index('analytics_events_org_date_idx').on(t.organizationId,t.occurredAt),index('analytics_events_user_date_idx').on(t.userId,t.occurredAt),index('analytics_events_digest_idx').on(t.organizationId,sql`(${t.properties}->>'digest_run_id')`,t.occurredAt).where(sql`${t.eventName}='digest_viewed' AND ${t.properties}->>'source'='server'`)]);
+export const analyticsApiCalls = pgTable('analytics_api_calls', {
+ id:uuid('id').defaultRandom().primaryKey(),organizationId:uuid('organization_id').references(()=>organizations.id,{onDelete:'cascade'}),userId:uuid('user_id').references(()=>users.id,{onDelete:'set null'}),provider:text('provider').notNull(),operation:text('operation').notNull(),model:text('model'),sourceRef:text('source_ref'),
+ startedAt:timestamp('started_at',{withTimezone:true}).defaultNow().notNull(),durationMs:integer('duration_ms'),statusCode:integer('status_code'),outcome:text('outcome').notNull(),costUsd:numeric('cost_usd',{precision:18,scale:8}),inputTokens:integer('input_tokens'),outputTokens:integer('output_tokens'),properties:jsonb('properties').default({}).notNull(),
+},t=>[index('analytics_api_calls_org_date_idx').on(t.organizationId,t.startedAt),index('analytics_api_calls_provider_date_idx').on(t.provider,t.startedAt),index('analytics_api_calls_source_idx').on(t.sourceRef).where(sql`${t.sourceRef} IS NOT NULL`)]);
+export const analyticsEmailEvents = pgTable('analytics_email_events', {
+ id:uuid('id').defaultRandom().primaryKey(),eventKey:text('event_key').notNull().unique(),organizationId:uuid('organization_id').notNull().references(()=>organizations.id,{onDelete:'cascade'}),runId:uuid('run_id').notNull(),userId:uuid('user_id').references(()=>users.id,{onDelete:'set null'}),eventType:text('event_type').notNull(),occurredAt:timestamp('occurred_at',{withTimezone:true}).defaultNow().notNull(),properties:jsonb('properties').default({}).notNull(),
+},t=>[foreignKey({columns:[t.organizationId,t.runId],foreignColumns:[watchDigestRuns.organizationId,watchDigestRuns.id]}).onDelete('cascade'),index('analytics_email_events_run_idx').on(t.organizationId,t.runId,t.occurredAt)]);
+export const analyticsCostRules = pgTable('analytics_cost_rules', {
+ id:uuid('id').defaultRandom().primaryKey(),organizationId:uuid('organization_id').references(()=>organizations.id,{onDelete:'cascade'}),provider:text('provider').notNull(),operation:text('operation'),kind:text('kind').notNull(),amountUsd:numeric('amount_usd',{precision:18,scale:8}).notNull(),label:text('label').notNull(),effectiveFrom:date('effective_from').notNull(),effectiveTo:date('effective_to'),createdBy:uuid('created_by').references(()=>users.id,{onDelete:'set null'}),createdAt:timestamp('created_at',{withTimezone:true}).defaultNow().notNull(),
+},t=>[index('analytics_cost_rules_scope_idx').on(t.organizationId,t.effectiveFrom,t.effectiveTo)]);
+export const analyticsSnapshots = pgTable('analytics_snapshots', {
+ scopeKey:text('scope_key').primaryKey(),filters:jsonb('filters').notNull(),status:text('status').default('queued').notNull(),report:jsonb('report'),generatedAt:timestamp('generated_at',{withTimezone:true}),requestedAt:timestamp('requested_at',{withTimezone:true}).defaultNow().notNull(),leaseUntil:timestamp('lease_until',{withTimezone:true}),error:text('error'),
+},t=>[index('analytics_snapshots_queue_idx').on(t.status,t.requestedAt)]);
+export const analyticsBrandAssignments = pgTable('analytics_brand_assignments', {
+ organizationId:uuid('organization_id').notNull().references(()=>organizations.id,{onDelete:'cascade'}),brandId:uuid('brand_id').notNull().references(()=>brands.id,{onDelete:'cascade'}),userId:uuid('user_id').references(()=>users.id,{onDelete:'set null'}),assignedBy:uuid('assigned_by').references(()=>users.id,{onDelete:'set null'}),assignedAt:timestamp('assigned_at',{withTimezone:true}).defaultNow().notNull(),
+},t=>[primaryKey({columns:[t.organizationId,t.brandId]}),index('analytics_brand_assignments_user_idx').on(t.organizationId,t.userId)]);

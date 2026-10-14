@@ -19,6 +19,7 @@ async function handlePOST(request: Request) {
     await ensureSourceSeed();
     const sql = getSql();
     await sql.begin(async tx => {
+      let action=`task.${input.action}`,beforeStatus:string|null=null,afterStatus:string|null=null,created=false,assigneeId:string|null=null;
       if (input.entityType === "case") {
         const [removed] = await tx`DELETE FROM case_tasks t USING cases c WHERE t.case_id = c.id AND c.public_code = ${input.entityId} AND c.organization_id = ${organizationId()} AND t.organization_id = ${organizationId()} AND t.id = ${input.taskId} RETURNING t.id`;
         if (!removed) throw new Error("No se encontró la tarea en este caso");
@@ -30,16 +31,17 @@ async function handlePOST(request: Request) {
           if (!removed) throw new Error("No se encontró la tarea en esta solicitud");
         } else {
           const task = input.task;
-          const [existing] = await tx`SELECT application_id, organization_id FROM registration_tasks WHERE id = ${task.id}`;
+          const [existing] = await tx`SELECT application_id, organization_id,status,assignee_id FROM registration_tasks WHERE id = ${task.id}`;
           if (existing && (existing.application_id !== application.id || existing.organization_id !== organizationId())) throw new Error("La tarea pertenece a otro expediente");
           if (task.assigneeId) {
             const [member] = await tx`SELECT user_id FROM organization_members WHERE organization_id = ${organizationId()} AND user_id = ${task.assigneeId}`;
             if (!member) throw new Error("El responsable no pertenece al equipo");
           }
-          await tx`INSERT INTO registration_tasks (id, organization_id, application_id, title, status, priority, due_date, assignee_id) VALUES (${task.id}, ${organizationId()}, ${application.id}, ${task.title}, ${task.status}, ${task.priority}, ${task.dueDate ?? null}, ${task.assigneeId ?? null}) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, priority = EXCLUDED.priority, due_date = EXCLUDED.due_date, assignee_id = EXCLUDED.assignee_id, updated_at = now()`;
+          beforeStatus=existing?.status??null;afterStatus=task.status;created=!existing;assigneeId=task.assigneeId??null;action=!existing?"task.created":existing.status!=="completed"&&task.status==="completed"?"task.completed":existing.status==="completed"&&task.status!=="completed"?"task.reopened":"task.save";
+          await tx`INSERT INTO registration_tasks (id, organization_id, application_id, title, status, priority, due_date, assignee_id,created_by,completed_by,completed_at) VALUES (${task.id}, ${organizationId()}, ${application.id}, ${task.title}, ${task.status}, ${task.priority}, ${task.dueDate ?? null}, ${task.assigneeId ?? null},${actorId()},${task.status === "completed" ? actorId():null},${task.status === "completed" ? new Date():null}) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, priority = EXCLUDED.priority, due_date = EXCLUDED.due_date, assignee_id = EXCLUDED.assignee_id,completed_by=CASE WHEN EXCLUDED.status='completed' THEN CASE WHEN registration_tasks.status='completed' THEN registration_tasks.completed_by ELSE EXCLUDED.completed_by END ELSE NULL END,completed_at=CASE WHEN EXCLUDED.status='completed' THEN CASE WHEN registration_tasks.status='completed' THEN registration_tasks.completed_at ELSE EXCLUDED.completed_at END ELSE NULL END, updated_at = now()`;
         }
       }
-      await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${organizationId()}, ${actorId()}, ${`task.${input.action}`}, 'task', ${input.action === "delete" ? input.taskId : input.task.id}, ${tx.json({ entityType: input.entityType, entityId: input.entityId })})`;
+      await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, before_data,after_data) VALUES (${organizationId()}, ${actorId()}, ${action}, 'task', ${input.action === "delete" ? input.taskId : input.task.id}, ${tx.json({status:beforeStatus})},${tx.json({ entityType: input.entityType, entityId: input.entityId,status:afterStatus,created,assigneeId })})`;
     });
     return NextResponse.json({ ok: true });
   } catch (error) { return sourceError(error); }

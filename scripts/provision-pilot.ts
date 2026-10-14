@@ -1,3 +1,4 @@
+import {provisionAnalyticsAdmin} from "../db/admin-account";
 import { getSql } from "../db/index";
 import { hashPassword } from "../lib/password";
 import { DEMO_ACTOR, DEMO_ORGANIZATION } from "../lib/tenant-context";
@@ -8,6 +9,7 @@ import { provisionReportProfiles, REPORT_PROFILE_DEV_ENVIRONMENT } from "../db/r
 const password = process.env.DANIEL_INITIAL_PASSWORD;
 const sql = getSql();
 try {
+  if(process.env.ANALYTICS_ADMIN_INITIAL_PASSWORD)console.info("Administrador de analytics:",JSON.stringify(await provisionAnalyticsAdmin(process.env.ANALYTICS_ADMIN_INITIAL_PASSWORD)));
   const [existing] = await sql`SELECT id FROM users WHERE username = 'daniel_morales'`;
   if (!existing && password) {
     const hash = await hashPassword(password);

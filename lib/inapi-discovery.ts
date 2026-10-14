@@ -1,3 +1,4 @@
+import {analyticsFetcher} from "./analytics-telemetry";
 import { z } from "zod";
 import { fetchInapi, fetchInapiEvidence, isRealSource } from "./inapi-provider";
 import { searchSimilar, SimilarityError } from "./similarity-provider";
@@ -40,7 +41,7 @@ export async function discoverInapi(raw: DiscoveryInput, fetcher: typeof fetch =
     candidates = records.map(record => discoveryCandidate(record)); total = candidates.length;
   } else if (input.rut || input.partyName) {
     let response: Response;
-    try { response = await fetcher("https://dequienes.cl/inapi/trademarks/by-holder", { method: "POST", headers: { "x-api-key": process.env.INAPI_API_KEY, "content-type": "application/json" }, body: JSON.stringify({ ...(input.rut ? { rut: input.rut } : {}), ...(input.partyName ? { name: input.partyName } : {}), role: input.role, limit: input.limit, offset: input.offset }), redirect: "error", cache: "no-store", signal: AbortSignal.timeout(60000) }); }
+    try { response = await analyticsFetcher({provider:'dequienes',operation:'by_holder'},fetcher)("https://dequienes.cl/inapi/trademarks/by-holder", { method: "POST", headers: { "x-api-key": process.env.INAPI_API_KEY, "content-type": "application/json" }, body: JSON.stringify({ ...(input.rut ? { rut: input.rut } : {}), ...(input.partyName ? { name: input.partyName } : {}), role: input.role, limit: input.limit, offset: input.offset }), redirect: "error", cache: "no-store", signal: AbortSignal.timeout(60000) }); }
     catch { throw new SimilarityError("La fuente no respondió. Puedes reintentar conservando tus criterios.", 504); }
     if (!response.ok) throw new SimilarityError(response.status === 429 ? "La fuente está ocupada. Intenta en unos minutos." : "No se pudo consultar al titular o representante en INAPI.", response.status === 422 ? 422 : 502);
     const parsed = holderResponse.safeParse(await response.json());

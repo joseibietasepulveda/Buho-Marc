@@ -1,3 +1,4 @@
+import {analyticsFetcher} from "./analytics-telemetry";
 import { z } from "zod";
 import { normalizeInapi, reprojectInapiRecord, type InapiAct } from "./inapi-provider";
 import { sourceRecordSchema, type SourceRecord } from "./source-contract";
@@ -56,7 +57,7 @@ export async function fetchOfficialInapi(base: SourceRecord, gate: OfficialReque
   if (!/^[1-9]\d{0,8}$/.test(application)) throw new Error("Número de solicitud inválido para el buscador INAPI");
   const cookies = new Map<string, string>();
   const request = (path = "", body?: Record<string, unknown>) => gate(async () => {
-    const response = await fetcher(INAPI_OFFICIAL_URL + path, {
+    const response = await analyticsFetcher({provider:"inapi",operation:path.includes("FindMarcas")?"public_search":path?"public_dossier":"public_context"},fetcher)(INAPI_OFFICIAL_URL + path, {
       method: body ? "POST" : "GET", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(INAPI_REQUEST_TIMEOUT_MS),
       headers: { Referer: INAPI_OFFICIAL_URL, ...(body ? { "Content-Type": "application/json; charset=utf-8" } : {}), ...(cookies.size ? { Cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join("; ") } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {}),

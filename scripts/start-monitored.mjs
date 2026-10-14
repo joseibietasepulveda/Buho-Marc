@@ -22,7 +22,7 @@ if (process.env.SOURCE_PROVIDER === "inapi" && process.env.INAPI_IMPORT_COHORT =
 const enabled = Boolean(process.env.DATABASE_URL) && process.env.MONITORING_SCHEDULER_ENABLED !== "false";
 const env = { ...process.env, SOURCE_API_TOKEN: process.env.SOURCE_API_TOKEN || randomBytes(32).toString("hex"), MONITORING_SCHEDULER_ENABLED: String(enabled), MONITORING_CRON_SECRET: process.env.MONITORING_CRON_SECRET || randomBytes(32).toString("hex") };
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", process.argv.includes("--dev") ? "dev" : "start"], { stdio: "inherit", env });
-let stopping = false, inFlight = false, watchInFlight = false, recoveryInFlight = false, digestInFlight = false;
+let stopping = false, inFlight = false, watchInFlight = false, recoveryInFlight = false, digestInFlight = false, analyticsInFlight = false;
 let lastWatchProgress = "";
 async function watchTick() {
   if (!env.DATABASE_URL || env.SOURCE_PROVIDER !== "inapi" || watchInFlight || stopping) return;
@@ -77,7 +77,15 @@ async function digestTick() {
   finally { digestInFlight = false; }
 }
 
+async function analyticsTick(){
+ if(!env.DATABASE_URL || analyticsInFlight || stopping)return;
+ analyticsInFlight=true;
+ try{const response=await fetch(`http://127.0.0.1:${env.PORT||3000}/api/admin/dashboard/worker`,{method:'POST',headers:{authorization:`Bearer ${env.MONITORING_CRON_SECRET}`},signal:AbortSignal.timeout(60000)});if(response.ok){const result=await response.json();if(result.processed)setTimeout(()=>void analyticsTick(),500).unref();}}
+ catch{/* Snapshotqueue is durable; existing userprocesses continue. */}
+ finally{analyticsInFlight=false;}
+}
+const analyticsTimer=setInterval(()=>void analyticsTick(),60000);
 const timer = setInterval(() => { void tick(); void watchTick(); void recoveryTick(); void digestTick(); }, 30000);
 const startup = setTimeout(() => { void tick(); void watchTick(); void recoveryTick(); void digestTick(); }, 10000);
-for (const signal of ["SIGTERM", "SIGINT"]) process.on(signal, () => { stopping = true; clearInterval(timer); clearTimeout(startup); child.kill(signal); });
-child.on("exit", (code, signal) => { clearInterval(timer); clearTimeout(startup); process.exit(code ?? (signal ? 1 : 0)); });
+for (const signal of ["SIGTERM", "SIGINT"]) process.on(signal, () => { stopping = true; clearInterval(timer); clearTimeout(startup);clearInterval(analyticsTimer); child.kill(signal); });
+child.on("exit", (code, signal) => { clearInterval(timer); clearTimeout(startup);clearInterval(analyticsTimer); process.exit(code ?? (signal ? 1 : 0)); });

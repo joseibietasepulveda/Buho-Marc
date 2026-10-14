@@ -42,8 +42,7 @@ export async function loadDigestCandidate(org: string, match: string, now: Date)
     candidate: applyVerifiedDecision({ ...evidence.hit, reviewStatus: r.review_status, legalDeadline: r.legal_deadline ? String(r.legal_deadline).slice(0,10) : null }), fetchedAt: evidence.fetchedAt ?? null };
   return eligibleDigestCandidate(cross, santiagoDay(now)) ? cross : null;
 }
-export async function readDigestAgenda(org: string, now: Date) {
-  const sql = getSql();
+export async function readDigestAgenda(org: string, now: Date, sql = getSql()) {
   const [cases, tasks, registrations, regTasks] = await Promise.all([
     sql`SELECT c.public_code,c.title,c.description,c.stage,c.next_deadline::text,c.proceeding,COALESCE(b.name,'Sin marca') AS brand_name,COALESCE(u.name,'Sin asignar') AS owner
       FROM cases c LEFT JOIN brands b ON b.id=c.brand_id AND b.organization_id=c.organization_id LEFT JOIN users u ON u.id=c.owner_id

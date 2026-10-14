@@ -27,7 +27,7 @@ export async function prepareConclusion(input: ConclusionInput) {
   });
   if ('cached' in claim) return { conclusion: claim.cached };
   if ('pending' in claim) return { pending: claim.pending };
-  const generated = await generateConclusion(input, profile, config);
+  const generated = await generateConclusion(input, profile, {...config,sourceRef:`feasibility:${id}`,telemetryContext:{organizationId:organizationId(),userId:actorId()}});
   const conclusion = { ...generated.conclusion, generationId: id };
   await sql`UPDATE feasibility_conclusions SET status='complete',output=${sql.json(conclusion)},provider_id=${generated.providerId ?? null},usage=${generated.usage ? sql.json(JSON.parse(JSON.stringify(generated.usage))) : null},cost=${generated.cost ?? null},completed_at=now() WHERE id=${id} AND organization_id=${organizationId()}`;
   return { conclusion };

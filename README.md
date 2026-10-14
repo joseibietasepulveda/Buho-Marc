@@ -58,6 +58,8 @@ El administrador de Búho Marc dispone de Dominios entre Solicitudes de registro
 
 Vigilancia usa una escala local más compacta en escritorio. Sus bandejas comparten datos ya cargados. Las opciones Administrador de fuente, Acerca de esta versión y Cambiar clave sólo están habilitadas para el administrador de Búho Marc; la API aplica la misma autorización por organización y rol.
 
+El dashboard interno `/app/admin/dashboard`, con ingreso en `/admin/login`, reúne Costos, Usuarios y actividad, Cartera y alertas, Tareas y plazos, Correos, Llamados a APIs y Comportamiento. Prioriza costos confirmados/estimados/reservados, tarifas y fijos configurables, presupuestos, tokens y desglose por proveedor/estudio/usuario; incluye gráfico semanal de interacciones por usuario. Acceso exclusivo a administración Búho, snapshots en segundo plano y telemetría posterior a la respuesta. Historial incompleto se señala sin inventar autoría, entregas o cargos. [Contrato y operación](docs/DASHBOARD_ADMIN_2026-10-14.md), [traspaso y verificaciones](docs/handoffs/2026-10-14-dashboard-admin-uso-costos.md) y [plan PostHog](docs/PLAN_POSTHOG_2026-10-14.md); PostHog aún no está conectado.
+
 En factibilidad, cambiar la recomendación borra la conclusión anterior. Al generar nuevamente, IA - Buho Marc redacta argumentos coherentes y termina con la decisión elegida por el abogado. Generada por IA permite que la IA decida. Los cambios de formato y las descargas siguen reutilizando la conclusión preparada.
 
 B&E incorpora BRANDON METRICS, Boretek y BRUMA con sus registros y cruces reales. El resumen prioriza TV ELQUI, BRANDON METRICS y Boretek; BRUMA también queda destacada en Vigilancia. [Alcance, evidencia y pruebas](docs/handoffs/2026-10-12-presentacion-barros-errazuriz.md).
