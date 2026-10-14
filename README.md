@@ -1,5 +1,7 @@
 # Buho Marc · v1.0
 
+**INAPI a pedido · Dev 14/10:** contexto público corregido, seguimiento con antecedente faltante/programación real y botón «Consultar INAPI» limitado a una consulta diaria por expediente. [Regla y alcance](docs/CONSULTA_INAPI_A_PEDIDO_2026-10-14.md).
+
 **Pago final · regla del 14/10/2026:** las aceptaciones administrativas calculan 60 días hábiles desde la aceptación, asumiendo notificación ese día; las aceptaciones con oposición usan la ejecutoria. El cálculo compartido se aplica a todas las carteras desde los antecedentes guardados, sin inventar pruebas ni nuevas consultas a la fuente. [Regla y límites](docs/PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md), [verificación y publicación](docs/handoffs/2026-10-14-pago-aceptacion-administrativa.md).
 
 **Factibilidad y cierre · 12/10/2026:** [flujo vigente y acuerdos](docs/FACTIBILIDAD_MULTINFORME_2026-10-09.md), [cierre documental y «Ver más» aplazado](docs/handoffs/2026-10-12-cierre-factibilidad.md). La promoción del código a Main desde otro chat quedó registrada en [PR #30](https://github.com/joseibietasepulveda/Buho-Marc/pull/30) y [PR #31](https://github.com/joseibietasepulveda/Buho-Marc/pull/31); esta actualización de documentación se integra solo a Dev.

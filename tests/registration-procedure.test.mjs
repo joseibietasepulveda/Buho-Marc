@@ -64,7 +64,7 @@ test('unclassified payment still requires executoria and generic activity dates 
   }
   for (const statusId of ['finality-pending', 'payment-verification', 'appeal-pending']) {
     const result = deadlineInfo(application({ statusId, procedure: { notifiedAt: '2026-08-03' } }), today);
-    assert.equal(result.attention, 'none');
+    assert.equal(result.attention, statusId === 'finality-pending' ? 'pending' : 'none');
     assert.equal(result.dueDate, undefined);
   }
 });

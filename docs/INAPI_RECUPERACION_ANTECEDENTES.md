@@ -1,5 +1,7 @@
 # Recuperación de antecedentes y reconocimiento de actuaciones
 
+**Consulta manual · 14/10 · Dev:** se repara la inicialización pública `setHash(...)` y se añade revisión a pedido por expediente, como máximo una por día de Santiago, con estado de carga y resultado explícito. Comparte reloj y presupuesto con el trabajador existente; conserva su deduplicación. [Contrato y presentación](CONSULTA_INAPI_A_PEDIDO_2026-10-14.md).
+
 **Pago final · decisión del 14/10/2026:** las aceptaciones administrativas identificadas usan 60 días hábiles desde la aceptación, con notificación asumida ese día, y ya no necesitan recuperar ejecutoria para ese cálculo. Las aceptaciones con oposición siguen requiriendo ejecutoria. No se escriben pruebas ficticias. [Regla vigente y alcance](PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md).
 
 **Regla de cálculo · 12/10/2026:** el proyecto asume notificación el mismo día de la actuación habilitante cuando falta una fecha informada. Se calcula sin crear una constancia y sin consultar INAPI si el historial guardado ya tiene el activador. Una fecha acreditada tiene prioridad; publicación y ejecutoria conservan sus reglas. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).

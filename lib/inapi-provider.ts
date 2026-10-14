@@ -1,6 +1,7 @@
 import {analyticsFetcher} from "./analytics-telemetry";
 import { portfolioImage, dequienesImage } from "./trademark-image";
 import { z } from "zod";
+import { chileToday } from "./work-priorities";
 import { sourceRecordSchema, type SourceRecord, type Lookup } from "./source-contract";
 import { inapiProcedure, orderedInapiActs, stageForAct } from "./inapi-procedure";
 export { inapiProcedure, orderedInapiActs, stageForAct } from "./inapi-procedure";
@@ -54,6 +55,18 @@ function normalizeDocument(input: unknown, evidenceOnly: boolean): SourceRecord 
   if (d.registration_number && registeredAt && !laterProceeding && !["expired", "cancelled"].includes(status)) { status = "registered"; statusDate = registeredAt; }
   if (/(cancelad|vencid|caducad)/i.test(d.status.description ?? "")) status = /cancelad/i.test(d.status.description!) ? "cancelled" : "expired";
   if (/^desistida$/i.test(d.status.description?.trim() ?? "")) status = "withdrawn";
+  // A denied application whose original rejection was upheld on appeal and
+  // made final on the same day has a known outcome, not an unknown new deadline.
+  if (status === "decision-review" && /^denegada$/i.test(d.status.description?.trim() ?? "")) {
+    const acts = orderedInapiActs(d.events);
+    const closing = projection.sourceAct;
+    const upheld = /^resoluci[oó]n de cumplir fallo tpi que convalida/i.test(closing?.status_description?.trim() ?? "");
+    const closingDate = day(closing?.event_date);
+    const lastAppeal = acts.findLastIndex(act => day(act.event_date) && closingDate && day(act.event_date)! <= closingDate && stageForAct(act.status_description ?? "") === "appeal-pending");
+    const priorDecision = acts.slice(0, lastAppeal).findLast(act => ["rejected-appeal", "finality-pending", "partial-appeal"].includes(stageForAct(act.status_description ?? "") ?? ""));
+    const finality = acts.some(act => day(act.event_date) === closingDate && /^decisi[oó]n qued[oó] firme(?:\s|$)/i.test(act.status_description ?? ""));
+    if (upheld && closingDate && closingDate <= chileToday() && finality && lastAppeal >= 0 && stageForAct(priorDecision?.status_description ?? "") === "rejected-appeal") status = "rejected-final";
+  }
   if (status === "registered" && !d.registration_number) status = "decision-review";
   // The actual publication act can provide the date when its summary field is absent.
   const publicationDate = day(d.dates.published_at) ?? day(orderedInapiActs(d.events).findLast(e => stageForAct(e.status_description ?? "") === "opposition-window")?.event_date);

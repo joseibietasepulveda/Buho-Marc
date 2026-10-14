@@ -27,6 +27,8 @@ import { RegistrationLogo } from "./registration-logo";
 import { ClientNameLink } from "./client-provider";
 import { activityContent, activityDate, oldestActivityFirst } from "@/lib/registration-activity";
 import { deadlineInfo, registrationDeadlines, deadlineLabel, registrationProgress, type Attention, type ProcedureDeadline } from "@/lib/registration-procedure";
+import { manualReviewAvailability, registrationFollowUp } from "@/lib/registration-follow-up";
+import { sourceReviewDate } from "@/lib/source-schedule";
 import "./registration-v05.css";
 import { PROCESS_DEMO_DATE, PROCESS_SCENARIOS } from "@/lib/registration-scenarios";
 export { deadlineInfo } from "@/lib/registration-procedure";
@@ -55,21 +57,35 @@ function AttentionIcon({ attention }: { attention: Attention }) {
   return <Hourglass aria-hidden size={18} weight="bold" />;
 }
 
-type RegistrationState = { applications: RegistrationApplication[]; tasks: RegistrationTask[]; loading: boolean; error: string };
-const RegistrationContext = createContext<(RegistrationState & { refresh: () => Promise<void>; saveTask: (applicationId: string, task: CaseTask, remove?: boolean) => Promise<boolean> }) | null>(null);
+type RegistrationState = { applications: RegistrationApplication[]; tasks: RegistrationTask[]; loading: boolean; error: string; reviewSchedule?: {nextScheduledAt:string|null} };
+const RegistrationContext = createContext<(RegistrationState & { refresh: () => Promise<void>; review: (applicationId:string)=>Promise<void>; reviewing:Set<string>; reviewMessages:Record<string,string>; saveTask: (applicationId: string, task: CaseTask, remove?: boolean) => Promise<boolean> }) | null>(null);
 export function RegistrationProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RegistrationState>({ applications: [], tasks: [], loading: true, error: "" });
   const pendingWrites = useRef(new Set<string>()), version = useRef(0);
-  const reader = useRef(snapshotReader<{applications: RegistrationApplication[]; tasks: RegistrationTask[]}>());
+  const [reviewing,setReviewing]=useState(new Set<string>()),[reviewMessages,setReviewMessages]=useState<Record<string,string>>({});
+  const reviewLock=useRef(new Set<string>());
+  const reader = useRef(snapshotReader<{applications: RegistrationApplication[]; tasks: RegistrationTask[];reviewSchedule?:{nextScheduledAt:string|null}}>()) ;
   const refresh = useCallback(async () => {
     try {
       const requestedVersion = version.current;
       const p = await reader.current("/api/registrations");
       if (!p || requestedVersion !== version.current || pendingWrites.current.size) return;
       if (!Array.isArray(p.applications)) throw new Error();
-      setState({ applications: p.applications, tasks: p.tasks ?? [], loading: false, error: "" });
+      setState({ applications: p.applications, tasks: p.tasks ?? [], reviewSchedule:p.reviewSchedule, loading: false, error: "" });
     } catch { setState(current => ({ ...current, loading: false, error: "No se pudieron actualizar las solicitudes. Se conservan los últimos datos; reintentaremos automáticamente." })); }
   }, []);
+  async function review(applicationId:string) {
+    if(reviewLock.current.has(applicationId))return;
+    reviewLock.current.add(applicationId);pendingWrites.current.add(`review:${applicationId}`);version.current++;
+    setReviewing(current=>new Set([...current,applicationId]));setReviewMessages(current=>({...current,[applicationId]:''}));
+    try{
+      const response=await fetch('/api/registrations/review',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({applicationId})});
+      const payload=await response.json();
+      setReviewMessages(current=>({...current,[applicationId]:payload.message||'No se pudo completar la consulta.'}));
+      if(payload.review)setState(current=>({...current,applications:current.applications.map(a=>a.id===applicationId?{...a,officialReview:payload.review}:a)}));
+    }catch{setReviewMessages(current=>({...current,[applicationId]:'No se pudo recibir el resultado. Actualiza la ficha para comprobar el estado de la consulta.'}));}
+    finally{reviewLock.current.delete(applicationId);pendingWrites.current.delete(`review:${applicationId}`);version.current++;setReviewing(current=>new Set([...current].filter(id=>id!==applicationId)));await refresh();}
+  }
   async function saveTask(applicationId: string, task: CaseTask, remove = false) {
     const key = `${applicationId}:${task.id}`;
     if (pendingWrites.current.has(key)) return false;
@@ -85,7 +101,7 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
     finally { version.current++; pendingWrites.current.delete(key); }
   }
   useEffect(() => pollWhileVisible(refresh, 30000), [refresh]);
-  return <RegistrationContext.Provider value={{ ...state, refresh, saveTask }}>{children}</RegistrationContext.Provider>;
+  return <RegistrationContext.Provider value={{ ...state, refresh, saveTask,review,reviewing,reviewMessages }}>{children}</RegistrationContext.Provider>;
 }
 export function useRegistrationApplications() {
   const state = useContext(RegistrationContext);
@@ -96,6 +112,27 @@ export function useRegistrationTasks() {
   const state = useContext(RegistrationContext);
   if (!state) throw new Error("RegistrationProvider missing");
   return { tasks: state.tasks, save: state.saveTask };
+}
+
+export function RegistrationFollowUpPanel({application,compact=false}:{application:RegistrationApplication;compact?:boolean}) {
+  const state=useContext(RegistrationContext);
+  const reason=registrationFollowUp(application);
+  const message=state?.reviewMessages[application.id];
+  if(application.demoScenario)return null;
+  if(!reason)return message?compact?<small role="status" aria-live="polite">{message}</small>:<p role="status" aria-live="polite">{message}</p>:null;
+  const availability=manualReviewAvailability(application),busy=state?.reviewing.has(application.id);
+  const review=application.officialReview;
+  const schedule=state?.reviewSchedule?.nextScheduledAt;
+  const scheduleText=schedule?`Próxima revisión programada de la cartera: ${sourceReviewDate(schedule,new Date())}`:'Revisión a pedido · no hay una consulta automática programada.';
+  const availabilityText=availability.checkedToday?`${review?.status==='unchanged'?'Sigue sin haber información nueva, podrás consultar de nuevo mañana':review?.status==='failed'?'La consulta de hoy no se completó; podrás consultar de nuevo mañana':review?.status==='limited'?'Se alcanzó el límite diario; podrás consultar de nuevo mañana':review?.status==='running'?'Consulta de hoy en curso o interrumpida; actualiza la ficha para ver su resultado':'La consulta de hoy ya se realizó; podrás consultar de nuevo mañana'} · Disponible desde el ${formatDate(availability.nextAllowedDay)}`:availability.enabled?'Puedes consultar INAPI hoy. Máximo una consulta por expediente al día.':'La consulta directa no está habilitada en este ambiente.';
+  if(compact)return <span className="registration-follow-up"><small>{reason}</small><small>{scheduleText}</small><small>{availabilityText}</small></span>;
+  return <section className="registration-follow-up" aria-label={`Seguimiento de ${application.name}`}>
+    <p>{reason}</p>
+    <small>{scheduleText}</small>
+    <small aria-live="polite">{availabilityText}</small>
+    {!compact&&state&&availability.enabled&&<button type="button" className="buho-secondary" disabled={busy||!availability.canConsult} onClick={()=>void state.review(application.id)}>{busy?'Cargando…':'Consultar INAPI'}</button>}
+    {message&&!(availability.checkedToday&&review?.status==='unchanged')&&<p role="status" aria-live="polite">{message}</p>}
+  </section>;
 }
 
 export type RegistrationSelection = { id?: string; status?: RegistrationStatusId; view?: "cards" | "list" | "calendar" | "oppositions" };
@@ -175,7 +212,7 @@ function RegistrationList({ applications, onSelect }: { applications: Registrati
       return <button type="button" className="registration-list-row" key={application.id} onClick={() => onSelect(application.id)}>
         <span className="registration-list-brand"><RegistrationLogo application={application} /><span><strong>{application.name}</strong><small>{application.holder}</small><small>Solicitud {application.applicationNumber} · Clases {application.niceClasses}</small></span></span>
         <span><strong>{registrationProgress(application, today)}</strong><small>{milestone.date ? formatDate(milestone.date) + " · " : ""}{milestone.title}</small>{application.demoScenario && <small>Ejemplo simulado</small>}</span>
-        <span>{deadlines.map(deadline => <span key={deadline.key} className={`registration-list-deadline deadline-${deadline.attention}`}><strong>{deadline.label}</strong><small>{deadline.dueDate ? `${formatDate(deadline.dueDate)} · ${deadlineLabel(deadline, today)}` : deadlineLabel(deadline, today)}</small></span>)}<b>Abrir solicitud →</b></span>
+        <span>{deadlines.map(deadline => <span key={deadline.key} className={`registration-list-deadline deadline-${deadline.attention}`}><strong>{deadline.label}</strong><small>{deadline.dueDate ? `${formatDate(deadline.dueDate)} · ${deadlineLabel(deadline, today)}` : deadline.attention==='pending'?deadline.explanation:deadlineLabel(deadline, today)}</small></span>)}<RegistrationFollowUpPanel application={application} compact/><b>Abrir solicitud →</b></span>
       </button>;
     })}
   </section>;
@@ -209,6 +246,7 @@ function RegistrationCard({ application, onSelect }: { application: Registration
       {registrationDeadlines(application, today).filter(item => item.kind !== "institutional").map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} />)}
       <footer><span>Solicitud N.º {application.applicationNumber}</span><b>Abrir detalle <ArrowRight aria-hidden size={14} /></b></footer>
     </button>
+    <RegistrationFollowUpPanel application={application}/>
     <p className="procedure-source">{application.demoScenario ? "Escenario ficticio" : application.provider === "inapi" ? "Etapa según actuaciones de INAPI" : "Datos simulados de seguimiento"}</p>
   </article>;
 }
@@ -217,7 +255,7 @@ function ProcedureDeadlinePanel({ deadline: d, today, application, detailed = fa
   const origin = d.notificationDateAssumed ? `${d.origin === "source" ? "Vencimiento informado por la fuente · " : ""}Notificación asumida el día de la actuación` : d.origin === "source" ? "Informado por la fuente" : d.origin === "calculated" ? d.kind === "institutional" ? "Control administrativo calculado · no es un vencimiento del abogado" : "Calculado desde el antecedente indicado" : d.origin === "simulated" ? "Fecha de demostración · no corresponde a un expediente real" : "";
   if (d.attention === "pending") {
     const act = d.key === application.statusId ? application.procedure : application.procedure?.concurrent?.find(item => item.statusId === d.key);
-    const missing = !d.sourceDate ? `${d.trigger}: fecha no disponible en la fuente` : "Cómputo pendiente de revisión";
+    const missing = d.explanation;
     return <div className="trademark-deadline deadline-pending procedure-pending"><AttentionIcon attention={d.attention} /><div><strong>{d.label}</strong>{act?.sourceActDate && <small>Actuación de referencia · {formatDate(act.sourceActDate)}</small>}<small>{missing}</small>{detailed && <><p>{d.explanation}</p>{d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ""}</small>}</>}</div></div>;
   }
   return <div className={`trademark-deadline deadline-${d.attention}${d.kind === "institutional" ? " institutional-control" : ""}`}><AttentionIcon attention={d.attention} /><div><span>{d.label}</span><strong>{deadlineLabel(d, today)}</strong>{d.dueDate && <small>{d.kind === "institutional" || d.kind === "milestone" ? "Fecha" : "Vence el"} {formatDate(d.dueDate)} · {origin}</small>}{(d.attention === "none" || detailed) && <small>{d.explanation}</small>}{detailed && d.days && <small>Regla: {d.days} días hábiles · {d.trigger}{d.sourceDate ? `: ${formatDate(d.sourceDate)}` : ": fecha no informada"}</small>}</div></div>;
@@ -237,6 +275,7 @@ function RegistrationDrawer({ application, onClose, children }: { application: R
           {registrationProgress(application, today) !== status.label && <small>Última etapa oficial: {status.label}</small>}
           {application.demoScenario && <p className="procedure-scenario">Ejemplo simulado · {application.demoScenario}</p>}
           {deadlines.filter(item => item.kind !== "institutional").map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} detailed />)}
+          <RegistrationFollowUpPanel application={application}/>
           {application.procedure?.sourceActDate && <p className="procedure-source">Actuación de referencia: {formatDate(application.procedure.sourceActDate)} · {application.procedure.sourceActDescription}</p>}
         </section>
 

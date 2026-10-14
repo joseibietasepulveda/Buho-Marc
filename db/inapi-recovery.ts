@@ -7,6 +7,13 @@ import { compareRecords, type SourceRecord } from "../lib/source-contract";
 import { directRecoveryEnabled, recoveryDailyLimit, recoveryKey, recoveryNeeds } from "../lib/inapi-recovery";
 import { fetchOfficialInapi, INAPI_REQUEST_INTERVAL_MS, INAPI_REQUEST_TIMEOUT_MS, mergeOfficialEvidence } from "../lib/inapi-official";
 
+export async function inapiDailyAttempts(connection: TransactionSql | Awaited<ReturnType<ReturnType<typeof getSql>["reserve"]>>) {
+  const [daily] = await connection`SELECT
+    (SELECT count(*) FROM inapi_recovery_jobs WHERE started_at >= date_trunc('day', now() AT TIME ZONE 'America/Santiago') AT TIME ZONE 'America/Santiago') +
+    (SELECT count(*) FROM inapi_official_checks WHERE started_at >= date_trunc('day', now() AT TIME ZONE 'America/Santiago') AT TIME ZONE 'America/Santiago') AS count`;
+  return Number(daily.count);
+}
+
 export async function enqueueInapiRecovery(tx: TransactionSql, sourceId: string, record: SourceRecord, application?: RegistrationApplication) {
   if (!directRecoveryEnabled()) return;
   // Serialize the per-antecedent check even when two organizations import
@@ -64,8 +71,7 @@ export async function processInapiRecovery(fetcher: typeof fetch = fetch) {
     await connection`UPDATE inapi_recovery_jobs SET status = 'failed', completed_at = now(), error = 'Consulta interrumpida; no se reintenta automáticamente' WHERE status = 'running'`;
     const [clock] = await connection`SELECT blocked_until > now() AS blocked FROM inapi_request_clock WHERE id = 1`;
     if (clock?.blocked) return { skipped: true, reason: "cooldown" };
-    const [daily] = await connection`SELECT count(*)::int AS count FROM inapi_recovery_jobs WHERE started_at >= date_trunc('day', now() AT TIME ZONE 'America/Santiago') AT TIME ZONE 'America/Santiago'`;
-    if (daily.count >= recoveryDailyLimit()) return { skipped: true, reason: "daily-limit" };
+    if (await inapiDailyAttempts(connection) >= recoveryDailyLimit()) return { skipped: true, reason: "daily-limit" };
     const [job] = await connection`SELECT j.*, r.data FROM inapi_recovery_jobs j JOIN source_records r ON r.id = j.source_id WHERE j.status = 'queued' AND EXISTS (SELECT 1 FROM source_snapshots s JOIN organizations o ON o.id = s.organization_id WHERE s.source_id = j.source_id AND o.status = 'active') ORDER BY j.created_at, j.id LIMIT 1`;
     if (!job) return { skipped: true, reason: "empty" };
     if (!recoveryNeeds(job.data).some(need => (job.needs as string[]).includes(need))) {

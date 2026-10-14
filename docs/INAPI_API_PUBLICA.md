@@ -12,7 +12,7 @@ Base: `https://buscadormarcas.inapi.cl/Marca/BuscarMarca.aspx`.
 
 Una consulta de un expediente realiza como máximo tres peticiones, en este orden:
 
-1. `GET` a la página base. Obtiene un contexto temporal propio: campos ocultos `hdnHash` y `hdnIDW`, más las cookies emitidas por esa página.
+1. `GET` a la página base. Obtiene un contexto temporal propio: campos ocultos `hdnHash` y `hdnIDW` cuando traen valores, o la inicialización literal `setHash(hash,id)` del script cuando esos inputs están vacíos, más las cookies emitidas por esa página. Se leen cadenas literales sin ejecutar JavaScript remoto.
 2. `POST /FindMarcas`, búsqueda exacta por número de solicitud.
 3. `POST /FindMarcaByNumeroSolicitud`, detalle del único resultado que corresponde al número solicitado.
 
@@ -60,3 +60,6 @@ Todas las peticiones de esta consulta pasan por el bloqueo y reloj persistente d
 Las imágenes existentes y los servicios de búsqueda de DeQuiénEs tienen sus flujos separados; esta cola controla las nuevas llamadas de datos al buscador oficial. Abrir fichas, filtrar, reproyectar datos guardados o generar informes no ejecuta estas llamadas.
 
 Validación local y estado de integración: [traspaso](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
+
+
+**Actualización 14/10 · Dev:** se incorpora consulta a pedido, con límite persistente de una por expediente/día de Santiago, presupuesto compartido y presentación del antecedente pendiente. [Contrato y alcance](CONSULTA_INAPI_A_PEDIDO_2026-10-14.md).

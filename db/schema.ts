@@ -54,6 +54,12 @@ export const inapiRecoveryJobs = pgTable("inapi_recovery_jobs", {
   error: text("error"), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, table => [uniqueIndex("inapi_recovery_need_uq").on(table.applicationNumber, table.needKey), index("inapi_recovery_queue_idx").on(table.status, table.createdAt)]);
 
+export const inapiOfficialChecks = pgTable("inapi_official_checks", {
+  id: uuid("id").defaultRandom().primaryKey(), sourceId: uuid("source_id").references(() => sourceRecords.id, { onDelete: "cascade" }),
+  applicationNumber: varchar("application_number", { length: 30 }).notNull(), checkDay: date("check_day").notNull(), status: varchar("status", { length: 20 }).notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), error: text("error"), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [uniqueIndex("inapi_official_check_day_uq").on(table.applicationNumber, table.checkDay), index("inapi_official_check_budget_idx").on(table.startedAt), check("inapi_official_check_status", sql`${table.status} IN ('running','changed','unchanged','failed','limited')`)]);
+
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(), name: varchar("name", { length: 180 }).notNull(),
   automaticMonitoring: boolean("automatic_monitoring").default(true).notNull(),

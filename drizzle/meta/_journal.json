@@ -127,6 +127,13 @@
       "when": 1792008000000,
       "tag": "0017_admin_analytics",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792008000001,
+      "tag": "0018_inapi_official_checks",
+      "breakpoints": true
     }
   ]
 }
