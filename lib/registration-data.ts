@@ -118,7 +118,7 @@ export const STATUS_DEFINITIONS: StatusDefinition[] = [
   { id: "opposition-filed", label: "Oposición presentada — traslado por confirmar", phase: "gazette", helper: "Consta una oposición. Su presentación no inicia por sí sola el plazo para contestar: falta el traslado y su notificación." },
   { id: "decision-pending", label: "Oposición — pendiente de fallo de INAPI", phase: "gazette", helper: "La contestación y la prueba no conceden ni rechazan por sí solas el registro." },
   { id: "decision-review", label: "Resolución dictada — resultado por revisar", phase: "gazette", helper: "La actuación recibida no identifica suficientemente el resultado o la ejecutoria. Revisar la resolución." },
-  { id: "finality-pending", label: "Aceptación a registro — firmeza por confirmar", phase: "gazette", helper: "El plazo de pago final comienza cuando la resolución queda ejecutoriada." },
+  { id: "finality-pending", label: "Aceptación a registro", phase: "gazette", helper: "El pago administrativo se calcula desde la aceptación con notificación asumida ese día; con oposición, desde la ejecutoria acreditada." },
   { id: "payment-verification", label: "Pago final acreditado — esperando registro", phase: "gazette", helper: "La acreditación del pago no equivale a la concesión. Se espera la asignación del registro." },
   { id: "abandoned-payment", label: "Solicitud abandonada por falta de pago final", phase: "gazette", terminal: "neutral", helper: "Abandono informado en el expediente. No se presume solo por el transcurso del plazo." },
   { id: "appeal-pending", label: "Apelación en tramitación", phase: "gazette" },

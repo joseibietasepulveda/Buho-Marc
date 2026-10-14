@@ -1,6 +1,6 @@
 import { STATUS_BY_ID, type RegistrationApplication, type RegistrationStatusId } from "./registration-data";
 import { chileToday, parseWorkDate } from "./work-priorities";
-import { hasContestedProceeding } from "./registration-proceedings";
+import { administrativeAcceptanceDate, hasContestedProceeding } from "./registration-proceedings";
 import { CALENDAR_VERSION, calendarCovered, nationalBusinessDay } from "./legal-calendar";
 import { significantRegistrationEvent } from "./registration-milestones";
 
@@ -11,6 +11,7 @@ export type ProcedureDeadline = {
   days?: number; sourceDate?: string; dueDate?: string; nominalDate?: string; deadline?: Date; remaining?: number;
   origin: "source" | "calculated" | "simulated" | "unavailable";
   notificationDateAssumed?: boolean;
+  paymentBasis?: "administrative-acceptance" | "executoria";
   kind?: "legal" | "institutional" | "milestone";
   fatal?: boolean;
 };
@@ -80,10 +81,14 @@ export function procedureContext(application: RegistrationApplication): string {
   if (s === "evidence-period") return "La prórroga de hasta 30 días adicionales requiere resolución que la conceda; no se aplica automáticamente.";
   if (s === "substantive-objection") return "La observación puede coexistir con una oposición. El vencimiento sin respuesta no sustituye la resolución de INAPI.";
   if (s === "substantive-exam") return "INAPI revisa las prohibiciones de registro y la cobertura solicitada. Esta etapa no tiene una cuenta regresiva de resolución.";
-  if (s === "partial-appeal") return "Revisar la cobertura aceptada y rechazada. La aceptación parcial puede recurrirse; el pago final requiere ejecutoria.";
+  if (s === "partial-appeal") return administrativeAcceptanceDate(application) !== undefined
+    ? "Revisar la cobertura aceptada y rechazada. Se conservan por separado la apelación y el pago de derechos finales de la parte aceptada."
+    : "Revisar la cobertura aceptada y rechazada. La aceptación parcial puede recurrirse; el pago final requiere ejecutoria.";
   if (s === "rejected-appeal") return "La resolución puede ser apelable. Vencer el plazo no permite presumir por sí solo que quedó firme.";
   if (s === "appeal-pending") return "Recurso ante el Tribunal de Propiedad Industrial. El fallo del tribunal no acredita por sí solo ejecutoria; deben verificarse los recursos posteriores.";
-  if (s === "accepted-payment" || s === "partial-payment") return "Pagar y acreditar los derechos finales dentro de 60 días hábiles desde la ejecutoria. El pago no equivale todavía a registro concedido.";
+  if (s === "accepted-payment" || s === "partial-payment") return administrativeAcceptanceDate(application) !== undefined
+    ? "Pagar y acreditar los derechos finales dentro de 60 días hábiles desde la aceptación administrativa, asumiendo notificación ese día según la regla del proyecto. El pago no equivale todavía a registro concedido."
+    : "Pagar y acreditar los derechos finales dentro de 60 días hábiles desde la ejecutoria. El pago no equivale todavía a registro concedido.";
   if (s === "registered") return "Vigencia de 10 años desde el registro, renovable. La fecha de presentación, aceptación o pago no inicia la vigencia del registro.";
   if (s === "expired") return "Vencimiento del registro. Revisar la ventana de renovación y su eventual recargo; no se presume cancelación automática.";
   return STATUS_BY_ID[s].helper ?? "Etapa informada por el expediente. El cambio de estado requiere una actuación que lo sustente.";
@@ -92,10 +97,15 @@ export function procedureContext(application: RegistrationApplication): string {
 function primaryDeadline(a: RegistrationApplication, today: string): ProcedureDeadline {
   const status = STATUS_BY_ID[a.statusId];
   const p = a.procedure;
+  const payment = ["accepted-payment", "partial-payment"].includes(a.statusId);
+  const acceptance = payment ? administrativeAcceptanceDate(a) : undefined;
+  const administrativePayment = acceptance !== undefined;
+  const paymentDate = administrativePayment ? parseWorkDate(acceptance) : parseWorkDate(p?.finalAt);
   const assumedNotificationDate = a.provider === "inapi" && notificationStages.has(a.statusId) && !p?.notifiedAt ? parseWorkDate(p?.sourceActDate) : null;
   const notificationDate = parseWorkDate(p?.notifiedAt) ?? assumedNotificationDate;
-  const assumption = assumedNotificationDate ? `Notificación asumida el ${assumedNotificationDate}, el mismo día de la actuación, según la regla del proyecto. ` : "";
-  const base: ProcedureDeadline = { key: a.statusId, label: status.deadlineLabel ?? status.label, attention: "none", explanation: assumption + procedureContext(a), trigger: triggers[a.statusId] ?? "", origin: "unavailable", kind: "legal", fatal: Boolean(status.deadlineDays), ...(assumedNotificationDate ? { notificationDateAssumed: true } : {}) };
+  const assumptionDate = administrativePayment ? paymentDate : assumedNotificationDate;
+  const assumption = assumptionDate ? `Notificación asumida el ${assumptionDate}, el mismo día de la actuación, según la regla del proyecto. ` : "";
+  const base: ProcedureDeadline = { key: a.statusId, label: status.deadlineLabel ?? status.label, attention: "none", explanation: assumption + procedureContext(a), trigger: administrativePayment ? "Aceptación administrativa a registro · notificación asumida el mismo día" : triggers[a.statusId] ?? "", origin: "unavailable", kind: "legal", fatal: Boolean(status.deadlineDays), ...(assumptionDate ? { notificationDateAssumed: true } : {}), ...(payment ? { paymentBasis: administrativePayment ? "administrative-acceptance" : "executoria" } : {}) };
   if (status.terminal) return { ...base, attention: "terminal" };
   if (!status.deadlineDays) return base;
   const completed = (value?: string, trigger?: string) => {
@@ -104,9 +114,8 @@ function primaryDeadline(a: RegistrationApplication, today: string): ProcedureDe
   };
   if (a.statusId === "accepted-publication" && completed(p?.publicationRequestedAt, notificationDate ?? undefined)) return { ...base, label: "Esperando publicación efectiva" };
   if (["form-observation", "substantive-objection", "opposition-answer"].includes(a.statusId) && completed(p?.responseFiledAt, notificationDate ?? undefined)) return { ...base, label: "Respuesta presentada · pendiente de pronunciamiento" };
-  if (["accepted-payment", "partial-payment"].includes(a.statusId) && completed(p?.paymentAccreditedAt, p?.finalAt)) return { ...base, label: "Pago acreditado · esperando registro" };
-  const payment = ["accepted-payment", "partial-payment"].includes(a.statusId);
-  const sourceDate = (a.statusId === "opposition-window" ? parseWorkDate(a.publishedAt) : payment ? parseWorkDate(p?.finalAt) : notificationDate) ?? (!a.provider && !payment && a.statusId !== "opposition-window" ? parseWorkDate(a.deadlineSource) : null);
+  if (payment && completed(p?.paymentAccreditedAt, paymentDate ?? undefined)) return { ...base, label: "Pago acreditado · esperando registro" };
+  const sourceDate = (a.statusId === "opposition-window" ? parseWorkDate(a.publishedAt) : payment ? paymentDate : notificationDate) ?? (!a.provider && !payment && a.statusId !== "opposition-window" ? parseWorkDate(a.deadlineSource) : null);
   let days = status.deadlineDays;
   if (a.statusId === "evidence-period" && p?.evidenceExtensionDays !== undefined) {
     if (!Number.isInteger(p.evidenceExtensionDays) || p.evidenceExtensionDays < 0 || p.evidenceExtensionDays > 30) return { ...base, attention: "pending", explanation: "La prórroga probatoria informada no es válida. Revisar la resolución que la concede." };
@@ -119,7 +128,7 @@ function primaryDeadline(a: RegistrationApplication, today: string): ProcedureDe
   const official = parseWorkDate(a.officialDeadline);
   if (a.officialDeadline && (!official || (sourceDate && official < sourceDate) || (parseWorkDate(a.filedAt) && official < a.filedAt.slice(0, 10)))) return { ...pending, explanation: "El vencimiento informado es inválido o anterior a la solicitud o al hecho que lo activa." };
   const dueDate = official ?? (sourceDate ? addProcedureDays(sourceDate, days) : undefined);
-  if (!dueDate) return { ...pending, explanation: sourceDate ? assumption + "El cómputo requiere un calendario fuera del período cubierto (2023–2027). No se estima una fecha." : `${base.trigger} no informada. ${payment && p?.sourceActDate ? "Consta la fecha de la actuación, pero falta su ejecutoria. " : ""}El vencimiento de esta gestión no está determinado.` };
+  if (!dueDate) return { ...pending, explanation: sourceDate ? assumption + "El cómputo requiere un calendario fuera del período cubierto (2023–2027). No se estima una fecha." : `${base.trigger}: fecha no informada o inválida. ${payment && !administrativePayment && p?.sourceActDate ? "Consta la fecha de la actuación, pero falta su ejecutoria. " : ""}El vencimiento de esta gestión no está determinado.` };
   const remaining = remainingDays(today, dueDate);
   if (a.statusId === "opposition-window" && dueDate < today) return { ...base, label: "Ventana de oposición finalizada", days, sourceDate: sourceDate ?? undefined, dueDate, deadline: new Date(`${dueDate}T12:00:00`), remaining, attention: "none", fatal: false, kind: "milestone", origin: a.provider ? official ? "source" : "calculated" : "simulated", explanation: hasContestedProceeding(a) ? "El período de oposición terminó y constan actuaciones contenciosas en el historial. Revisar su tramitación y las siguientes resoluciones de INAPI." : "El período de oposición terminó. No constan oposiciones en el historial disponible; su completitud no está acreditada. Se esperan las siguientes actuaciones de INAPI. No implica ausencia de oposición ni registro concedido." };
   // Date ordering is authoritative: a past weekend must not become “Vence hoy”.
@@ -201,6 +210,10 @@ export function registrationProgress(a: RegistrationApplication, today = chileTo
     const window = primaryDeadline(a, today);
     if (window.dueDate && window.dueDate < today) return "Ventana de oposición finalizada · pendiente de actuaciones de INAPI";
   }
+  if (a.statusId === "finality-pending" && administrativeAcceptanceDate(a) !== undefined) {
+    const payment = registrationDeadlines(a, today).find(item => item.key === "accepted-payment");
+    return payment?.attention === "none" ? payment.label : "Aceptación administrativa a registro · pagar derechos finales";
+  }
   if (["finality-pending", "partial-appeal"].includes(a.statusId) && parseWorkDate(a.procedure?.finalAt) && a.procedure!.finalAt! <= today) return "Ejecutoria acreditada · revisar pago de derechos finales";
   return significantRegistrationEvent(a).status;
 }
@@ -209,7 +222,9 @@ export function registrationDeadlines(a: RegistrationApplication, today = chileT
   // Confirmed finality enables payment counting but never rewrites the last
   // official source status. A pending appeal alone cannot establish finality.
   const confirmedPayment = ["finality-pending", "partial-appeal"].includes(a.statusId) && parseWorkDate(a.procedure?.finalAt) && a.procedure!.finalAt! <= today;
-  const primary = confirmedPayment ? { ...a, statusId: a.statusId === "partial-appeal" ? "partial-payment" as const : "accepted-payment" as const, officialDeadline: undefined } : a;
+  const acceptance = administrativeAcceptanceDate(a);
+  const administrativePayment = a.statusId === "finality-pending" && acceptance !== undefined;
+  const primary = administrativePayment ? { ...a, statusId: "accepted-payment" as const } : confirmedPayment ? { ...a, statusId: a.statusId === "partial-appeal" ? "partial-payment" as const : "accepted-payment" as const, officialDeadline: undefined } : a;
   const main = primaryDeadline(primary, today);
   const extra = supplementaryDeadlines(a, today);
   if (STATUS_BY_ID[a.statusId].terminal) return [main, ...extra];
@@ -220,7 +235,11 @@ export function registrationDeadlines(a: RegistrationApplication, today = chileT
     return [primaryDeadline({ ...a, statusId: item.statusId, officialDeadline: item.officialDeadline, deadlineSource: undefined, procedure: { notifiedAt: item.notifiedAt, sourceActDate: item.sourceActDate, sourceActId: item.sourceActId, sourceActDescription: item.sourceActDescription, notificationProof: item.notificationProof, evidenceExtensionDays: item.evidenceExtensionDays } }, today)];
   });
   const related: ProcedureDeadline[] = (a.procedure?.relatedProceedings ?? []).map(item => ({ key: item.object === "nullity" ? "nullity-review" : "incident-review", label: item.object === "nullity" ? "Revisar acción de nulidad" : "Revisar incidente", attention: "pending", sourceDate: item.actDate, trigger: "Resolución, rol del cliente y notificación del procedimiento específico", explanation: `${item.description}. Este procedimiento se conserva separado: falta determinar su obligación, destinatario y antecedente jurídico. No se aplica el plazo de contestación de una oposición.`, origin: "unavailable", kind: "legal", fatal: false }));
-  return [main, ...parallel, ...related, ...extra];
+  // Partial administrative acceptance keeps the existing appeal opportunity;
+  // its payment date must not inherit an appeal-specific official deadline.
+  const partialPayment = a.statusId === "partial-appeal" && acceptance !== undefined && !confirmedPayment && !seen.has("partial-payment")
+    ? [primaryDeadline({ ...a, statusId: "partial-payment", officialDeadline: undefined }, today)] : [];
+  return [main, ...parallel, ...partialPayment, ...related, ...extra];
 }
 
 export function deadlineInfo(a: RegistrationApplication, today = chileToday()) {

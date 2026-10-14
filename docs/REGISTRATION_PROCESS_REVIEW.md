@@ -39,7 +39,7 @@ Los días de esta tabla corresponden a las reglas de la LPI/RLPI: lunes a vierne
 - **Las respuestas no conceden la marca.** Un cumplimiento o contestación presentado permite identificar la gestión realizada y esperar el pronunciamiento correspondiente.
 - **Oposición y fondo pueden coexistir.** El seguimiento conserva gestiones concurrentes en lugar de forzar una única rama excluyente.
 - **La aceptación parcial conserva su carácter parcial.** La limitación puede afectar productos o servicios dentro de una clase. No equivale a aceptación total.
-- **Aceptación, ejecutoria, pago y registro permanecen separados.** El plazo calculado de derechos finales usa la ejecutoria; el pago acreditado no se presenta como registro concedido. Una sentencia del TDPI tampoco prueba por sí sola la firmeza.
+- **Aceptación, ejecutoria, pago y registro permanecen separados.** Desde la decisión expresa del 14/10/2026, la aplicación calcula el pago administrativo desde la aceptación con notificación asumida ese día; las aceptaciones con oposición usan ejecutoria. No se crean constancias ficticias. [Regla vigente](PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md). El pago acreditado no se presenta como registro concedido. Una sentencia del TDPI tampoco prueba por sí sola la firmeza.
 - **Las actuaciones posteriores importan.** Un registro previo no oculta una apelación o actuación posterior identificada; una fila administrativa incidental no reemplaza el acto que sustenta la etapa ni aporta su plazo.
 - **Las fechas incompatibles no generan cuentas regresivas.** Se comprueban fechas inválidas, hechos activadores futuros o anteriores a la solicitud y vencimientos anteriores a su hecho base. Un vencimiento pasado en fin de semana no se presenta como “Vence hoy”.
 
