@@ -3,7 +3,7 @@
 - Actualizado: 2026-10-14 18:15, America/Santiago
 - Estado: integrado en Dev; cierre de texto/documentación en esta rama
 - Rama y base: `codex/inapi-recuperacion-y-seguimiento`; base actualizada `2f1538ee674f29f4b6d3a0750a71ba312fec6d2d`, incluidos los PR #88/#89 publicados por el usuario durante esta entrega; incorporados sin conflictos.
-- PR y commit de entrega: [PR #90](https://github.com/joseibietasepulveda/Buho-Marc/pull/90), entrega `c5ae7135e46c2340b7d8f76df37154c05e0d300e`, merge Dev `22d3ab93da203bdf4db628749d5c8ebda0a1bc28`. Railway `25aff45f-7f7c-4928-9783-de2a507b8b4e`: SUCCESS para ese SHA. El cierre agrega únicamente el texto de Mi día y esta documentación.
+- PR y commit de entrega: [PR #90](https://github.com/joseibietasepulveda/Buho-Marc/pull/90), entrega `c5ae7135e46c2340b7d8f76df37154c05e0d300e`, merge Dev `22d3ab93da203bdf4db628749d5c8ebda0a1bc28`. Railway `25aff45f-7f7c-4928-9783-de2a507b8b4e`: SUCCESS para ese SHA. [PR #91 de cierre](https://github.com/joseibietasepulveda/Buho-Marc/pull/91) agrega únicamente el texto de Mi día y esta documentación; su descripción registra la publicación posterior del cierre.
 
 ## Objetivo y alcance
 
