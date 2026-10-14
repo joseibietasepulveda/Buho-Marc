@@ -3,7 +3,7 @@
 - Actualizado: 2026-10-14, America/Santiago
 - Estado: listo para revisión
 - Rama y base: `codex/pago-aceptacion-administrativa`; `origin/dev` `56d7c7e57fbaf688feaffc9146fce1ea3fd3eb4d`.
-- PR y commit de entrega: Dev [#84](https://github.com/joseibietasepulveda/Buho-Marc/pull/84), commit `0c48e662073f2d954d2d3c976ed1fe9ab992efa7`, integración `79cd21afbfb1fe43cb243521e633cf845f72e261`. Producción: promoción exclusiva de ese commit sobre `main` `0c43e2b51e9ef47641290f8a8e941cd498a7f078`; publicación pendiente de verificar Dev.
+- PR y commit de entrega: Dev [#84](https://github.com/joseibietasepulveda/Buho-Marc/pull/84), commit `0c48e662073f2d954d2d3c976ed1fe9ab992efa7`, integración `79cd21afbfb1fe43cb243521e633cf845f72e261`. Producción: promoción exclusiva de ese commit sobre `main` `0c43e2b51e9ef47641290f8a8e941cd498a7f078`; Dev verificado; promoción a producción preparada.
 
 ## Objetivo y alcance
 
@@ -38,7 +38,9 @@ QA visual local completado con tres expedientes ficticios en puertos 3114/55714:
 
 Compatibilidad con `main`: cherry-pick sin conflictos de este único cambio, 76/76 pruebas repetidas, build Next/TypeScript y ESLint dirigidos aprobados en la base estable. Sin promover el resto de Dev.
 
-Pendiente al corte: publicación/comprobación en Dev y producción.
+Dev publicado: Railway `b9c8c934-a880-4a28-8c19-ec1a510f9063`, SUCCESS y SHA exacto `79cd21afbfb1fe43cb243521e633cf845f72e261`. Salud 200/base conectada, solicitudes 401 sin sesión. Lectura completa posterior: 128/128 proyecciones coinciden con la regla, nueve fechas administrativas nuevas, 261/261 fuentes y todos los datos de solicitudes/fuentes sin cambios respecto de la lectura anterior. La comparación normaliza JSON y TZ=UTC del servidor.
+
+Pendiente al corte: publicación/comprobación en producción por PR [#85](https://github.com/joseibietasepulveda/Buho-Marc/pull/85).
 
 ## Pendientes y siguiente paso
 
