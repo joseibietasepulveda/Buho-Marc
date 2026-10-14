@@ -1,9 +1,9 @@
 # Traspaso: evaluaciones de cruces por abogado
 
-- Actualizado: 14/10/2026, America/Santiago.
-- Estado: listo para revisión local; publicación Dev pendiente.
+- Actualizado: 14/10/2026, 17:27, America/Santiago.
+- Estado: integrado y verificado en Dev.
 - Rama y base: `codex/admin-evaluaciones-abogados`; Dev `6a7e5776941f85de5ea1a7891ef9c2321726b25f`.
-- PR y commit de entrega: pendientes.
+- PR: [#88](https://github.com/joseibietasepulveda/Buho-Marc/pull/88); entrega `43655fea3cdd8d3968944ef28d3d4596deb47e1a`; integración Dev `035d6b8cbef5bf5324a847c52556467499d393c5`.
 
 ## Objetivo y alcance
 
@@ -33,6 +33,14 @@ TypeScript (`tsc --noEmit`) y ESLint dirigido a los archivos TypeScript/JS modif
 
 Las primeras corridas del harness visual fallaron por esperar solo el estudio interno en un alcance global y por selectores de etiqueta; se corrigieron las expectativas/selectores, no se ocultaron fallos de aplicación. Compilación final `npm run build -- --webpack` aprobada (46 páginas; API y ruta nuevas incluidas). Solo para esta compilación local se desactivaron la caché webpack y la generación automática de instrucciones Next mediante configuración temporal, restaurada antes del commit. No se efectuaron consultas OpenRouter, INAPI ni DeQuiénEs, ni se enviaron correos.
 
+## Publicación y verificación en Dev
+
+- Railway `1d3307d0-c5f3-478a-9b5f-134414e02303`, **SUCCESS**, ambiente Dev `9e2891f0-7281-4872-a992-2c48866a782d`, rama `dev` y SHA exacto `035d6b8` comprobados. Conserva por ascendencia Dev `6a7e577` (dashboard y pago administrativo); no promoción a producción.
+- Lectura nativa sobre la base Dev con validación del ambiente/SHA: período 15/09–14/10, **42 evaluaciones, 33 cruces únicos, 43 registros, 6 👍, 4 👎, 32 formales, 2 cambios de opinión, 1 edición solo de comentario**. Historial completo: **55 registros**, 40 en primera página y 2 páginas. Nueve métricas nuevas y campos por usuario presentes. Son cifras al corte, no datos de prueba insertados.
+- Preparación/lectura del resumen y detalle completadas en 1133 ms en proceso de verificación nativo; no representa latencia de red de un usuario. Ledgers antes/después iguales (60 llamadas vigilancia, 17 conclusiones factibilidad, 136 registros de telemetría API); `fetch` bloqueado en el proceso de comprobación. No nuevas llamadas a fuentes/modelos, correos ni votos.
+- Salud HTTP 200/base conectada, login administrativo 200; vista independiente redirige a login sin sesión y API devuelve 401. Permisos autenticados de administrador interno/miembro/administrador externo y recorrido completo verificados localmente con fixtures. No se restableció ni reprovisionó ninguna contraseña en Dev.
+- README y documentación funcional actualizados. El cierre posterior solo registra esta evidencia. Acceso SSH temporal de esta comprobación retirado al finalizar.
+
 ## Pendientes y siguiente paso
 
-Comprobar avances de Dev y publicar por PR adjunto. No reiniciar ni reemplazar contraseñas de usuarios. Registrar evidencia real de despliegue y compatibilidad.
+Abrir `/app/admin/evaluaciones` con la cuenta administrativa existente. La vista muestra la base del ambiente consultado; no importa la base HTML de 19.630 cruces ni recupera estados históricos que no fueron guardados. La descarga de detalle es por página. Conservar esta distinción si se añade exportación completa o se promueve a producción; dicha promoción requiere autorización explícita.
