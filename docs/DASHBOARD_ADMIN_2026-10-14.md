@@ -10,16 +10,17 @@ Actualizado el 14 de octubre de 2026. Publicado exclusivamente en Dev mediante P
 - El ingreso habitual de los estudios conserva `/ingresar`. La decisión comercial de login futuro `/app/login` no se implementa en esta entrega. Producción conserva el dominio `rcirculo.com`; no se modifican DNS ni correo Google.
 - Se filtra por fechas, estudio y usuario y se puede comparar con el período inmediatamente anterior de igual duración. Días y semanas usan `America/Santiago`; máximo 366 días por consulta. Se exporta la pestaña activa a CSV, con protección de fórmulas.
 
-## Las siete pestañas
+## Las ocho pestañas
 
 | Pestaña | Indicadores y herramientas |
 | --- | --- |
 | **Costos** (entrada predeterminada) | Confirmados, estimados, reservas, suscripciones prorrateadas, presupuesto y proyección mensual; evolución diaria; desglose por proveedor, operación, modelo, estudio y usuario; tokens; costo por llamado, alerta y alerta relevante confirmada. Permite registrar tarifas por llamado, cargos fijos y presupuestos con vigencia. |
-| **Usuarios y actividad** | Usuarios del alcance, activos a 7/30 días, última actividad, sesiones de navegación, interacción diaria y gráfica semanal por usuario; carga de tareas, revisiones y casos. Señala cobertura histórica incompleta. |
+| **Usuarios y actividad** | Usuarios del alcance, activos a 7/30 días, última actividad, sesiones de navegación, interacción diaria y gráfica semanal por usuario; carga de tareas, cruces únicos/evaluaciones y casos. Señala cobertura histórica incompleta. |
 | **Cartera y alertas** | Marcas incorporadas por usuario, vigilancia activa, responsables explícitos, cruces seleccionados por GLM, relevantes/descartados por abogados, pendientes, conversión a casos, tiempos de revisión y falsos negativos observados. Se puede asignar responsable de marca a un miembro del mismo estudio. |
 | **Tareas y plazos** | Creadas, pendientes/asignadas/sin responsable, completadas, vencidas y dentro de plazo; desglose por autor, responsable y ejecutor. Agenda vigente de próximos 14 días y plazos manuales, separados para evitar sumar duplicados. |
 | **Correos** | Resúmenes preparados, aceptación Resend, entrega, rebote, clics del proveedor, accesos identificados al resumen, gestiones posteriores y envíos fallidos/inciertos; serie diaria y detalle por resumen. Borradores marcados manualmente como enviados son otra señal. |
 | **Llamados a APIs** | Solicitudes HTTP físicas, resultados, errores y resultados desconocidos, media/P95, tokens, costo y detalle reciente por DeQuiénEs, INAPI, OpenRouter, Resend e imágenes. |
+| **Evaluaciones** | Cruces únicos y evaluaciones por abogado, decisiones formales y 👍/👎, cambios de opinión, comentarios anteriores/actuales e historial paginado. Vista independiente `/app/admin/evaluaciones`. [Contrato completo](EVALUACIONES_ABOGADOS_2026-10-14.md). |
 | **Comportamiento** | Uso por módulo, acciones frecuentes y etapas de selección/revisión/gestión. Son agregaciones, no un embudo de conversión individual ni una prueba de causalidad. El [plan PostHog](PLAN_POSTHOG_2026-10-14.md) profundiza recorridos y retención. |
 
 ## Qué representa cada cifra
