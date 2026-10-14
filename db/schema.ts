@@ -1,5 +1,5 @@
 import {
-  bigint, boolean, check, date, index, integer, jsonb, pgTable, primaryKey, real, text,
+  bigint, boolean, check, date, foreignKey, index, integer, jsonb, pgTable, primaryKey, real, text,
   timestamp, uniqueIndex, uuid, varchar, numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -293,3 +293,23 @@ export const releaseAcknowledgements = pgTable("release_acknowledgements", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, table => [primaryKey({ columns: [table.organizationId, table.userId, table.version] }),
   check("release_acknowledgements_sequence", sql`NOT ${table.futureAccepted} OR ${table.newsAccepted}`)]);
+
+export const watchDigestRuns = pgTable("watch_digest_runs", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  idempotencyKey: text("idempotency_key").notNull(), trigger: text("trigger").notNull(), requestedBy: uuid("requested_by").references(() => users.id), status: text("status").default("queued").notNull(),
+  candidateIds: jsonb("candidate_ids").default([]).notNull(), cursor: integer("cursor").default(0).notNull(), evaluated: integer("evaluated").default(0).notNull(), available: integer("available").default(0).notNull(), filteredLowScore: integer("filtered_low_score").default(0).notNull(), failures: integer("failures").default(0).notNull(), limited: boolean("limited").default(false).notNull(),
+  payload: jsonb("payload"), email: jsonb("email"), evaluationInput: jsonb("evaluation_input"), leaseToken: uuid("lease_token"), leaseUntil: timestamp("lease_until", { withTimezone: true }), availableAt: timestamp("available_at", { withTimezone: true }).defaultNow().notNull(),
+  sendAttempts: integer("send_attempts").default(0).notNull(), firstSendAt: timestamp("first_send_at", { withTimezone: true }), resendId: text("resend_id"), deliveryUncertain: boolean("delivery_uncertain").default(false).notNull(), error: text("error"), sentAt: timestamp("sent_at", { withTimezone: true }), ...timestamps,
+}, t => [uniqueIndex("watch_digest_runs_organization_id_idempotency_key_key").on(t.organizationId, t.idempotencyKey), uniqueIndex("watch_digest_runs_organization_id_id_key").on(t.organizationId, t.id),
+  uniqueIndex("watch_digest_one_active_org").on(t.organizationId).where(sql`${t.status} IN ('queued','running','retry','sending')`), index("watch_digest_pending_idx").on(t.status, t.availableAt, t.createdAt)]);
+export const watchGlmDecisions = pgTable("watch_glm_decisions", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }), matchId: uuid("match_id").notNull().references(() => matches.id, { onDelete: "cascade" }), runId: uuid("run_id").notNull(),
+  model: text("model").notNull(), promptVersion: integer("prompt_version").notNull(), decision: jsonb("decision").notNull(), crossSnapshot: jsonb("cross_snapshot").notNull(), notifiedAt: timestamp("notified_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [foreignKey({columns:[t.organizationId,t.runId],foreignColumns:[watchDigestRuns.organizationId,watchDigestRuns.id]}).onDelete("cascade"), uniqueIndex("watch_glm_decisions_organization_id_match_id_key").on(t.organizationId, t.matchId), index("watch_glm_unsent_idx").on(t.organizationId, t.runId).where(sql`${t.notifiedAt} IS NULL`)]);
+export const watchGlmCalls = pgTable("watch_glm_calls", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }), runId: uuid("run_id").notNull(), requestHash: text("request_hash").notNull(),
+  reservedUsd: numeric("reserved_usd", { precision: 14, scale: 8 }).notNull(), costUsd: numeric("cost_usd", { precision: 14, scale: 8 }), result: jsonb("result"), startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(), completedAt: timestamp("completed_at", { withTimezone: true }),
+}, t => [foreignKey({columns:[t.organizationId,t.runId],foreignColumns:[watchDigestRuns.organizationId,watchDigestRuns.id]}).onDelete("cascade"), uniqueIndex("watch_glm_calls_run_id_request_hash_key").on(t.runId, t.requestHash), index("watch_glm_calls_month_idx").on(t.startedAt)]);
+export const watchDigestImages = pgTable("watch_digest_images", {
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }), key: text("key").notNull(), content: text("content").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [primaryKey({ columns: [t.organizationId, t.key] })]);

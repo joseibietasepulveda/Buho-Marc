@@ -266,3 +266,8 @@ La API pública aporta estado e historial, pero no garantiza constancia de notif
 - [Traspaso: archivos, migración, pruebas y estado de integración](docs/handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
 
 Migración: `0014_inapi_recovery.sql`, antes de activar el trabajador. `scripts/reproject-inapi-records.ts` revisa/aplica las nuevas reglas a los datos guardados sin consultas externas; `--apply --queue` prepara recuperaciones acotadas. Las vistas también reproyectan al leer, sin extraer de nuevo. `INAPI_DIRECT_RECOVERY_ENABLED=false` desactiva el trabajador; `INAPI_DIRECT_RECOVERY_DAILY_LIMIT` controla el presupuesto diario y admite cero. Nunca se configura un intervalo inferior a tres segundos.
+
+
+### Correo semanal de vigilancia con GLM y Resend · 14 de octubre de 2026
+
+Resumen de cruces nuevos seleccionados por GLM directo, tareas y plazos de los próximos 14 días, con tablas pastel y ocho filas por sección. Lunes 08:30 Chile; botón de Admin de hasta 150 cruces. Configuración aprobada: máximo cinco nuevos por marca y prefiltro DeQuiénEs ≥25%. Decisiones y envíos persistentes; piloto fijo `hola@rcirculo.com`, claves exclusivas y envío desactivado por defecto. [Contrato, análisis del corte y pasos para conectar Resend](docs/CORREO_SEMANAL_GLM_RESEND_2026-10-13.md), [estado y verificación](docs/handoffs/2026-10-13-correo-semanal-glm-resend.md). Piloto autorizado: 141 cruces seleccionados, 131 decisiones válidas, 16 para revisar y diez pendientes; costo US$0,02870619. Verificación local aprobada; publicación en Dev en preparación. No se enviaron correos reales: falta crear/verificar Resend y añadir las claves exclusivas.

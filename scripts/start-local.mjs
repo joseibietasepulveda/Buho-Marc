@@ -14,7 +14,7 @@ const dbPort = Number(process.env.BUHO_LOCAL_DB_PORT || 55433);
 if (!Number.isInteger(dbPort) || dbPort < 1024 || dbPort > 65535) throw new Error("BUHO_LOCAL_DB_PORT no es válido");
 const appPort = Number(process.env.BUHO_LOCAL_PORT || 3000);
 if (!Number.isInteger(appPort) || appPort < 1024 || appPort > 65535) throw new Error("BUHO_LOCAL_PORT no es válido");
-const env = { ...process.env, DATABASE_URL: `postgresql://postgres:buho-local-only@127.0.0.1:${dbPort}/buho_local`, SOURCE_PROVIDER: "simulated", MONITORING_SCHEDULER_ENABLED: "false", INAPI_IMPORT_COHORT: "false", PORT: String(appPort) };
+const env = { ...process.env, DATABASE_URL: `postgresql://postgres:buho-local-only@127.0.0.1:${dbPort}/buho_local`, SOURCE_PROVIDER: "simulated", MONITORING_SCHEDULER_ENABLED: "false", WATCH_DIGEST_ENABLED: "false", RESEND_DELIVERY_ENABLED: "false", OPENROUTER_WATCH_API_KEY: "", RESEND_API_KEY: "", INAPI_IMPORT_COHORT: "false", PORT: String(appPort) };
 delete env.INAPI_API_KEY;
 env.SOURCE_API_TOKEN = randomBytes(32).toString("hex");
 env.APP_PUBLIC_ORIGIN = `http://127.0.0.1:${appPort}`;
