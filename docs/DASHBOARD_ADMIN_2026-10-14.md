@@ -1,6 +1,6 @@
 # Dashboard de administración: uso, costos y comportamiento
 
-Actualizado el 14 de octubre de 2026. Implementación en `codex/admin-dashboard-analytics`; publicación Dev y evidencia en el [traspaso](handoffs/2026-10-14-dashboard-admin-uso-costos.md). Producción no se modifica con esta entrega.
+Actualizado el 14 de octubre de 2026. Publicado exclusivamente en Dev mediante PR #82; publicación y evidencia en el [traspaso](handoffs/2026-10-14-dashboard-admin-uso-costos.md). Producción no se modifica con esta entrega.
 
 ## Acceso y alcance
 
@@ -26,7 +26,7 @@ Actualizado el 14 de octubre de 2026. Implementación en `codex/admin-dashboard-
 
 Una **interacción** es un clic de botón/enlace, cambio de selector o envío de formulario en la interfaz autenticada. Una visita a módulo y un ingreso son eventos distintos; no se cuentan como clics en la gráfica semanal. Polling, cargas automáticas, renderizados, búsquedas del supervisor y decisiones GLM no son interacciones humanas.
 
-Una **llamada** es una petición HTTP al proveedor; cada intento cuenta. Un cruce es una comparación entre dos marcas y puede compartir una llamada con otros cruces. Un resultado de caché no es otra llamada. La duración HTTP llega hasta recibir las cabeceras, no incluye consumo del cuerpo ni todo el proceso de negocio. Un fallo de transporte sin respuesta tiene resultado desconocido; los errores HTTP tienen estado observado.
+Una **llamada** es una petición HTTP al proveedor; cada intento cuenta. Un cruce es una comparación entre dos marcas y puede compartir una llamada con otros cruces. Un resultado de caché no es otra llamada. Los ledgers históricos también conservan intentos/reservas e interrupciones de red; esos registros no prueban recepción por el proveedor ni un cargo y su cobertura se señala como parcial. La duración HTTP llega hasta recibir las cabeceras, no incluye consumo del cuerpo ni todo el proceso de negocio. Un fallo de transporte sin respuesta tiene resultado desconocido; los errores HTTP tienen estado observado.
 
 Los **costos confirmados** proceden de cargos explícitos en `watch_glm_calls`, `feasibility_conclusions` o telemetría con cargo acreditado. No son una factura conciliada. La telemetría enlazada mediante `watch:<uuid>` o `feasibility:<uuid>` aporta tiempos sin duplicar el cargo del ledger. Las reservas pendientes se muestran aparte. No se llama a OpenRouter para medir ni completar valores.
 
