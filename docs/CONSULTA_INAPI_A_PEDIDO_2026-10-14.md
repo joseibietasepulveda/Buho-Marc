@@ -18,7 +18,7 @@ Si hay cambios, se combinan los antecedentes oficiales conservando pruebas, fech
 
 ## Presentación
 
-`registrationFollowUp` explica el antecedente que falta (ejecutoria, resultado del fallo, destinatario/obligación de una nulidad o incidente, fecha activadora o calendario) y distingue las esperas de examen, traslado, publicación, registro o recurso. Una fecha de revisión no se incorpora como vencimiento jurídico. Tarjetas, listas y detalle muestran esa explicación.
+`registrationFollowUp` explica el antecedente que falta (ejecutoria, resultado del fallo, destinatario/obligación de una nulidad o incidente, fecha activadora o calendario) y distingue las esperas de examen, traslado, publicación, registro o recurso. Una fecha de revisión no se incorpora como vencimiento jurídico. Tarjetas, listas y detalle muestran esa explicación. Mi día agrupa estas gestiones como «antecedentes pendientes» y permite abrir su explicación.
 
 La próxima revisión de cartera usa la programación existente de `nextSourceReview` y la política de cada organización, igual que `/api/source/status`. En modo manual se informa «Revisión a pedido · no hay una consulta automática programada». La disponibilidad del botón es distinta de una consulta programada: indica cuándo el usuario puede solicitarla, sin prometer que se realizará automáticamente.
 
@@ -35,3 +35,5 @@ El historial puede confirmar el desenlace de un recurso: se reconoce rechazo fin
 Pruebas: `tests/inapi-context.test.mjs`, `tests/registration-follow-up.test.mjs`, `tests/inapi-official-check-integration.test.mjs` y suites existentes de procedimiento, recuperación, evidencia, calendario, renovación y aceptación administrativa. La verificación de UI usa exclusivamente PostgreSQL y fuentes ficticias locales. La revisión de carteras reales distingue lecturas guardadas, consultas oficiales puntuales y cambios de datos realizados solamente en Dev.
 
 Estado, base Dev actualizada, resultados y limitaciones: [traspaso](handoffs/2026-10-14-inapi-recuperacion-y-seguimiento.md).
+
+Contraste publicado14/10: diez consultas oficiales completadas (una con novedades/nueve sin novedades); los siete rechazos recurridos coinciden y sus actos de fallo convalidante/firmeza tienen la misma fecha. Dev mantiene dos gestiones sin antecedente suficiente para calcular una obligación jurídica: se muestra qué falta y disponibilidad de consulta, sin fechas legales inventadas. Los datos de producción permanecen iguales. Véanse evidencia, conservación y límites en el traspaso.

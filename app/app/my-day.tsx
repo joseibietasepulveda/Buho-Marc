@@ -23,7 +23,7 @@ export function MyDay({ cases, matches, notices, onCase, onMatch, onNotice, onRe
   // Unassigned reviews remain visible only in the team view; no ownership is inferred.
   if (!owner) {
     const deadlines = applications.flatMap(item => registrationDeadlines(item)).filter(item => item.kind !== "institutional" && item.kind !== "milestone");
-    for (const [attention, label, rank] of [["overdue", "gestiones con plazo vencido", 0], ["soon", "gestiones próximas a vencer", 1], ["pending", "gestiones con vencimiento no determinado", 2]] as const) {
+    for (const [attention, label, rank] of [["overdue", "gestiones con plazo vencido", 0], ["soon", "gestiones próximas a vencer", 1], ["pending", "gestiones con antecedentes pendientes", 2]] as const) {
       const due = deadlines.filter(item => item.attention === attention);
       if (due.length) items.push({ id: `registrations-${attention}`, title: `${due.length} ${label}`, context: `Registros · ${[...new Set(due.map(item => item.label))].join(" · ")}`, label: attention === "pending" ? "Revisar antecedente" : attention === "overdue" ? "Plazo vencido" : "Próximo a vencer", tone: attention === "pending" ? "unknown" : attention, rank, open: onRegistrations });
     }
