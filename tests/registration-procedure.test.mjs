@@ -45,7 +45,7 @@ test('the pre-publication deadline is for requesting publication and ends when t
   }
 });
 
-test('final payment is calculated only from executoria, not acceptance or generic activity dates', () => {
+test('unclassified payment still requires executoria and generic activity dates cannot activate it', () => {
   for (const statusId of ['accepted-payment', 'partial-payment']) {
     for (const provider of [undefined, 'inapi']) {
       const unconfirmed = deadlineInfo(application({

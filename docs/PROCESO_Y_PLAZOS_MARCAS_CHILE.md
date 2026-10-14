@@ -159,6 +159,8 @@ Si hubo recursos, para determinar ejecutoria y cumplimiento hay que revisar su r
 
 El derecho total ordinario de una marca es 3 UTM por clase: 1 UTM inicial y 2 UTM finales. El pago final debe ser íntegro y acreditado/verificado en los sesenta días hábiles siguientes a la ejecutoria de la resolución que autoriza el registro. La comprobación electrónica del pago no impide que el abogado revise que quedó correctamente informado. La omisión puede conducir a abandono y archivo. [LPI, arts. 18 bis B, 18 bis E y 23 bis D][lpi]; [RLPI, art. 84][rlpi].
 
+**Convención de producto confirmada el 14/10/2026:** para aceptación administrativa, la aplicación calcula 60 días hábiles desde la aceptación, asumiendo notificación ese día; para aceptación con oposición usa la ejecutoria. No escribe una constancia ni modifica los antecedentes de la fuente. Esta distinción sustituye la implementación anterior que exigía ejecutoria para todo pago. [Regla vigente](PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md).
+
 No agregar tres días por la antigua carta certificada. La normativa y práctica electrónica actual distinguen este régimen del histórico. También hay que distinguir pago efectuado, pago informado y constatación de pago íntegro/oportuno. [Resolución final 2026, pp. 6, 12–13][final].
 
 ### 9.2 Concesión y documentos de cierre

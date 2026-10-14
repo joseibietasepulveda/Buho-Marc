@@ -1,5 +1,7 @@
 # Recuperación de antecedentes y reconocimiento de actuaciones
 
+**Pago final · decisión del 14/10/2026:** las aceptaciones administrativas identificadas usan 60 días hábiles desde la aceptación, con notificación asumida ese día, y ya no necesitan recuperar ejecutoria para ese cálculo. Las aceptaciones con oposición siguen requiriendo ejecutoria. No se escriben pruebas ficticias. [Regla vigente y alcance](PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md).
+
 **Regla de cálculo · 12/10/2026:** el proyecto asume notificación el mismo día de la actuación habilitante cuando falta una fecha informada. Se calcula sin crear una constancia y sin consultar INAPI si el historial guardado ya tiene el activador. Una fecha acreditada tiene prioridad; publicación y ejecutoria conservan sus reglas. Véase [regla de notificación del 12/10/2026](NOTIFICACION_MISMO_DIA_EVENTO_2026-10-12.md).
 
 Actualizado: 8 de octubre de 2026. Integración inicial en `dev` mediante [PR #6](https://github.com/joseibietasepulveda/Buho-Marc/pull/6) y publicada en Railway Dev. Migración, salud y configuración comprobadas. [Traspaso y verificaciones](handoffs/2026-10-07-recuperacion-inapi-y-actuaciones.md).
