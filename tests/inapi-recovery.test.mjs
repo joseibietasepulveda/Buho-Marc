@@ -107,7 +107,7 @@ test('future provider contract requires the right act, object, recipient, method
 
 test('provider-supplied finality and concurrent notification retain their individual target acts', () => {
   const fact = { version: 1, act_id: '1', kind: 'finality', date: '2026-07-25', object: 'application', recipient_role: 'applicant', method: 'official-document', reference: 'Ejecutoria ficticia', document_url: 'https://example.org/proof' };
-  const base = fixture([act('Resolución de aceptación a registro', '1', '2026-07-01', { legal_facts: [fact] })]);
+  const base = fixture([act('Oposición - Presentación de demanda', 'opposition', '2026-06-01'), act('Resolución de aceptación a registro', '1', '2026-07-01', { legal_facts: [fact] })]);
   const deadline = registrationDeadlines(application(base), '2026-10-07')[0];
   assert.equal(deadline.key, 'accepted-payment'); assert.equal(deadline.sourceDate, '2026-07-25');
   assert.deepEqual(recoveryNeeds(base, '2026-10-07'), []);
