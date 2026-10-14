@@ -3,7 +3,7 @@
 - Actualizado: 2026-10-14, America/Santiago
 - Estado: listo para revisión
 - Rama y base: `codex/pago-aceptacion-administrativa`; `origin/dev` `56d7c7e57fbaf688feaffc9146fce1ea3fd3eb4d`.
-- PR y commit de entrega: pendiente.
+- PR y commit de entrega: Dev [#84](https://github.com/joseibietasepulveda/Buho-Marc/pull/84), commit `0c48e662073f2d954d2d3c976ed1fe9ab992efa7`, integración `79cd21afbfb1fe43cb243521e633cf845f72e261`. Producción: promoción exclusiva de ese commit sobre `main` `0c43e2b51e9ef47641290f8a8e941cd498a7f078`; publicación pendiente de verificar Dev.
 
 ## Objetivo y alcance
 
@@ -35,6 +35,8 @@ Los cálculos son compartidos por Solicitudes, resumen, agendas y recuperación.
 - El cálculo es derivado y se consume al leer/ver las solicitudes: no requiere persistir fechas ficticias ni una migración de cartera. La verificación posterior debe confirmar el código publicado y recalcular todas las cuentas con la proyección de la API.
 
 QA visual local completado con tres expedientes ficticios en puertos 3114/55714: aceptación administrativa del 2 de octubre vence 30 de diciembre, oposición sin ejecutoria no tiene fecha, oposición con ejecutoria del 8 de octubre vence 6 de enero. Tarjeta y detalle muestran el supuesto de notificación y su origen. Primer arranque sin semilla falló al provisionar el administrador; se preparó la semilla y cuenta exclusivamente local y se completó la prueba. Ninguna credencial o dato real se usó en esta prueba.
+
+Compatibilidad con `main`: cherry-pick sin conflictos de este único cambio, 76/76 pruebas repetidas, build Next/TypeScript y ESLint dirigidos aprobados en la base estable. Sin promover el resto de Dev.
 
 Pendiente al corte: publicación/comprobación en Dev y producción.
 
