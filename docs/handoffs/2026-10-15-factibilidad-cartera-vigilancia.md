@@ -1,9 +1,9 @@
 # Traspaso: factibilidad, cartera y vigilancia
 
 - Actualizado: 2026-10-15, America/Santiago.
-- Estado: listo para revisión local; sin integración ni despliegue.
+- Estado: publicación en Dev autorizada por el usuario el 15/10/2026; integración y despliegue en preparación.
 - Rama y base: `codex/factibilidad-cartera-vigilancia`; `dev` `742b379e0828372f745c54abdf7bf3cad067ab33`.
-- PR: pendiente; no se publicó rama. Commit de entrega: consultar `git log -1 --oneline` en esta rama; la entrega lleva este documento.
+- PR: en preparación. Commit funcional: `a58b95b`. Base Dev comprobada nuevamente: `742b379e0828372f745c54abdf7bf3cad067ab33`; no avanzó desde la implementación.
 
 ## Objetivo y alcance
 
@@ -37,7 +37,7 @@ El checkout original de Desktop tenía archivos `dataless` de iCloud, incluido `
 
 Cambios compartidos en `page.tsx`, contratos de fuente/registro, clientes, estilos y supervisor. Aplicar migración 0019 antes del código y revisar colisiones de número/journal al integrar; conserva migraciones anteriores. Las decisiones GLM existentes reciben huella calculada del snapshot, no se borran. Verificar conjuntamente los contadores, Clientes, agenda/correos, reimportaciones y pagos si otras ramas cambian estos archivos. Consultar `origin/dev` de nuevo antes de preparar integración.
 
-No se ejecutaron OpenRouter, correos, búsquedas reales masivas, operaciones remotas de datos, push, merge ni despliegue. Las llamadas del modelo en pruebas fueron respuestas simuladas, incluida contabilidad/reintentos. Los secretos de fixtures son locales y no son credenciales reales.
+Durante la implementación local no se ejecutaron OpenRouter, correos, búsquedas reales masivas ni operaciones remotas de datos. Las llamadas del modelo en pruebas fueron respuestas simuladas, incluida contabilidad/reintentos. Los secretos de fixtures son locales y no son credenciales reales. El usuario autorizó después publicar en Dev; esa etapa se registra abajo y no autoriza producción.
 
 ## Verificación
 
@@ -62,8 +62,16 @@ La integración de vigilancia también pasó: migraciones, cola, idempotencia, d
 
 ## Pendientes y siguiente paso
 
-1. Revisar esta rama, actualizar contra Dev y resolver posibles cambios compartidos; luego preparar PR/validación en Railway Dev cuando se solicite publicación. Producción requiere petición explícita.
+1. Completar publicación autorizada en Dev: respaldo cifrado previo, PR contra `dev`, merge y verificación del SHA desplegado, salud, migración y conservación de registros. Registrar evidencias y límites. Producción requiere petición explícita.
 2. Configurar en el ambiente de destino los controles acordados; la plantilla no actualiza variables existentes. Mantener claves separadas y comprobar el presupuesto vigente antes de habilitar IA diaria.
 3. Medir una semana de tokens/consultas/cargos reales en operación autorizada y aplicar contrato de fuente e infraestructura. El reporte entrega supuestos y fórmula, no inventa un total facturado.
 4. Correo automático de nuevas marcas sigue pendiente por decisión del usuario; Notificaciones sí está implementado.
 5. Mantener actualizado el catálogo referencial INAPI; no tratarlo como una matriz universal ni suponer exhaustividad de la búsqueda limitada a 100 candidatos.
+
+## Publicación Dev autorizada · 15/10/2026
+
+- Destino comprobado: proyecto `11a69a90-ad16-40c8-bb92-cc406866c5c8`, ambiente Dev `9e2891f0-7281-4872-a992-2c48866a782d`, servicio `buho-marc-web`. SHA anterior `742b379e0828372f745c54abdf7bf3cad067ab33`.
+- Respaldo lógico completo previo a migración en curso, cifrado y custodia privados fuera de Git. No se contrató infraestructura ni se cambió el plan.
+- Configuración conservada: fuente real y supervisor activos; IA diaria y envío de correos desactivados. `OPENROUTER_WATCH_API_KEY` no está configurada en Dev; la revisión IA de vigilancia requiere esa credencial exclusiva. Factibilidad conserva su configuración separada. No se copian claves entre usos.
+- Valores predeterminados nuevos: descubrimiento diario habilitado con fuente/supervisor activos, presupuesto de vigilancia US$0,10 por ejecución y US$10 mensual. No se hicieron inferencias ni consultas masivas para verificar el despliegue.
+- Main comprobado antes de publicar: `a99b085878962e1e5e15bddd0d182d14caf18a80`. No está incluido en esta autorización.
