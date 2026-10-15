@@ -63,7 +63,7 @@ La integración de vigilancia también pasó: migraciones, cola, idempotencia, d
 ## Pendientes y siguiente paso
 
 1. Publicación autorizada en Dev completada y verificada; cierre documental posterior sin cambios de código. Producción requiere petición explícita.
-2. Configurar en el ambiente de destino los controles acordados; la plantilla no actualiza variables existentes. Mantener claves separadas y comprobar el presupuesto vigente antes de habilitar IA diaria.
+2. Configurar en el ambiente de destino los controles acordados; la plantilla no actualiza variables existentes. Vigilancia referencia la clave existente en Dev por petición posterior; comprobar el presupuesto compartido antes de habilitar IA diaria.
 3. Medir una semana de tokens/consultas/cargos reales en operación autorizada y aplicar contrato de fuente e infraestructura. El reporte entrega supuestos y fórmula, no inventa un total facturado.
 4. Correo automático de nuevas marcas sigue pendiente por decisión del usuario; Notificaciones sí está implementado.
 5. Mantener actualizado el catálogo referencial INAPI; no tratarlo como una matriz universal ni suponer exhaustividad de la búsqueda limitada a 100 candidatos.
@@ -88,3 +88,7 @@ La integración de vigilancia también pasó: migraciones, cola, idempotencia, d
 - Limpieza completada: dump temporal remoto y copia local sin cifrar retirados, clave SSH temporal revocada en Railway y archivos SSH propios eliminados. Sólo se conserva el respaldo cifrado y su clave privada de recuperación, separados fuera del repositorio.
 
 - Cierre documental: `git diff --check` y enlaces locales añadidos aprobados. La revisión completa de enlaces de los Markdown modificados detectó tres referencias históricas del README a dos archivos ausentes en `output/implementacion-ux-2026-10-04/`; ya faltaban en la base, se conservan sin declarar esa comprobación global aprobada.
+
+## Cambio posterior de credencial en Dev
+
+El usuario solicitó reutilizar la clave de factibilidad. La configuración se vincula mediante una referencia de Railway, conservando presupuestos y desactivación de IA diaria/correos. Reemplaza el pendiente de clave exclusiva descrito en la publicación inicial. [Traspaso de configuración y verificación](2026-10-15-openrouter-compartido-dev.md).
