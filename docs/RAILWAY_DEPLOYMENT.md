@@ -2,6 +2,10 @@
 
 Actualizado el 15 de octubre de 2026. La última entrega se publicó **sólo en Dev**; producción conserva su versión anterior. Los apartados históricos describen cada promoción previa.
 
+## Clave OpenRouter compartida en Dev · 15 de octubre
+
+Por petición del usuario, `OPENROUTER_WATCH_API_KEY` referencia `${{ OPENROUTER_API_KEY }}` en el servicio web Dev. Permite reutilizar la clave existente con los presupuestos propios de vigilancia; comparte su saldo/tope en OpenRouter. IA diaria y correos continúan desactivados. Sin cambios de código, modelos, esquema ni producción. [Ubicación de claves, comprobaciones y límites](handoffs/2026-10-15-openrouter-compartido-dev.md).
+
 ## Factibilidad, cartera y vigilancia · 15 de octubre
 
 - [PR #92](https://github.com/joseibietasepulveda/Buho-Marc/pull/92), Dev `f526fb65283ba27ec20c2d60616a26920d5f6c21`; Railway `4c5d0589-40ef-427a-baa5-07c4df14453d` **SUCCESS**, rama y SHA exactos verificados. Build/TypeScript y arranque remotos correctos.
