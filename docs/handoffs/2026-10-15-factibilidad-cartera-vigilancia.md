@@ -86,3 +86,5 @@ La integración de vigilancia también pasó: migraciones, cola, idempotencia, d
 - [Evidencias sin datos personales ni secretos](../../output/deploy-dev-2026-10-15-portfolio/verification.json). Main continúa en `a99b085878962e1e5e15bddd0d182d14caf18a80`.
 
 - Limpieza completada: dump temporal remoto y copia local sin cifrar retirados, clave SSH temporal revocada en Railway y archivos SSH propios eliminados. Sólo se conserva el respaldo cifrado y su clave privada de recuperación, separados fuera del repositorio.
+
+- Cierre documental: `git diff --check` y enlaces locales añadidos aprobados. La revisión completa de enlaces de los Markdown modificados detectó tres referencias históricas del README a dos archivos ausentes en `output/implementacion-ux-2026-10-04/`; ya faltaban en la base, se conservan sin declarar esa comprobación global aprobada.
