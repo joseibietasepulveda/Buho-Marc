@@ -15,7 +15,7 @@ export function eventDescriptions(changes: FieldChange[]): string[] {
     (Array.isArray(change.after) ? change.after : []).flatMap(entry => entry && typeof entry === "object" && !Array.isArray(entry) && typeof entry.status_description === "string" ? [entry.status_description] : []));
 }
 export function isPriorityNotice(notice: Notice): boolean {
-  if (notice.kind === "title-issued" || notice.kind === "deadline" || notice.changeDetail?.kind === "renewal-reminder") return true;
+  if (notice.kind === "title-issued" || notice.kind === "deadline" || ["renewal-reminder", "portfolio-discovery"].includes(notice.changeDetail?.kind ?? "")) return true;
   const changes = notice.changeDetail?.changes;
   if (changes) {
     if (changes.some(change => ["status", "publicationDate", "registrationNumber"].includes(change.field) && change.after)) return true;

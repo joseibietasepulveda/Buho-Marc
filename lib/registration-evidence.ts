@@ -1,3 +1,4 @@
+import { applyManualPayment } from "./registration-payment";
 import type { LegalEvidence, RegistrationApplication } from "./registration-data";
 import { verifiedDailyNotice } from "./inapi-daily-evidence";
 import { chileToday, parseWorkDate } from "./work-priorities";
@@ -68,5 +69,5 @@ export function applyRegistrationEvidence(application: RegistrationApplication, 
     const target = applyRegistrationEvidence({ ...application, statusId: item.statusId, officialDeadline: item.officialDeadline, deadlineSource: undefined, procedure: { ...item, concurrent: undefined } }, today);
     return { ...item, notifiedAt: target.procedure?.notifiedAt, notificationProof: target.procedure?.notificationProof };
   });
-  return { ...application, procedure };
+  return applyManualPayment({ ...application, procedure });
 }

@@ -1,5 +1,7 @@
 # Vigilancia: bandejas, gestiones próximas y renovación
 
+**Actualización implementada en rama · 15/10/2026 (sin despliegue):** consultar el [contrato vigente de esta entrega](FACTIBILIDAD_CARTERA_VIGILANCIA_2026-10-15.md) y su [análisis de costos](COSTOS_SEMANALES_2026-10-15.md). Sustituye donde corresponda clase obligatoria, etiquetas antiguas del informe, categorías alta/media, cinco cruces por marca/150 totales, pausa individual y aviso único de renovación; agrega pago manual auditado y descubrimiento por representante. El texto histórico siguiente conserva evidencia de entregas anteriores, no acredita publicación de este cambio.
+
 Decisión del usuario del 12 de octubre de 2026, posterior a las reglas de septiembre.
 
 ## Bandejas y búsqueda inicial

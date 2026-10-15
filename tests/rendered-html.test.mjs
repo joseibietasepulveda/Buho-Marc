@@ -33,9 +33,10 @@ test("the workspace keeps portfolio import, legal agenda and interactive case vi
   assert.match(agenda, /Mes siguiente/);
   assert.match(page, /bulkCreateBrands/);
   assert.match(api, /bulkCreateBrands/);
-  for (const behavior of ["N.º de registro", "Sin monitoreo", "Pausar seguimiento", "Reactivar seguimiento", "Concluido", "Visual", "Fonético", "Conceptual"]) {
+  for (const behavior of ["N.º de registro", "Mis Marcas", "Marcas de 3ros", "Agregar marcas de 3ros", "Concluido", "Visual", "Fonético", "Conceptual"]) {
     assert.match(page, new RegExp(behavior));
   }
+  assert.doesNotMatch(page, /Pausar seguimiento|Reactivar seguimiento/);
   assert.match(page, /buho-demo-v5/);
   assert.match(api, /toggleBrandMonitoring/);
   assert.match(api, /unlinkCaseMatch/);

@@ -53,3 +53,17 @@ test('exact uses a supported source literal and then validates exact names in th
  const result=await searchSimilar({name:'SOL',matchMode:'exact',limit:30},undefined,async(url,options)=>{if(url.endsWith('/search')){request=JSON.parse(options.body);return Response.json({query,results:[{...hit,name:'SOL MAR'}],candidate_count:1,elapsed_seconds:.1});}return Response.json({documents:[],application_ids_not_found:[]});});
  assert.equal(request.name_match,'contains');assert.equal(result.results.length,0);
 });
+
+test('selected and linked classes expand one query, filter dossiers, and allow an unrestricted search',async()=>{
+ for(const coverage of [[{nice_class:7,text:'Máquinas herramientas'}],[]]){
+  let searchBody;
+  const hits=[7,8,9].map((c,i)=>({...hit,application_id:200+i,classes:[{nice_class:c,coverage_text:'Herramientas'}]}));
+  const result=await searchSimilar({name:'NUBE',coverage,includeRelatedClasses:true,relatedClasses:[8],limit:100,states:['pending'],minSimilarity:0},undefined,async(url,options)=>{
+   if(url.endsWith('/search')){searchBody=JSON.parse(options.body);return Response.json({query,results:hits,candidate_count:3,elapsed_seconds:.1});}
+   return Response.json({documents:hits.filter(h=>JSON.parse(options.body).application_ids.includes(h.application_id)).map(h=>({...document(h.application_id),classes:h.classes})),application_ids_not_found:[]});
+  });
+  assert.equal('includeRelatedClasses' in searchBody,false);assert.equal('relatedClasses' in searchBody,false);
+  assert.deepEqual(result.results.flatMap(h=>h.classes.map(c=>c.nice_class)),coverage.length?[7,8]:[7,8,9]);
+  if(coverage.length)assert.deepEqual(searchBody.coverage.map(c=>c.nice_class),[7,8]);
+ }
+});

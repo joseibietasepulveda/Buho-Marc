@@ -19,6 +19,7 @@ export function nextManualReviewDay(day:string):string {
 }
 export function registrationFollowUp(a:RegistrationApplication,today=chileToday()):string|undefined {
  if(a.provider!=='inapi')return;
+ if(a.manualPayment?.state==='pending')return 'Se espera que INAPI refleje el pago informado por el equipo. La confirmación oficial sigue pendiente.';
  const deadlines=registrationDeadlines(a,today);
  const pending=deadlines.filter(d=>d.attention==='pending'&&d.kind!=='milestone');
  const active=deadlines.some(d=>d.kind==='legal'&&d.dueDate&&d.fatal&&['normal','soon','overdue'].includes(d.attention));

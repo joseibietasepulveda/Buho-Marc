@@ -23,6 +23,16 @@ const enabled = Boolean(process.env.DATABASE_URL) && process.env.MONITORING_SCHE
 const env = { ...process.env, SOURCE_API_TOKEN: process.env.SOURCE_API_TOKEN || randomBytes(32).toString("hex"), MONITORING_SCHEDULER_ENABLED: String(enabled), MONITORING_CRON_SECRET: process.env.MONITORING_CRON_SECRET || randomBytes(32).toString("hex") };
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", process.argv.includes("--dev") ? "dev" : "start"], { stdio: "inherit", env });
 let stopping = false, inFlight = false, watchInFlight = false, recoveryInFlight = false, digestInFlight = false, analyticsInFlight = false;
+let discoveryInFlight = false;
+async function discoveryTick() {
+  if (!enabled || env.SOURCE_PROVIDER !== "inapi" || discoveryInFlight || stopping) return;
+  discoveryInFlight = true;
+  try {
+    const response = await fetch(`http://127.0.0.1:${env.PORT || 3000}/api/portfolio/discover`, { method: "POST", headers: { authorization: `Bearer ${env.MONITORING_CRON_SECRET}` }, signal: AbortSignal.timeout(85000) });
+    if (!response.ok) console.error(`[descubrimiento de cartera] HTTP ${response.status}`);
+  } catch { /* Durable page cursor; capped retry on a later tick. */ }
+  finally { discoveryInFlight = false; }
+}
 let lastWatchProgress = "";
 async function watchTick() {
   if (!env.DATABASE_URL || env.SOURCE_PROVIDER !== "inapi" || watchInFlight || stopping) return;
@@ -85,7 +95,7 @@ async function analyticsTick(){
  finally{analyticsInFlight=false;}
 }
 const analyticsTimer=setInterval(()=>void analyticsTick(),60000);
-const timer = setInterval(() => { void tick(); void watchTick(); void recoveryTick(); void digestTick(); }, 30000);
-const startup = setTimeout(() => { void tick(); void watchTick(); void recoveryTick(); void digestTick(); }, 10000);
+const timer = setInterval(() => { void tick(); void discoveryTick(); void watchTick(); void recoveryTick(); void digestTick(); }, 30000);
+const startup = setTimeout(() => { void tick(); void discoveryTick(); void watchTick(); void recoveryTick(); void digestTick(); }, 10000);
 for (const signal of ["SIGTERM", "SIGINT"]) process.on(signal, () => { stopping = true; clearInterval(timer); clearTimeout(startup);clearInterval(analyticsTimer); child.kill(signal); });
 child.on("exit", (code, signal) => { clearInterval(timer); clearTimeout(startup);clearInterval(analyticsTimer); process.exit(code ?? (signal ? 1 : 0)); });

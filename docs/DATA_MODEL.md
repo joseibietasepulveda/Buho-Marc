@@ -1,5 +1,7 @@
 # Modelo de datos · v1.0
 
+**Actualización implementada en rama · 15/10/2026 (sin despliegue):** consultar el [contrato vigente de esta entrega](FACTIBILIDAD_CARTERA_VIGILANCIA_2026-10-15.md) y su [análisis de costos](COSTOS_SEMANALES_2026-10-15.md). Sustituye donde corresponda clase obligatoria, etiquetas antiguas del informe, categorías alta/media, cinco cruces por marca/150 totales, pausa individual y aviso único de renovación; agrega pago manual auditado y descubrimiento por representante. El texto histórico siguiente conserva evidencia de entregas anteriores, no acredita publicación de este cambio.
+
 ## Cambios implementados en 1.0
 
 La migración `0006_real_surveillance.sql` incorpora `matches.evidence` y admite publicación todavía desconocida. `monitoring_jobs` guarda solicitud, respuesta, intentos, disponibilidad y token de ejecución; un índice parcial impide dos trabajos activos por marca y organización. `similarity_search_locks` serializa prefactibilidad por organización.

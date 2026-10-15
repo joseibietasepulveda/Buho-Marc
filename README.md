@@ -1,5 +1,7 @@
 # Buho Marc · v1.0
 
+**Entrega local · 15/10/2026:** [factibilidad, cartera propia/terceros, pagos y vigilancia](docs/FACTIBILIDAD_CARTERA_VIGILANCIA_2026-10-15.md), [costos semanales con ejemplos diarios](docs/COSTOS_SEMANALES_2026-10-15.md) y [traspaso/verificación](docs/handoffs/2026-10-15-factibilidad-cartera-vigilancia.md). Implementada en rama; aún sin integrar ni desplegar. Esta especificación sustituye los límites/categorías y etiquetas históricas indicados abajo.
+
 **INAPI a pedido · Dev 14/10:** contexto público corregido, seguimiento con antecedente faltante/programación real y botón «Consultar INAPI» limitado a una consulta diaria por expediente. [Regla y alcance](docs/CONSULTA_INAPI_A_PEDIDO_2026-10-14.md).
 
 **Pago final · regla del 14/10/2026:** las aceptaciones administrativas calculan 60 días hábiles desde la aceptación, asumiendo notificación ese día; las aceptaciones con oposición usan la ejecutoria. El cálculo compartido se aplica a todas las carteras desde los antecedentes guardados, sin inventar pruebas ni nuevas consultas a la fuente. [Regla y límites](docs/PAGO_ACEPTACION_ADMINISTRATIVA_2026-10-14.md), [verificación y publicación](docs/handoffs/2026-10-14-pago-aceptacion-administrativa.md).

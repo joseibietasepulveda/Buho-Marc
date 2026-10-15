@@ -1,3 +1,4 @@
+import { searchClasses } from './nice-related';
 import type { ConclusionInput, ReportConclusion } from './feasibility-conclusion';
 import type { SimilarityResult } from './similarity-contract';
 
@@ -18,12 +19,13 @@ export type FeasibilityClassAnalysis = {
   decision?: ClassDecision;
 };
 export function analysisClass(analysis: FeasibilityClassAnalysis): number {
+  if (!analysis.proposal.coverage.length) return 0;
   if (analysis.proposal.coverage.length !== 1) throw new Error('Cada análisis requiere exactamente una clase Niza.');
   return analysis.proposal.coverage[0].nice_class;
 }
 export function upsertClassAnalysis(analyses: FeasibilityClassAnalysis[], analysis: FeasibilityClassAnalysis) {
   const number = analysisClass(analysis);
-  if (analysis.result.results.some(hit => !hit.classes.some(c => c.nice_class === number))) throw new Error('El análisis contiene antecedentes de otra clase.');
+  if (number && analysis.result.results.some(hit => !hit.classes.some(c => searchClasses(analysis.proposal).includes(c.nice_class)))) throw new Error('El análisis contiene antecedentes de otra clase.');
   const previous = analyses.findIndex(item => analysisClass(item) === number);
   return previous < 0 ? [...analyses, analysis] : analyses.map((item, index) => index === previous ? analysis : item);
 }

@@ -5,15 +5,15 @@ import { hiddenDiscoveryState, terminalState } from "./watch-policy";
 import { SOURCE_TIME_ZONE, santiagoDay } from "./source-schedule";
 import { oppositionWindow } from "./opposition-window";
 
-export const DIGEST_MANUAL_LIMIT = 150;
+export const DIGEST_MANUAL_LIMIT = 100;
 export const DIGEST_VISIBLE_LIMIT = 8;
-export const DIGEST_CANDIDATES_PER_BRAND = 5;
-export const DIGEST_MIN_SCORE = .25;
+export const DIGEST_CANDIDATES_PER_BRAND = 2;
+export const DIGEST_MIN_SCORE = 0;
 export const DIGEST_MODEL = "z-ai/glm-5.3-flash";
-export const DIGEST_PROMPT_VERSION = 1;
+export const DIGEST_PROMPT_VERSION = 2;
 export const DIGEST_PILOT_TO = "hola@rcirculo.com";
 
-export type DigestCandidate = { id: string; matchId: string; brandId: string; reference: SimilarityMark; candidate: SimilarityHit; score: number; fetchedAt: string | null };
+export type DigestCandidate = { id: string; matchId: string; evidenceFingerprint?: string; brandId: string; reference: SimilarityMark; candidate: SimilarityHit; score: number; fetchedAt: string | null };
 export type DigestCross = DigestCandidate & { reason: string; insufficient: boolean; referenceImage?: string; candidateImage?: string };
 export type DigestImage = { key: string; content: string };
 export type DigestPayload = {
@@ -73,9 +73,10 @@ export function selectDigestCandidates(crosses: DigestCandidate[], limit: number
   }
   const ordered = [...groups.values()].map(g => g.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).slice(0, DIGEST_CANDIDATES_PER_BRAND))
     .sort((a, b) => b[0].score - a[0].score || a[0].brandId.localeCompare(b[0].brandId));
-  // Give each mark a first candidate before spending the manual cap on its fifth.
-  const roundRobin = Array.from({ length: DIGEST_CANDIDATES_PER_BRAND }, (_, rank) => ordered.flatMap(group => group[rank] ? [group[rank]] : [])).flat();
-  return { filteredLowScore, available: [...groups.values()].reduce((n, group) => n + group.length, 0), selected: roundRobin.slice(0, Math.max(0, limit)) };
+  // Select at most 50 references by their best remaining cross, then both top
+  // candidates for each. Never expand this cap by splitting physical API calls.
+  const selected = ordered.slice(0, 50).flat();
+  return { filteredLowScore, available: [...groups.values()].reduce((n, group) => n + group.length, 0), selected: selected.slice(0, Math.min(100, Math.max(0, limit))) };
 }
 
 export function digestConfig() {
@@ -86,7 +87,7 @@ export function digestConfig() {
     enabled: process.env.WATCH_DIGEST_ENABLED === "true", sending: process.env.RESEND_DELIVERY_ENABLED === "true",
     resendKey: (process.env.RESEND_API_KEY ?? "").trim(), glmKey: (process.env.OPENROUTER_WATCH_API_KEY ?? "").trim(),
     from: "Buho Marc <hola@rcirculo.com>", to: DIGEST_PILOT_TO, replyTo: DIGEST_PILOT_TO,
-    runBudget: number("WATCH_GLM_RUN_BUDGET_USD", 1), monthlyBudget: number("WATCH_GLM_MONTHLY_BUDGET_USD", 10),
+    runBudget: number("WATCH_GLM_RUN_BUDGET_USD", .10), monthlyBudget: number("WATCH_GLM_MONTHLY_BUDGET_USD", 10),
     origin: (process.env.APP_PUBLIC_ORIGIN || (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : "")).replace(/\/$/, ""),
   };
 }

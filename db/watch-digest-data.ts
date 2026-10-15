@@ -24,7 +24,7 @@ export async function pendingDigestCandidates(org: string, limit: number, now: D
     WHERE m.organization_id=${org} AND m.source='DeQuiénEs' AND b.archived_at IS NULL AND b.status <> 'Pausada'
       AND b.monitoring_config->>'provider'='inapi' AND b.monitoring_config->>'monitoringEnabled'='true'
       AND m.evidence ? 'query' AND m.evidence ? 'hit'
-      AND NOT EXISTS(SELECT 1 FROM watch_glm_decisions d WHERE d.organization_id=m.organization_id AND d.match_id=m.id)`;
+      AND NOT EXISTS(SELECT 1 FROM watch_glm_decisions d WHERE d.organization_id=m.organization_id AND d.match_id=m.id AND d.evidence_fingerprint=watch_evidence_fingerprint(m.evidence))`;
   const metadata = rows.filter(r => r.reference_id && r.hit?.applicationId).map(r => ({
     id: r.public_code, matchId: r.id, brandId: r.brand_id, score: r.score,
     reference: { applicationId: r.reference_id, status: r.reference_status ?? '' } as SimilarityMark,
@@ -33,12 +33,12 @@ export async function pendingDigestCandidates(org: string, limit: number, now: D
   return selectDigestCandidates(metadata, limit, now);
 }
 export async function loadDigestCandidate(org: string, match: string, now: Date) {
-  const [r] = await getSql()`SELECT m.*, b.monitoring_config FROM matches m JOIN brands b ON b.id=m.brand_id AND b.organization_id=m.organization_id
+  const [r] = await getSql()`SELECT m.*, watch_evidence_fingerprint(m.evidence) AS evidence_fingerprint, b.monitoring_config FROM matches m JOIN brands b ON b.id=m.brand_id AND b.organization_id=m.organization_id
     WHERE m.id=${match} AND m.organization_id=${org} AND b.archived_at IS NULL AND b.status <> 'Pausada'
       AND b.monitoring_config->>'monitoringEnabled'='true' AND b.monitoring_config->>'provider'='inapi'`;
   const evidence = r?.evidence as Evidence | undefined;
   if (!evidence?.query || !evidence.hit) return null;
-  const cross: DigestCandidate = { id: r.public_code, matchId: r.id, brandId: r.brand_id, score: Number.isFinite(evidence.hit.score) ? evidence.hit.score : r.total_score / 100, reference: evidence.query,
+  const cross: DigestCandidate = { id: r.public_code, matchId: r.id, evidenceFingerprint: r.evidence_fingerprint, brandId: r.brand_id, score: Number.isFinite(evidence.hit.score) ? evidence.hit.score : r.total_score / 100, reference: evidence.query,
     candidate: applyVerifiedDecision({ ...evidence.hit, reviewStatus: r.review_status, legalDeadline: r.legal_deadline ? String(r.legal_deadline).slice(0,10) : null }), fetchedAt: evidence.fetchedAt ?? null };
   return eligibleDigestCandidate(cross, santiagoDay(now)) ? cross : null;
 }

@@ -1,9 +1,9 @@
 export const APP_VERSION = "1.0";
 export const RELEASE_INCLUDED = [
   "Actualizaciones de pantalla solo cuando cambian los datos, vigilancia paginada y consultas suspendidas en pestañas ocultas. Daniel conserva la revisión diaria y Búho se actualiza a pedido.",
-  "Mis marcas reúne registros y solicitudes propias; Vigilancia separa Por revisar y En seguimiento. Rangos de alta y media similitud configurables por organización.",
+  "Mis marcas reúne registros y solicitudes propias; Vigilancia separa Por revisar y En seguimiento. Cruces en filas, recomendados por IA primero y un umbral de publicación por organización.",
   "Aviso interno al publicarse en Diario Oficial, comparación de marcas lado a lado y factibilidad con imagen removible y estados coloreados.",
-  "Vigilancia real de marcas propias y solicitudes: 50 similitudes por consulta, con exclusión local de Denegada, Desistida y Abandonada; cinco visibles y Buscar más de cinco en cinco.",
+  "Vigilancia real de marcas propias y solicitudes: 50 similitudes por consulta, con exclusión local de Denegada, Desistida y Abandonada; lista continua de cruces con carga progresiva.",
   "Seguimiento individual persistente, logos y coberturas reales, estado INAPI e historial; las nuevas revisiones conservan decisiones y casos.",
   "Revisiones diarias en segundo plano, detección de ingreso y publicación, reintentos y recuperación sin duplicar coincidencias.",
   "Factibilidad real por nombre e imagen, con agrupación inicial por titular, fechas de solicitud/publicación/registro y opciones de coincidencia textual sobre los candidatos recuperados.",
@@ -24,6 +24,7 @@ export const RELEASE_INCLUDED = [
   "Seguimiento INAPI, historial de actuaciones y los 22 ejemplos del procedimiento de la versión anterior.",
 ];
 export const RELEASE_UPCOMING = [
+  { title: "Nuevas marcas en el correo automático", items: ["Incluir las solicitudes descubiertas diariamente por el RUT del representante más frecuente de Mis Marcas. Por ahora, el aviso se publica en Notificaciones, con revisión antes de incorporar."] },
   { title: "Mayor continuidad de las conclusiones con IA", items: ["Evitar rechazos por diferencias de redacción y separar el formato del informe de la interpretación de la IA, conservando los controles sobre antecedentes y decisiones.", "Incorporar una alternativa compatible ante fallos del servicio de IA, con límites de tiempo y gasto.", "Guardar y recuperar los estudios y sus conclusiones para preparar una exposición sin depender de una generación en vivo.", "Medir fallos, tiempos y recuperación, y avisar antes de alcanzar el límite de gasto del servicio."] },
   { title: "Servidor dedicado para ampliar la vigilancia", items: ["Instalar el sistema en un servidor dedicado para revisar más solicitudes y controlar el costo de operación.", "Medir capacidad, memoria, tiempos, respaldos y recuperación; coordinar con DeQuiénEs las cuotas y concurrencia antes de aumentar el volumen de búsquedas."] },
   { title: "Filtro de estados para vigilancia", items: ["Víctor incorporará el filtro por estado a la llamada de búsqueda; todavía no está disponible. La interfaz oculta Denegada, Desistida y Abandonada, pero falta el filtro previo en la API.", "Falta acordar el catálogo exacto de estados. No asumir que una etiqueta de rechazo siempre significa que el proceso terminó definitivamente: podría haber recursos o instancias posteriores."] },

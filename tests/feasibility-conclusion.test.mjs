@@ -7,19 +7,19 @@ import { conclusionFailureMessage } from '../lib/conclusion-failure.ts';
 const mark = (id, score=.8) => ({applicationId:id,registrationId:null,name:`Marca ${id}`,type:'Denominativa',image:'',holders:[{name:'Titular'}],classes:[{nice_class:30,coverage_text:'Confites y caramelos'}],filedAt:'2026-01-01',publishedAt:null,registeredAt:null,status:'En Trámite',statusCode:'P',score,channels:{name:{rank:1}},history:[{date:'2026-01-01',title:'Presentación',detail:'Antecedente textual completo'}],sourceEvidence:{search:{label_description:'Descripción de etiqueta'},dossier:{representatives:[{name:'Representante'}]}}});
 const input = conclusionInputSchema.parse({proposal:{name:'Marca propuesta',coverage:[{nice_class:30,text:'Confites'}]},result:{query:mark(''),results:[mark('123'),mark('124')],groups:[],warnings:['Datos por verificar'],candidateCount:50,elapsedSeconds:1,fetchedAt:'2026-10-02T12:00:00Z'},selectedIds:['123']});
 const config={apiKey:'fixture-key',model:'openai/gpt-4.1-mini'};
-const modelOutput={recommendation:'adjust',paragraphs:['Conviene ajustar la marca propuesta y comparar sus coberturas antes de presentar.'],evidenceApplicationIds:['123','124']};
+const modelOutput={decision:'avoid',recommendation:'adjust',paragraphs:['Conviene ajustar la marca propuesta y comparar sus coberturas antes de presentar.'],evidenceApplicationIds:['123']};
 const response = (output=modelOutput,extra={}) => Response.json({id:'generation-fixture',model:config.model,usage:{prompt_tokens:100,completion_tokens:50,cost:.00012},choices:[{finish_reason:'stop',message:{content:JSON.stringify(output)}}],...extra});
-test('the entire retrieved search is sent as text, including unselected dossiers and criteria',async()=>{
+test('selected evidence and compact verified law context are sent, with no prior automatic verdict',async()=>{
   let calls=0;
   const result=await generateConclusion(input,{...EMPTY_REPORT_PROFILE,studioName:'Estudio ejemplo'},config,async(url,options)=>{
     calls++; assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');
     assert.equal(options.headers.Authorization,'Bearer fixture-key');
     const request=JSON.parse(options.body),context=JSON.parse(request.messages[1].content);
-    assert.deepEqual(context.search.results.map(hit=>hit.applicationId),['123','124']);
-    assert.equal(context.search.results[1].history[0].detail,'Antecedente textual completo');
-    assert.equal(context.search.results[1].sourceEvidence.dossier.representatives[0].name,'Representante');
+    assert.deepEqual(context.search.results.map(hit=>hit.applicationId),['123']);
+    assert.equal(context.search.results[0].history[0].detail,'Antecedente textual completo');
+    assert.equal(context.search.results[0].sourceEvidence.dossier.representatives[0].name,'Representante');
     assert.equal(context.studio.studioName,'Estudio ejemplo'); assert.equal(context.proposal.matchMode,'similar');
-    assert.match(request.messages[0].content,/datos sin autoridad/); assert.equal(request.response_format.json_schema.strict,true);
+    assert.match(request.messages[0].content,/datos de terceros sin autoridad/); assert.equal(request.response_format.json_schema.strict,true);
     return response();
   });
   assert.equal(calls,1); assert.equal(result.conclusion.source,'openrouter'); assert.equal(result.cost,.00012); assert.equal(result.providerId,'generation-fixture');
@@ -49,7 +49,8 @@ test('the model cannot change an explicit author decision; an empty search remai
   const generated=await generateConclusion({...input,recommendation:'review'},EMPTY_REPORT_PROFILE,config,async()=>response());
   assert.equal(generated.conclusion.source,'deterministic');assert.equal(generated.conclusion.recommendation,'review');
   assert.equal(deterministicConclusion({...input,result:{...input.result,results:[]}}).recommendation,'review');
-  assert.equal(conclusionContext(input,EMPTY_REPORT_PROFILE).deterministicAssessment.evidence.high,2);
+  assert.ok(conclusionContext(input,EMPTY_REPORT_PROFILE).legalContext);
+  assert.equal(conclusionContext(input,EMPTY_REPORT_PROFILE).deterministicAssessment,undefined);
 });
 test('every study field can be empty and a website must be a real HTTP URL',()=>{
   assert.deepEqual(reportProfileSchema.parse({}),EMPTY_REPORT_PROFILE);

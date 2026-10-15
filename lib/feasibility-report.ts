@@ -1,3 +1,4 @@
+import { classScopeText, searchClasses } from './nice-related';
 import { requireReviewedConclusion, type FeasibilityClassAnalysis } from './feasibility-study';
 import { reportCoverage } from './report-coverage';
 import { reportPresentation, reportBrand, STUDIO_LOGO_SCALE, type ReportAudience } from './feasibility-report-presentation';
@@ -11,7 +12,7 @@ import type { ReportProfile } from './report-profile';
 import type { ReportConclusion } from './feasibility-conclusion';
 export type FeasibilityReportInput = {
   result: SimilarityResult; status: FeasibilityStatus; analyses?: FeasibilityClassAnalysis[]; layout?: 'table'|'cards'; audience?: ReportAudience;
-  proposal: { name: string; coverage: { nice_class: number; text: string }[]; grouped: boolean };
+  proposal: { name: string; coverage: { nice_class: number; text: string }[]; grouped: boolean; includeRelatedClasses?: boolean; relatedClasses?: number[] };
   image?: Uint8Array; imageType?: 'png' | 'jpeg'; studioLogo?: Uint8Array;
   client?: string; author?: string; recommendation?: ReportRecommendation;
   studioProfile?: ReportProfile; conclusion?: ReportConclusion;
@@ -26,7 +27,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
 
   const analyses = input.analyses?.map(analysis=>({...analysis, conclusion:requireReviewedConclusion(analysis.conclusion)})) ?? [{proposal, result, selectedIds:input.selectedIds, conclusion:input.conclusion}];
   const detailed = analyses.map(analysis=>{const hits=selectReportHits(filterFeasibility(analysis.result.results,status),analysis.selectedIds);return {...analysis,hits,marks:reportMarkGroups(hits)};});
-  const recommendation=reportRecommendation(result,input.recommendation,input.explanation,proposal.coverage.map(c=>c.nice_class));
+  const recommendation=reportRecommendation(result,input.recommendation,input.explanation,searchClasses(proposal));
   const author=input.author?.trim() || profile?.lawyerName.trim();
   const pdf=await PDFDocument.create();
   pdf.setTitle(`Informe de factibilidad - ${reportBrand(proposal.name) || 'MARCA SIN NOMBRE'}`);
@@ -88,17 +89,18 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   const field=(label:string,value:string)=>text([{text:label+': ',strong:true},{text:value}],10.5,{gap:3});
   const name=reportBrand(proposal.name) || 'MARCA SIN NOMBRE';
   text('INFORME DE FACTIBILIDAD',20,{strong:true,color:accent,gap:10});
-  text(`Inscripción marca: ${name}`,14,{strong:true,color:accent,gap:7});
+  text(`Marca en estudio: ${name}`,14,{strong:true,color:accent,gap:7});
   const classes=[...new Set(proposal.coverage.map(c=>c.nice_class))];
-  if(classes.length)text(`Inscripción en clase${classes.length===1?'':'s'}: ${classes.join(', ')}`,10.5,{color:muted,gap:7});
+  if(classes.length)text(`${classes.length===1?'Clase de Niza':'Clases de Niza'}: ${classes.join(', ')}`,10.5,{color:muted,gap:7});
   if(input.client?.trim())text(`Para: ${input.client.trim()}`,10,{gap:4});
   heading('I.     Marca objeto del análisis.');
   text(`La marca objeto del análisis es “${name}”${classes.length?`, para distinguir productos y/o servicios en ${classes.length===1?'la clase':'las clases'} ${classes.join(', ')} del Clasificador Internacional de Niza.`:'. Los productos o servicios todavía no están definidos.'}`);
   if(presentation.study)for(const coverage of proposal.coverage)if(coverage.text.trim())field(`Cobertura propuesta · Clase ${coverage.nice_class}`,coverage.text.trim());
   if(input.image){const image=input.imageType==='jpeg'?await pdf.embedJpg(input.image):await pdf.embedPng(input.image);const size=image.scaleToFit(180,110);ensure(size.height+22);page.drawImage(image,{x:left,y:y-size.height,...size});y-=size.height+18;}
+  for(const analysis of detailed)text(classScopeText(analysis.proposal),10,{color:muted});
   heading('II.    Antecedentes registrales relevantes.');
   for(const analysis of detailed) {
-    text(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ') || 'sin definir'}: ${analysis.marks.length} ${analysis.marks.length===1?'antecedente relevante':'antecedentes relevantes'}.`);
+    text(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ') || 'sin definir'}: ${analysis.marks.length} ${analysis.marks.length===1?'coincidencia detectada':'coincidencias detectadas'}.`);
     if(analysis.conclusion)text(analysis.conclusion.title,10.5,{strong:true});
   }
   const images=new Map<string,Awaited<ReturnType<typeof pdf.embedPng>>>();
@@ -143,8 +145,8 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
       const tableHeight=analysis.marks.reduce((sum,mark)=>sum+Math.max(90,lines(reportBrand(mark.hit.name),bold,11,264).length*16+32),0)+48+(detailed.length>1?22.5:0);
       ensure(tableHeight<usableHeight?tableHeight:120);
     }
-    if(detailed.length>1){ensure(!analysis.marks.length?60:input.layout==='table'?120:Math.min(420,65+findingHeight(analysis.marks[0].hit,analysis.marks[0].members)));text(`Clase ${analysis.proposal.coverage[0].nice_class}`,12,{strong:true});}
-    if(!analysis.hits.length)text('No se incluyeron antecedentes relevantes para esta clase.');
+    if(detailed.length>1){ensure(!analysis.marks.length?60:input.layout==='table'?120:Math.min(420,65+findingHeight(analysis.marks[0].hit,analysis.marks[0].members)));text(`Clase ${analysis.proposal.coverage[0]?.nice_class ?? 'sin restricción'}`,12,{strong:true});}
+    if(!analysis.hits.length)text('No se incluyeron coincidencias detectadas en este análisis.');
     if(input.layout==='table')table(analysis);
     else for(const [index,mark]of analysis.marks.entries()){
       const hit=mark.hit;
@@ -172,7 +174,7 @@ export async function createFeasibilityReport(input: FeasibilityReportInput): Pr
   for(const analysis of detailed) {
     const classHeight=conclusionHeight(analysis);
     ensure(classHeight<usableHeight?classHeight:70+Math.min(260,lines(analysis.conclusion?.paragraphs[0]??'',regular,11,width).length*16.5));
-    if(detailed.length>1)text(`Clase ${analysis.proposal.coverage[0].nice_class}`,11,{strong:true});
+    if(detailed.length>1)text(`Clase ${analysis.proposal.coverage[0]?.nice_class ?? 'sin restricción'}`,11,{strong:true});
     text(analysis.conclusion?.title||recommendation.title,11,{strong:true,gap:10});
     for(const paragraph of analysis.conclusion?.paragraphs??paragraphs){const visible=presentation.conclusion(paragraph);if(!visible)continue;const height=lines(visible,regular,11,width).length*16.5+10;if(height<350)ensure(height);text(visible,11,{gap:10});}
     y-=8;

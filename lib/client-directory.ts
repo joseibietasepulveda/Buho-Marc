@@ -28,8 +28,12 @@ export function mockClientId(brand: string) {
   return demoClients[Array.from(key).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % demoClients.length].id;
 }
 
-export type ClientBrand = { entityType?: "brand" | "application"; id: string; name: string; provider?: string; clientId?: string; applicationNumber?: string; logo?: string; sourceStatus?: string; registrationState?: string };
+export type ClientBrand = { entityType?: "brand" | "application"; id: string; name: string; provider?: string; clientId?: string; clientIds?: string[]; portfolioRole?: string; applicationNumber?: string; logo?: string; sourceStatus?: string; registrationState?: string };
+export function belongsToClient(brand: ClientBrand, clientId: string) {
+  return brand.portfolioRole !== "third-party" && (associatedClientId(brand) === clientId || Boolean(brand.clientIds?.includes(clientId)));
+}
 export function associatedClientId(brand: ClientBrand) {
+  if (brand.portfolioRole === "third-party") return undefined;
   return brand.clientId || (brand.provider === "inapi" ? undefined : mockClientId(brand.name));
 }
 export function resolveBrandClientId(brands: ClientBrand[], name: string, id?: string) {

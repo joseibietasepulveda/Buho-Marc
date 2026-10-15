@@ -217,3 +217,29 @@
 .feasibility-conclusion-preview small { display:block; font-size:12px; line-height:1.6; color:#87758f; }
 @media(min-width:901px) { .review-dialog.report-profile-dialog { zoom:1.25; } }
 @media(max-width:620px) { .report-profile-launcher { padding:14px; gap:10px; } .report-profile-fields { grid-template-columns:1fr; } .report-profile-logo { align-items:flex-start; gap:12px; } .report-profile-logo-preview { width:92px; height:88px; } .report-profile-content { padding:20px; } .report-profile-dialog form > footer { padding:16px 20px; } }
+
+/* Factibilidad: opciones apiladas sin desplazar los controles superiores. */
+.feasibility-search-options{display:flex;flex-direction:column;gap:10px;align-self:start;padding-top:22px;min-width:0}
+.feasibility-search-options .feasibility-group-inline{margin:0;min-height:40px;align-items:center}
+.feasibility-linked-option{border:1px solid #ded6e7;border-radius:10px;background:#faf7fd;padding:2px 12px}
+.feasibility-linked-option a{color:#6d3995;text-underline-offset:3px}
+.feasibility-linked-picker{font-size:12px;padding:0 0 10px 26px}
+.feasibility-linked-picker summary{cursor:pointer;color:#63487c;font-weight:600;padding:6px 0}
+.feasibility-linked-picker>div{max-height:255px;overflow:auto;display:grid;gap:9px;padding:8px 2px}
+.feasibility-linked-picker label{display:flex;align-items:start;gap:9px;margin:0}
+.feasibility-linked-picker label input{width:16px;height:16px;flex:none;margin-top:2px;accent-color:#7951a8}
+.feasibility-linked-picker label span{display:grid;gap:3px}
+.feasibility-linked-picker small,.feasibility-linked-picker p{font-size:11px;line-height:1.5;color:#706778}
+.feasibility-scope-note{border-left:3px solid #b48bd7;background:#faf7fd;padding:10px 14px;font-size:12px;line-height:1.6;color:#5c436e;border-radius:0 7px 7px 0}
+.feasibility-class-tag{display:inline-block;margin:2px;padding:3px 6px;border-radius:5px;background:#f0edf3;font-size:11px;white-space:nowrap}
+.feasibility-class-tag.is-primary{background:#e9e0f7;color:#5d3783;font-weight:700}
+.feasibility-class-tag.is-related{background:#edf2f8;color:#405c7b}
+@media(max-width:700px){.feasibility-search-options{padding-top:0}.feasibility-linked-picker{padding-left:0}}
+.registration-payment{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #ead9bd;background:#fff9ee;border-radius:14px 14px 0 0}.registration-payment>div{flex:1;min-width:170px}.registration-payment strong,.registration-payment small{display:block}.registration-payment strong{font-size:13px;color:#694716}.registration-payment small{font-size:12px;line-height:1.5;margin-top:4px;color:#6c6559}.registration-payment.is-paid{background:#edf7f4;border-color:#cce5dc}.registration-payment.is-paid strong{color:#23624e}.registration-payment button{min-height:36px}.registration-payment p{width:100%;margin:0;color:#a43a37;font-size:12px}
+.portfolio-filter-actions{display:flex;flex-direction:column;align-items:flex-end;gap:10px}.portfolio-filter-actions .buho-secondary{font-size:12px;min-height:36px}.buho-brands-table td{vertical-align:middle}.buho-brands-table .buho-count-button{white-space:nowrap}
+
+/* Keep the class input anchored when the linked-class chooser opens. */
+.feasibility-nice-row{align-items:start}.feasibility-search-options{padding-top:23px}.feasibility-linked-picker{position:relative}.feasibility-linked-menu{position:absolute;top:100%;right:0;width:360px;max-width:calc(100vw - 80px);background:white;border:1px solid #ded6e7;border-radius:12px;box-shadow:0 10px 30px #36244722;padding:14px;z-index:15}.feasibility-linked-menu>p{margin:0 0 10px}.feasibility-linked-menu>div{display:grid;gap:12px;max-height:245px;overflow:auto}.feasibility-nice-row .feasibility-linked-menu label{display:flex;align-items:flex-start;gap:10px;font-weight:400;margin:0}.feasibility-linked-menu strong{font-size:12px;line-height:1.5}.feasibility-linked-picker>.feasibility-linked-menu{max-height:none;overflow:visible;display:block}
+@media(max-width:1100px){.feasibility-search-options{padding-top:0}.feasibility-linked-menu{right:auto;left:0;width:min(420px,100%);max-width:100%;box-sizing:border-box}}
+
+.feasibility-search-card .feasibility-nice-row{align-items:start}.feasibility-search-card .feasibility-nice-row .feasibility-linked-menu label{display:flex;align-items:flex-start;gap:10px;font-weight:400;margin:0}.feasibility-search-card .feasibility-nice-row .feasibility-linked-menu input{margin-top:2px;flex:0 0 16px}

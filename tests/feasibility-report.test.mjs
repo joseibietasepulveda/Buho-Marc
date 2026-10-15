@@ -110,12 +110,12 @@ test('new table groups one mark, embeds its logo and includes only selected rele
  const analysis={proposal,result,selectedIds:['1','2','3'],conclusion};
  const input={proposal,result,status:'all',layout:'table',analyses:[analysis],selectedIds:analysis.selectedIds,resultImages:{'2':tiny},includeAppendix:true};
  const zip=await JSZip.loadAsync(await(await createFeasibilityDocx(input)).arrayBuffer()),xml=await zip.file('word/document.xml').async('string');
- assert.equal((xml.match(/<w:tc>/g)||[]).length,4);assert.match(xml,/1 antecedente relevante/);assert.match(xml,/w:jc w:val="center"/);assert.match(xml,/w:vAlign w:val="center"/);assert.match(xml,/Parte Figurativa/);assert.equal(xml.includes('>Logo<'),false);assert.match(xml,/w:ascii="Times New Roman"/);assert.match(xml,/w:jc w:val="both"/);
+ assert.equal((xml.match(/<w:tc>/g)||[]).length,4);assert.match(xml,/1 coincidencia detectada/);assert.match(xml,/w:jc w:val="center"/);assert.match(xml,/w:vAlign w:val="center"/);assert.match(xml,/Parte Figurativa/);assert.equal(xml.includes('>Logo<'),false);assert.match(xml,/w:ascii="Times New Roman"/);assert.match(xml,/w:jc w:val="both"/);
  assert.match(xml,/CIOCCOLATA.*, todos/);assert.equal(xml.includes('Marca no incluida'),false);assert.equal(xml.includes('Anexo de resultados'),false);
  assert.equal(xml.includes('antecedentes recuperados'),false);assert.equal(xml.includes('Nota: el análisis'),false);assert.equal(xml.includes('Los datos incompletos'),false);
  assert.equal(Object.keys(zip.files).filter(name=>name.startsWith('word/media/')&&!zip.files[name].dir).length,1);
  const emptyZip=await JSZip.loadAsync(await(await createFeasibilityDocx({...input,analyses:[{...analysis,selectedIds:[]}]})).arrayBuffer()),empty=await emptyZip.file('word/document.xml').async('string');
- assert.match(empty,/0 antecedentes relevantes/);assert.equal(empty.includes('<w:tbl>'),false);
+ assert.match(empty,/0 coincidencias detectadas/);assert.equal(empty.includes('<w:tbl>'),false);
  assert.ok((await PDFDocument.load(await createFeasibilityReport(input))).getPageCount()>=1);
 });
 
@@ -128,9 +128,9 @@ test('client and study exports share uppercase identity but expose different tec
  for(const audience of ['client','study'])for(const layout of ['cards','table']){
   const zip=await JSZip.loadAsync(await(await createFeasibilityDocx({...input,audience,layout})).arrayBuffer());
   const xml=await zip.file('word/document.xml').async('string');
-  assert.ok(xml.indexOf('INFORME DE FACTIBILIDAD')<xml.indexOf('Inscripción marca: PASTELES'));
-  assert.ok(xml.indexOf('Inscripción marca: PASTELES')<xml.indexOf('Inscripción en clase: 30'));
-  assert.ok(xml.indexOf('Inscripción en clase: 30')<xml.indexOf('Para: Cliente de ejemplo'));
+  assert.ok(xml.indexOf('INFORME DE FACTIBILIDAD')<xml.indexOf('Marca en estudio: PASTELES'));
+  assert.ok(xml.indexOf('Marca en estudio: PASTELES')<xml.indexOf('Clase de Niza: 30'));
+  assert.ok(xml.indexOf('Clase de Niza: 30')<xml.indexOf('Para: Cliente de ejemplo'));
   assert.ok(!xml.includes('pasteles')&&!xml.includes('Pasteles holz'));
   assert.ok(xml.includes('PASTELES HOLZ'));
   for(const value of ['1310823','1297232','Cobertura propuesta de prueba.'])assert.equal(xml.includes(value),audience==='study',`${audience}: ${value}`);
@@ -144,5 +144,5 @@ test('client and study exports share uppercase identity but expose different tec
  assert.equal((await defaultZip.file('word/document.xml').async('string')).includes('1310823'),false,'client is the default');
  const multi={...input,proposal:{...proposal,coverage:[...proposal.coverage,{nice_class:43,text:'Servicios'}]}};
  const multiZip=await JSZip.loadAsync(await(await createFeasibilityDocx(multi)).arrayBuffer());
- assert.ok((await multiZip.file('word/document.xml').async('string')).includes('Inscripción en clases: 30, 43'));
+ assert.ok((await multiZip.file('word/document.xml').async('string')).includes('Clases de Niza: 30, 43'));
 });

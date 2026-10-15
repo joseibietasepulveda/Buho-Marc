@@ -1,3 +1,5 @@
+import { searchClasses, classScopeText } from './nice-related';
+import { TRADEMARK_LEGAL_CONTEXT } from './trademark-legal-context';
 import { z } from 'zod';
 import { CLASS_DECISIONS, hasPercentages, type ClassDecision } from './feasibility-study';
 import { proposalSchema, type SimilarityResult } from './similarity-contract';
@@ -17,7 +19,7 @@ export const conclusionInputSchema=z.object({
   recommendation:z.enum(['review','proceed','adjust']).optional(),
   decision:z.enum(['proceed','moderate','avoid','insufficient']).optional(),
   client:z.string().trim().max(160).default(''),author:z.string().trim().max(160).default(''),
-}).strict().refine(input => input.proposal.niceClass === undefined || input.result.results.every(hit => hit.classes.some(c => c.nice_class === input.proposal.niceClass)), { message: 'Los antecedentes deben pertenecer a la clase analizada.', path: ['result', 'results'] });
+}).strict().refine(input => input.proposal.niceClass === undefined || input.result.results.every(hit => hit.classes.some(c => searchClasses(input.proposal).includes(c.nice_class))), { message: 'Los antecedentes deben pertenecer a la clase analizada.', path: ['result', 'results'] });
 export type ConclusionInput=z.infer<typeof conclusionInputSchema>;
 export type ReportConclusion={
   title:string; recommendation:ReportRecommendation; paragraphs:string[]; decision?:ClassDecision;
@@ -33,8 +35,8 @@ export class ConclusionValidationError extends Error {
 }
 export function conclusionContext(input:ConclusionInput,profile:ReportProfile){
   const result={...input.result,results:input.result.results.map(hit=>applyVerifiedDecision(hit))} as SimilarityResult;
-  const context = {version:1,proposal:input.proposal,client:input.client,author:input.author||profile.lawyerName,studio:reportProfileText(profile),selection:{detailedApplicationIds:input.selectedIds,recommendationChosenByAuthor:input.recommendation??null,decisionChosenByAuthor:input.decision??null},search:result,deterministicAssessment:reportRecommendation(result,input.recommendation,'',input.proposal.coverage.map(c=>c.nice_class)),interpretation:{highSimilarityFrom:.65,mediumSimilarityFrom:.45,similarityIsRejectionProbability:false,scope:'El lote recuperado, con todos sus estados, coberturas, titulares, señales, advertencias e historial; la selección del informe no restringe la evaluación.'}};
-  if (input.proposal.niceClass !== undefined) {
+  const context = {version:2,legalContext:TRADEMARK_LEGAL_CONTEXT,searchClassScope:classScopeText(input.proposal),proposal:input.proposal,client:input.client,author:input.author||profile.lawyerName,studio:reportProfileText(profile),selection:{detailedApplicationIds:input.selectedIds,recommendationChosenByAuthor:input.recommendation??null,decisionChosenByAuthor:input.decision??null},search:result,deterministicAssessment:reportRecommendation(result,input.recommendation,'',searchClasses(input.proposal)),interpretation:{highSimilarityFrom:.65,mediumSimilarityFrom:.45,similarityIsRejectionProbability:false,scope:'El lote recuperado, con todos sus estados, coberturas, titulares, señales, advertencias e historial; la selección del informe no restringe la evaluación.'}};
+  {
     const facts=Object.fromEntries(Object.entries(context).filter(([key])=>!['deterministicAssessment','interpretation'].includes(key)));
     // Proposed ownership and coverage come from the author, not a source query echo.
     const query = { ...result.query, name: input.proposal.name, holders: input.proposal.holders ?? [], classes: input.proposal.coverage.map(c => ({nice_class:c.nice_class,coverage_text:c.text})) };
@@ -42,13 +44,12 @@ export function conclusionContext(input:ConclusionInput,profile:ReportProfile){
     // Do not expose retrieval totals, unselected dossiers or image fields to the model.
     const search = {query, results:selected, fetchedAt:result.fetchedAt};
     const relevantMarks = reportMarkGroups(selected).map(({hit,members})=>({name:hit.name,holders:hit.holders,applicationIds:members.map(member=>member.applicationId)}));
-    return JSON.parse(JSON.stringify({ ...facts, search, relevantMarks, interpretation: { scope: 'Solo antecedentes relevantes incluidos en el detalle de la clase activa. Una marca del mismo titular es un antecedente con varios expedientes asociados. Comparar exclusivamente la cobertura de la clase activa. Sin evaluación automática previa. No se han enviado imágenes.' } }, (key, value) => /^(image|image_url|logo|imageData|dataUrl)$/i.test(key) ? undefined : value));
+    return JSON.parse(JSON.stringify({ ...facts, search, relevantMarks, interpretation: { scope: 'Solo antecedentes relevantes incluidos en el detalle de la clase activa. Una marca del mismo titular es un antecedente con varios expedientes asociados. Comparar la cobertura propuesta de la clase activa con las coberturas seleccionadas y vinculadas incluidas. Sin evaluación automática previa. No se han enviado imágenes.' } }, (key, value) => /^(image|image_url|logo|imageData|dataUrl)$/i.test(key) ? undefined : value));
   }
-  return context;
 }
 export function deterministicConclusion(input:ConclusionInput):ReportConclusion{
   const result={...input.result,results:input.result.results.map(hit=>applyVerifiedDecision(hit))} as SimilarityResult;
-  const choice=reportRecommendation(result,input.recommendation,'',input.proposal.coverage.map(c=>c.nice_class));
+  const choice=reportRecommendation(result,input.recommendation,'',searchClasses(input.proposal));
   const name=input.proposal.name||input.result.query.name||'la marca propuesta';
   const classes=input.proposal.coverage.map(c=>c.nice_class).join(', ');
   const paragraphs=[`Para ${name}${classes?`, en ${input.proposal.coverage.length===1?'la clase':'las clases'} ${classes}`:''}, ${choice.explanation.charAt(0).toLocaleLowerCase('es')+choice.explanation.slice(1)}`];
@@ -63,14 +64,13 @@ export function validateModelConclusion(value:unknown,input:ConclusionInput):Rep
   const response=conclusionResponseSchema.safeParse(value);
   if(!response.success)throw new ConclusionValidationError('schema_invalid','La respuesta no cumple el formato de la conclusión');
   const parsed=response.data;
-  const evidence = input.proposal.niceClass === undefined ? input.result.results : selectReportHits(input.result.results,input.selectedIds);
+  const evidence = selectReportHits(input.result.results,input.selectedIds);
   if(parsed.evidenceApplicationIds.some(id=>!evidence.some(h=>h.applicationId===id)))throw new ConclusionValidationError('foreign_evidence','Referencia ajena a los antecedentes incluidos');
   if (hasPercentages(parsed.paragraphs.join(' '))) throw new ConclusionValidationError('percentages','La conclusión contiene porcentajes');
-  if (input.proposal.niceClass !== undefined) {
+  {
     if (!parsed.decision) throw new ConclusionValidationError('missing_decision','Falta la decisión para esta clase');
     const recommendations = { proceed: 'proceed', moderate: 'review', avoid: 'adjust', insufficient: 'review' } as const;
     if (recommendations[parsed.decision] !== parsed.recommendation) throw new ConclusionValidationError('inconsistent_decision','Decisión y recomendación inconsistentes');
-    if (!evidence.length && !input.decision && !input.recommendation && parsed.decision !== 'proceed') throw new ConclusionValidationError('empty_selection_decision','Sin antecedentes relevantes incluidos se debe recomendar presentar');
   }
   if(input.decision&&parsed.decision!==input.decision)throw new ConclusionValidationError('author_decision_changed','La respuesta cambió la decisión por clase del autor');
   if(input.recommendation&&parsed.recommendation!==input.recommendation)throw new ConclusionValidationError('author_recommendation_changed','La respuesta cambió la decisión del autor');

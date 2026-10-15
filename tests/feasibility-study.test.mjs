@@ -84,7 +84,7 @@ test('class conclusions reject percentages, foreign evidence, inconsistent decis
   const empty={...input(30),selectedIds:[]};
   assert.equal(validateModelConclusion({...model,decision:'proceed',recommendation:'proceed',evidenceApplicationIds:[]},empty).decision,'proceed');
   assert.throws(()=>validateModelConclusion({...model,evidenceApplicationIds:['10030']},empty),/incluidos/);
-  assert.throws(()=>validateModelConclusion({...model,evidenceApplicationIds:[]},empty),/recomendar presentar/);
+  assert.equal(validateModelConclusion({...model,evidenceApplicationIds:[]},empty).decision,model.decision);
   assert.throws(()=>requireReviewedConclusion({source:'deterministic',title:'Revisar',paragraphs:[]}),/Prepara/);
   assert.equal(conclusionInputSchema.safeParse({...input(30),result:fixtureResult(43)}).success,false);
 });
