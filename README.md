@@ -1,6 +1,6 @@
 # Buho Marc · v1.0
 
-**Entrega local · 15/10/2026:** [factibilidad, cartera propia/terceros, pagos y vigilancia](docs/FACTIBILIDAD_CARTERA_VIGILANCIA_2026-10-15.md), [costos semanales con ejemplos diarios](docs/COSTOS_SEMANALES_2026-10-15.md) y [traspaso/verificación](docs/handoffs/2026-10-15-factibilidad-cartera-vigilancia.md). Implementada en rama; aún sin integrar ni desplegar. Esta especificación sustituye los límites/categorías y etiquetas históricas indicados abajo.
+**Publicado en Dev · 15/10/2026:** [factibilidad, cartera propia/terceros, pagos y vigilancia](docs/FACTIBILIDAD_CARTERA_VIGILANCIA_2026-10-15.md), [costos semanales con ejemplos diarios](docs/COSTOS_SEMANALES_2026-10-15.md) y [traspaso/verificación](docs/handoffs/2026-10-15-factibilidad-cartera-vigilancia.md). Integrada por [PR #92](https://github.com/joseibietasepulveda/Buho-Marc/pull/92), Railway `SUCCESS`, migración 0019 y conservación de registros comprobadas. Producción conserva su versión. Esta especificación sustituye los límites/categorías y etiquetas históricas indicados abajo.
 
 **INAPI a pedido · Dev 14/10:** contexto público corregido, seguimiento con antecedente faltante/programación real y botón «Consultar INAPI» limitado a una consulta diaria por expediente. [Regla y alcance](docs/CONSULTA_INAPI_A_PEDIDO_2026-10-14.md).
 

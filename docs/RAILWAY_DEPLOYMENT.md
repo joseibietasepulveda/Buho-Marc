@@ -1,6 +1,15 @@
 # Despliegue y operación en Railway
 
-Actualizado el 14 de octubre de 2026. **Dev fue promovido a Main/production y Railway confirmó SUCCESS**, conservando la base existente de cada ambiente. [Respaldo, ensayo y conservación comprobada](handoffs/2026-10-08-promocion-produccion.md).
+Actualizado el 15 de octubre de 2026. La última entrega se publicó **sólo en Dev**; producción conserva su versión anterior. Los apartados históricos describen cada promoción previa.
+
+## Factibilidad, cartera y vigilancia · 15 de octubre
+
+- [PR #92](https://github.com/joseibietasepulveda/Buho-Marc/pull/92), Dev `f526fb65283ba27ec20c2d60616a26920d5f6c21`; Railway `4c5d0589-40ef-427a-baa5-07c4df14453d` **SUCCESS**, rama y SHA exactos verificados. Build/TypeScript y arranque remotos correctos.
+- Migración `0019_portfolio_watch_improvements.sql` verificada por hash `ab1517c8b62ac966c80e8a063f7452b2f013f88f635de5a79a2316a4d5f293a2`: 359 marcas activas monitoreadas, 131 decisiones existentes con huella material válida, nueva tabla de descubrimiento y disparadores/columnas comprobados. Conteos y huellas de IDs conservados en nueve tablas, incluidas organizaciones, usuarios, marcas, fuentes, solicitudes y clientes. No se afirma igualdad de todos los campos.
+- Respaldo completo previo cifrado (252.963.579 bytes sin cifrar); transferencia/descifrado y catálogo de 355 entradas comprobados. Sin ensayo de restauración de esta copia. Salud 200/base conectada; APIs privadas401 y descubrimiento403 sin autorización; `/app` redirige al ingreso, comprobado también en navegador. QA autenticada y UI de funciones nuevas realizada en local con fixtures.
+- Sin cambios de variables ni inferencias/correos de prueba. Descubrimiento diario habilitado por defecto con fuente/supervisor. IA diaria y envíos siguen apagados; Dev requiere `OPENROUTER_WATCH_API_KEY` exclusiva para evaluar nuevos cruces. Las decisiones anteriores se conservan y muestran.
+- Main permanece en `a99b085878962e1e5e15bddd0d182d14caf18a80`; producción no se modificó. [Contrato](FACTIBILIDAD_CARTERA_VIGILANCIA_2026-10-15.md), [costos semanales](COSTOS_SEMANALES_2026-10-15.md), [traspaso](handoffs/2026-10-15-factibilidad-cartera-vigilancia.md) y [evidencia](../output/deploy-dev-2026-10-15-portfolio/verification.json).
+
 
 ## Pago desde aceptación administrativa · 14 de octubre
 

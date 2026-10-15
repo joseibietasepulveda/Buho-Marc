@@ -88,3 +88,7 @@ Por ejemplo, para una semana recurrente de la tabla: **US$0,13280 + 2.110 × tar
 - No hay inferencia al volver a abrir una pantalla, descargar un segundo formato o reevaluar el mismo cruce sin cambios materiales.
 - No se añadió un nuevo cargo fijo ni se contrató infraestructura. La migración y los avisos emplean la base existente.
 - Para sustituir supuestos por un total real: recopilar siete días de tokens/costos y reservas, distinguir primera carga de flujo habitual, contar peticiones por endpoint y reintentos, aplicar contrato de la fuente y factura de hosting/correo. Esta medición requiere operación autorizada; no se simuló como si ya existiera.
+
+## Configuración observada al publicar en Dev
+
+El 15/10/2026 se publicó el cambio conservando variables. La clave exclusiva `OPENROUTER_WATCH_API_KEY` sigue ausente y `WATCH_AI_ENABLED` desactivado, de modo que Dev no ejecuta nuevas evaluaciones IA de vigilancia por esta publicación. Los ejemplos anteriores describen el costo estimado cuando se configure y se utilice esa capacidad. Factibilidad conserva su credencial separada. El descubrimiento diario queda habilitado con fuente/supervisor activos; sus cargos dependen del contrato de la fuente. No se hicieron llamadas al modelo ni envíos de prueba para medir esta entrega. [Estado verificado](handoffs/2026-10-15-factibilidad-cartera-vigilancia.md).

@@ -1,0 +1,175 @@
+{
+  "verifiedAt": "2026-10-15 20:30 -03",
+  "environment": "Dev",
+  "environmentId": "9e2891f0-7281-4872-a992-2c48866a782d",
+  "pullRequest": "https://github.com/joseibietasepulveda/Buho-Marc/pull/92",
+  "commit": "f526fb65283ba27ec20c2d60616a26920d5f6c21",
+  "deploymentId": "4c5d0589-40ef-427a-baa5-07c4df14453d",
+  "status": "SUCCESS",
+  "mainUnchanged": "a99b085878962e1e5e15bddd0d182d14caf18a80",
+  "database": {
+    "checks": [
+      [
+        "organizations",
+        "5",
+        "b17c2a91a8a4e8e62d51ab26c4ade4c0"
+      ],
+      [
+        "users",
+        "9",
+        "37d090c087fa7cc73d3772a36c7495dd"
+      ],
+      [
+        "brands",
+        "359",
+        "17bd08a156a8c07a8c47162b82aac08f"
+      ],
+      [
+        "source_records",
+        "261",
+        "a6458ebfdef3e8b40caff2cd85371dc3"
+      ],
+      [
+        "registration_applications",
+        "131",
+        "a882d279dc5a7f6c4b3652daec84c104"
+      ],
+      [
+        "client_contacts",
+        "6",
+        "fddbc97eaa4544f6378e02242c628604"
+      ],
+      [
+        "watch_glm_decisions",
+        "131",
+        "436ecad40db514d7646cc17f00a1a0b3"
+      ],
+      [
+        "feasibility_conclusions",
+        "21",
+        "bc038e145617be042c1544005e743189"
+      ],
+      [
+        "watch_glm_calls",
+        "60",
+        "b0a10bb04767e1ee4a3d12ab177c8099"
+      ],
+      [
+        "migration",
+        "1",
+        "ab1517c8b62ac966c80e8a063f7452b2f013f88f635de5a79a2316a4d5f293a2"
+      ],
+      [
+        "active_monitored",
+        "359",
+        "359"
+      ],
+      [
+        "decision_hashes",
+        "131",
+        "131"
+      ],
+      [
+        "discovery_table",
+        "1",
+        ""
+      ],
+      [
+        "new_columns",
+        "2",
+        ""
+      ],
+      [
+        "ai_snapshot_triggers",
+        "2",
+        ""
+      ],
+      [
+        "discovery_pending",
+        "1",
+        "0"
+      ]
+    ],
+    "sameCountsAndIds": {
+      "organizations": true,
+      "users": true,
+      "brands": true,
+      "source_records": true,
+      "registration_applications": true,
+      "client_contacts": true,
+      "watch_glm_decisions": true,
+      "feasibility_conclusions": true,
+      "watch_glm_calls": true
+    }
+  },
+  "http": {
+    "at": "2026-10-15T23:28:47.222428+00:00",
+    "checks": [
+      {
+        "path": "/api/health",
+        "method": "GET",
+        "status": 200,
+        "expected": 200,
+        "body": {
+          "ok": true,
+          "database": "connected",
+          "provider": "inapi",
+          "sourceConfigured": true,
+          "automaticEnabled": true,
+          "version": "1.0",
+          "engine": "dequienes"
+        }
+      },
+      {
+        "path": "/api/registrations/payment",
+        "method": "POST",
+        "status": 401,
+        "expected": 401
+      },
+      {
+        "path": "/api/portfolio/discover",
+        "method": "POST",
+        "status": 403,
+        "expected": 403
+      },
+      {
+        "path": "/api/watch",
+        "method": "GET",
+        "status": 401,
+        "expected": 401
+      },
+      {
+        "path": "/api/registrations",
+        "method": "GET",
+        "status": 401,
+        "expected": 401
+      },
+      {
+        "path": "/app",
+        "method": "GET",
+        "status": 307,
+        "expected": 307,
+        "location": "/ingresar"
+      }
+    ]
+  },
+  "backup": {
+    "environment": "Dev",
+    "environmentId": "9e2891f0-7281-4872-a992-2c48866a782d",
+    "preDeployCommit": "742b379e0828372f745c54abdf7bf3cad067ab33",
+    "sha256Plain": "5ad2ccfcabada03455e1d755fa2f80bc82e920a4a9d3ad3e2712ab2b50bf6848",
+    "plainBytes": 252963579,
+    "encryptedBytes": 252963600,
+    "transferVerified": true,
+    "decryptionVerified": true,
+    "archiveListed": true,
+    "archiveEntries": 355,
+    "restoreVerified": false
+  },
+  "limits": [
+    "QA autenticada y cambios de datos verificados en local con fixtures; en Dev se comprobó ingreso sin sesión.",
+    "Sin inferencias OpenRouter ni envío de correos de prueba.",
+    "OPENROUTER_WATCH_API_KEY ausente; requiere configuración exclusiva para evaluar cruces nuevos.",
+    "Respaldo con transferencia, descifrado y catálogo comprobados; sin restauración de esta copia."
+  ]
+}
