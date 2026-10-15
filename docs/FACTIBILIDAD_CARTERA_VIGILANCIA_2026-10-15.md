@@ -1,6 +1,6 @@
 # Factibilidad, cartera y vigilancia · 15 de octubre de 2026
 
-Estado: implementado en `codex/factibilidad-cartera-vigilancia`, validación local; **sin integrar a Dev ni desplegar**. [Traspaso y comprobaciones](handoffs/2026-10-15-factibilidad-cartera-vigilancia.md) · [Costos y semana de ejemplo](COSTOS_SEMANALES_2026-10-15.md).
+Estado: **publicado exclusivamente en Railway Dev**, [PR #92](https://github.com/joseibietasepulveda/Buho-Marc/pull/92), SHA `f526fb6`, despliegue `4c5d0589-40ef-427a-baa5-07c4df14453d` SUCCESS. Migración y conservación de registros verificadas. [Traspaso y comprobaciones](handoffs/2026-10-15-factibilidad-cartera-vigilancia.md) · [Costos y semana de ejemplo](COSTOS_SEMANALES_2026-10-15.md).
 
 ## Decisiones de producto
 
@@ -72,4 +72,4 @@ Aplicar `drizzle/0019_portfolio_watch_improvements.sql` antes de servir el nuevo
 
 Archivos compartidos principales: `app/app/page.tsx`, `watch-panel.tsx`, `feasibility-review.tsx`, `registrations.tsx`, `client-provider.tsx`, `brand-search.tsx`, estilos de `app/app/`, `db/demo.ts`, `db/source.ts`, `db/similarity.ts`, `db/watch-digest*.ts` y supervisor. Verificar Clientes, Resumen, informes, pagos y correo además de Vigilancia cuando se integren ramas.
 
-No se habilitaron servicios externos ni se modificó configuración de Railway/producción durante esta entrega. Pruebas locales con PostgreSQL aislado, datos ficticios y respuestas simuladas; el comportamiento/costo real del modelo debe medirse en operación autorizada.
+Publicación en Dev autorizada el 15/10/2026: se conserva su configuración externa y producción no cambia. El supervisor habilita el descubrimiento diario por defecto. IA diaria y correos siguen desactivados; falta `OPENROUTER_WATCH_API_KEY` para realizar evaluaciones nuevas de vigilancia. Las decisiones guardadas sí se muestran. Las pruebas de operaciones autenticadas usan PostgreSQL aislado, datos ficticios y respuestas simuladas; el costo real del modelo debe medirse en operación autorizada.

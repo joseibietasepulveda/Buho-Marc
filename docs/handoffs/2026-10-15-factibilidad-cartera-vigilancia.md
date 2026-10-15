@@ -1,9 +1,9 @@
 # Traspaso: factibilidad, cartera y vigilancia
 
-- Actualizado: 2026-10-15, America/Santiago.
-- Estado: publicación en Dev autorizada por el usuario el 15/10/2026; integración y despliegue en preparación.
+- Actualizado: 2026-10-15 20:30 -03, America/Santiago.
+- Estado: integrado y publicado en Railway Dev; verificación posterior aprobada. Sin promoción a producción.
 - Rama y base: `codex/factibilidad-cartera-vigilancia`; `dev` `742b379e0828372f745c54abdf7bf3cad067ab33`.
-- PR: en preparación. Commit funcional: `a58b95b`. Base Dev comprobada nuevamente: `742b379e0828372f745c54abdf7bf3cad067ab33`; no avanzó desde la implementación.
+- [PR #92](https://github.com/joseibietasepulveda/Buho-Marc/pull/92), merge `f526fb65283ba27ec20c2d60616a26920d5f6c21`; commit funcional `a58b95b`. La base no avanzó desde la implementación, sin conflictos.
 
 ## Objetivo y alcance
 
@@ -62,7 +62,7 @@ La integración de vigilancia también pasó: migraciones, cola, idempotencia, d
 
 ## Pendientes y siguiente paso
 
-1. Completar publicación autorizada en Dev: respaldo cifrado previo, PR contra `dev`, merge y verificación del SHA desplegado, salud, migración y conservación de registros. Registrar evidencias y límites. Producción requiere petición explícita.
+1. Publicación autorizada en Dev completada y verificada; cierre documental posterior sin cambios de código. Producción requiere petición explícita.
 2. Configurar en el ambiente de destino los controles acordados; la plantilla no actualiza variables existentes. Mantener claves separadas y comprobar el presupuesto vigente antes de habilitar IA diaria.
 3. Medir una semana de tokens/consultas/cargos reales en operación autorizada y aplicar contrato de fuente e infraestructura. El reporte entrega supuestos y fórmula, no inventa un total facturado.
 4. Correo automático de nuevas marcas sigue pendiente por decisión del usuario; Notificaciones sí está implementado.
@@ -71,7 +71,18 @@ La integración de vigilancia también pasó: migraciones, cola, idempotencia, d
 ## Publicación Dev autorizada · 15/10/2026
 
 - Destino comprobado: proyecto `11a69a90-ad16-40c8-bb92-cc406866c5c8`, ambiente Dev `9e2891f0-7281-4872-a992-2c48866a782d`, servicio `buho-marc-web`. SHA anterior `742b379e0828372f745c54abdf7bf3cad067ab33`.
-- Respaldo lógico completo previo a migración en curso, cifrado y custodia privados fuera de Git. No se contrató infraestructura ni se cambió el plan.
+- Respaldo lógico completo previo a migración cifrado fuera de Git: 252.963.579 bytes, SHA-256 `5ad2ccfcabada03455e1d755fa2f80bc82e920a4a9d3ad3e2712ab2b50bf6848`. Transferencia/descifrado verificados y catálogo de 355 entradas legible. No se ensayó restauración. Copia y clave de recuperación en directorios privados separados bajo `~/.codex/private-backups/buho-marc/dev/2026-10-15-portfolio-deploy` y `~/.codex/private-backup-keys`; nunca en Git. No se contrató infraestructura ni se cambió el plan.
 - Configuración conservada: fuente real y supervisor activos; IA diaria y envío de correos desactivados. `OPENROUTER_WATCH_API_KEY` no está configurada en Dev; la revisión IA de vigilancia requiere esa credencial exclusiva. Factibilidad conserva su configuración separada. No se copian claves entre usos.
 - Valores predeterminados nuevos: descubrimiento diario habilitado con fuente/supervisor activos, presupuesto de vigilancia US$0,10 por ejecución y US$10 mensual. No se hicieron inferencias ni consultas masivas para verificar el despliegue.
 - Main comprobado antes de publicar: `a99b085878962e1e5e15bddd0d182d14caf18a80`. No está incluido en esta autorización.
+
+### Resultado de la publicación
+
+- Railway `4c5d0589-40ef-427a-baa5-07c4df14453d` SUCCESS para el merge `f526fb65283ba27ec20c2d60616a26920d5f6c21`. Compilación/TypeScript remotos y migraciones/arranque correctos. Las 149 pruebas locales y QA anteriores no se repitieron porque no hubo cambios funcionales posteriores.
+- Migración 0019 coincidente por SHA-256 `ab1517c8b62ac966c80e8a063f7452b2f013f88f635de5a79a2316a4d5f293a2`. Las 359 marcas no archivadas están activas y monitoreadas; las 131 decisiones IA anteriores conservan una huella válida. Tabla, dos columnas y dos triggers nuevos comprobados.
+- Misma cantidad y mismos IDs en nueve tablas: 5 organizaciones, 9 usuarios, 359 marcas, 261 fuentes, 131 solicitudes, 6 contactos, 131 decisiones, 21 conclusiones y 60 llamadas históricas GLM. No se comparó cada campo de cada fila: la migración modifica deliberadamente monitoreo y añade huellas.
+- `/api/health`200/base conectada; pago, vigilancia y solicitudes401 sin sesión; descubrimiento403 sin secreto; `/app`307 a `/ingresar`. Se vio el ingreso en navegador sin credenciales. No se verificaron otra vez los flujos autenticados remotos ni se modificaron pagos/importaciones para probarlos; la cobertura funcional y visual está en los fixtures locales. El título «Bienvenido» presenta poco contraste en el ingreso preexistente; esta entrega no modifica su CSS y no se amplió el alcance a autenticación.
+- Se observó un trabajo de descubrimiento diario pendiente, sin intentos al corte; esto verifica programación, no una búsqueda completa ni resultados de la fuente. No se disparó un recorrido adicional de pruebas.
+- [Evidencias sin datos personales ni secretos](../../output/deploy-dev-2026-10-15-portfolio/verification.json). Main continúa en `a99b085878962e1e5e15bddd0d182d14caf18a80`.
+
+- Limpieza completada: dump temporal remoto y copia local sin cifrar retirados, clave SSH temporal revocada en Railway y archivos SSH propios eliminados. Sólo se conserva el respaldo cifrado y su clave privada de recuperación, separados fuera del repositorio.
