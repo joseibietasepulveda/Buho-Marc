@@ -1,3 +1,4 @@
+import { classScopeText, searchClasses } from './nice-related';
 import { requireReviewedConclusion } from './feasibility-study';
 import { reportCoverage } from './report-coverage';
 import { reportPresentation, reportBrand, STUDIO_LOGO_SCALE } from './feasibility-report-presentation';
@@ -15,7 +16,7 @@ export async function createFeasibilityDocx(input:FeasibilityReportInput):Promis
   const result={...input.result,results:input.result.results.map(applyVerifiedDecision)};
   const analyses=input.analyses?.map(analysis=>({...analysis,conclusion:requireReviewedConclusion(analysis.conclusion)}))??[{proposal,result,selectedIds:input.selectedIds,conclusion:input.conclusion}];
   const detailed=analyses.map(analysis=>{const hits=selectReportHits(filterFeasibility(analysis.result.results,status),analysis.selectedIds);return {...analysis,hits,marks:reportMarkGroups(hits)};});
-  const recommendation=reportRecommendation(result,input.recommendation,input.explanation,proposal.coverage.map(c=>c.nice_class));
+  const recommendation=reportRecommendation(result,input.recommendation,input.explanation,searchClasses(proposal));
   const author=input.author?.trim()||profile?.lawyerName.trim();
   const body:(Paragraph|Table)[]=[];
   const paragraph=(value:string,options:{bold?:boolean;small?:boolean;size?:number;style?:string;color?:string;after?:number;keepNext?:boolean;align?:typeof AlignmentType[keyof typeof AlignmentType];underline?:boolean}={})=>new Paragraph({style:options.style,children:[new TextRun({text:presentation.text(value),bold:options.bold,font:'Times New Roman',size:options.size??(options.small?18:22),color:options.color??(options.small?'66737D':'242E38'),underline:options.underline?{}:undefined})],alignment:options.align??AlignmentType.JUSTIFIED,spacing:{after:options.after??120,line:310},keepNext:options.keepNext,widowControl:true});
@@ -24,19 +25,20 @@ export async function createFeasibilityDocx(input:FeasibilityReportInput):Promis
   const picture=(bytes:Uint8Array,width:number,height:number,keepNext=false)=>new Paragraph({children:[new ImageRun({type:'png',data:bytes,transformation:pngSize(bytes,width,height),altText:{name:'Etiqueta de la marca',title:'Etiqueta de la marca',description:'Imagen de los antecedentes examinados'}})],spacing:{after:140},keepNext});
   const name=reportBrand(proposal.name)||'MARCA SIN NOMBRE',classes=[...new Set(proposal.coverage.map(c=>c.nice_class))];
   body.push(paragraph('INFORME DE FACTIBILIDAD',{style:'Title',bold:true,size:40,color:'000000',after:150,keepNext:true}));
-  body.push(paragraph(`Inscripción marca: ${name}`,{bold:true,size:28,color:'1F384A',after:90,keepNext:true}));
-  if(classes.length)body.push(paragraph(`Inscripción en clase${classes.length===1?'':'s'}: ${classes.join(', ')}`,{small:true,size:20,after:90,keepNext:true}));
+  body.push(paragraph(`Marca en estudio: ${name}`,{bold:true,size:28,color:'1F384A',after:90,keepNext:true}));
+  if(classes.length)body.push(paragraph(`${classes.length===1?'Clase de Niza':'Clases de Niza'}: ${classes.join(', ')}`,{small:true,size:20,after:90,keepNext:true}));
   if(input.client?.trim())body.push(paragraph(`Para: ${input.client.trim()}`,{small:true}));
   body.push(heading('I.     Marca objeto del análisis.'));
   body.push(paragraph(`La marca objeto del análisis es “${name}”${classes.length?`, para distinguir productos y/o servicios en ${classes.length===1?'la clase':'las clases'} ${classes.join(', ')} del Clasificador Internacional de Niza.`:'. Los productos o servicios todavía no están definidos.'}`));
   if(presentation.study)for(const c of proposal.coverage)if(c.text.trim())body.push(field(`Cobertura propuesta · Clase ${c.nice_class}`,c.text.trim()));
   if(input.image)body.push(picture(input.image,210,140));
+  for(const analysis of detailed)body.push(paragraph(classScopeText(analysis.proposal),{small:true}));
   body.push(heading('II.    Antecedentes registrales relevantes.'));
-  for(const analysis of detailed){body.push(paragraph(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ')||'sin definir'}: ${analysis.marks.length} ${analysis.marks.length===1?'antecedente relevante':'antecedentes relevantes'}.`));if(analysis.conclusion)body.push(paragraph(analysis.conclusion.title,{bold:true}));}
+  for(const analysis of detailed){body.push(paragraph(`Clase${analysis.proposal.coverage.length===1?'':'s'} ${analysis.proposal.coverage.map(c=>c.nice_class).join(', ')||'sin definir'}: ${analysis.marks.length} ${analysis.marks.length===1?'coincidencia detectada':'coincidencias detectadas'}.`));if(analysis.conclusion)body.push(paragraph(analysis.conclusion.title,{bold:true}));}
   body.push(heading('III.   Antecedentes relevantes.'));
   for(const analysis of detailed) {
-  if(detailed.length>1)body.push(heading(`Clase ${analysis.proposal.coverage[0].nice_class}`));
-  if(!analysis.hits.length)body.push(paragraph('No se incluyeron antecedentes relevantes para esta clase.'));
+  if(detailed.length>1)body.push(heading(`Clase ${analysis.proposal.coverage[0]?.nice_class ?? 'sin restricción'}`));
+  if(!analysis.hits.length)body.push(paragraph('No se incluyeron coincidencias detectadas en este análisis.'));
   if(input.layout==='table') {
     const widths=[6000,2800],borders=Object.fromEntries(['top','bottom','left','right'].map(side=>[side,{style:BorderStyle.SINGLE,size:4,color:'D9D9D9'}]));
     const cell=(children:Paragraph[],index:number,fill:string)=>new TableCell({width:{size:widths[index],type:WidthType.DXA},verticalAlign:VerticalAlign.CENTER,shading:{fill},margins:{top:200,bottom:200,left:220,right:220},borders,children});
@@ -66,7 +68,7 @@ export async function createFeasibilityDocx(input:FeasibilityReportInput):Promis
   }
   body.push(heading('IV.    Conclusión.'));
   for(const analysis of detailed) {
-  if(detailed.length>1)body.push(paragraph(`Clase ${analysis.proposal.coverage[0].nice_class}`,{bold:true,keepNext:true}));
+  if(detailed.length>1)body.push(paragraph(`Clase ${analysis.proposal.coverage[0]?.nice_class ?? 'sin restricción'}`,{bold:true,keepNext:true}));
   body.push(paragraph(analysis.conclusion?.title||recommendation.title,{bold:true,keepNext:true}));
   const conclusionParagraphs=analysis.conclusion?.paragraphs??[recommendation.explanation.replace(/\d+(?:[.,]\d+)?%/g,'semejanza relevante')],shortConclusion=conclusionParagraphs.join(' ').length<1600;
   for(const[index,value]of conclusionParagraphs.entries())body.push(paragraph(presentation.conclusion(value),{keepNext:shortConclusion&&index<conclusionParagraphs.length-1,after:180}));

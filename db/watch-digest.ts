@@ -8,14 +8,14 @@ import { digestMarkImage } from '../lib/watch-digest-images';
 import { digestEmail } from '../lib/watch-digest-email';
 import { sendResendEmail, ResendDeliveryError, type ResendEmail } from '../lib/resend-email';
 
-type Run = { id: string; organization_id: string; organization_name: string; status: string; candidate_ids: string[]; cursor: number; evaluated: number; available: number; failures: number; limited: boolean; lease_token: string; email: ResendEmail | null; requested_by:string|null; send_attempts: number; first_send_at: Date | null; delivery_uncertain: boolean; evaluation_input: {batch: DigestCandidate[];images:GlmInputImage[];advance:number} | null };
+type Run = { delivery_mode: "review" | "email"; id: string; organization_id: string; organization_name: string; status: string; candidate_ids: string[]; cursor: number; evaluated: number; available: number; failures: number; limited: boolean; lease_token: string; email: ResendEmail | null; requested_by:string|null; send_attempts: number; first_send_at: Date | null; delivery_uncertain: boolean; evaluation_input: {batch: DigestCandidate[];images:GlmInputImage[];advance:number} | null };
 export class DigestBudgetError extends Error { constructor() { super('Se alcanzó el presupuesto de vigilancia; los cruces restantes siguen pendientes'); } }
 export async function digestOrganizations() {
   return getSql()`SELECT o.id,o.name,o.slug FROM organizations o WHERE o.status='active' AND (EXISTS(SELECT 1 FROM brands b WHERE b.organization_id=o.id AND b.archived_at IS NULL AND b.monitoring_config->>'provider'='inapi') OR EXISTS(SELECT 1 FROM registration_applications a WHERE a.organization_id=o.id AND a.data->>'provider'='inapi' AND COALESCE(a.data->>'portfolioRole','own') <> 'third-party')) ORDER BY o.name`;
 }
-export async function enqueueDigest(org: string, trigger: 'manual' | 'scheduled', key: string, actor?: string, now = new Date()) {
+export async function enqueueDigest(org: string, trigger: 'manual' | 'scheduled', key: string, actor?: string, now = new Date(), deliveryMode: "review" | "email" = "email") {
   const config = digestConfig();
-  const problems = digestConfigurationProblems(config);
+  const problems = deliveryMode === "review" ? (config.glmKey ? [] : ["clave exclusiva de GLM"]) : digestConfigurationProblems(config);
   if (problems.length) throw new Error(`Falta configurar: ${problems.join(', ')}`);
   return getSql().begin(async tx => {
     await tx`SELECT pg_advisory_xact_lock(hashtext(${`digest-queue:${org}`}))`;
@@ -23,15 +23,15 @@ export async function enqueueDigest(org: string, trigger: 'manual' | 'scheduled'
     if (!organization) throw new Error('Organización no disponible');
     const [duplicate] = await tx`SELECT id,status FROM watch_digest_runs WHERE organization_id=${org} AND (idempotency_key=${key} OR status IN ('queued','running','retry','sending')) ORDER BY created_at DESC LIMIT 1`;
     if (duplicate) return { id: duplicate.id as string, reused: true };
-    const { available, selected, filteredLowScore } = await pendingDigestCandidates(org, trigger === 'manual' ? DIGEST_MANUAL_LIMIT : 10000, now);
-    // Selection is fair across marks; physical calls share one reference and at most five candidates.
+    const { available, selected, filteredLowScore } = await pendingDigestCandidates(org, DIGEST_MANUAL_LIMIT, now);
+    // Selection is fair across marks; physical calls share one reference and at most two candidates.
     const brandOrder = [...new Set(selected.map(c => c.brandId))];
     const ids = brandOrder.flatMap(brand => selected.filter(c => c.brandId === brand).map(c => c.matchId));
-    const [row] = await tx`INSERT INTO watch_digest_runs(organization_id,idempotency_key,trigger,requested_by,candidate_ids,available,filtered_low_score,limited)
-      VALUES(${org},${key},${trigger},${actor ?? null},${tx.json(ids)},${available},${filteredLowScore},${selected.length < available}) RETURNING id`;
+    const [row] = await tx`INSERT INTO watch_digest_runs(organization_id,idempotency_key,trigger,delivery_mode,requested_by,candidate_ids,available,filtered_low_score,limited)
+      VALUES(${org},${key},${trigger},${deliveryMode},${actor ?? null},${tx.json(ids)},${available},${filteredLowScore},${selected.length < available}) RETURNING id`;
     // Recover positive decisions if preparing a previous email failed before its outbox existed.
     await tx`UPDATE watch_glm_decisions d SET run_id=${row.id} WHERE d.organization_id=${org} AND d.notified_at IS NULL AND d.decision->>'show'='true'
-      AND EXISTS(SELECT 1 FROM watch_digest_runs old WHERE old.id=d.run_id AND old.organization_id=d.organization_id AND old.status IN ('failed','prepared') AND old.email IS NULL)`;
+      AND EXISTS(SELECT 1 FROM watch_digest_runs old WHERE old.id=d.run_id AND old.organization_id=d.organization_id AND old.status IN ('failed','prepared') AND old.email IS NULL) AND ${deliveryMode}='email'`;
     return { id: row.id as string, reused: false };
   });
 }
@@ -88,13 +88,13 @@ async function release(run: Run, status: string, error: string | null = null, de
 async function freezeDigest(run: Run, now: Date) {
   const sql = getSql(), org = run.organization_id;
   const [state] = await sql`SELECT evaluated,available,failures,limited,filtered_low_score FROM watch_digest_runs WHERE id=${run.id} AND organization_id=${org}`;
-  const positives = await sql`SELECT cross_snapshot FROM watch_glm_decisions WHERE organization_id=${org} AND run_id=${run.id} AND decision->>'show'='true' AND notified_at IS NULL ORDER BY (cross_snapshot->>'score')::float8 DESC,created_at`;
+  const positives = await sql`SELECT cross_snapshot,evidence_fingerprint FROM watch_glm_decisions WHERE organization_id=${org} AND run_id=${run.id} AND decision->>'show'='true' AND notified_at IS NULL ORDER BY (cross_snapshot->>'score')::float8 DESC,created_at`;
   const crosses: DigestCross[] = [];
   for (const row of positives) {
     const cross = row.cross_snapshot as DigestCross;
     // State/review may have changed during processing; never email an already closed or dismissed alert.
     const current = await loadDigestCandidate(org, cross.matchId, now);
-    if (current) crosses.push({ ...cross, candidate: current.candidate });
+    if (current && current.evidenceFingerprint === row.evidence_fingerprint) crosses.push({ ...cross, candidate: current.candidate });
   }
   const [source] = await sql`SELECT max(completed_at) AS reviewed FROM monitoring_jobs WHERE organization_id=${org} AND status='success' AND result IS NOT NULL`;
   const from = santiagoDay(now);
@@ -129,10 +129,11 @@ async function deliverDigest(run: Run, now: Date, fetcher: typeof fetch) {
   }
 }
 export async function processDigestJob(options: { now?: Date; fetcher?: typeof fetch; imageLoader?: typeof digestMarkImage } = {}) {
-  if (digestConfigurationProblems().length) return { skipped:true, reason:'configuration' };
+  if (!digestConfig().glmKey) return { skipped:true, reason:'configuration' };
   const now = options.now ?? new Date(), fetcher = options.fetcher ?? fetch;
   const run = await claimDigest();
   if (!run) return { idle:true };
+  if (run.delivery_mode === 'email' && digestConfigurationProblems().length) { await release(run,'retry','Falta configurar el envío',3600); return { skipped:true,reason:'email-configuration' }; }
   let batchAdvance = 0;
   try {
     if (!run.email && run.cursor < run.candidate_ids.length) {
@@ -140,11 +141,14 @@ export async function processDigestJob(options: { now?: Date; fetcher?: typeof f
       if (run.evaluation_input) ({batch,images,advance}=run.evaluation_input);
       else {
         batch=[];advance=0;
-        for (const id of run.candidate_ids.slice(run.cursor,run.cursor+5)) {
+        for (const id of run.candidate_ids.slice(run.cursor,run.cursor+2)) {
           const cross = await loadDigestCandidate(run.organization_id,id,now);
           if (cross && batch.length && cross.brandId !== batch[0].brandId) break;
           advance++;
-          if (cross) batch.push(cross);
+          if (cross) {
+            const [done] = await getSql()`SELECT id FROM watch_glm_decisions WHERE organization_id=${run.organization_id} AND match_id=${cross.matchId} AND evidence_fingerprint=${cross.evidenceFingerprint!}`;
+            if (!done) batch.push(cross);
+          }
         }
         images=[];
         if (batch.length) {
@@ -171,8 +175,8 @@ export async function processDigestJob(options: { now?: Date; fetcher?: typeof f
           let inserted = 0;
           for (let n=0;n<batch.length;n++) {
             const cross: DigestCross = { ...batch[n],reason:decisions[n].reason,insufficient:decisions[n].insufficient,referenceImage:images.find(i => i.markId===batch[n].reference.applicationId)?.key,candidateImage:images.find(i => i.markId===batch[n].candidate.applicationId)?.key };
-            const rows = await tx`INSERT INTO watch_glm_decisions(organization_id,match_id,run_id,model,prompt_version,decision,cross_snapshot)
-              VALUES(${run.organization_id},${cross.matchId},${run.id},${DIGEST_MODEL},${DIGEST_PROMPT_VERSION},${tx.json(decisions[n])},${tx.json(JSON.parse(JSON.stringify(cross)))}) ON CONFLICT DO NOTHING RETURNING id`;
+            const rows = await tx`INSERT INTO watch_glm_decisions(organization_id,match_id,run_id,model,prompt_version,decision,cross_snapshot,evidence_fingerprint)
+              VALUES(${run.organization_id},${cross.matchId},${run.id},${DIGEST_MODEL},${DIGEST_PROMPT_VERSION},${tx.json(decisions[n])},${tx.json(JSON.parse(JSON.stringify(cross)))},${cross.evidenceFingerprint!}) ON CONFLICT (organization_id,match_id) DO UPDATE SET run_id=EXCLUDED.run_id,model=EXCLUDED.model,prompt_version=EXCLUDED.prompt_version,decision=EXCLUDED.decision,cross_snapshot=EXCLUDED.cross_snapshot,evidence_fingerprint=EXCLUDED.evidence_fingerprint,notified_at=NULL,created_at=now() WHERE watch_glm_decisions.evidence_fingerprint IS DISTINCT FROM EXCLUDED.evidence_fingerprint RETURNING id`;
             inserted += rows.length;
           }
           await tx`UPDATE watch_digest_runs SET evaluated=evaluated+${inserted},cursor=cursor+${advance},evaluation_input=NULL,status='queued',lease_token=NULL,lease_until=NULL,updated_at=now() WHERE id=${run.id}`;
@@ -183,6 +187,7 @@ export async function processDigestJob(options: { now?: Date; fetcher?: typeof f
       }
       return { progress:true,runId:run.id };
     }
+    if (run.delivery_mode === 'review') { await release(run,'prepared'); return { progress:true,runId:run.id }; }
     if (!run.email) await freezeDigest(run,now);
     await deliverDigest(run,now,fetcher);
     return { progress:true,runId:run.id };
@@ -225,4 +230,18 @@ export async function digestAdminRuns(org: string) {
     COALESCE(sum(c.cost_usd),0)::float8 AS confirmed_cost,COALESCE(sum(c.reserved_usd) FILTER(WHERE c.cost_usd IS NULL),0)::float8 AS unconfirmed_reserve
     FROM watch_digest_runs r LEFT JOIN watch_glm_calls c ON c.run_id=r.id AND c.organization_id=r.organization_id WHERE r.organization_id=${org}
     GROUP BY r.id ORDER BY r.created_at DESC LIMIT 15`;
+}
+
+export async function enqueueDailyWatchReviews(now = new Date()) {
+  if (process.env.WATCH_AI_ENABLED !== 'true' || !digestConfig().glmKey) return 0;
+  let count = 0;
+  for (const org of await digestOrganizations()) {
+    const result = await enqueueDigest(org.id, 'scheduled', `daily-review:${santiagoDay(now)}`, undefined, now, 'review');
+    if (!result.reused) count++;
+  }
+  return count;
+}
+export async function watchAiStatus(org: string) {
+  const [run] = await getSql()`SELECT id,status,evaluated,failures,limited,cursor,jsonb_array_length(candidate_ids) AS selected,error,created_at FROM watch_digest_runs WHERE organization_id=${org} ORDER BY created_at DESC LIMIT 1`;
+  return { configured: Boolean(digestConfig().glmKey), automatic: process.env.WATCH_AI_ENABLED === 'true', run: run ? { id: String(run.id), status: String(run.status), evaluated: Number(run.evaluated), failures: Number(run.failures), limited: Boolean(run.limited), cursor: Number(run.cursor), selected: Number(run.selected), error: run.error ? String(run.error) : undefined, created_at: new Date(run.created_at).toISOString() } : null };
 }

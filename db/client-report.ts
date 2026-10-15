@@ -1,6 +1,6 @@
 import { getSql } from "./index";
 import { organizationId, isDemoOrganization } from "../lib/tenant-context";
-import { associatedClientId } from "../lib/client-directory";
+import { associatedClientId, belongsToClient } from "../lib/client-directory";
 import { completeReportFields, flattenReportData, type ClientReport, type ClientReportRow } from "../lib/client-report";
 import { STATUS_BY_ID, type RegistrationStatusId } from "../lib/registration-data";
 import { statusLabel } from "../lib/source-contract";
@@ -16,8 +16,8 @@ export async function loadClientReport(clientCode:string):Promise<ClientReport |
     sql`SELECT b.*, s.data AS source_data, COALESCE((SELECT jsonb_agg(jsonb_build_object('clase',bc.nice_class,'cobertura',bc.description) ORDER BY bc.nice_class) FROM brand_classes bc WHERE bc.brand_id=b.id),'[]'::jsonb) AS class_data FROM brands b LEFT JOIN source_snapshots s ON s.organization_id=b.organization_id AND s.entity_type='brand' AND s.entity_id=b.id WHERE b.organization_id=${org} AND b.archived_at IS NULL ORDER BY b.name`,
     sql`SELECT a.*, s.data AS source_data FROM registration_applications a LEFT JOIN source_snapshots s ON s.organization_id=a.organization_id AND s.entity_type='application' AND s.entity_id=a.id WHERE a.organization_id=${org} ORDER BY a.data->>'name'`,
   ]);
-  const linkedBrands=brands.filter(b=>associatedClientId({id:b.public_code,name:b.name,provider:b.monitoring_config?.provider || (isDemoOrganization()?"simulated":"inapi"),clientId:b.monitoring_config?.clientId})===clientCode);
-  const linkedApplications=applications.filter(a=>a.data?.clientId===clientCode || isDemoOrganization() && a.data?.provider!=="inapi" && associatedClientId({id:a.public_code,name:a.data?.name,clientId:a.data?.clientId})===clientCode);
+  const linkedBrands=brands.filter(b=>belongsToClient({...b.monitoring_config,id:b.public_code,name:b.name,provider:b.monitoring_config?.provider || (isDemoOrganization()?"simulated":"inapi"),clientId:b.monitoring_config?.clientId},clientCode));
+  const linkedApplications=applications.filter(a=>(a.data?.portfolioRole !== "third-party" && (a.data?.clientId===clientCode || a.data?.clientIds?.includes(clientCode))) || isDemoOrganization() && a.data?.provider!=="inapi" && associatedClientId({id:a.public_code,name:a.data?.name,clientId:a.data?.clientId})===clientCode);
   const brandIds=linkedBrands.map(b=>b.id),appIds=linkedApplications.map(a=>a.id);
   const applicationNumbers=[...linkedBrands.map(b=>b.source_data?.applicationNumber ?? b.monitoring_config?.applicationNumber),...linkedApplications.map(a=>a.data?.applicationNumber)].filter((value):value is string=>typeof value==="string" && Boolean(value));
   const [cases,findings,tasks,comments,attachments]=await Promise.all([

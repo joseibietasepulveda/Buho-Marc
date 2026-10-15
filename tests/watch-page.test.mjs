@@ -19,18 +19,18 @@ test('registered and granted results are excluded from every watch tab and count
  }
  assert.equal(results.length,16);assert.equal(results[2].reviewStatus,'En seguimiento');
 });
-test('pagination sends 10 groups and five hits while retaining full counts; more reaches remaining results',()=>{
+test('pagination sends 30 flat crosses with global score order and complete counts',()=>{
  const page=watchPage(snapshot,new URLSearchParams());
- assert.equal(page.count,144);assert.equal(page.groups[0].totalGroups,12);assert.equal(page.groups[0].rows.length,10);
- assert.ok(page.groups[0].rows.every(row=>row.hits.length===5&&row.total===12&&row.target.results.length===0));
- const more=watchPage(snapshot,new URLSearchParams({'groups':'20','limit:Alta:BM-0':'10'}));
- assert.equal(more.groups[0].rows.length,12);assert.equal(more.groups[0].rows[0].hits.length,10);
+ assert.equal(page.count,144);assert.equal(page.groups[1].totalGroups,144);assert.equal(page.groups[1].rows.length,30);
+ assert.ok(page.groups[1].rows.every(row=>row.hits.length===1&&row.total===1&&row.target.results.length===0));
+ const more=watchPage(snapshot,new URLSearchParams({'groups':'100'}));
+ assert.equal(more.groups[1].rows.length,100);assert.equal(more.groups[1].rows[0].hits.length,1);
 });
 test('search and publication filters apply before pagination, including initially hidden hits and groups',()=>{
  const search=watchPage(snapshot,new URLSearchParams({q:'Hallazgo 11-11'}));
- assert.equal(search.count,1);assert.equal(search.groups[0].rows[0].hits[0].applicationId,'11-11');
+ assert.equal(search.count,1);assert.equal(search.groups[1].rows[0].hits[0].applicationId,'11-11');
  const publication=watchPage(snapshot,new URLSearchParams({publication:'official',from:'2026-09-24',to:'2026-09-24'}));
- assert.equal(publication.count,12);assert.ok(publication.groups[0].rows.every(row=>row.total===1));
+ assert.equal(publication.count,12);assert.ok(publication.groups[1].rows.every(row=>row.total===1));
 });
 test('followed results outside the current stock stay accessible without duplicating saved copies',()=>{
  const followed={...targets[0].results[0],applicationId:'followed',reviewStatus:'En seguimiento'};

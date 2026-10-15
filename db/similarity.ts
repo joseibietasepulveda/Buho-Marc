@@ -1,3 +1,4 @@
+import { watchAiStatus } from "./watch-digest";
 import {runAnalyticsContext} from "../lib/analytics-telemetry";
 import { discoveryKind, commercialRelevance } from "../lib/watch-discovery";
 import { automaticMonitoringEnabled } from "./monitoring-policy";
@@ -38,7 +39,7 @@ export async function enrollWatchTargets() {
         const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, status, monitoring_config, created_by) VALUES (${organizationId()}, ${`BM-R-${record.applicationNumber}`}, ${record.name}, ${record.name}, ${record.owner}, ${record.registrationNumber}, 'Activa', ${tx.json(config)}, ${actorId()}) ON CONFLICT (organization_id, public_code) DO NOTHING RETURNING id`;
         if (brand) for (const niceClass of record.classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass}) ON CONFLICT DO NOTHING`;
       } else {
-        const enabled = existing.monitoring_config.monitoringEnabled !== false;
+        const enabled = true;
         await tx`UPDATE brands SET name = ${record.name}, owner_name = ${record.owner}, monitoring_config = monitoring_config || ${tx.json({ ...realBrandConfig(record), monitoringEnabled: enabled })}, status = ${enabled ? "Activa" : "Pausada"} WHERE id = ${existing.id} AND (name IS DISTINCT FROM ${record.name} OR owner_name IS DISTINCT FROM ${record.owner} OR monitoring_config IS DISTINCT FROM monitoring_config || ${tx.json({ ...realBrandConfig(record), monitoringEnabled: enabled })} OR status IS DISTINCT FROM ${enabled ? "Activa" : "Pausada"})`;
       }
     }
@@ -204,11 +205,11 @@ export async function watchSnapshot(compact = false) {
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND request <> '{}'::jsonb ORDER BY created_at DESC LIMIT 1) j ON true
     LEFT JOIN LATERAL (SELECT * FROM monitoring_jobs WHERE brand_id = b.id AND status = 'success' ORDER BY completed_at DESC LIMIT 1) s ON true
     WHERE b.organization_id = ${organizationId()} AND b.archived_at IS NULL AND b.monitoring_config->>'provider' = 'inapi' AND b.monitoring_config ? 'monitoringEnabled' ORDER BY b.name`;
-  const matches = await sql`SELECT m.public_code,m.brand_id,m.evidence,m.review_status,m.level,m.created_at,f.vote,f.rationale,f.delivery FROM matches m LEFT JOIN watch_feedback f ON f.match_id=m.id AND f.organization_id=m.organization_id AND f.actor_user_id=${actorId()} WHERE m.organization_id=${organizationId()} AND m.source='DeQuiénEs'`;
+  const matches = await sql`SELECT m.public_code,m.brand_id,m.evidence,m.review_status,m.level,m.created_at,d.decision AS ai_decision,f.vote,f.rationale,f.delivery FROM matches m LEFT JOIN watch_glm_decisions d ON d.organization_id=m.organization_id AND d.match_id=m.id AND d.evidence_fingerprint=watch_evidence_fingerprint(m.evidence) LEFT JOIN watch_feedback f ON f.match_id=m.id AND f.organization_id=m.organization_id AND f.actor_user_id=${actorId()} WHERE m.organization_id=${organizationId()} AND m.source='DeQuiénEs'`;
   const ownApplications = new Map(targets.map(t => [t.id, String(t.monitoring_config.applicationNumber)]));
   const present = (m: typeof matches[number]) => {
     const hit = applyVerifiedDecision(m.evidence.hit as SimilarityHit);
-    return { ...hit, feedback:m.vote?{vote:m.vote,rationale:m.rationale,delivery:m.delivery}:undefined, history: [], classes: compact ? hit.classes.map(c => ({ nice_class: c.nice_class })) : hit.classes,
+    return { ...hit, aiDecision: (m.ai_decision ?? undefined) as import("../lib/watch-policy").WatchAiDecision | undefined, feedback:m.vote?{vote:m.vote,rationale:m.rationale,delivery:m.delivery}:undefined, history: [], classes: compact ? hit.classes.map(c => ({ nice_class: c.nice_class })) : hit.classes,
       featuredRank: featuredWatchRank(ownApplications.get(m.brand_id) ?? "", hit.applicationId, org?.slug ?? ""),
       discoveryKind: m.evidence.discoveryKind ?? 'baseline', commercialRelevance: commercialRelevance(m.evidence.query?.classes ?? [], hit.classes),
       watchPublication: m.evidence.watchPublication === true, matchId: m.public_code as string, reviewStatus: m.review_status as string, level: m.level, detectedAt: m.created_at };
@@ -219,6 +220,7 @@ export async function watchSnapshot(compact = false) {
     const hits = byBrand.get(m.brand_id) ?? []; hits.push(presented.get(m.public_code)!); byBrand.set(m.brand_id, hits);
   }
   return {
+    ai: await watchAiStatus(organizationId()),
     settings: watchSettingsSchema.safeParse(org?.watch_settings).data ?? DEFAULT_WATCH_SETTINGS,
     configured: similarityConfigured(), automaticEnabled,
     targets: targets.map(t => ({
@@ -237,6 +239,7 @@ export async function watchSnapshot(compact = false) {
 }
 
 export async function setWatchPaused(id: string, paused: boolean) {
+  if (paused) throw new Error("Todas las marcas de la cartera se monitorean automáticamente.");
   const rows = await getSql()`UPDATE brands SET status = ${paused ? 'Pausada' : 'Activa'}, monitoring_config = monitoring_config || ${getSql().json({ monitoringEnabled: !paused })} WHERE organization_id = ${organizationId()} AND public_code = ${id} AND archived_at IS NULL RETURNING id`;
   if (!rows.length) throw new Error("Marca no encontrada");
   if (paused) await getSql()`UPDATE monitoring_jobs SET status = 'cancelled', completed_at = now() WHERE brand_id = ${rows[0].id} AND organization_id = ${organizationId()} AND status IN ('queued','retry')`;

@@ -1,5 +1,7 @@
 # Mejoras de UI y UX · 2 de octubre de 2026
 
+**Actualización implementada en rama · 15/10/2026 (sin despliegue):** consultar el [contrato vigente de esta entrega](FACTIBILIDAD_CARTERA_VIGILANCIA_2026-10-15.md) y su [análisis de costos](COSTOS_SEMANALES_2026-10-15.md). Sustituye donde corresponda clase obligatoria, etiquetas antiguas del informe, categorías alta/media, cinco cruces por marca/150 totales, pausa individual y aviso único de renovación; agrega pago manual auditado y descubrimiento por representante. El texto histórico siguiente conserva evidencia de entregas anteriores, no acredita publicación de este cambio.
+
 Actualización posterior: la [implementación de maquetas del 4 de octubre](UX_IMPLEMENTACION_OCTUBRE_2026.md) agrega .xls antiguo y encabezado libre, tres pasos de factibilidad, feedback, Clientes, Usuarios y Bitácora. Conserva las estructuras originales de Lista/Calendario en Casos y las vistas de Solicitudes por decisión del usuario. Esa ronda permanece local; los despliegues descritos abajo corresponden a esta entrega histórica.
 
 La [ronda del 4 de octubre](UX_PULIDO_2026-10-04.md) actualiza la distribución del revisor, el tamaño de las letras y el comportamiento de notificaciones descritos aquí.

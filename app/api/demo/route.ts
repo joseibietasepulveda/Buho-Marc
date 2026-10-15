@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 const BRAND_LIMITS_ENABLED = false;
 
 const brandTypeSchema = z.enum(["Denominativa", "Figurativa", "Mixta", "Otra"]);
-const brandInputSchema = z.object({ name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional(), rut: z.string().min(3).max(30), inapiUrl: z.string().url().max(1500), visual: z.string().min(1).max(160), applicationNumber: z.string().regex(/^\d+$/).optional(), logo: z.string().max(1500).optional(), type: brandTypeSchema.default("Mixta") });
+const brandInputSchema = z.object({ portfolioRole: z.enum(["own", "third-party"]).default("own"), name: z.string().min(2).max(180), owner: z.string().min(2).max(180), registration: z.string().max(100).optional(), classes: z.string().min(1), country: z.string().min(2).max(100), description: z.string().max(3000).optional(), rut: z.string().min(3).max(30), inapiUrl: z.string().url().max(1500), visual: z.string().min(1).max(160), applicationNumber: z.string().regex(/^\d+$/).optional(), logo: z.string().max(1500).optional(), type: brandTypeSchema.default("Mixta") });
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createBrand") }).extend(brandInputSchema.shape),
   z.object({ action: z.literal("bulkCreateBrands"), brands: z.array(brandInputSchema).min(1).max(250) }),
@@ -77,7 +77,7 @@ async function handlePOST(request: Request) {
       await sql.begin(async (tx) => {
         const [counter] = await tx`SELECT COALESCE(MAX(NULLIF(regexp_replace(public_code, '\\D', '', 'g'), '')::int), 18) + 1 AS next FROM brands WHERE organization_id = ${organizationId()}`;
         const code = nextCode("BM", counter.next, 3);
-        const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${organizationId()}, ${code}, ${input.name.toUpperCase()}, ${input.name.toUpperCase()}, ${input.owner}, ${input.registration || null}, ${input.country}, ${input.description || null}, 'Procesando', ${tx.json({ rut: input.rut, inapiUrl: input.inapiUrl, visual: input.visual, type: input.type, applicationNumber: input.applicationNumber, logo: input.logo, import: 'inapi-demo' })}, ${actorId()}) RETURNING id`;
+        const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${organizationId()}, ${code}, ${input.name.toUpperCase()}, ${input.name.toUpperCase()}, ${input.owner}, ${input.registration || null}, ${input.country}, ${input.description || null}, 'Procesando', ${tx.json({ portfolioRole: input.portfolioRole, monitoringEnabled: true, rut: input.rut, inapiUrl: input.inapiUrl, visual: input.visual, type: input.type, applicationNumber: input.applicationNumber, logo: input.logo, import: 'inapi-demo' })}, ${actorId()}) RETURNING id`;
         for (const niceClass of classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass})`;
         await tx`INSERT INTO monitoring_jobs (organization_id, brand_id, status, idempotency_key, requested_by) VALUES (${organizationId()}, ${brand.id}, 'awaiting_engine', ${`brand:${brand.id}:initial`}, ${actorId()})`;
         await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${organizationId()}, ${actorId()}, 'brand.created', 'brand', ${brand.id}, ${tx.json({ code, engineStatus: "awaiting_engine" })})`;
@@ -98,7 +98,7 @@ async function handlePOST(request: Request) {
           const [existing] = await tx`SELECT id FROM brands WHERE organization_id = ${organizationId()} AND upper(name) = upper(${candidate.name}) LIMIT 1`;
           if (existing) continue;
           const code = nextCode("BM", next, 3); next += 1;
-          const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${organizationId()}, ${code}, ${candidate.name.toUpperCase()}, ${candidate.name.toUpperCase()}, ${candidate.owner}, ${candidate.registration || null}, ${candidate.country}, ${candidate.description || null}, 'Procesando', ${tx.json({ rut: candidate.rut, inapiUrl: candidate.inapiUrl, visual: candidate.visual, type: candidate.type, import: 'rut-demo' })}, ${actorId()}) RETURNING id`;
+          const [brand] = await tx`INSERT INTO brands (organization_id, public_code, name, word_mark, owner_name, registration_number, jurisdiction, description, status, monitoring_config, created_by) VALUES (${organizationId()}, ${code}, ${candidate.name.toUpperCase()}, ${candidate.name.toUpperCase()}, ${candidate.owner}, ${candidate.registration || null}, ${candidate.country}, ${candidate.description || null}, 'Procesando', ${tx.json({ portfolioRole: candidate.portfolioRole, monitoringEnabled: true, rut: candidate.rut, inapiUrl: candidate.inapiUrl, visual: candidate.visual, type: candidate.type, import: 'rut-demo' })}, ${actorId()}) RETURNING id`;
           for (const niceClass of classes) await tx`INSERT INTO brand_classes (brand_id, nice_class) VALUES (${brand.id}, ${niceClass})`;
           await tx`INSERT INTO monitoring_jobs (organization_id, brand_id, status, idempotency_key, requested_by) VALUES (${organizationId()}, ${brand.id}, 'awaiting_engine', ${`brand:${brand.id}:initial`}, ${actorId()})`;
           await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) VALUES (${organizationId()}, ${actorId()}, 'brand.imported_by_rut', 'brand', ${brand.id}, ${tx.json({ code, rut: candidate.rut, source: 'demo-coca-cola' })})`;
@@ -151,7 +151,8 @@ async function handlePOST(request: Request) {
       const [match] = await sql`UPDATE matches SET level = ${input.level}, total_score = CASE WHEN source = 'DeQuiénEs' THEN total_score ELSE ${score} END, updated_at = now() WHERE organization_id = ${organizationId()} AND public_code = ${input.id} RETURNING id`;
       if (!match) throw new Error("Coincidencia no encontrada");
     } else if (input.action === "toggleBrandMonitoring") {
-      const status = input.enabled ? "Activa" : "Pausada";
+      if (!input.enabled) return NextResponse.json({ message: "Todas las marcas de la cartera se monitorean automáticamente." }, { status: 409 });
+      const status = "Activa";
       if (BRAND_LIMITS_ENABLED && input.enabled) {
         const [usage] = await sql`SELECT count(*)::int AS count FROM brands WHERE organization_id = ${organizationId()} AND archived_at IS NULL AND status <> 'Pausada'`;
         if (Number(usage.count) >= 25) throw new Error("No quedan cupos activos en el plan Estudio");

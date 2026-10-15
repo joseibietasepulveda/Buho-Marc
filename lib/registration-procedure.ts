@@ -70,6 +70,7 @@ const notificationStages = new Set<RegistrationStatusId>([
 ]);
 
 export function procedureContext(application: RegistrationApplication): string {
+  if (application.manualPayment?.state === "pending" && application.statusId === (application.manualPayment.kind === "final" ? "payment-verification" : "publication-pending")) return "El equipo informó el pago. La confirmación de INAPI sigue pendiente; esta declaración no acredita el pago ante la institución ni concede el registro.";
   const { statusId: s, procedure: p } = application;
   if (s === "accepted-publication") return p?.publicationRequestedAt
     ? "Publicación requerida. Se espera su publicación efectiva; la ventana de oposición aún no comienza."
@@ -95,6 +96,7 @@ export function procedureContext(application: RegistrationApplication): string {
 }
 
 function primaryDeadline(a: RegistrationApplication, today: string): ProcedureDeadline {
+  if (a.manualPayment?.state === "pending" && a.statusId === (a.manualPayment.kind === "final" ? "payment-verification" : "publication-pending")) return { key: a.statusId, label: "Pago informado · confirmación de INAPI pendiente", attention: "none", explanation: procedureContext(a), trigger: "Declaración del equipo", origin: "unavailable", fatal: false };
   const status = STATUS_BY_ID[a.statusId];
   const p = a.procedure;
   const payment = ["accepted-payment", "partial-payment"].includes(a.statusId);
@@ -208,6 +210,7 @@ function supplementaryDeadlines(a: RegistrationApplication, today: string): Proc
 }
 
 export function registrationProgress(a: RegistrationApplication, today = chileToday()): string {
+  if (a.manualPayment?.state === "pending") return a.manualPayment.kind === "publication" ? "Pago de publicación informado — esperando publicación" : "Pago informado por el equipo — esperando confirmación de INAPI";
   if (a.statusId === "opposition-window") {
     const window = primaryDeadline(a, today);
     if (window.dueDate && window.dueDate < today) return "Ventana de oposición finalizada · pendiente de actuaciones de INAPI";

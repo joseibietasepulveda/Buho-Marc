@@ -302,7 +302,7 @@ export const releaseAcknowledgements = pgTable("release_acknowledgements", {
 
 export const watchDigestRuns = pgTable("watch_digest_runs", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  idempotencyKey: text("idempotency_key").notNull(), trigger: text("trigger").notNull(), requestedBy: uuid("requested_by").references(() => users.id), status: text("status").default("queued").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(), trigger: text("trigger").notNull(), deliveryMode: text("delivery_mode").default("email").notNull(), requestedBy: uuid("requested_by").references(() => users.id), status: text("status").default("queued").notNull(),
   candidateIds: jsonb("candidate_ids").default([]).notNull(), cursor: integer("cursor").default(0).notNull(), evaluated: integer("evaluated").default(0).notNull(), available: integer("available").default(0).notNull(), filteredLowScore: integer("filtered_low_score").default(0).notNull(), failures: integer("failures").default(0).notNull(), limited: boolean("limited").default(false).notNull(),
   payload: jsonb("payload"), email: jsonb("email"), evaluationInput: jsonb("evaluation_input"), leaseToken: uuid("lease_token"), leaseUntil: timestamp("lease_until", { withTimezone: true }), availableAt: timestamp("available_at", { withTimezone: true }).defaultNow().notNull(),
   sendAttempts: integer("send_attempts").default(0).notNull(), firstSendAt: timestamp("first_send_at", { withTimezone: true }), resendId: text("resend_id"), deliveryUncertain: boolean("delivery_uncertain").default(false).notNull(), error: text("error"), sentAt: timestamp("sent_at", { withTimezone: true }), ...timestamps,
@@ -310,7 +310,7 @@ export const watchDigestRuns = pgTable("watch_digest_runs", {
   uniqueIndex("watch_digest_one_active_org").on(t.organizationId).where(sql`${t.status} IN ('queued','running','retry','sending')`), index("watch_digest_pending_idx").on(t.status, t.availableAt, t.createdAt)]);
 export const watchGlmDecisions = pgTable("watch_glm_decisions", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }), matchId: uuid("match_id").notNull().references(() => matches.id, { onDelete: "cascade" }), runId: uuid("run_id").notNull(),
-  model: text("model").notNull(), promptVersion: integer("prompt_version").notNull(), decision: jsonb("decision").notNull(), crossSnapshot: jsonb("cross_snapshot").notNull(), notifiedAt: timestamp("notified_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  model: text("model").notNull(), promptVersion: integer("prompt_version").notNull(), decision: jsonb("decision").notNull(), crossSnapshot: jsonb("cross_snapshot").notNull(), evidenceFingerprint: text("evidence_fingerprint"), notifiedAt: timestamp("notified_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, t => [foreignKey({columns:[t.organizationId,t.runId],foreignColumns:[watchDigestRuns.organizationId,watchDigestRuns.id]}).onDelete("cascade"), uniqueIndex("watch_glm_decisions_organization_id_match_id_key").on(t.organizationId, t.matchId), index("watch_glm_unsent_idx").on(t.organizationId, t.runId).where(sql`${t.notifiedAt} IS NULL`)]);
 export const watchGlmCalls = pgTable("watch_glm_calls", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }), runId: uuid("run_id").notNull(), requestHash: text("request_hash").notNull(),
@@ -340,3 +340,9 @@ export const analyticsSnapshots = pgTable('analytics_snapshots', {
 export const analyticsBrandAssignments = pgTable('analytics_brand_assignments', {
  organizationId:uuid('organization_id').notNull().references(()=>organizations.id,{onDelete:'cascade'}),brandId:uuid('brand_id').notNull().references(()=>brands.id,{onDelete:'cascade'}),userId:uuid('user_id').references(()=>users.id,{onDelete:'set null'}),assignedBy:uuid('assigned_by').references(()=>users.id,{onDelete:'set null'}),assignedAt:timestamp('assigned_at',{withTimezone:true}).defaultNow().notNull(),
 },t=>[primaryKey({columns:[t.organizationId,t.brandId]}),index('analytics_brand_assignments_user_idx').on(t.organizationId,t.userId)]);
+
+export const portfolioDiscoveryRuns = pgTable("portfolio_discovery_runs", {
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }), day: date("day").notNull(), representativeRut: text("representative_rut").notNull(),
+  offsetCursor: integer("offset_cursor").default(0).notNull(), status: text("status").default("pending").notNull(), attempts: integer("attempts").default(0).notNull(), discovered: integer("discovered").default(0).notNull(),
+  leaseToken: uuid("lease_token"), leaseUntil: timestamp("lease_until", { withTimezone: true }), retryAt: timestamp("retry_at", { withTimezone: true }).defaultNow().notNull(), error: text("error"), ...timestamps,
+}, t => [primaryKey({ columns: [t.organizationId, t.day] })]);

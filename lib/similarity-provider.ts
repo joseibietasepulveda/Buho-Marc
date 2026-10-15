@@ -1,3 +1,4 @@
+import { searchClasses, RELATED_CLASSES_VERSION } from './nice-related';
 import {analyticsFetcher} from "./analytics-telemetry";
 import { portfolioImage, dequienesImage } from "./trademark-image";
 import { z } from "zod";
@@ -26,7 +27,10 @@ export function withRecord(hit: SimilarityHit, record: SourceRecord): Similarity
 }
 export async function searchSimilar(input: Record<string, unknown>, image?: File, fetcher: typeof fetch = fetch): Promise<SimilarityResult> {
   if (!similarityConfigured()) throw new SimilarityError("La búsqueda real aún no está configurada en este ambiente.", 503);
-  const { states, minSimilarity, matchMode, niceClass, ...remoteInput } = input;
+  const { states, minSimilarity, matchMode, niceClass, includeRelatedClasses, relatedClasses, ...remoteInput } = input;
+  const primary = Array.isArray(input.coverage) ? input.coverage as {nice_class:number;text?:string}[] : [];
+  const searchedClasses = searchClasses({coverage: primary, includeRelatedClasses: includeRelatedClasses === true, relatedClasses: Array.isArray(relatedClasses) ? relatedClasses as number[] : []});
+  if (includeRelatedClasses && primary.length) remoteInput.coverage = searchedClasses.map(n => ({nice_class:n,text:primary.find(c=>c.nice_class===n)?.text ?? ''}));
   const nameModes:Record<string,string>={contains:'contains',word:'contains_token',starts:'prefix',ends:'suffix',exact:'contains'};
   if(typeof matchMode==='string'&&nameModes[matchMode])remoteInput.name_match=nameModes[matchMode];
   let body: BodyInit = JSON.stringify(remoteInput);
@@ -48,7 +52,7 @@ export async function searchSimilar(input: Record<string, unknown>, image?: File
   const data = parsed.data;
   const allIds = data.results.map(hit => String(hit.application_id));
   if (new Set(allIds).size !== allIds.length || allIds.length > Number(input.limit ?? 30)) throw new SimilarityError("La fuente devolvió resultados duplicados o fuera del límite solicitado.");
-  const candidates = data.results.filter(hit => hit.application_id !== input.application_id && (typeof niceClass !== "number" || hit.classes.some(c => c.nice_class === niceClass)) && hit.score >= Number(minSimilarity ?? 0) && (matchMode !== "exact" || textMatches(hit.name ?? "", String(input.name ?? ""), "exact")));
+  const candidates = data.results.filter(hit => hit.application_id !== input.application_id && (!searchedClasses.length || hit.classes.some(c => searchedClasses.includes(c.nice_class))) && hit.score >= Number(minSimilarity ?? 0) && (matchMode !== "exact" || textMatches(hit.name ?? "", String(input.name ?? ""), "exact")));
   const ids = candidates.map(hit => String(hit.application_id));
   let records: SourceRecord[] = [];
   try { if (ids.length) records = (await fetchInapiEvidence({ applicationIds: ids, registrationIds: [] }, fetcher)).records; }
@@ -57,5 +61,5 @@ export async function searchSimilar(input: Record<string, unknown>, image?: File
   const results = candidates.map(hit => withRecord({ ...mark(hit, byId.get(String(hit.application_id))), searchId:data.search_id, score: hit.score, channels: hit.channels, history: [] }, byId.get(String(hit.application_id))!)).filter(hit => !Array.isArray(states) || states.includes(feasibilityStatus(hit)));
   const resultIds = new Set(results.map(hit=>Number(hit.applicationId)));
   const groups = data.groups.flatMap(group => { const member_ids = group.member_ids.filter(id=>resultIds.has(id)); return member_ids.length ? [{...group,member_ids,representative_id:member_ids.includes(group.representative_id)?group.representative_id:member_ids[0]}] : []; });
-  return { searchId:data.search_id, query: mark(data.query), results, groups, searchScope: { retrieved:data.results.length, niceClass:typeof niceClass === "number" ? niceClass : undefined, limit:Number(input.limit ?? 30), states:Array.isArray(states) ? states as string[] : undefined, minSimilarity:Number(minSimilarity ?? 0) }, warnings: [...data.warnings, ...(results.some(hit => hit.dataWarnings?.length) ? ["Hay antecedentes incompletos o inconsistentes en algunas solicitudes. Revisa las advertencias de cada resultado."] : [])], candidateCount: data.candidate_count, elapsedSeconds: data.elapsed_seconds, fetchedAt: new Date().toISOString() };
+  return { searchId:data.search_id, query: mark(data.query), results, groups, searchScope: { retrieved:data.results.length, searchedClasses, relatedClasses:searchedClasses.filter(n=>!primary.some(c=>c.nice_class===n)), relationVersion:RELATED_CLASSES_VERSION, niceClass:typeof niceClass === "number" ? niceClass : undefined, limit:Number(input.limit ?? 30), states:Array.isArray(states) ? states as string[] : undefined, minSimilarity:Number(minSimilarity ?? 0) }, warnings: [...data.warnings, ...(results.some(hit => hit.dataWarnings?.length) ? ["Hay antecedentes incompletos o inconsistentes en algunas solicitudes. Revisa las advertencias de cada resultado."] : [])], candidateCount: data.candidate_count, elapsedSeconds: data.elapsed_seconds, fetchedAt: new Date().toISOString() };
 }

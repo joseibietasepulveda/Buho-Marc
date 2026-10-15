@@ -1,0 +1,38 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
+const origin=process.env.BUHO_UI_ORIGIN||'http://127.0.0.1:3107';
+if(new URL(origin).hostname!=='127.0.0.1')throw Error('Use the isolated local server');
+const output=process.env.BUHO_UI_OUTPUT||'.buho-local/visual';fs.mkdirSync(output,{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ const context=await browser.newContext({viewport:{width:1440,height:1000}});
+ await context.addCookies([{name:'buho_session',value:JSON.parse(fs.readFileSync(process.env.BUHO_UI_SESSION_FILE||'.buho-local/ui-session.json')).token,domain:'127.0.0.1',path:'/'}]);
+ await context.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());if(url.hostname!=='127.0.0.1')return route.abort();if(req.method()==='GET'&&['/api/demo','/api/watch'].includes(url.pathname)){const res=await route.fetch();const payload=await res.json();if(url.pathname==='/api/demo')payload.data.provider='inapi';else payload.configured=true;return route.fulfill({response:res,json:payload});}return route.continue();});
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(`${origin}/app#brands`);await page.getByRole('button',{name:/Mis Marcas/}).first().waitFor({timeout:60000});
+ if(await page.getByRole('button',{name:'Lo veo después',exact:true}).isVisible())await page.getByRole('button',{name:'Lo veo después',exact:true}).click();
+ await page.screenshot({path:`${output}/brands.png`,fullPage:true});console.log('BRANDS', (await page.locator('body').innerText()).slice(-3000));
+ await page.getByRole('button',{name:'03 Vigilancia',exact:true}).click();await page.locator('.watch-cross-row').first().waitFor({timeout:60000});
+ await page.screenshot({path:`${output}/watch.png`,fullPage:true});console.log('CROSSES',await page.locator('.watch-cross-row').count());
+ await page.getByText('Configurar umbrales',{exact:true}).click();await page.screenshot({path:`${output}/threshold.png`,fullPage:true});
+ await page.locator('#watch-publication-threshold').fill((await page.locator('#watch-publication-threshold').inputValue())==='60'?'65':'60');await page.getByRole('button',{name:'Guardar umbral',exact:true}).click();await page.getByText('Límites guardados para esta cartera.',{exact:true}).waitFor();
+ await page.setViewportSize({width:390,height:844});await page.getByText('Configurar umbrales',{exact:true}).click();await page.locator('.watch-cross-row').first().scrollIntoViewIfNeeded();await page.screenshot({path:`${output}/watch-mobile.png`});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390);console.log('MOBILE OVERFLOW',await page.evaluate(()=>({width:innerWidth,doc:document.documentElement.scrollWidth})));
+ await page.setViewportSize({width:1440,height:1000});await page.getByRole('navigation').getByRole('button').filter({hasText:'Revisor de factibilidad'}).click();await page.waitForTimeout(1200);console.log('FEASIBILITY', (await page.locator('body').innerText()).slice(-2000));await page.screenshot({path:`${output}/feasibility.png`,fullPage:true});
+ 
+ await page.getByRole('textbox',{name:'Nombre de la marca'}).fill('NUBE TEST');
+ assert.equal(await page.getByRole('button',{name:'Buscar antecedentes',exact:true}).isEnabled(),true);
+ const linked=page.getByRole('checkbox',{name:'Considerar también clases vinculadas'});assert.equal(await linked.isChecked(),true);
+ assert.match(await page.getByRole('link',{name:'clases vinculadas',exact:true}).getAttribute('href'),/^https:\/\/www.inapi.cl\//);
+ await page.getByRole('combobox',{name:'Clase Niza',exact:true}).fill('7');await page.getByRole('option').filter({hasText:/^7 ·/}).click();
+ await page.locator('.feasibility-linked-picker summary').click();assert.equal(await page.getByRole('checkbox',{name:/Incluir clase vinculada 8/}).isChecked(),true);
+ await page.screenshot({path:`${output}/linked-classes.png`,fullPage:true});
+ await page.getByRole('navigation').getByRole('button').filter({hasText:'Mis marcas'}).click();
+ await page.getByRole('button',{name:/Marcas de 3ros/}).first().click();assert.equal(await page.locator('.buho-table-panel tbody tr').count(),1);
+ await page.getByRole('button',{name:'Agregar marcas de 3ros',exact:true}).click();await page.getByRole('dialog').waitFor();await page.screenshot({path:`${output}/third-party-selector.png`,fullPage:true});await page.keyboard.press('Escape');
+ await page.getByRole('navigation').getByRole('button').filter({hasText:'Solicitudes de registro'}).click();
+ if(await page.getByRole('button',{name:'Deshacer',exact:true}).isVisible())await page.getByRole('button',{name:'Deshacer',exact:true}).click();await page.getByRole('button',{name:'Pagado',exact:true}).waitFor();await page.screenshot({path:`${output}/payment-before.png`,fullPage:true});
+ await page.getByRole('button',{name:'Pagado',exact:true}).click();await page.getByText('Pago informado por el equipo',{exact:true}).waitFor();assert.equal(await page.locator('.registration-drawer').count(),0);assert.equal(await page.locator('.trademark-card').getByText('Pago final acreditado — esperando registro',{exact:true}).count(),0);
+ await page.screenshot({path:`${output}/payment-after.png`,fullPage:true});await page.getByRole('button',{name:'Deshacer',exact:true}).click();await page.getByRole('button',{name:'Pagado',exact:true}).waitFor();
+ assert.deepEqual(errors,[]);console.log('PASS: desktop/mobile, threshold, optional class, linked classes, third-party selector, payment/revoke. No browser errors.');await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

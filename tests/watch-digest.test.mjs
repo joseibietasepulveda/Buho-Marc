@@ -27,12 +27,12 @@ test('eligibility excludes ended opposition windows, registered, dismissed, own 
  assert.equal(eligibleDigestCandidate({...c,candidate:{...c.candidate,applicationId:c.reference.applicationId}},'2026-10-13'),false);
  assert.equal(eligibleDigestCandidate({...c,candidate:{...c.candidate,officialDecision:{status:'Rechazada definitivamente'}}},'2026-10-13'),false);
 });
-test('hard 150 across marks, 5 per mark, score gate includes exactly 25%',()=>{
+test('at most 50 marks with two highest crosses each, and no score floor before AI',()=>{
  const stock=Array.from({length:30},(_,b)=>Array.from({length:12},(_,n)=>cross(100*b+n,`brand-${b}`,{score:n===0 ? .2499 : .25+n/100}))).flat();
  const {selected,available,filteredLowScore}=selectDigestCandidates(stock,150,new Date('2026-10-13T12:00:00Z'));
- assert.equal(available,330);assert.equal(filteredLowScore,30);assert.equal(selected.length,150);assert.equal(new Set(selected.map(c=>c.brandId)).size,30);
+ assert.equal(available,360);assert.equal(filteredLowScore,0);assert.equal(selected.length,60);assert.equal(new Set(selected.map(c=>c.brandId)).size,30);
  assert.ok(selected.every(c=>c.score>=.25));
- assert.equal(Math.max(...[...new Set(selected.map(c=>c.brandId))].map(b=>selected.filter(c=>c.brandId===b).length)),5);
+ assert.equal(Math.max(...[...new Set(selected.map(c=>c.brandId))].map(b=>selected.filter(c=>c.brandId===b).length)),2);
 });
 test('full coverages, images once per reference, no source score or holder and explicit missing image',()=>{
  const candidates=[cross(1),cross(2)];candidates[0].reference.classes[0].coverage_text='Cobertura completa '.repeat(200);

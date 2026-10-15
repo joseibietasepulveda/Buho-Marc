@@ -1,8 +1,8 @@
-import { discoveryLevel, discoveryOrder, hiddenDiscoveryState, registeredState, type WatchSettings } from './watch-policy';
+import { discoveryLevel, discoveryOrder, hiddenDiscoveryState, registeredState, type WatchSettings, type WatchAiDecision } from './watch-policy';
 import type { SimilarityHit } from './similarity-contract';
 export type WatchLevel = 'Alta' | 'Media' | 'Baja';
 export type WatchStatus = 'Pendiente de clasificación' | 'En seguimiento' | 'Convertida en caso' | 'Descartada';
-export type WatchHit = SimilarityHit & { level?: WatchLevel | 'Sin clasificar'; featuredRank?: number };
+export type WatchHit = SimilarityHit & { level?: WatchLevel | 'Sin clasificar'; featuredRank?: number; aiDecision?: WatchAiDecision };
 export type WatchTarget = { id: string; name: string; applicationId: string; image: string; ownStatus: string; classes?: number[]; type?: string; presentationExample?: boolean; paused: boolean; status: string; error?: string; reviewedAt: string | null; nextReviewAt: string | null; warnings: string[]; results: WatchHit[]; savedResults?: WatchHit[] };
 export const watchStatuses: WatchStatus[] = ['Pendiente de clasificación', 'En seguimiento', 'Convertida en caso', 'Descartada'];
 export const reviewStatus = (hit: WatchHit): WatchStatus => !hit.reviewStatus || hit.reviewStatus === 'Detectada' ? 'Pendiente de clasificación' : hit.reviewStatus as WatchStatus;
@@ -44,10 +44,10 @@ export function featuredGroups(targets: WatchTarget[], query: string, publicatio
   }).sort((a, b) => a.hits[0].featuredRank! - b.hits[0].featuredRank!);
 }
 export function discoveryGroups(targets: WatchTarget[], query: string, settings: WatchSettings, publication = DEFAULT_PUBLICATION_FILTER, scope: DiscoveryScope = 'all', relevance: 'related' | 'all' = 'related') {
-  return (['Alta', 'Media'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
-    const visible = hits.filter(hit => hit.featuredRank === undefined && (!target.paused || (hit.discoveryKind ?? 'baseline') === 'baseline') &&
+  return (['Recomendados', 'Mostrar'] as const).map(level => ({ level, rows: filterWatchTargets(targets, query, [], ['Pendiente de clasificación']).flatMap(({ target, hits }) => {
+    const visible = hits.filter(hit => (!target.paused || (hit.discoveryKind ?? 'baseline') === 'baseline') &&
       (scope === 'all' || ((hit.discoveryKind ?? 'baseline') === 'baseline') === (scope === 'baseline')) &&
-      (relevance === 'all' || hit.commercialRelevance !== 'unrelated') &&
+      (hit.aiDecision?.show || relevance === 'all' || hit.commercialRelevance !== 'unrelated') &&
       !hiddenDiscoveryState(hit.status) && matchesPublication(hit, publication) && discoveryLevel(hit, settings) === level).sort(discoveryOrder);
     return visible.length ? [{ target, hits: visible }] : [];
   }).sort((a,b) => (b.hits[0]?.score ?? 0) - (a.hits[0]?.score ?? 0) || a.target.name.localeCompare(b.target.name,'es')) }));

@@ -66,8 +66,8 @@ const target=snapshot.targets[0];const id=target.results[0].matchId;
   assert.ok(requests.some(r=>r.filed_after));assert.ok(requests.some(r=>r.published_after));assert.ok(requests.every(r=>!(r.filed_after&&r.published_after)&&r.limit===50&&!r.states));
   await queueWatch(target.id);await processWatchJob(async()=>{throw new SimilarityError('ocupado',503,true)});
   assert.equal((await watchSnapshot()).targets[0].status,'retry');assert.equal((await watchSnapshot()).targets[0].results.length,50);
-  await setWatchPaused(target.id,true);assert.equal((await processWatchJob(search)).skipped,true);
-  await setWatchPaused(target.id,false);await processWatchJob(search);
+  await assert.rejects(setWatchPaused(target.id,true),/automáticamente/);
+  await sql`UPDATE monitoring_jobs SET available_at=now() WHERE organization_id=${identities[0].organizationId} AND status='retry'`;await processWatchJob(search);
   assert.equal((await sql`SELECT count(*)::int AS n FROM notifications`)[0].n,1);
   // A lease lost after a worker crash cannot publish stale results.
   await queueWatch(target.id);
@@ -228,5 +228,5 @@ const target=snapshot.targets[0];const id=target.results[0].matchId;
   results=[{...recent,publishedAt:'2026-09-30'}];await review();assert.equal(await notices(),1,'discarded result cannot notify');
  });
  console.log('PASS: baseline, retained new findings, no unsolicited notifications, explicit follow consent, no retrospective notices, direct case conversion, deduplication and stopping follow.');
- console.log('PASS: migrations, owned pending enrollment, 50 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, pause/resume, tenant isolation and registration transition.');
+ console.log('PASS: migrations, owned pending enrollment, 50 results, idempotency, global concurrency, publication, preserved review, separate windows, retry, mandatory monitoring, tenant isolation and registration transition.');
 }finally{if(sql)await sql.end();await pg.stop();}

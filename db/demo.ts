@@ -1,7 +1,6 @@
 import { automaticMonitoringEnabled } from "./monitoring-policy";
 import { watchSnapshot } from "./similarity";
-import { discoveryGroups, featuredGroups } from "../lib/watch-list";
-import { discoveryLevel } from "../lib/watch-policy";
+import { discoveryGroups } from "../lib/watch-list";
 import { workspacePolicy } from "../lib/workspace-policy";
 import { applyVerifiedDecision } from "../lib/verified-decisions";
 import { auditAction, auditEntity } from "../lib/legal-language";
@@ -148,7 +147,7 @@ export async function getDemoSnapshot() {
   const taskRows = await sql`SELECT t.id, t.title, t.status, t.priority, t.due_at, t.assignee_id, c.public_code FROM case_tasks t JOIN cases c ON c.id = t.case_id WHERE t.organization_id = ${organizationId()} AND c.organization_id = ${organizationId()} ORDER BY t.created_at, t.id`;
   const caseRows = await sql`SELECT c.id AS internal_id, c.public_code, c.proceeding, c.title, c.description, COALESCE(b.name, 'Sin marca') AS brand_name, c.client_name, c.stage, c.priority, c.next_deadline, COALESCE(u.name, 'Sin asignar') AS owner_name, m.public_code AS source_match FROM cases c LEFT JOIN brands b ON b.id = c.brand_id LEFT JOIN users u ON u.id = c.owner_id LEFT JOIN matches m ON m.id = c.source_match_id WHERE c.organization_id = ${organizationId()} AND c.status = 'active' AND (${!isRealSource()} OR b.archived_at IS NULL) ORDER BY c.created_at DESC`;
   const userRows = await sql`SELECT u.id, u.name, u.email, u.initials, om.role, om.created_at FROM organization_members om JOIN users u ON u.id = om.user_id WHERE om.organization_id = ${organizationId()} ORDER BY om.created_at`;
-  const noticeRows = await sql`SELECT m.public_code AS match_code, n.public_code, n.title, n.brand_name, n.urgency, n.managed_at, n.created_at, n.change_detail, d.subject, d.body FROM notifications n LEFT JOIN matches m ON n.entity_type = 'match' AND n.entity_id = m.id AND n.organization_id = m.organization_id JOIN email_drafts d ON d.notification_id = n.id WHERE n.organization_id = ${organizationId()} AND n.dismissed_at IS NULL AND COALESCE(n.change_detail->>'invalidated', 'false') <> 'true' ORDER BY n.created_at DESC`;
+  const noticeRows = await sql`SELECT m.public_code AS match_code, n.public_code, n.title, n.brand_name, n.urgency, n.managed_at, n.created_at, n.change_detail, d.subject, d.body FROM notifications n LEFT JOIN matches m ON n.entity_type = 'match' AND n.entity_id = m.id AND n.organization_id = m.organization_id LEFT JOIN email_drafts d ON d.notification_id = n.id WHERE n.organization_id = ${organizationId()} AND n.dismissed_at IS NULL AND COALESCE(n.change_detail->>'invalidated', 'false') <> 'true' ORDER BY n.created_at DESC`;
   const savedSources = brandRows.some(row => row.monitoring_config?.provider === "inapi")
     ? await sql`SELECT s.entity_id, r.data FROM source_snapshots s JOIN source_records r ON r.id = s.source_id WHERE s.organization_id = ${organizationId()} AND s.entity_type = 'brand' AND r.data->>'provider' = 'inapi'`
     : [];
@@ -168,10 +167,7 @@ export async function getDemoSnapshot() {
   const regularFindings = discoveryGroups(watch.targets, '', watch.settings).flatMap(group => group.rows.flatMap(({ target, hits }) => hits.map(hit => ({
     brand_id: brandIds.get(target.id) ?? '', brand: target.name, brandImage: target.image, brandClasses: target.classes, id: hit.matchId!, hit, level: group.level,
   })))).sort((a,b) => b.hit.score - a.hit.score);
-  const highlightedFindings = featuredGroups(watch.targets, '').flatMap(({ target, hits }) => hits.map(hit => ({
-    brand_id: brandIds.get(target.id) ?? '', brand: target.name, brandImage: target.image, brandClasses: target.classes, id: hit.matchId!, hit, level: discoveryLevel(hit, watch.settings) ?? 'Baja',
-  })));
-  const eligibleFindings = [...highlightedFindings, ...regularFindings];
+  const eligibleFindings = regularFindings.sort((a,b) => Number(b.level === "Recomendados") - Number(a.level === "Recomendados") || b.hit.score-a.hit.score);
   const visibleFindingCounts = new Map<string,number>();
   for (const row of eligibleFindings) visibleFindingCounts.set(row.brand_id,(visibleFindingCounts.get(row.brand_id)??0)+1);
   const watchSummary = {targets:brandRows.filter(row=>row.status!=="Pausada" && row.monitoring_config?.monitoringEnabled).length,detected:eligibleFindings.length};
@@ -205,7 +201,7 @@ export async function getDemoSnapshot() {
     }),
     cases: caseRows.map((row) => ({ history: auditRows.filter(event => event.entity_type === "case" && event.entity_id === row.internal_id).reverse().map(event => `${shortDate(event.occurred_at, true)} · ${auditAction(event.action, event.after_data)}`), proceeding: row.proceeding?.record?.provider === "inapi" ? {...row.proceeding,record:reprojectInapiRecord(row.proceeding.record)} : row.proceeding, tasks: taskRows.filter(task => task.public_code === row.public_code).map(task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, dueDate: task.due_at ? new Date(task.due_at).toISOString().slice(0, 10) : null, assigneeId: task.assignee_id })), id: row.public_code, title: row.title, brand: row.proceeding?.basisName ?? row.brand_name, client: row.client_name, stage: row.stage === "Evaluación" ? "Preparación" : row.stage, priority: row.priority, deadline: shortDate(row.next_deadline, true), deadlineDescription: String(row.description ?? "").match(/Plazo:\s*(.+)/)?.[1], owner: displayPersonName(row.owner_name), sourceMatch: row.source_match ?? undefined })),
     users: userRows.map((row) => ({ id: row.id, name: displayPersonName(row.name), email: row.name === "Rosario Vial" ? "jose.ignacio@ibieta.cl" : row.email ?? "", createdAt: shortDate(row.created_at, true), role: row.role, initials: row.name === "Rosario Vial" ? "JI" : row.initials })),
-    notices: noticeRows.map((row) => ({ deadline: row.change_detail?.kind === "renewal-reminder" ? row.change_detail.expirationDate : undefined, matchId: row.match_code ?? undefined, id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject, body: row.body, changeDetail: row.change_detail ?? undefined })),
+    notices: noticeRows.map((row) => ({ deadline: row.change_detail?.kind === "renewal-reminder" ? row.change_detail.expirationDate : undefined, matchId: row.match_code ?? undefined, id: row.public_code, title: row.title, brand: row.brand_name, urgency: row.urgency, status: row.managed_at ? "Gestionada" : "Pendiente", date: shortDate(row.created_at, true), subject: row.subject ?? row.title, body: row.body ?? row.change_detail?.summary ?? "", changeDetail: row.change_detail ?? undefined })),
   };
 }
 

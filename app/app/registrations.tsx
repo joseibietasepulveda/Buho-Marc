@@ -1,4 +1,5 @@
 "use client";
+import { paymentActKey, paymentKind } from "@/lib/registration-payment";
 import { snapshotReader, pollWhileVisible } from "@/lib/snapshot-client";
 
 import {
@@ -230,11 +231,34 @@ function PhaseColumn({ applications, onSelect, phase }: { applications: Registra
   </section>;
 }
 
+function PaymentAction({ application }: { application: RegistrationApplication }) {
+  const context = useContext(RegistrationContext);
+  const [busy, setBusy] = useState(false), [error, setError] = useState("");
+  const payment = application.manualPayment;
+  if (application.demoScenario || !context || (!payment && (!paymentKind(application) || !paymentActKey(application)))) return null;
+  async function save() {
+    if (busy) return;
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/registrations/payment", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payment ? { action: "revoke", applicationId: application.id, paymentId: payment.id } : { action: "paid", applicationId: application.id, actKey: paymentActKey(application) }) });
+      const data = await response.json(); if (!response.ok) throw new Error(data.message);
+      await context!.refresh();
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo guardar el pago."); }
+    finally { setBusy(false); }
+  }
+  return <div className={`registration-payment ${payment ? "is-paid" : ""}`}>
+    <div><strong>{payment ? payment.state === "confirmed" ? "Pago confirmado por INAPI" : "Pago informado por el equipo" : "¿Ya realizaste el pago?"}</strong><small>{payment ? `Informado el ${new Date(payment.recordedAt).toLocaleDateString("es-CL")}${payment.state === "pending" ? " · Confirmación de INAPI pendiente" : ""}` : "Puedes avisarlo aquí mientras INAPI actualiza el expediente."}</small></div>
+    {payment?.state !== "confirmed" && <button type="button" disabled={busy} className={payment ? "buho-text-action" : "buho-primary"} onClick={() => void save()}>{busy ? "Guardando…" : payment ? "Deshacer" : "Pagado"}</button>}
+    {error && <p role="alert">{error}</p>}
+  </div>;
+}
+
 function RegistrationCard({ application, onSelect }: { application: RegistrationApplication; onSelect: (id: string) => void }) {
   const status = STATUS_BY_ID[application.statusId];
   const today = application.demoScenario ? PROCESS_DEMO_DATE : undefined;
   const deadline = deadlineInfo(application, today);
   return <article className={`trademark-card attention-${deadline.attention}${status.terminal ? ` terminal-${status.terminal}` : ""}`}>
+    <PaymentAction application={application} />
     <button className="trademark-card-main" onClick={() => onSelect(application.id)} type="button">
       <div className="trademark-card-brand">
         <RegistrationLogo key={application.logo ?? application.id} application={application} />
@@ -272,7 +296,7 @@ function RegistrationDrawer({ application, onClose, children }: { application: R
         <section className="trademark-detail-status">
           <span>ESTADO ACTUAL</span>
           <strong>{registrationProgress(application, today)}</strong>
-          {registrationProgress(application, today) !== status.label && <small>Última etapa oficial: {status.label}</small>}
+          {registrationProgress(application, today) !== status.label && <small>Última etapa oficial: {STATUS_BY_ID[application.officialStatusId ?? application.statusId].label}</small>}
           {application.demoScenario && <p className="procedure-scenario">Ejemplo simulado · {application.demoScenario}</p>}
           {deadlines.filter(item => item.kind !== "institutional").map(item => <ProcedureDeadlinePanel key={item.key} deadline={item} today={today} application={application} detailed />)}
           <RegistrationFollowUpPanel application={application}/>

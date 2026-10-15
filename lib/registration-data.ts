@@ -65,6 +65,12 @@ export type RegistrationApplication = {
   clientId?: string; clientRole?: "holder" | "representative";
   demoScenario?: string;
   legalEvidence?: LegalEvidence[];
+  clientIds?: string[];
+  portfolioRole?: "own" | "third-party";
+  manualPayments?: { id: string; kind: "publication" | "final"; actKey: string; recordedAt: string; recordedBy: string; revokedAt?: string; revokedBy?: string }[];
+  officialStatusId?: RegistrationStatusId;
+  manualPayment?: { id: string; kind: "publication" | "final"; recordedAt: string; state: "pending" | "confirmed" };
+
   procedure?: {
     notifiedAt?: string;
     finalAt?: string;

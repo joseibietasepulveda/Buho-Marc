@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { SimilarityHit } from './similarity-contract';
-export const watchSettingsSchema = z.object({ high: z.number().min(0).max(1), medium: z.number().min(0).max(1) }).strict().refine(v => v.medium < v.high, { message: 'El límite medio debe ser menor que el alto.' });
+export const watchSettingsSchema = z.object({ high: z.number().min(0).max(1), medium: z.number().min(0).max(1) }).strict().refine(v => v.medium <= v.high, { message: 'El umbral debe estar entre 0% y 100%.' });
 export type WatchSettings = z.infer<typeof watchSettingsSchema>;
 export const DEFAULT_WATCH_SETTINGS: WatchSettings = { high: .7, medium: .55 };
 export const normalizedState = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
@@ -22,8 +22,10 @@ export const hiddenDiscoveryState = (value: string, flags = WATCH_VISIBILITY) =>
   return !(registeredState(value) || pendingState(value) || (flags.showLapsed && /^caducad/.test(normalizedState(value))) || (flags.showExpired && /^(vencid|expirad)/.test(normalizedState(value))));
 };
 export const stateTone = (value: string) => registeredState(value) ? 'registered' : terminalState(value) ? 'negative' : 'pending';
-export function discoveryLevel(hit: Pick<SimilarityHit, 'score'>, settings: WatchSettings) {
-  return hit.score >= settings.high ? 'Alta' : hit.score >= settings.medium ? 'Media' : null;
+export type WatchAiDecision = { show: boolean; reason: string; insufficient?: boolean };
+export function discoveryLevel(hit: Pick<SimilarityHit, 'score'> & { aiDecision?: WatchAiDecision }, settings: WatchSettings) {
+  if (hit.aiDecision) return hit.aiDecision.show ? 'Recomendados' as const : null;
+  return hit.score >= settings.medium ? 'Mostrar' as const : null;
 }
 export function discoveryOrder(a: SimilarityHit, b: SimilarityHit) {
   return b.score - a.score || a.applicationId.localeCompare(b.applicationId);

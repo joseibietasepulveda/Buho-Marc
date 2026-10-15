@@ -1,3 +1,4 @@
+import { backfillHolderClients } from "@/db/portfolio-clients";
 import { withSession } from "@/lib/auth";
 import { organizationId, actorId, isDemoOrganization } from "@/lib/tenant-context";
 import { NextResponse } from "next/server";
@@ -10,7 +11,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function ensureClients() {
-  if (!isDemoOrganization()) return;
+  if (!isDemoOrganization()) { await backfillHolderClients(); return; }
   await ensureDemoSeed();
   const sql = getSql();
   for (const { id, ...data } of demoClients) await sql`INSERT INTO client_contacts (organization_id, public_code, data) VALUES (${organizationId()}, ${id}, ${sql.json(data)}) ON CONFLICT (organization_id, public_code) DO NOTHING`;

@@ -14,7 +14,7 @@ import { statusLabel, type SourceRecord } from "@/lib/source-contract";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 // ownPortfolioConfirmed remains optional for compatibility with older clients; selection is sufficient.
-const schema = z.object({ action: z.enum(["preview", "import"]), ids: z.array(z.string().regex(/^[1-9]\d{0,8}$/)).min(1).max(10), ownPortfolioConfirmed: z.boolean().optional(), assignments: z.record(z.string().regex(/^[1-9]\d{0,8}$/), z.object({ clientId: z.string().regex(/^CL-\d+$|^unassigned$/), clientRole: z.enum(["holder", "representative"]) }).strict()).optional() }).strict().refine(value => !value.assignments || Object.keys(value.assignments).every(id => value.ids.includes(id)), "La asignación debe corresponder a la selección.");
+const schema = z.object({ portfolioRole: z.enum(["own", "third-party"]).default("own"), action: z.enum(["preview", "import"]), ids: z.array(z.string().regex(/^[1-9]\d{0,8}$/)).min(1).max(10), ownPortfolioConfirmed: z.boolean().optional(), assignments: z.record(z.string().regex(/^[1-9]\d{0,8}$/), z.object({ clientId: z.string().regex(/^CL-\d+$|^unassigned$/), clientRole: z.enum(["holder", "representative"]) }).strict()).optional() }).strict().refine(value => !value.assignments || Object.keys(value.assignments).every(id => value.ids.includes(id)), "La asignación debe corresponder a la selección.");
 export const POST = withSession(async request => {
   try {
     if (request.headers.get("content-type")?.includes("multipart/form-data")) {
@@ -47,20 +47,20 @@ export const POST = withSession(async request => {
     for (const id of ids) {
       const record = records.find(r => r.applicationNumber === id);
       if (!record) { results.push({ id, outcome: "error", message: errors.get(id) ?? "Sin respuesta del proveedor" }); continue; }
-      const kind = portfolioKind(record);
+      const kind = input.portfolioRole === "third-party" ? "brand" : portfolioKind(record);
       const outcome = await getSql().begin(async tx => {
         await tx`SELECT pg_advisory_xact_lock(hashtext(${organizationId()}), 741028)`;
-        if (await isFiledOpposition(tx, id)) return "opposition";
+        if (input.portfolioRole === "own" && await isFiledOpposition(tx, id)) return "opposition";
         const [existing] = await tx`SELECT id FROM source_snapshots WHERE organization_id = ${organizationId()} AND entity_type IN ('brand', 'application') AND data->>'applicationNumber' = ${id}`;
         if (existing) return "existing";
         if (input.action === "preview") return "ready";
-        await importRealRecord(tx, record, kind);
-        await assignImportedClient(tx, id, kind, input.assignments?.[id]);
+        await importRealRecord(tx, record, kind, input.portfolioRole);
+        if (input.portfolioRole === "own") await assignImportedClient(tx, id, kind, input.assignments?.[id]);
         await tx`INSERT INTO source_sync_runs (organization_id, trigger, status, completed_at, requested, received, baseline, request) VALUES (${organizationId()}, 'enrollment', 'success', now(), 1, 1, 1, ${tx.json({ applicationIds: [id], registrationIds: [] })})`;
-        await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) SELECT ${organizationId()}, ${actorId()}, 'portfolio.imported', entity_type, entity_id, ${tx.json({ applicationNumber: id, destination: kind })} FROM source_snapshots WHERE organization_id = ${organizationId()} AND entity_type = ${kind} AND data->>'applicationNumber' = ${id}`;
+        await tx`INSERT INTO audit_events (organization_id, actor_user_id, action, entity_type, entity_id, after_data) SELECT ${organizationId()}, ${actorId()}, 'portfolio.imported', entity_type, entity_id, ${tx.json({ applicationNumber: id, destination: kind, portfolioRole: input.portfolioRole })} FROM source_snapshots WHERE organization_id = ${organizationId()} AND entity_type = ${kind} AND data->>'applicationNumber' = ${id}`;
         return "imported";
       });
-      results.push({ id, outcome, name: record.name, destination: outcome === "opposition" ? "Casos · Oposición presentada" : kind === "brand" ? "Marcas" : "Solicitudes", status: statusLabel(record.status), registrationNumber: record.registrationNumber, candidate: { ...discoveryCandidate(record), tracked: outcome === "existing" || outcome === "imported" || outcome === "opposition" } });
+      results.push({ id, outcome, name: record.name, destination: outcome === "opposition" ? "Casos · Oposición presentada" : input.portfolioRole === "third-party" ? "Marcas de 3ros" : kind === "brand" ? "Marcas" : "Solicitudes", status: statusLabel(record.status), registrationNumber: record.registrationNumber, candidate: { ...discoveryCandidate(record), tracked: outcome === "existing" || outcome === "imported" || outcome === "opposition" } });
     }
     return NextResponse.json({ results });
   } catch (error) { return sourceError(error); }

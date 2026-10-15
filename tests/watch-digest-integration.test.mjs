@@ -71,7 +71,7 @@ test('durable digest: new-only, cap, state filtering, leases, cost guard, outbox
   // All untouched marks share the hard manual cap, even when stored stock exceeds it.
   for(let i=2;i<=32;i++){const id=await brand(org,i);for(let n=0;n<12;n++)await add(id);}
   const capped=await enqueueDigest(org.id,'manual','manual:cap',user.id,now);
-  const [cap]=await sql`SELECT jsonb_array_length(candidate_ids)::int AS n,available FROM watch_digest_runs WHERE id=${capped.id}`;assert.equal(cap.n,150);assert.equal(cap.available,372);
+  const [cap]=await sql`SELECT jsonb_array_length(candidate_ids)::int AS n,available FROM watch_digest_runs WHERE id=${capped.id}`;assert.equal(cap.n,62);assert.equal(cap.available,372);
   // Before making an HTTP request the outbox is marked uncertain; stale claims cannot duplicate after 24 h.
   await sql`UPDATE watch_digest_runs SET status='sending',email=${sql.json(JSON.parse(bodies[0].body))},first_send_at=now()-interval '25 hours',delivery_uncertain=true WHERE id=${capped.id}`;
   await processDigestJob({fetcher:()=>{throw new Error('stale uncertain mail must not fetch');},imageLoader:async()=>null});

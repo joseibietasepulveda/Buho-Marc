@@ -20,10 +20,10 @@ test('discovery uses official dates, retains pending events and recognizes later
   assert.equal(discoveryKind({ ...hit, status: 'Registrada' }, '2026-09-28', { hit, discoveryKind: 'baseline' }), 'status-change');
   assert.equal(discoveryKind(hit, '2026-09-28', { hit, discoveryKind: 'publication' }), 'publication');
 });
-test('default score boundaries are high 70–100 and medium 55–less than 70', () => {
+test('one publication threshold shows scores from 55, without high/medium categories', () => {
   assert.deepEqual(DEFAULT_WATCH_SETTINGS, { high: .7, medium: .55 });
-  assert.equal(discoveryLevel({ score: .7 }, DEFAULT_WATCH_SETTINGS), 'Alta');
-  assert.equal(discoveryLevel({ score: .6999 }, DEFAULT_WATCH_SETTINGS), 'Media');
-  assert.equal(discoveryLevel({ score: .55 }, DEFAULT_WATCH_SETTINGS), 'Media');
+  assert.equal(discoveryLevel({ score: .7 }, DEFAULT_WATCH_SETTINGS), 'Mostrar');
+  assert.equal(discoveryLevel({ score: .6999 }, DEFAULT_WATCH_SETTINGS), 'Mostrar');
+  assert.equal(discoveryLevel({ score: .55 }, DEFAULT_WATCH_SETTINGS), 'Mostrar');
   assert.equal(discoveryLevel({ score: .5499 }, DEFAULT_WATCH_SETTINGS), null);
 });
